@@ -83,9 +83,9 @@ class PersonalizeCommand(
         tlvBuilder.append(TlvTag.CreateWalletAtPersonalize, config.createWallet)
         tlvBuilder.append(TlvTag.WalletsCount, config.walletsCount)
 
-        tlvBuilder.append(TlvTag.NewPin, config.pinSha256())
-        tlvBuilder.append(TlvTag.NewPin2, config.pin2Sha256())
-        tlvBuilder.append(TlvTag.NewPin3, config.pin3Sha256())
+        tlvBuilder.append(TlvTag.NewPin, config.pin)
+        tlvBuilder.append(TlvTag.NewPin2, config.pin2)
+        tlvBuilder.append(TlvTag.NewPin3, config.pin3)
         tlvBuilder.append(TlvTag.CrExKey, config.hexCrExKey)
         tlvBuilder.append(TlvTag.IssuerDataPublicKey, issuer.dataKeyPair.publicKey)
         tlvBuilder.append(TlvTag.IssuerTransactionPublicKey, issuer.transactionKeyPair.publicKey)

@@ -26,9 +26,9 @@ class CardConfig(
         val series: String? = null,
         val startNumber: Long = 0,
         val count: Int = 0,
-        val pin: String,
-        val pin2: String,
-        val pin3: String,
+        pin: String,
+        pin2: String,
+        pin3: String,
         val hexCrExKey: String?,
         val cvc: String,
         val pauseBeforePin2: Int,
@@ -69,9 +69,9 @@ class CardConfig(
         val ndefRecords: List<NdefRecord>
 ) {
 
-    fun pinSha256(): ByteArray = pin.calculateSha256()
-    fun pin2Sha256(): ByteArray = pin2.calculateSha256()
-    fun pin3Sha256(): ByteArray = pin3.calculateSha256()
+    val pin: ByteArray = pin.calculateSha256()
+    val pin2: ByteArray = pin2.calculateSha256()
+    val pin3: ByteArray = pin3.calculateSha256()
 
     companion object
 }
