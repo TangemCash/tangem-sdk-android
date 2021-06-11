@@ -17,9 +17,11 @@ afterEvaluate {
                         Node pomNode = asNode()
                         pomNode.dependencies.'*'.findAll() {
                             it.groupId.text() == artifactConfig.group
-                        }.each() {
-                            it.parent().remove(it)
-                        }
+                        }.each() { it.parent().remove(it) }
+
+                        pomNode.dependencies.'*'.findAll() {
+                            it.scope.text() == 'runtime'
+                        }.each { it.scope*.value = 'compile' }
                     }
                 } else {
                     from components.java
