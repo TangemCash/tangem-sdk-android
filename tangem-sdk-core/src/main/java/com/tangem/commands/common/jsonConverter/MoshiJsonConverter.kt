@@ -53,7 +53,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf()) {
         }
         val result = mutableMapOf<String, Any>()
         rawResult?.filterNot { it.value == null }?.forEach { result[it.key] = it.value!! }
-        return result
+        return result.toMap()
     }
 
     fun prettyPrint(any: Any?, indent: String = "   "): String = toJson(any, indent)
