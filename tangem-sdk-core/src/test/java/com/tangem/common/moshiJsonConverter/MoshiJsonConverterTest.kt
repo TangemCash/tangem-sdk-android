@@ -102,12 +102,31 @@ class MoshiJsonConverterTest {
 
         val initialMessage = Message("header", null)
         resultMap = moshi.toMap(initialMessage)
-        assert(resultMap.isNotEmpty())
+        assert(resultMap["header"] == "header")
+        assert(!resultMap.containsKey("body"))
 
         val resultMessage: Message? = moshi.fromJson(moshi.toJson(resultMap))
         assert(initialMessage == resultMessage)
 
         resultMap = moshi.toMap("sdknfdjn")
+        assert(resultMap.isEmpty())
+
+        val jsonMap = "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"SCAN_TASK\",\"params\":{}}";
+        resultMap = moshi.toMap(jsonMap)
+        assert(resultMap["id"] == 1.0)
+        assert(resultMap["jsonrpc"] == "2.0")
+        assert((resultMap["params"] as Map<*, *>).isEmpty())
+
+
+        val jsonMapWithNull = "{\"id\":null,\"jsonrpc\":\"2.0\"}";
+        resultMap = moshi.toMap(jsonMapWithNull)
+        assert(resultMap.isNotEmpty())
+        assert(!resultMap.containsKey("id"))
+        assert(resultMap["id"] == null)
+        assert(resultMap["jsonrpc"] == "2.0")
+
+        val jsonArray = "[1, 2, 4]";
+        resultMap = moshi.toMap(jsonArray)
         assert(resultMap.isEmpty())
     }
 
