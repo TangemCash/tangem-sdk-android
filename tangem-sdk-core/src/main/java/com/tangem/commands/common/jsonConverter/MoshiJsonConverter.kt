@@ -39,16 +39,21 @@ class MoshiJsonConverter(adapters: List<Any> = listOf()) {
     }
 
     fun toMap(any: Any?): Map<String, Any> {
-        val result: Map<String, Any>? = when (any) {
+        val rawResult: Map<String, Any?>? = when (any) {
             null -> null
             is List<*> -> null
             is String -> {
-                if (any.contains("[") || any.contains("{")) fromJson(any, typedMap())
-                else null
+                if (any.startsWith("{") && any.endsWith("}")) {
+                    fromJson<Map<String, Any?>?>(any, typedMap())
+                } else {
+                    null
+                }
             }
             else -> fromJson(toJson(any), typedMap())
         }
-        return result ?: mapOf()
+        val result = mutableMapOf<String, Any>()
+        rawResult?.filterNot { it.value == null }?.forEach { result[it.key] = it.value!! }
+        return result.toMap()
     }
 
     fun prettyPrint(any: Any?, indent: String = "   "): String = toJson(any, indent)
@@ -73,16 +78,16 @@ class MoshiJsonConverter(adapters: List<Any> = listOf()) {
 
         fun getTangemSdkAdapters(): List<Any> {
             return listOf(
-                TangemSdkAdapter.ByteTypeAdapter(),
-                TangemSdkAdapter.SigningMethodTypeAdapter(),
-                TangemSdkAdapter.SettingsMaskTypeAdapter(),
-                TangemSdkAdapter.ProductMaskTypeAdapter(),
-                TangemSdkAdapter.WalletSettingsMaskAdapter(),
-                TangemSdkAdapter.DateTypeAdapter(),
-                TangemSdkAdapter.FirmwareVersionAdapter(),
-                TangemSdkAdapter.WalletIntIndexAdapter(),
-                TangemSdkAdapter.WalletPubKeyIndexAdapter(),
-                TangemSdkAdapter.WalletIndexAdapter(),
+                    TangemSdkAdapter.ByteTypeAdapter(),
+                    TangemSdkAdapter.SigningMethodTypeAdapter(),
+                    TangemSdkAdapter.SettingsMaskTypeAdapter(),
+                    TangemSdkAdapter.ProductMaskTypeAdapter(),
+                    TangemSdkAdapter.WalletSettingsMaskAdapter(),
+                    TangemSdkAdapter.DateTypeAdapter(),
+                    TangemSdkAdapter.FirmwareVersionAdapter(),
+                    TangemSdkAdapter.WalletIntIndexAdapter(),
+                    TangemSdkAdapter.WalletPubKeyIndexAdapter(),
+                    TangemSdkAdapter.WalletIndexAdapter(),
             )
         }
     }
