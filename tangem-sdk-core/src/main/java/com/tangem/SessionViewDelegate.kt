@@ -70,4 +70,16 @@ interface SessionViewDelegate {
 @JsonClass(generateAdapter = true)
 data class Message(val header: String? = null, val body: String? = null)
 
-enum class WrongValueType { CardId, CardType }
+enum class WrongValueType {
+    CardId, CardType;
+
+    companion object {
+        fun fromTangemError(error: TangemError): WrongValueType? {
+            return when (error) {
+                is TangemSdkError.WrongCardType -> CardType
+                is TangemSdkError.WrongCardNumber -> CardId
+                else -> null
+            }
+        }
+    }
+}

@@ -6,7 +6,6 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.extensions.getType
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
 import com.tangem.tasks.PreflightReadCapable
@@ -204,25 +203,20 @@ class CardSession(
 
     private fun preflightCheck(callback: (session: CardSession, error: TangemError?) -> Unit) {
         Log.session { "Start preflight check" }
-        PreflightReadTask(preflightReadingSettings).run(this) { result ->
+        PreflightReadTask(preflightReadingSettings, cardId).run(this) { result ->
             when (result) {
                 is CompletionResult.Failure -> {
+                    val wrongValueType = WrongValueType.fromTangemError(result.error)
+                    if (wrongValueType != null) {
+                        viewDelegate.onWrongCard(wrongValueType)
+                        preflightCheck(callback)
+                        return@run
+                    }
                     stopWithError(result.error)
                     callback(this, result.error)
                 }
                 is CompletionResult.Success -> {
                     val receivedCardId = result.data.cardId
-                    if (cardId != null && receivedCardId != cardId) {
-                        viewDelegate.onWrongCard(WrongValueType.CardId)
-                        preflightCheck(callback)
-                        return@run
-                    }
-                    val allowedCardTypes = environment.cardFilter.allowedCardTypes
-                    if (!allowedCardTypes.contains(result.data.getType())) {
-                        viewDelegate.onWrongCard(WrongValueType.CardType)
-                        preflightCheck(callback)
-                        return@run
-                    }
                     environment.card = result.data
                     environmentService.updateEnvironment(environment, result.data.cardId)
                     cardId = receivedCardId
