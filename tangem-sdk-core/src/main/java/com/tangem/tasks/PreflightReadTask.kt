@@ -1,9 +1,6 @@
 package com.tangem.tasks
 
-import com.tangem.CardSession
-import com.tangem.CardSessionRunnable
-import com.tangem.FirmwareConstraints
-import com.tangem.Log
+import com.tangem.*
 import com.tangem.commands.common.card.Card
 import com.tangem.commands.read.ReadCommand
 import com.tangem.commands.read.ReadWalletCommand
@@ -36,16 +33,29 @@ sealed class PreflightReadSettings {
 }
 
 class PreflightReadTask(
-    private val readSettings: PreflightReadSettings
+    private val readSettings: PreflightReadSettings,
+    private val cardId: String? = null,
 ) : CardSessionRunnable<Card> {
 
     override val requiresPin2: Boolean = false
 
     override fun run(session: CardSession, callback: (result: CompletionResult<Card>) -> Unit) {
         Log.debug { "================ Perform preflight check with settings: $readSettings) ================" }
-        ReadCommand().run(session) { result ->
+        ReadCommand().run(session) readCommandRun@{ result ->
             when (result) {
-                is CompletionResult.Success -> finalizeRead(session, result.data, callback)
+                is CompletionResult.Success -> {
+                    if (cardId != null && cardId != result.data.cardId) {
+                        callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
+                        return@readCommandRun
+                    }
+                    if (!session.environment.cardFilter.allowedCardTypes
+                            .contains(result.data.firmwareVersion.type)
+                    ) {
+                        callback(CompletionResult.Failure(TangemSdkError.WrongCardType()))
+                        return@readCommandRun
+                    }
+                    finalizeRead(session, result.data, callback)
+                }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
