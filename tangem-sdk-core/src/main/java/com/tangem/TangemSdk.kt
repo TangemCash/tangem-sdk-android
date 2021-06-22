@@ -760,7 +760,12 @@ class TangemSdk(
      * @param completion: a `JSONRPCResponse` with result of the operation
      */
 
-    fun startSessionWithJsonRequest(jsonRequest: String, callback: (String) -> Unit) {
+    fun startSessionWithJsonRequest(
+        jsonRequest: String,
+        cardId: String?,
+        initialMessage: Message?,
+        callback: (String) -> Unit
+    ) {
         val request: JSONRPCRequest = try {
             JSONRPCRequest(jsonRequest)
         } catch (ex: JSONRPCException) {
@@ -771,9 +776,7 @@ class TangemSdk(
             if (checkSession()) throw TangemSdkError.Busy()
 
             configure()
-            val jsonInitialMessage = jsonRpcConverter.jsonConverter.toJson(request.params["initialMessage"])
-            val initialMessage = jsonRpcConverter.jsonConverter.fromJson<Message>(jsonInitialMessage)
-            cardSession = makeSession(request.params["cid"] as? String, initialMessage)
+            cardSession = makeSession(cardId, initialMessage)
             val runnable = jsonRpcConverter.convert(request)
             Thread().run {
                 cardSession?.startWithRunnable(runnable) { callback(it.toJSONRPCResponse(request.id).toJson()) }
