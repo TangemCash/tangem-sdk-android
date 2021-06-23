@@ -6,6 +6,8 @@ import com.tangem.TangemError
 import com.tangem.commands.CommandResponse
 import com.tangem.commands.SignCommand
 import com.tangem.commands.common.jsonConverter.MoshiJsonConverter
+import com.tangem.commands.personalization.DepersonalizeCommand
+import com.tangem.commands.personalization.PersonalizeCommand
 import com.tangem.common.CompletionResult
 import com.tangem.extentions.toSnakeCase
 import com.tangem.tasks.ScanTask
@@ -69,8 +71,10 @@ class JSONRPCConverter {
     companion object {
         fun shared(): JSONRPCConverter {
             return JSONRPCConverter().apply {
-                register(SignCommand::class)
                 register(ScanTask::class)
+                register(SignCommand::class)
+                register(PersonalizeCommand::class)
+                register(DepersonalizeCommand::class)
             }
         }
     }
@@ -140,7 +144,8 @@ class JSONRPCError constructor(
         MethodNotFound(ErrorDescription(-32601, "Method not found")),
         InvalidParams(ErrorDescription(-32602, "Invalid parameters")),
         InternalError(ErrorDescription(-32603, "Internal error")),
-        ServerError(ErrorDescription(-32000, "Server error"));
+        ServerError(ErrorDescription(-32000, "Server error")),
+        UnknownError(ErrorDescription(-32999, "Unknown error"));
 
         data class ErrorDescription(val code: Int, val message: String)
     }

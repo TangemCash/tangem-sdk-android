@@ -784,9 +784,9 @@ class TangemSdk(
 
         } catch (ex: Throwable) {
             val jsonStringConvertible = when (ex) {
-                is TangemSdkError -> ex.toJSONRPCError().toJSONRPCResponse(request.id)
+                is TangemError -> ex.toJSONRPCError().toJSONRPCResponse(request.id)
                 is JSONRPCException -> ex.toJSONRPCResponse(request.id)
-                else -> JSONRPCError(JSONRPCError.Type.ServerError, ex.localizedMessage).toJSONRPCResponse(request.id)
+                else -> JSONRPCError(JSONRPCError.Type.UnknownError, ex.localizedMessage).toJSONRPCResponse(request.id)
             }
             callback(jsonStringConvertible.toJson())
         }
