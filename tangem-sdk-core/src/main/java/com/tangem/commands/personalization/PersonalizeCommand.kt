@@ -1,14 +1,13 @@
 package com.tangem.commands.personalization
 
-import com.tangem.CardSession
-import com.tangem.EncryptionMode
-import com.tangem.SessionEnvironment
-import com.tangem.TangemSdkError
+import com.tangem.*
 import com.tangem.commands.Command
 import com.tangem.commands.common.card.Card
 import com.tangem.commands.common.card.CardData
 import com.tangem.commands.common.card.CardDeserializer
 import com.tangem.commands.common.card.CardStatus
+import com.tangem.commands.common.jsonConverter.MoshiJsonConverter
+import com.tangem.commands.common.jsonRpc.JSONRPCConvertible
 import com.tangem.commands.personalization.entities.*
 import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
@@ -35,7 +34,8 @@ import com.tangem.crypto.sign
  */
 class PersonalizeCommand(
         private val config: CardConfig,
-        private val issuer: Issuer, private val manufacturer: Manufacturer,
+        private val issuer: Issuer,
+        private val manufacturer: Manufacturer,
         private val acquirer: Acquirer? = null
 ) : Command<Card>() {
 
@@ -122,5 +122,15 @@ class PersonalizeCommand(
 
     companion object {
         val devPersonalizationKey = "1234".calculateSha256().copyOf(32)
+
+        fun asJSONRPCConvertible(): JSONRPCConvertible<Card> {
+            return object : JSONRPCConvertible<Card> {
+                override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<Card> {
+                    return MoshiJsonConverter.INSTANCE.let {
+                        it.fromJson<PersonalizeCommand>(it.toJson(params))!!
+                    }
+                }
+            }
+        }
     }
 }

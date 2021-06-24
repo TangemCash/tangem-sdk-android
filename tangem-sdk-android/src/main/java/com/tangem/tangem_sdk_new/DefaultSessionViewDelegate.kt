@@ -25,6 +25,7 @@ class DefaultSessionViewDelegate(
 
     lateinit var activity: Activity
     private var readingDialog: NfcSessionDialog? = null
+    private var stoppedBySession: Boolean = false
 
     override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
         Log.view { "Session started" }
@@ -42,9 +43,10 @@ class DefaultSessionViewDelegate(
         readingDialog = NfcSessionDialog(themeWrapper, nfcManager, nfcLocationProvider).apply {
             setOwnerActivity(activity)
             dismissWithAnimation = true
+            stoppedBySession = false
             create()
             setOnCancelListener {
-                reader.stopSession(true)
+                if (!stoppedBySession) reader.stopSession(true)
                 createReadingDialog(activity)
             }
         }
@@ -52,6 +54,7 @@ class DefaultSessionViewDelegate(
 
     override fun onSessionStopped(message: Message?) {
         Log.view { "Session stopped" }
+        stoppedBySession = true
         postUI { readingDialog?.show(SessionViewDelegateState.Success(message)) }
     }
 

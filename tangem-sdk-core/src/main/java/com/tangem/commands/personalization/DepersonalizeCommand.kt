@@ -1,9 +1,11 @@
 package com.tangem.commands.personalization
 
 import com.squareup.moshi.JsonClass
+import com.tangem.CardSessionRunnable
 import com.tangem.SessionEnvironment
 import com.tangem.commands.Command
 import com.tangem.commands.CommandResponse
+import com.tangem.commands.common.jsonRpc.JSONRPCConvertible
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -28,5 +30,15 @@ class DepersonalizeCommand : Command<DepersonalizeResponse>() {
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): DepersonalizeResponse {
         return DepersonalizeResponse(true)
+    }
+
+    companion object {
+        fun asJSONRPCConvertible(): JSONRPCConvertible<DepersonalizeResponse> {
+            return object : JSONRPCConvertible<DepersonalizeResponse> {
+                override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<DepersonalizeResponse> {
+                    return DepersonalizeCommand()
+                }
+            }
+        }
     }
 }
