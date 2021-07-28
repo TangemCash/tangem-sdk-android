@@ -1,10 +1,11 @@
 package com.tangem.crypto
 
 import com.google.common.truth.Truth.assertThat
-import com.tangem.commands.common.card.EllipticCurve
+import com.tangem.common.card.EllipticCurve
 import com.tangem.crypto.CryptoUtils.generatePublicKey
 import com.tangem.crypto.CryptoUtils.generateRandomBytes
 import com.tangem.crypto.CryptoUtils.verify
+import com.tangem.operations.personalization.entities.createCardId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -23,6 +24,12 @@ class CryptoUtilsTest {
                 .hasLength(32)
         assertThat(privateKey.sum())
                 .isNotEqualTo(0)
+    }
+
+    @Test
+    fun sdfsd() {
+        val result = createCardId("BB45", 3000000000004)
+        assert(result != null)
     }
 
     @Test

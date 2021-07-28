@@ -4,12 +4,12 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import com.tangem.common.extensions.VoidCallback
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.hide
 import com.tangem.tangem_sdk_new.extensions.hideSoftKeyboard
 import com.tangem.tangem_sdk_new.extensions.show
-import com.tangem.tangem_sdk_new.ui.animation.VoidCallback
 
 /**
  * Created by Anton Zhilenkov on 09/08/2020.

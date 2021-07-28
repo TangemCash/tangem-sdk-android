@@ -1,11 +1,15 @@
 package com.tangem
 
+import com.tangem.common.extensions.titleFormatted
+
 object Log {
 
     private val loggers: MutableList<TangemSdkLogger> = mutableListOf()
 
-    fun command(message: () -> String) {
-        logInternal(message, Level.Command)
+    fun command(any: Any, message: (() -> String)? = null) {
+        val commandName = any::class.java.simpleName
+        val message = message ?: { "Send" }
+        logInternal({ "$commandName: ${message()}".titleFormatted() }, Level.Command)
     }
 
     fun tlv(message: () -> String) {
@@ -79,5 +83,5 @@ object Log {
 }
 
 interface TangemSdkLogger {
-    fun log(message: ()->String, level: Log.Level)
+    fun log(message: () -> String, level: Log.Level)
 }

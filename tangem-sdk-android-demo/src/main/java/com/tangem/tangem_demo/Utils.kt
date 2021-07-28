@@ -1,12 +1,9 @@
 package com.tangem.tangem_demo
 
-import com.tangem.KeyPair
-import com.tangem.commands.personalization.entities.Issuer
+import com.tangem.common.KeyPair
 import com.tangem.common.extensions.hexToBytes
+import com.tangem.operations.personalization.entities.Issuer
 
-/**
- * Created by Anton Zhilenkov on 24/07/2020.
- */
 class Utils {
 
 	companion object {

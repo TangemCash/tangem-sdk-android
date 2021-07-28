@@ -6,10 +6,14 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import androidx.transition.TransitionManager
+import com.tangem.common.extensions.VoidCallback
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.extensions.*
 import com.tangem.tangem_sdk_new.ui.NfcLocation
-import com.tangem.tangem_sdk_new.ui.animation.*
+import com.tangem.tangem_sdk_new.ui.animation.AnimationProperty
+import com.tangem.tangem_sdk_new.ui.animation.FlipAnimator
+import com.tangem.tangem_sdk_new.ui.animation.Side
+import com.tangem.tangem_sdk_new.ui.animation.TouchCardAnimation
 import com.tangem.tangem_sdk_new.ui.animation.TouchCardAnimation.Companion.calculateRelativePosition
 
 

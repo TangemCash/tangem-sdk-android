@@ -1,7 +1,7 @@
 package com.tangem.common
 
-import com.tangem.TangemError
 import com.tangem.common.CompletionResult.Success
+import com.tangem.common.core.TangemError
 
 /**
  * Response class encapsulating successful and failed results.

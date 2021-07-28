@@ -1,6 +1,7 @@
 package com.tangem.crypto
 
-import com.tangem.commands.common.card.EllipticCurve
+import com.tangem.common.KeyPair
+import com.tangem.common.card.EllipticCurve
 import net.i2p.crypto.eddsa.EdDSASecurityProvider
 import org.spongycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey
@@ -60,8 +61,8 @@ object CryptoUtils {
      * @return Public key [ByteArray]
      */
     fun generatePublicKey(
-            privateKeyArray: ByteArray,
-            curve: EllipticCurve = EllipticCurve.Secp256k1
+        privateKeyArray: ByteArray,
+        curve: EllipticCurve = EllipticCurve.Secp256k1
     ): ByteArray {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKeyArray)
@@ -71,8 +72,8 @@ object CryptoUtils {
     }
 
     fun loadPublicKey(
-            publicKey: ByteArray,
-            curve: EllipticCurve = EllipticCurve.Secp256k1
+        publicKey: ByteArray,
+        curve: EllipticCurve = EllipticCurve.Secp256k1
     ): PublicKey {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.loadPublicKey(publicKey)
@@ -80,6 +81,12 @@ object CryptoUtils {
             EllipticCurve.Ed25519 -> Ed25519.loadPublicKey(publicKey)
         }
     }
+}
+
+fun Secp256k1.generateKeyPair(): KeyPair {
+    val privateKey = CryptoUtils.generateRandomBytes(32)
+    val publicKey = CryptoUtils.generatePublicKey(privateKey)
+    return KeyPair(publicKey, privateKey)
 }
 
 /**

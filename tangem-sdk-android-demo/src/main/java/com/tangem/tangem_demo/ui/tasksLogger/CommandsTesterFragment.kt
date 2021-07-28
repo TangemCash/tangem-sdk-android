@@ -5,23 +5,25 @@ import android.view.View
 import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.tangem.*
-import com.tangem.commands.PinType
-import com.tangem.commands.common.card.EllipticCurve
-import com.tangem.commands.common.card.masks.SigningMethod
-import com.tangem.commands.file.FileSettings
-import com.tangem.commands.file.FileSettingsChange
-import com.tangem.commands.wallet.WalletConfig
-import com.tangem.common.CardValuesDbStorage
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCodeType
+import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.Config
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.VoidCallback
+import com.tangem.common.files.FileSettings
+import com.tangem.common.files.FileSettingsChange
+import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.CommandSpinnerAdapter
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.RvConsoleAdapter
-import com.tangem.tangem_sdk_new.TerminalKeysStorage
 import com.tangem.tangem_sdk_new.extensions.initNfcManager
 import com.tangem.tangem_sdk_new.nfc.NfcManager
+import com.tangem.tangem_sdk_new.storage.create
 import kotlinx.android.synthetic.main.fg_commands_tester.*
 
 /**
@@ -39,10 +41,12 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         val activity = requireActivity()
         nfcManager = TangemSdk.initNfcManager(activity)
 
-        val databaseDriver = AndroidSqliteDriver(Database.Schema, activity.applicationContext, "demo_cards.db")
         return TangemSdk(
-            nfcManager.reader, viewDelegate, Config(), CardValuesDbStorage(databaseDriver),
-            TerminalKeysStorage(activity.application))
+                nfcManager.reader,
+                viewDelegate,
+                SecureStorage.create(activity),
+                createSdkConfig(),
+        )
     }
 
     override fun getLayoutId(): Int = R.layout.fg_commands_tester
@@ -115,7 +119,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
             when (type) {
                 CommandType.Scan -> scanCard()
                 CommandType.Sign -> sign(prepareHashesToSign())
-                CommandType.WalletCreate -> createWallet(WalletConfig(true, false, EllipticCurve.Secp256k1, SigningMethod.SignHash))
+                CommandType.WalletCreate -> createWallet(EllipticCurve.Secp256k1, false)
                 CommandType.WalletPurge -> purgeWallet()
                 CommandType.IssuerDataRead -> readIssuerData()
                 CommandType.IssuerDataWrite -> writeIssuerData()
@@ -148,6 +152,10 @@ class SdkTaskSpinnerFragment : BaseFragment() {
             }
         }
         commandState.isActive = false
+    }
+
+    override fun onCardChanged(card: Card?) {
+
     }
 
     private val tagDiscoveredListener = onDiscovered@{
@@ -183,11 +191,14 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun onWrongCard(wrongValueType: WrongValueType) {}
         override fun onSessionStopped(message: Message?) {}
         override fun onError(error: TangemError) {}
-        override fun onPinRequested(pinType: PinType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {}
-        override fun onPinChangeRequested(pinType: PinType, callback: (pin: String) -> Unit) {}
+        override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {}
+        override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String) -> Unit) {}
         override fun setConfig(config: Config) {}
         override fun setMessage(message: Message?) {}
         override fun dismiss() {}
+        override fun attestationDidFail(positive: VoidCallback, negative: VoidCallback) {}
+        override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {}
+        override fun attestationCompletedWithWarnings(neutral: VoidCallback) {}
     }
 }
 

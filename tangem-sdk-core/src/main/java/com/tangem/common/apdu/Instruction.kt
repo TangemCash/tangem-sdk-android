@@ -8,13 +8,13 @@ enum class Instruction(var code: Int) {
     Unknown(0x00),
     Personalize(0xF1),
     Read(0xF2),
-    VerifyCard(0xF3),
-    ValidateCard(0xF4),
-    VerifyCode(0xF5),
+    AttestCardKey(0xF3),
+    AttestCardUniqueness(0xF4),
+    AttestCardFirmware(0xF5),
     WriteIssuerData(0xF6),
     ReadIssuerData(0xF7),
     CreateWallet(0xF8),
-    CheckWallet(0xF9),
+    AttestWalletKey(0xF9),
     SetPin(0xFA),
     Sign(0xFB),
     PurgeWallet(0xFC),
@@ -24,9 +24,7 @@ enum class Instruction(var code: Int) {
     ReadUserData(0xE1),
     Depersonalize(0xE3),
     WriteFileData(0xD0),
-    ReadFileData(0xD1),
-    ;
-
+    ReadFileData(0xD1);
 
     companion object {
         private val values = values()

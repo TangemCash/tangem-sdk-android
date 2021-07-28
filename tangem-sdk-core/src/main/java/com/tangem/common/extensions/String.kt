@@ -24,3 +24,13 @@ fun String.hexToBytes(): ByteArray {
         Integer.parseInt(this.substring(2 * i, 2 * i + 2), 16).toByte()
     }
 }
+
+fun String.toSnakeCase(): String = replace("(?<=.)(?=\\p{Upper})".toRegex(), "_")
+
+fun String.toCamelCase(): String = split('_').joinToString("", transform = String::capitalize)
+
+fun String.titleFormatted(maxLength: Int = 50): String {
+    val quotesSize = (maxLength - this.length) / 2
+    val quote = "=".repeat(quotesSize)
+    return "$quote $this $quote"
+}

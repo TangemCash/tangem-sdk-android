@@ -20,7 +20,7 @@ dependencies {
 
     // misc
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation "com.squareup.sqldelight:sqlite-driver:1.4.3"
+//    implementation "com.squareup.sqldelight:sqlite-driver:1.4.3"
 
     //network
     implementation 'com.squareup.retrofit2:retrofit:2.8.1'

@@ -9,6 +9,7 @@ import android.view.animation.DecelerateInterpolator
 import androidx.core.animation.addListener
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import com.tangem.common.extensions.VoidCallback
 
 /**
  * Created by Anton Zhilenkov on 11/10/2020.

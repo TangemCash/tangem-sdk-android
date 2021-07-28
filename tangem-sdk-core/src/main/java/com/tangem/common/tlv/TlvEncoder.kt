@@ -1,21 +1,16 @@
 package com.tangem.common.tlv
 
 import com.tangem.Log
-import com.tangem.TangemSdkError
-import com.tangem.commands.common.IssuerDataMode
-import com.tangem.commands.common.card.CardStatus
-import com.tangem.commands.common.card.EllipticCurve
-import com.tangem.commands.common.card.masks.ProductMask
-import com.tangem.commands.common.card.masks.SettingsMask
-import com.tangem.commands.common.card.masks.SigningMethodMask
-import com.tangem.commands.common.card.masks.WalletSettingsMask
-import com.tangem.commands.file.FileDataMode
-import com.tangem.commands.file.FileSettings
-import com.tangem.commands.read.ReadMode
-import com.tangem.commands.wallet.WalletStatus
+import com.tangem.common.card.*
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
+import com.tangem.common.files.FileDataMode
+import com.tangem.common.files.FileSettings
+import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
+import com.tangem.operations.personalization.entities.ProductMask
+import com.tangem.operations.read.ReadMode
 import java.util.*
 
 /**
@@ -93,34 +88,34 @@ class TlvEncoder {
             }
             TlvValueType.SettingsMask -> {
                 try {
-                    typeCheck<T, SettingsMask>(tag)
-                    val rawValue = (value as SettingsMask).rawValue
+                    typeCheck<T, CardSettingsMask>(tag)
+                    val rawValue = (value as CardSettingsMask).rawValue
                     rawValue.toByteArray(determineByteArraySize(rawValue))
                 } catch (ex: TangemSdkError.EncodingFailedTypeMismatch) {
-                    Log.warning { "Settings mask type is not Card settings mask. Trying to check WalletSettingsMask" }
-                    typeCheck<T, WalletSettingsMask>(tag)
-                    val rawValue = (value as WalletSettingsMask).rawValue
+                    Log.warning { "Type of mask is not CardSettingsMask. Trying to check CardWalletSettingsMask" }
+                    typeCheck<T, CardWalletSettingsMask>(tag)
+                    val rawValue = (value as CardWalletSettingsMask).rawValue
                     rawValue.toByteArray(4)
                 }
             }
             TlvValueType.Status -> {
                 try {
-                    typeCheck<T, CardStatus>(tag)
-                    (value as CardStatus).code.toByteArray()
+                    typeCheck<T, Card.Status>(tag)
+                    (value as Card.Status).code.toByteArray()
                 } catch (ex: Exception) {
-                    Log.warning { "Status is not CardStatus type. Trying to check WalletStatus" }
-                    typeCheck<T, WalletStatus>(tag)
-                    (value as WalletStatus).code.toByteArray()
+                    Log.warning { "Status is not Card.Status type. Trying to check Card.Wallet.Status" }
+                    typeCheck<T, Card.Wallet.Status>(tag)
+                    (value as Card.Wallet.Status).code.toByteArray()
                 }
             }
             TlvValueType.SigningMethod -> {
-                typeCheck<T, SigningMethodMask>(tag)
-                byteArrayOf((value as SigningMethodMask).rawValue.toByte())
+                typeCheck<T, SigningMethod>(tag)
+                byteArrayOf((value as SigningMethod).rawValue.toByte())
             }
             TlvValueType.InteractionMode -> {
                 try {
-                    typeCheck<T, IssuerDataMode>(tag)
-                    byteArrayOf((value as IssuerDataMode).code)
+                    typeCheck<T, IssuerExtraDataMode>(tag)
+                    byteArrayOf((value as IssuerExtraDataMode).code)
                 } catch (ex: Exception) {
                     Log.warning { "InteractionMode is not IssuerDataMode type. Trying to check ReadMode" }
                     typeCheck<T, ReadMode>(tag)
@@ -146,7 +141,7 @@ class TlvEncoder {
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
         if (T::class != ExpectedT::class) {
             val error = TangemSdkError.EncodingFailedTypeMismatch(
-                "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+                    "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
             )
             Log.error { error.customMessage }
             throw error

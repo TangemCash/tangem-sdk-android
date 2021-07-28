@@ -14,5 +14,8 @@
     <string name="error_card_with_max_zero_wallets" translatable="false">Card with max zero wallets</string>
     <string name="error_wallet_error" translatable="false">Wallet error</string>
     <string name="error_wallet_index_not_correct" translatable="false">Wallet index not correct</string>
+    <string name="error_wallet_cannot_be_created" translatable="false">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
+    <string name="error_crypto_utils" translatable="false">Empty</string>
+    <string name="error_network" translatable="false">Empty</string>
 
 </resources>

@@ -1,0 +1,153 @@
+package com.tangem.operations.wallet
+
+import com.squareup.moshi.JsonClass
+import com.tangem.common.CompletionResult
+import com.tangem.common.MaskBuilder
+import com.tangem.common.apdu.CommandApdu
+import com.tangem.common.apdu.Instruction
+import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.card.*
+import com.tangem.common.core.*
+import com.tangem.common.extensions.guard
+import com.tangem.common.tlv.TlvBuilder
+import com.tangem.common.tlv.TlvDecoder
+import com.tangem.common.tlv.TlvTag
+import com.tangem.operations.Command
+import com.tangem.operations.CommandResponse
+
+/**
+ * Response from the Tangem card after `CreateWalletCommand`.
+ */
+@JsonClass(generateAdapter = true)
+class CreateWalletResponse(
+    /**
+     * Unique Tangem card ID number
+     */
+    val cardId: String,
+    /**
+     * Created wallet
+     */
+    val wallet: Card.Wallet,
+) : CommandResponse
+
+/**
+ * This command will create a new wallet on the card having ‘Empty’ state.
+ * A key pair WalletPublicKey / WalletPrivateKey is generated and securely stored in the card.
+ * App will need to obtain Wallet_PublicKey from the response of `CreateWalletCommand`or `ReadCommand`
+ * and then transform it into an address of corresponding blockchain wallet
+ * according to a specific blockchain algorithm.
+ * WalletPrivateKey is never revealed by the card and will be used by `SignCommand` and `AttestWalletKeyCommand`.
+ * RemainingSignature is set to MaxSignatures.
+ *
+ *  @property curve: Elliptic curve of the wallet
+ *  @property isPermanent: If true, this wallet cannot be deleted.
+ *  COS before v4: The card will be able to create a wallet according to its personalization only. The value of
+ *  this parameter can be obtained in this way: `card.settings.isPermanentWallet`
+ */
+class CreateWalletCommand(
+    private val curve: EllipticCurve,
+    private val isPermanent: Boolean
+) : Command<CreateWalletResponse>() {
+
+    private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
+    private var walletIndex: Int? = null
+
+    override fun requiresPasscode(): Boolean = true
+
+    override fun performPreCheck(card: Card): TangemSdkError? {
+        if (card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable && !card.settings.isSelectBlockchainAllowed) {
+            return TangemSdkError.WalletCannotBeCreated()
+        }
+        if (!card.supportedCurves.contains(curve)) {
+            return TangemSdkError.UnsupportedCurve()
+        }
+        if (card.firmwareVersion < FirmwareVersion.MultiWalletAvailable) {
+            if (isPermanent != card.settings.isPermanentWallet) {
+                return TangemSdkError.UnsupportedWalletConfig()
+            }
+            card.settings.defaultSigningMethods?.let {
+                if (it.toList().containsAll(signingMethod.toList())) {
+                    return TangemSdkError.UnsupportedWalletConfig()
+                }
+            }
+        }
+
+        return null
+    }
+
+    override fun run(session: CardSession, callback: CompletionCallback<CreateWalletResponse>) {
+        val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
+
+        val maxIndex = card.settings.maxWalletsCount
+        val occupiedIndexes = card.wallets.map { it.index }
+        val allIndexes = 0 until maxIndex
+
+        walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
+            val error = if (maxIndex == 1) TangemSdkError.AlreadyCreated() else TangemSdkError.MaxNumberOfWalletsCreated()
+            callback(CompletionResult.Failure(error))
+            return
+        }
+
+        super.run(session) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    session.environment.card = session.environment.card?.addWallet(result.data.wallet)
+                    callback(CompletionResult.Success(result.data))
+                }
+                is CompletionResult.Failure -> callback(result)
+            }
+        }
+    }
+
+    override fun mapError(card: Card?, error: TangemError): TangemError {
+        if (error is TangemSdkError.InvalidParams) {
+            val card = card ?: return error
+
+            if (card.firmwareVersion >= FirmwareVersion.IsPasscodeStatusAvailable && card.isPasscodeSet == false) {
+                return TangemSdkError.AlreadyCreated()
+            }
+        }
+
+        return error
+    }
+
+    override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val tlvBuilder = TlvBuilder()
+        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
+        tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
+        tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
+        tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
+        tlvBuilder.append(TlvTag.Cvc, environment.cvc)
+
+        val firmwareVersion = environment.card?.firmwareVersion ?: FirmwareVersion.Min
+        if (firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
+            val cardWalletSettingsMask = MaskBuilder().apply {
+                add(CardWalletSettingsMask.Code.IsReusable)
+                if (isPermanent) add(CardWalletSettingsMask.Code.IsPermanent)
+            }.build<CardWalletSettingsMask>()
+
+            tlvBuilder.append(TlvTag.SettingsMask, cardWalletSettingsMask)
+            tlvBuilder.append(TlvTag.CurveId, curve)
+            tlvBuilder.append(TlvTag.SigningMethod, signingMethod)
+        }
+
+        return CommandApdu(Instruction.CreateWallet, tlvBuilder.serialize())
+    }
+
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): CreateWalletResponse {
+        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+
+        val decoder = TlvDecoder(tlvData)
+        val index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex!!
+        val wallet = Card.Wallet(
+                decoder.decode(TlvTag.WalletPublicKey),
+                curve,
+                Card.Wallet.Settings(isPermanent),
+                0,
+                environment.card?.remainingSignatures,
+                index
+        )
+        return CreateWalletResponse(decoder.decode(TlvTag.CardId), wallet)
+    }
+}
+

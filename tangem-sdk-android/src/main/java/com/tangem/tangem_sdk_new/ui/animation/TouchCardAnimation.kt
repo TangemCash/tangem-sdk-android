@@ -2,6 +2,7 @@ package com.tangem.tangem_sdk_new.ui.animation
 
 import android.animation.Animator
 import android.view.View
+import com.tangem.common.extensions.VoidCallback
 import com.tangem.tangem_sdk_new.extensions.*
 import com.tangem.tangem_sdk_new.ui.NfcLocation
 
@@ -80,5 +81,3 @@ class TouchCardAnimation(
         fun getTouchViewElevation(nfcLocation: NfcLocation): Float = if (nfcLocation.isOnTheBack()) 0f else 4f
     }
 }
-
-typealias VoidCallback = () -> Unit

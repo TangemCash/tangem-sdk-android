@@ -212,6 +212,8 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
 }
 
 class DelayState(mainView: View) : BaseProgressState(mainView) {
+    //TODO: почему так? CSK-68: implement all File Data commands and tasks. Roman: 16.10.2020
+    // это ломает отображение прогресса чтения при чтении данных
     override fun setState(params: SessionViewDelegateState) {
         changeProgressColor(R.color.sdk_progress_bar_primary, false)
 

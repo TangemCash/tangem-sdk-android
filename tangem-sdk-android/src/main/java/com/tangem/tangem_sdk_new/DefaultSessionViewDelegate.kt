@@ -4,7 +4,11 @@ import android.app.Activity
 import android.os.Build
 import android.view.ContextThemeWrapper
 import com.tangem.*
-import com.tangem.commands.PinType
+import com.tangem.common.UserCodeType
+import com.tangem.common.core.Config
+import com.tangem.common.core.TangemError
+import com.tangem.common.extensions.VoidCallback
+import com.tangem.common.nfc.CardReader
 import com.tangem.tangem_sdk_new.nfc.NfcAntennaLocationProvider
 import com.tangem.tangem_sdk_new.nfc.NfcManager
 import com.tangem.tangem_sdk_new.ui.NfcSessionDialog
@@ -91,19 +95,19 @@ class DefaultSessionViewDelegate(
         postUI { readingDialog?.show(SessionViewDelegateState.Error(error)) }
     }
 
-    override fun onPinRequested(pinType: PinType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {
-        Log.view { "Showing pin request with type: $pinType" }
-        postUI { readingDialog?.show(SessionViewDelegateState.PinRequested(pinType, isFirstAttempt, callback)) }
+    override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {
+        Log.view { "Showing pin request with type: $type" }
+        postUI { readingDialog?.show(SessionViewDelegateState.PinRequested(type, isFirstAttempt, callback)) }
     }
 
-    override fun onPinChangeRequested(pinType: PinType, callback: (pin: String) -> Unit) {
-        Log.view { "Showing pin change request with type: $pinType" }
+    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String) -> Unit) {
+        Log.view { "Showing pin change request with type: $type" }
         postUI {
             if (readingDialog == null) {
                 createReadingDialog(activity)
             }
             readingDialog?.enableHowTo(false)
-            readingDialog?.show(SessionViewDelegateState.PinChangeRequested(pinType, callback))
+            readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, callback))
         }
     }
 
@@ -119,6 +123,15 @@ class DefaultSessionViewDelegate(
     override fun dismiss() {
         postUI { readingDialog?.dismiss() }
     }
+
+    override fun attestationDidFail(positive: VoidCallback, negative: VoidCallback) {}
+
+    override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {
+//        title: "Online attestation failed",
+//        message: "We cannot finish card's online attestation at this time. You can continue at your own risk and try again later, retry now or cancel the operation
+    }
+
+    override fun attestationCompletedWithWarnings(neutral: VoidCallback) {}
 
     private fun formatCardId(cardId: String?): String? {
         val cardId = cardId ?: return null

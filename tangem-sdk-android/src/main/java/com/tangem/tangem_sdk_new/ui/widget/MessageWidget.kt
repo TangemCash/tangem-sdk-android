@@ -3,9 +3,9 @@ package com.tangem.tangem_sdk_new.ui.widget
 import android.view.View
 import android.widget.TextView
 import com.tangem.Message
-import com.tangem.TangemError
-import com.tangem.TangemSdkError
 import com.tangem.WrongValueType
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.localizedDescription
