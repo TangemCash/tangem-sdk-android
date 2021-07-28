@@ -128,11 +128,11 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             }
             TlvValueType.SettingsMask -> {
                 try {
-                    typeCheck<T, CardSettingsMask>(tag)
-                    CardSettingsMask(tlvValue.toInt()) as T
+                    typeCheck<T, Card.SettingsMask>(tag)
+                    Card.SettingsMask(tlvValue.toInt()) as T
                 } catch (ex: TangemSdkError.DecodingFailedTypeMismatch) {
-                    typeCheck<T, CardWalletSettingsMask>(tag)
-                    CardWalletSettingsMask(tlvValue.toInt()) as T
+                    typeCheck<T, CardWallet.SettingsMask>(tag)
+                    CardWallet.SettingsMask(tlvValue.toInt()) as T
                 }
             }
             TlvValueType.Status -> {
@@ -140,10 +140,10 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     typeCheck<T, Card.Status>(tag)
                     Card.Status.byCode(tlvValue.toInt()) as T
                 } catch (exception: Exception) {
-                    Log.warning { "Status is not Card.Status type. Trying to check Card.Wallet.Status" }
+                    Log.warning { "Status is not Card.Status type. Trying to check CardWallet.Status" }
                     try {
-                        typeCheck<T, Card.Wallet.Status>(tag)
-                        Card.Wallet.Status.byCode(tlvValue.toInt()) as T
+                        typeCheck<T, CardWallet.Status>(tag)
+                        CardWallet.Status.byCode(tlvValue.toInt()) as T
                     } catch (ex: Exception) {
                         logException(tag, tlvValue.toInt().toString(), exception)
                         throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))

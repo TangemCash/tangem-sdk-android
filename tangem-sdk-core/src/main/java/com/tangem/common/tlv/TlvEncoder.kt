@@ -1,7 +1,10 @@
 package com.tangem.common.tlv
 
 import com.tangem.Log
-import com.tangem.common.card.*
+import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
@@ -88,13 +91,13 @@ class TlvEncoder {
             }
             TlvValueType.SettingsMask -> {
                 try {
-                    typeCheck<T, CardSettingsMask>(tag)
-                    val rawValue = (value as CardSettingsMask).rawValue
+                    typeCheck<T, Card.SettingsMask>(tag)
+                    val rawValue = (value as Card.SettingsMask).rawValue
                     rawValue.toByteArray(determineByteArraySize(rawValue))
                 } catch (ex: TangemSdkError.EncodingFailedTypeMismatch) {
                     Log.warning { "Type of mask is not CardSettingsMask. Trying to check CardWalletSettingsMask" }
-                    typeCheck<T, CardWalletSettingsMask>(tag)
-                    val rawValue = (value as CardWalletSettingsMask).rawValue
+                    typeCheck<T, CardWallet.SettingsMask>(tag)
+                    val rawValue = (value as CardWallet.SettingsMask).rawValue
                     rawValue.toByteArray(4)
                 }
             }
@@ -103,9 +106,9 @@ class TlvEncoder {
                     typeCheck<T, Card.Status>(tag)
                     (value as Card.Status).code.toByteArray()
                 } catch (ex: Exception) {
-                    Log.warning { "Status is not Card.Status type. Trying to check Card.Wallet.Status" }
-                    typeCheck<T, Card.Wallet.Status>(tag)
-                    (value as Card.Wallet.Status).code.toByteArray()
+                    Log.warning { "Status is not Card.Status type. Trying to check CardWallet.Status" }
+                    typeCheck<T, CardWallet.Status>(tag)
+                    (value as CardWallet.Status).code.toByteArray()
                 }
             }
             TlvValueType.SigningMethod -> {

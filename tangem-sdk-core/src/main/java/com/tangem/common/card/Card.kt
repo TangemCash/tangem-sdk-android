@@ -73,7 +73,7 @@ data class Card internal constructor(
     /**
      * Wallets, created on the card, that can be used for signature
      */
-    internal val wallets: List<Wallet>,
+    internal val wallets: List<CardWallet>,
 
     /**
      * Card's attestation report
@@ -100,14 +100,14 @@ data class Card internal constructor(
     val walletsPublicKeys: List<ByteArray>
         get() = wallets.map { it.publicKey }
 
-    fun setWallets(newWallets: List<Wallet>): Card {
+    fun setWallets(newWallets: List<CardWallet>): Card {
         val sortedWallets = newWallets.toMutableList().apply { sortBy { it.index } }
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun wallet(publicKey: ByteArray): Wallet? = wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
+    fun wallet(publicKey: ByteArray): CardWallet? = wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
 
-    fun addWallet(wallet: Wallet): Card {
+    fun addWallet(wallet: CardWallet): Card {
         val sortedWallets = wallets.toMutableList().apply {
             add(wallet)
             sortBy { it.index }
@@ -120,7 +120,7 @@ data class Card internal constructor(
         return setWallets(wallets.toMutableList().apply { remove(wallet) })
     }
 
-    fun updateWallet(wallet: Wallet): Card {
+    fun updateWallet(wallet: CardWallet): Card {
         val mutableWallets = wallets.toMutableList()
         val foundIndex = mutableWallets.indexOfFirst { it.index == wallet.index }
         return if (foundIndex != -1) {
@@ -243,23 +243,23 @@ data class Card internal constructor(
         internal constructor(
             securityDelay: Int,
             maxWalletsCount: Int,
-            mask: CardSettingsMask,
+            mask: SettingsMask,
             defaultSigningMethods: SigningMethod? = null,
             defaultCurve: EllipticCurve? = null
         ) : this(
                 securityDelay,
                 maxWalletsCount,
-                mask.contains(CardSettingsMask.Code.AllowSetPIN1),
-                mask.contains(CardSettingsMask.Code.AllowSetPIN2),
-                mask.contains(CardSettingsMask.Code.ProhibitDefaultPIN1),
-                mask.contains(CardSettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
+                mask.contains(SettingsMask.Code.AllowSetPIN1),
+                mask.contains(SettingsMask.Code.AllowSetPIN2),
+                mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
+                mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
                 createEncryptionModes(mask),
-                mask.contains(CardSettingsMask.Code.PermanentWallet),
-                mask.contains(CardSettingsMask.Code.RestrictOverwriteIssuerExtraData),
+                mask.contains(SettingsMask.Code.PermanentWallet),
+                mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
                 defaultSigningMethods,
                 defaultCurve,
-                mask.contains(CardSettingsMask.Code.ProtectIssuerDataAgainstReplay),
-                mask.contains(CardSettingsMask.Code.AllowSelectBlockchain),
+                mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
+                mask.contains(SettingsMask.Code.AllowSelectBlockchain),
         )
 
         internal var isOverwritingIssuerExtraDataRestricted: Boolean = isOverwritingIssuerExtraDataRestricted
@@ -269,129 +269,127 @@ data class Card internal constructor(
         internal var isSelectBlockchainAllowed: Boolean = isSelectBlockchainAllowed
 
         companion object {
-            private fun createEncryptionModes(mask: CardSettingsMask): List<EncryptionMode> {
+            private fun createEncryptionModes(mask: SettingsMask): List<EncryptionMode> {
                 val modes = mutableListOf(EncryptionMode.Strong)
-                if (mask.contains(CardSettingsMask.Code.AllowFastEncryption)) modes.add(EncryptionMode.Fast)
-                if (mask.contains(CardSettingsMask.Code.AllowUnencrypted)) modes.add(EncryptionMode.None)
+                if (mask.contains(SettingsMask.Code.AllowFastEncryption)) modes.add(EncryptionMode.Fast)
+                if (mask.contains(SettingsMask.Code.AllowUnencrypted)) modes.add(EncryptionMode.None)
                 return modes.toList()
             }
         }
     }
 
-    data class Wallet(
-        /**
-         *  Wallet's public key.
-         */
-        val publicKey: ByteArray,
+    data class SettingsMask(override val rawValue: Int) : BaseMask() {
 
-        /**
-         *  Elliptic curve used for all wallet key operations.
-         */
-        val curve: EllipticCurve,
+        override val values: List<Code> = Code.values().toList()
 
-        /**
-         *  Wallet's settings
-         */
-        val settings: Settings,
+        fun toWalletSettingsMask(): CardWallet.SettingsMask = CardWallet.SettingsMask(rawValue)
 
-        /**
-         * Total number of signed hashes returned by the wallet since its creation
-         * COS 1.16+
-         */
-        val totalSignedHashes: Int?,
-
-        /**
-         * Remaining number of `Sign` operations before the wallet will stop signing any data.
-         * Note: This counter were deprecated for cards with COS 4.0 and higher
-         */
-        val remainingSignatures: Int?,
-
-        /**
-         *  Index of the wallet in the card storage
-         */
-        val index: Int
-    ) {
-
-        class Settings internal constructor(
-            /**
-             * If true, erasing the wallet will be prohibited
-             */
-            val isPermanent: Boolean
-        ) {
-            internal constructor(
-                mask: CardWalletSettingsMask
-            ) : this(mask.contains(CardWalletSettingsMask.Code.IsPermanent))
+        enum class Code(override val value: Int) : Mask.Code {
+            IsReusable(0x0001),
+            UseActivation(0x0002),
+            PermanentWallet(0x0004),
+            UseBlock(0x0008),
+            AllowSetPIN1(0x0010),
+            AllowSetPIN2(0x0020),
+            UseCvc(0x0040),
+            ProhibitDefaultPIN1(0x0080),
+            UseOneCommandAtTime(0x0100),
+            UseNDEF(0x0200),
+            UseDynamicNDEF(0x0400),
+            SmartSecurityDelay(0x0800),
+            AllowUnencrypted(0x1000),
+            AllowFastEncryption(0x2000),
+            ProtectIssuerDataAgainstReplay(0x4000),
+            RestrictOverwriteIssuerExtraData(0x00100000),
+            AllowSelectBlockchain(0x8000),
+            DisablePrecomputedNDEF(0x00010000),
+            SkipSecurityDelayIfValidatedByLinkedTerminal(0x00080000),
+            SkipCheckPIN2CVCIfValidatedByIssuer(0x00040000),
+            SkipSecurityDelayIfValidatedByIssuer(0x00020000),
+            DisableIssuerData(0x01000000),
+            DisableUserData(0x02000000),
+            DisableFiles(0x04000000);
         }
+    }
+}
+
+data class CardWallet(
+    /**
+     *  Wallet's public key.
+     */
+    val publicKey: ByteArray,
+
+    /**
+     *  Elliptic curve used for all wallet key operations.
+     */
+    val curve: EllipticCurve,
+
+    /**
+     *  Wallet's settings
+     */
+    val settings: Settings,
+
+    /**
+     * Total number of signed hashes returned by the wallet since its creation
+     * COS 1.16+
+     */
+    val totalSignedHashes: Int?,
+
+    /**
+     * Remaining number of `Sign` operations before the wallet will stop signing any data.
+     * Note: This counter were deprecated for cards with COS 4.0 and higher
+     */
+    val remainingSignatures: Int?,
+
+    /**
+     *  Index of the wallet in the card storage
+     */
+    val index: Int
+) {
+    /**
+     * Status of the wallet.
+     */
+    enum class Status(val code: Int) {
+        /**
+         * Wallet not created
+         */
+        Empty(1),
 
         /**
-         * Status of the wallet.
+         * Wallet created and can be used for signing
          */
-        enum class Status(val code: Int) {
-            /**
-             * Wallet not created
-             */
-            Empty(1),
+        Loaded(2),
 
-            /**
-             * Wallet created and can be used for signing
-             */
-            Loaded(2),
+        /**
+         * Wallet was purged and can't be recreated or used for signing
+         */
+        Purged(3);
 
-            /**
-             * Wallet was purged and can't be recreated or used for signing
-             */
-            Purged(3);
-
-            companion object {
-                fun byCode(code: Int): Status? {
-                    return values().find { it.code == code }
-                }
+        companion object {
+            fun byCode(code: Int): Status? {
+                return values().find { it.code == code }
             }
         }
     }
-}
 
-data class CardSettingsMask(override val rawValue: Int) : BaseMask() {
-
-    override val values: List<Code> = Code.values().toList()
-
-    fun toWalletSettingsMask(): CardWalletSettingsMask = CardWalletSettingsMask(rawValue)
-
-    enum class Code(override val value: Int) : Mask.Code {
-        IsReusable(0x0001),
-        UseActivation(0x0002),
-        PermanentWallet(0x0004),
-        UseBlock(0x0008),
-        AllowSetPIN1(0x0010),
-        AllowSetPIN2(0x0020),
-        UseCvc(0x0040),
-        ProhibitDefaultPIN1(0x0080),
-        UseOneCommandAtTime(0x0100),
-        UseNDEF(0x0200),
-        UseDynamicNDEF(0x0400),
-        SmartSecurityDelay(0x0800),
-        AllowUnencrypted(0x1000),
-        AllowFastEncryption(0x2000),
-        ProtectIssuerDataAgainstReplay(0x4000),
-        RestrictOverwriteIssuerExtraData(0x00100000),
-        AllowSelectBlockchain(0x8000),
-        DisablePrecomputedNDEF(0x00010000),
-        SkipSecurityDelayIfValidatedByLinkedTerminal(0x00080000),
-        SkipCheckPIN2CVCIfValidatedByIssuer(0x00040000),
-        SkipSecurityDelayIfValidatedByIssuer(0x00020000),
-        DisableIssuerData(0x01000000),
-        DisableUserData(0x02000000),
-        DisableFiles(0x04000000);
+    data class Settings internal constructor(
+        /**
+         * If true, erasing the wallet will be prohibited
+         */
+        val isPermanent: Boolean
+    ) {
+        internal constructor(
+            mask: SettingsMask
+        ) : this(mask.contains(SettingsMask.Code.IsPermanent))
     }
-}
 
+    data class SettingsMask(override var rawValue: Int) : BaseMask() {
 
-data class CardWalletSettingsMask(override var rawValue: Int) : BaseMask() {
+        override val values: List<Code> = Code.values().toList()
 
-    override val values: List<Code> = Code.values().toList()
-
-    enum class Code(override val value: Int) : Mask.Code {
-        IsReusable(0x0001),
-        IsPermanent(0x0004)
+        enum class Code(override val value: Int) : Mask.Code {
+            IsReusable(0x0001),
+            IsPermanent(0x0004)
+        }
     }
 }

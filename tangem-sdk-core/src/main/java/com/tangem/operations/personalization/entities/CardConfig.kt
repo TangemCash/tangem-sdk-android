@@ -3,7 +3,7 @@ package com.tangem.operations.personalization.entities
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.tangem.common.MaskBuilder
-import com.tangem.common.card.CardSettingsMask
+import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.calculateSha256
@@ -141,81 +141,81 @@ data class CardConfig(
     }
 }
 
-internal fun CardConfig.createSettingsMask(): CardSettingsMask {
+internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     val builder = MaskBuilder()
 
     if (allowSetPIN1) {
-        builder.add(CardSettingsMask.Code.AllowSetPIN1)
+        builder.add(Card.SettingsMask.Code.AllowSetPIN1)
     }
     if (allowSetPIN2) {
-        builder.add(CardSettingsMask.Code.AllowSetPIN2)
+        builder.add(Card.SettingsMask.Code.AllowSetPIN2)
     }
     if (useCvc) {
-        builder.add(CardSettingsMask.Code.UseCvc)
+        builder.add(Card.SettingsMask.Code.UseCvc)
     }
 
     //Now we can personalize only reusable wallets
-    builder.add(CardSettingsMask.Code.IsReusable)
+    builder.add(Card.SettingsMask.Code.IsReusable)
 
     if (useOneCommandAtTime == true) {
-        builder.add(CardSettingsMask.Code.UseOneCommandAtTime)
+        builder.add(Card.SettingsMask.Code.UseOneCommandAtTime)
     }
     if (useNDEF) {
-        builder.add(CardSettingsMask.Code.UseNDEF)
+        builder.add(Card.SettingsMask.Code.UseNDEF)
     }
     if (useDynamicNDEF == true) {
-        builder.add(CardSettingsMask.Code.UseDynamicNDEF)
+        builder.add(Card.SettingsMask.Code.UseDynamicNDEF)
     }
     if (disablePrecomputedNDEF == true) {
-        builder.add(CardSettingsMask.Code.DisablePrecomputedNDEF)
+        builder.add(Card.SettingsMask.Code.DisablePrecomputedNDEF)
     }
     if (allowUnencrypted) {
-        builder.add(CardSettingsMask.Code.AllowUnencrypted)
+        builder.add(Card.SettingsMask.Code.AllowUnencrypted)
     }
     if (allowFastEncryption) {
-        builder.add(CardSettingsMask.Code.AllowFastEncryption)
+        builder.add(Card.SettingsMask.Code.AllowFastEncryption)
     }
     if (prohibitDefaultPIN1) {
-        builder.add(CardSettingsMask.Code.ProhibitDefaultPIN1)
+        builder.add(Card.SettingsMask.Code.ProhibitDefaultPIN1)
     }
     if (useActivation) {
-        builder.add(CardSettingsMask.Code.UseActivation)
+        builder.add(Card.SettingsMask.Code.UseActivation)
     }
     if (useBlock) {
-        builder.add(CardSettingsMask.Code.UseBlock)
+        builder.add(Card.SettingsMask.Code.UseBlock)
     }
     if (smartSecurityDelay) {
-        builder.add(CardSettingsMask.Code.SmartSecurityDelay)
+        builder.add(Card.SettingsMask.Code.SmartSecurityDelay)
     }
     if (protectIssuerDataAgainstReplay == true) {
-        builder.add(CardSettingsMask.Code.ProtectIssuerDataAgainstReplay)
+        builder.add(Card.SettingsMask.Code.ProtectIssuerDataAgainstReplay)
     }
     if (prohibitPurgeWallet) {
-        builder.add(CardSettingsMask.Code.PermanentWallet)
+        builder.add(Card.SettingsMask.Code.PermanentWallet)
     }
     if (allowSelectBlockchain) {
-        builder.add(CardSettingsMask.Code.AllowSelectBlockchain)
+        builder.add(Card.SettingsMask.Code.AllowSelectBlockchain)
     }
     if (skipCheckPIN2CVCIfValidatedByIssuer) {
-        builder.add(CardSettingsMask.Code.SkipCheckPIN2CVCIfValidatedByIssuer)
+        builder.add(Card.SettingsMask.Code.SkipCheckPIN2CVCIfValidatedByIssuer)
     }
     if (skipSecurityDelayIfValidatedByIssuer) {
-        builder.add(CardSettingsMask.Code.SkipSecurityDelayIfValidatedByIssuer)
+        builder.add(Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByIssuer)
     }
     if (skipSecurityDelayIfValidatedByLinkedTerminal) {
-        builder.add(CardSettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal)
+        builder.add(Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal)
     }
     if (restrictOverwriteIssuerExtraData == true) {
-        builder.add(CardSettingsMask.Code.RestrictOverwriteIssuerExtraData)
+        builder.add(Card.SettingsMask.Code.RestrictOverwriteIssuerExtraData)
     }
     if (disableIssuerData == true) {
-        builder.add(CardSettingsMask.Code.DisableIssuerData)
+        builder.add(Card.SettingsMask.Code.DisableIssuerData)
     }
     if (disableUserData == true) {
-        builder.add(CardSettingsMask.Code.DisableUserData)
+        builder.add(Card.SettingsMask.Code.DisableUserData)
     }
     if (disableFiles == true) {
-        builder.add(CardSettingsMask.Code.DisableFiles)
+        builder.add(Card.SettingsMask.Code.DisableFiles)
     }
     return builder.build()
 }

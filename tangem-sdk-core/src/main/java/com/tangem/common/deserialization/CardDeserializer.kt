@@ -2,7 +2,7 @@ package com.tangem.common.deserialization
 
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
-import com.tangem.common.card.CardSettingsMask
+import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.SessionEnvironment
@@ -20,7 +20,7 @@ class CardDeserializer {
             val cardDataDecoder = cardDataDecoder ?: throw TangemSdkError.DeserializeApduFailed()
 
             val firmware = FirmwareVersion(decoder.decode(TlvTag.Firmware))
-            val cardSettingsMask: CardSettingsMask = decoder.decode(TlvTag.SettingsMask)
+            val cardSettingsMask: Card.SettingsMask = decoder.decode(TlvTag.SettingsMask)
 
             val isPasscodeSet: Boolean? = if (firmware >= FirmwareVersion.IsPasscodeStatusAvailable) {
                 !(decoder.decode(TlvTag.Pin2IsDefault) as Boolean)
@@ -34,14 +34,14 @@ class CardDeserializer {
             } else {
                 EllipticCurve.values().toList()
             }
-            val wallets = mutableListOf<Card.Wallet>()
+            val wallets = mutableListOf<CardWallet>()
             var remainingSignatures: Int? = null
 
             if (firmware < FirmwareVersion.MultiWalletAvailable && status == Card.Status.Loaded) {
                 remainingSignatures = decoder.decodeOptional(TlvTag.WalletRemainingSignatures)
-                val walletSettings = Card.Wallet.Settings(cardSettingsMask.toWalletSettingsMask())
+                val walletSettings = CardWallet.Settings(cardSettingsMask.toWalletSettingsMask())
 
-                val wallet = Card.Wallet(
+                val wallet = CardWallet(
                         decoder.decode(TlvTag.WalletPublicKey),
                         defaultCurve,
                         walletSettings,
@@ -114,7 +114,7 @@ class CardDeserializer {
 
         private fun cardSettings(
             decoder: TlvDecoder,
-            mask: CardSettingsMask,
+            mask: Card.SettingsMask,
             defaultCurve: EllipticCurve
         ): Card.Settings = Card.Settings(
                 decoder.decodeOptional<Int>(TlvTag.PauseBeforePin2)?.let { it * 10 } ?: 0,

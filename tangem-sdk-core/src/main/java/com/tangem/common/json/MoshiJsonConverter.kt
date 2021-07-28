@@ -6,8 +6,8 @@ import com.squareup.moshi.ToJson
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tangem.common.MaskBuilder
-import com.tangem.common.card.CardSettingsMask
-import com.tangem.common.card.CardWalletSettingsMask
+import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.hexToBytes
@@ -83,7 +83,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf()) {
             return listOf(
                     TangemSdkAdapter.ByteTypeAdapter(),
                     TangemSdkAdapter.SigningMethodTypeAdapter(),
-                    TangemSdkAdapter.SettingsMaskTypeAdapter(),
+                    TangemSdkAdapter.CardSettingsMaskTypeAdapter(),
                     TangemSdkAdapter.ProductMaskTypeAdapter(),
                     TangemSdkAdapter.WalletSettingsMaskAdapter(),
                     TangemSdkAdapter.DateTypeAdapter(),
@@ -102,15 +102,15 @@ class TangemSdkAdapter {
         fun fromJson(json: String): ByteArray = json.hexToBytes()
     }
 
-    class SettingsMaskTypeAdapter {
+    class CardSettingsMaskTypeAdapter {
         @ToJson
-        fun toJson(src: CardSettingsMask): List<String> = src.toList().map { it.name }
+        fun toJson(src: Card.SettingsMask): List<String> = src.toList().map { it.name }
 
         @FromJson
-        fun fromJson(jsonList: List<String>): CardSettingsMask = MaskBuilder().apply {
+        fun fromJson(jsonList: List<String>): Card.SettingsMask = MaskBuilder().apply {
             jsonList.forEach {
                 try {
-                    add(CardSettingsMask.Code.valueOf(it))
+                    add(Card.SettingsMask.Code.valueOf(it))
                 } catch (ex: IllegalArgumentException) {
                     ex.printStackTrace()
                 }
@@ -153,13 +153,13 @@ class TangemSdkAdapter {
 
     class WalletSettingsMaskAdapter {
         @ToJson
-        fun toJson(src: CardWalletSettingsMask): List<String> = src.toList().map { it.name }
+        fun toJson(src: CardWallet.SettingsMask): List<String> = src.toList().map { it.name }
 
         @FromJson
-        fun fromJson(jsonList: List<String>): CardWalletSettingsMask = MaskBuilder().apply {
+        fun fromJson(jsonList: List<String>): CardWallet.SettingsMask = MaskBuilder().apply {
             jsonList.forEach {
                 try {
-                    add(CardWalletSettingsMask.Code.valueOf(it))
+                    add(CardWallet.SettingsMask.Code.valueOf(it))
                 } catch (ex: IllegalArgumentException) {
                     ex.printStackTrace()
                 }

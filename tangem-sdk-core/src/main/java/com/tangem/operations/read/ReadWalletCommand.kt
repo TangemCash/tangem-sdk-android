@@ -6,7 +6,7 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
@@ -25,7 +25,7 @@ import com.tangem.operations.PreflightReadMode
 @JsonClass(generateAdapter = true)
 class ReadWalletResponse(
     val cid: String,
-    val wallet: Card.Wallet
+    val wallet: CardWallet
 ) : CommandResponse
 
 /**

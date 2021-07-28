@@ -27,7 +27,7 @@ class CreateWalletResponse(
     /**
      * Created wallet
      */
-    val wallet: Card.Wallet,
+    val wallet: CardWallet,
 ) : CommandResponse
 
 /**
@@ -122,9 +122,9 @@ class CreateWalletCommand(
         val firmwareVersion = environment.card?.firmwareVersion ?: FirmwareVersion.Min
         if (firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
             val cardWalletSettingsMask = MaskBuilder().apply {
-                add(CardWalletSettingsMask.Code.IsReusable)
-                if (isPermanent) add(CardWalletSettingsMask.Code.IsPermanent)
-            }.build<CardWalletSettingsMask>()
+                add(CardWallet.SettingsMask.Code.IsReusable)
+                if (isPermanent) add(CardWallet.SettingsMask.Code.IsPermanent)
+            }.build<CardWallet.SettingsMask>()
 
             tlvBuilder.append(TlvTag.SettingsMask, cardWalletSettingsMask)
             tlvBuilder.append(TlvTag.CurveId, curve)
@@ -139,10 +139,10 @@ class CreateWalletCommand(
 
         val decoder = TlvDecoder(tlvData)
         val index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex!!
-        val wallet = Card.Wallet(
+        val wallet = CardWallet(
                 decoder.decode(TlvTag.WalletPublicKey),
                 curve,
-                Card.Wallet.Settings(isPermanent),
+                CardWallet.Settings(isPermanent),
                 0,
                 environment.card?.remainingSignatures,
                 index

@@ -1,7 +1,6 @@
 package com.tangem.common.deserialization
 
-import com.tangem.common.card.Card
-import com.tangem.common.card.CardWalletSettingsMask
+import com.tangem.common.card.CardWallet
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder
@@ -24,15 +23,15 @@ class WalletDeserializer {
             return Pair(wallets, cardWalletsData.size)
         }
 
-        internal fun deserializeWallet(decoder: TlvDecoder): Card.Wallet? {
-            val status: Card.Wallet.Status = decoder.decode(TlvTag.Status)
-            return if (status != Card.Wallet.Status.Loaded) null else deserialize(decoder)
+        internal fun deserializeWallet(decoder: TlvDecoder): CardWallet? {
+            val status: CardWallet.Status = decoder.decode(TlvTag.Status)
+            return if (status != CardWallet.Status.Loaded) null else deserialize(decoder)
         }
 
-        private fun deserialize(decoder: TlvDecoder): Card.Wallet {
-            val settings = Card.Wallet.Settings(decoder.decode(TlvTag.SettingsMask) as CardWalletSettingsMask)
+        private fun deserialize(decoder: TlvDecoder): CardWallet {
+            val settings = CardWallet.Settings(decoder.decode(TlvTag.SettingsMask) as CardWallet.SettingsMask)
 
-            return Card.Wallet(
+            return CardWallet(
                     decoder.decode(TlvTag.WalletPublicKey),
                     decoder.decode(TlvTag.CurveId),
                     settings,
@@ -44,4 +43,4 @@ class WalletDeserializer {
     }
 }
 
-typealias DeserializedWallets = Pair<List<Card.Wallet>, Int>
+typealias DeserializedWallets = Pair<List<CardWallet>, Int>

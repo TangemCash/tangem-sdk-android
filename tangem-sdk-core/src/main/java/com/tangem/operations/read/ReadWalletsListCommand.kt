@@ -5,7 +5,7 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
@@ -21,7 +21,7 @@ import com.tangem.operations.PreflightReadMode
 @JsonClass(generateAdapter = true)
 class ReadWalletsListResponse(
     val cardId: String,
-    val wallets: List<Card.Wallet>
+    val wallets: List<CardWallet>
 ) : CommandResponse
 
 /**
@@ -31,7 +31,7 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
 
-    private val loadedWallets = mutableListOf<Card.Wallet>()
+    private val loadedWallets = mutableListOf<CardWallet>()
     private var receivedWalletsCount: Int = 0
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadWalletsListResponse>) {
