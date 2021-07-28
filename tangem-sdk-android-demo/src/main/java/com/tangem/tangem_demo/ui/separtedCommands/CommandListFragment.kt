@@ -75,6 +75,8 @@ class CommandListFragment : BaseFragment() {
         btnDeleteFirst.setOnClickListener { deleteFiles(listOf(0)) }
         btnMakeFilePublic.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Public)) }
         btnMakeFilePrivate.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Private)) }
+
+        sliderWallet.stepSize = 1f
     }
 
     override fun handleCommandResult(result: CompletionResult<*>) {
@@ -104,13 +106,22 @@ class CommandListFragment : BaseFragment() {
             selectedIndexOfWallet = -1
             return
         }
+        if (card.walletsCount == 0) {
+            walletIndexesContainer.visibility = View.GONE
+            selectedIndexOfWallet = -1
+            return
+        }
 
         sliderWallet.post {
             val walletsCount = card.walletsCount.toFloat()
-            if (walletsCount == 1f) return@post
+            if (walletsCount == 1f) {
+                selectedIndexOfWallet = 0
+                walletIndexesContainer.visibility = View.GONE
+                sliderWallet.valueTo = 0f
+                return@post
+            }
 
             walletIndexesContainer.visibility = View.VISIBLE
-            sliderWallet.stepSize = 1f
             sliderWallet.valueFrom = 0f
             sliderWallet.valueTo = walletsCount - 1f
 

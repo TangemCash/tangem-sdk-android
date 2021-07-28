@@ -66,7 +66,7 @@ class CreateWalletCommand(
                 return TangemSdkError.UnsupportedWalletConfig()
             }
             card.settings.defaultSigningMethods?.let {
-                if (it.toList().containsAll(signingMethod.toList())) {
+                if (!it.toList().containsAll(signingMethod.toList())) {
                     return TangemSdkError.UnsupportedWalletConfig()
                 }
             }
