@@ -3,7 +3,6 @@ package com.tangem.common.tlv
 import com.google.common.truth.Truth.assertThat
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.card.SettingsMask
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
@@ -25,9 +24,8 @@ class TlvDecoderTest {
 
     @Test
     fun `map optional when value is present`() {
-        val mask: SettingsMask? = tlvMapper.decodeOptional(TlvTag.SettingsMask)
-        assertThat(mask)
-                .isNotNull()
+        val mask: Card.SettingsMask? = tlvMapper.decodeOptional(TlvTag.SettingsMask)
+        assertThat(mask).isNotNull()
     }
 
     @Test
@@ -67,20 +65,20 @@ class TlvDecoderTest {
 
     @Test
     fun `map SettingsMask returns correct value`() {
-        val mask: SettingsMask = tlvMapper.decode(TlvTag.SettingsMask)
+        val mask: Card.SettingsMask = tlvMapper.decode(TlvTag.SettingsMask)
         assertThat(mask)
                 .isNotNull()
         assertThat(mask.rawValue)
                 .isEqualTo(32289)
-        assertThat(mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal))
+        assertThat(mask.contains(Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal))
                 .isFalse()
-        assertThat(mask.contains(SettingsMask.Code.IsReusable))
+        assertThat(mask.contains(Card.SettingsMask.Code.IsReusable))
                 .isTrue()
-        assertThat(mask.contains(SettingsMask.Code.AllowSetPIN2))
+        assertThat(mask.contains(Card.SettingsMask.Code.AllowSetPIN2))
                 .isTrue()
-        assertThat(mask.contains(SettingsMask.Code.UseDynamicNDEF))
+        assertThat(mask.contains(Card.SettingsMask.Code.UseDynamicNDEF))
                 .isTrue()
-        assertThat(mask.contains(SettingsMask.Code.PermanentWallet))
+        assertThat(mask.contains(Card.SettingsMask.Code.PermanentWallet))
                 .isFalse()
     }
 

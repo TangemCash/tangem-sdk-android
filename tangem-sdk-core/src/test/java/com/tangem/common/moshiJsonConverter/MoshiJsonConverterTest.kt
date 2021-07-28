@@ -2,7 +2,8 @@ package com.tangem.common.moshiJsonConverter
 
 import com.tangem.Message
 import com.tangem.common.MaskBuilder
-import com.tangem.common.card.SettingsMask
+import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.crypto.CryptoUtils
@@ -37,11 +38,11 @@ class MoshiJsonConverterTest {
 
     @Test
     fun settingsMask() {
-        val builder = MaskBuilder().apply { SettingsMask.Code.values().forEach { this.add(it) } }
-        val initialMask: SettingsMask = builder.build()
+        val builder = MaskBuilder().apply { Card.SettingsMask.Code.values().forEach { this.add(it) } }
+        val initialMask: Card.SettingsMask = builder.build()
 
         val jsonList = moshi.toJson(initialMask)
-        val resultMask: SettingsMask? = moshi.fromJson(jsonList)
+        val resultMask: Card.SettingsMask? = moshi.fromJson(jsonList)
         assert(initialMask.rawValue == resultMask?.rawValue)
     }
 
@@ -56,11 +57,11 @@ class MoshiJsonConverterTest {
 
     @Test
     fun walletSettingsMask() {
-        val builder = MaskBuilder().apply { SettingsMask.Code.values().forEach { this.add(it) } }
-        val initialMask: SettingsMask = builder.build()
+        val builder = MaskBuilder().apply { CardWallet.SettingsMask.Code.values().forEach { this.add(it) } }
+        val initialMask: CardWallet.SettingsMask = builder.build()
 
         val jsonList = moshi.toJson(initialMask)
-        val resultMask: SettingsMask? = moshi.fromJson(jsonList)
+        val resultMask: CardWallet.SettingsMask? = moshi.fromJson(jsonList)
         assert(initialMask.rawValue == resultMask?.rawValue)
     }
 
