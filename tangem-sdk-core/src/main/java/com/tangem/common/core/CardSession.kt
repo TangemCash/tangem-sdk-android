@@ -47,8 +47,8 @@ class CardSession(
 
     var cardId: String? = cardId
         private set
-
     var connectedTag: TagType? = null
+        private set
     var state = CardSessionState.Inactive
         private set
 
@@ -184,7 +184,7 @@ class CardSession(
 
     private fun preflightCheck(onSessionStarted: SessionStartedCallback) {
         Log.session { "Start preflight check" }
-        val preflightTask = PreflightReadTask(preflightReadMode)
+        val preflightTask = PreflightReadTask(preflightReadMode, cardId)
         preflightTask.run(this) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -198,15 +198,15 @@ class CardSession(
                     }
                     if (wrongType != null) {
                         viewDelegate.onWrongCard(wrongType)
-                        scope.launch {
-                            //TODO: нужно проверить! Как вообще это должно работать?
-//                            delay(2000)
-//                            if (reader.isActive) {
-//                                onSessionStarted(this@CardSession, TangemSdkError.UserCancelled())
-//                                stop()
-//                            } else {
-//                                preflightCheck(onSessionStarted)
-//                            }
+                        scope.launch(scope.coroutineContext) {
+                            delay(3500)
+                            if (connectedTag == null) {
+                                onSessionStarted(this@CardSession, result.error)
+                                stopWithError(result.error)
+                            } else {
+                                viewDelegate.onTagConnected()
+                                preflightCheck(onSessionStarted)
+                            }
                         }
                     } else {
                         onSessionStarted(this, result.error)
