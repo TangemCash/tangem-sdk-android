@@ -94,7 +94,15 @@ abstract class BaseFragment : Fragment() {
         }
     }
 
-    protected fun sign(hashes: Array<ByteArray>) {
+    protected fun signHash(hash: ByteArray) {
+        val publicKey = selectedWalletPubKey.guard {
+            showToast("Wallet publicKey is null")
+            return
+        }
+        sdk.sign(hash, publicKey, card?.cardId, initialMessage) { handleResult(it) }
+    }
+
+    protected fun signHashes(hashes: Array<ByteArray>) {
         val publicKey = selectedWalletPubKey.guard {
             showToast("Wallet publicKey is null")
             return
@@ -176,25 +184,25 @@ abstract class BaseFragment : Fragment() {
     protected fun writeUserData() {
         val userData = "Some of user data ${Utils.randomString(20)}".toByteArray()
         val counter = 1
-        sdk.writeUserData(card?.cardId, userData, counter, initialMessage) { handleResult(it) }
+        sdk.writeUserData(userData, counter, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun writeUserProtectedData() {
         val userProtectedData = "Some of user protected data ${Utils.randomString(20)}".toByteArray()
         val counter = 1
-        sdk.writeUserProtectedData(card?.cardId, userProtectedData, counter, initialMessage) { handleResult(it) }
+        sdk.writeUserProtectedData(userProtectedData, counter, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun setPin1() {
-        sdk.setAccessCode(initialMessage = initialMessage) { handleResult(it) }
+        sdk.setAccessCode(null, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun setPin2() {
-        sdk.setPasscode(initialMessage = initialMessage) { handleResult(it) }
+        sdk.setPasscode(null, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun readFiles(readPrivateFiles: Boolean) {
-        sdk.readFiles(readPrivateFiles, initialMessage = initialMessage) { handleResult(it) }
+        sdk.readFiles(readPrivateFiles, null, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun writeFilesSigned() {
@@ -204,21 +212,21 @@ abstract class BaseFragment : Fragment() {
             return
         }
         val file = prepareSignedData(cardId)
-        sdk.writeFiles(listOf(file), initialMessage = initialMessage) { handleResult(it) }
+        sdk.writeFiles(listOf(file), card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun writeFilesWithPassCode() {
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val files = listOf(FileDataProtectedByPasscode(issuerData), FileDataProtectedByPasscode(issuerData))
-        sdk.writeFiles(files, initialMessage = initialMessage) { handleResult(it) }
+        sdk.writeFiles(files, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun deleteFiles(indices: List<Int>? = null) {
-        sdk.deleteFiles(indices, initialMessage = initialMessage) { handleResult(it) }
+        sdk.deleteFiles(indices, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun changeFilesSettings(change: FileSettingsChange) {
-        sdk.changeFilesSettings(listOf(change), initialMessage = initialMessage) { handleResult(it) }
+        sdk.changeFilesSettings(listOf(change), card?.cardId, initialMessage) { handleResult(it) }
     }
 
     private fun handleResult(result: CompletionResult<*>) {
@@ -253,8 +261,8 @@ abstract class BaseFragment : Fragment() {
         activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
     }
 
-    protected fun prepareHashesToSign(): Array<ByteArray> {
-        val listOfData = MutableList(10) { Utils.randomString(20) }
+    protected fun prepareHashesToSign(count: Int): Array<ByteArray> {
+        val listOfData = MutableList(count) { Utils.randomString(20) }
         val listOfHashes = listOfData.map { it.toByteArray() }
         return listOfHashes.toTypedArray()
     }

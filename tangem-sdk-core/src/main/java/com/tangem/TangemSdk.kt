@@ -638,9 +638,9 @@ class TangemSdk(
      */
     @Deprecated(message = "Use files instead")
     fun writeUserData(
-        cardId: String? = null,
         userData: ByteArray,
         userCounter: Int? = null,
+        cardId: String? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
@@ -676,9 +676,9 @@ class TangemSdk(
      */
     @Deprecated(message = "Use files instead")
     fun writeUserProtectedData(
-        cardId: String? = null,
         userProtectedData: ByteArray,
         userProtectedCounter: Int? = null,
+        cardId: String? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {

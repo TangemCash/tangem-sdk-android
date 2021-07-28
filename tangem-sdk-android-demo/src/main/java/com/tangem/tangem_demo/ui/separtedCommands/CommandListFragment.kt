@@ -47,7 +47,9 @@ class CommandListFragment : BaseFragment() {
             else Log.removeLogger(logger)
         }
         btnScanCard.setOnClickListener { scanCard() }
-        btnSign.setOnClickListener { sign(prepareHashesToSign()) }
+
+        btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }
+        btnSignHashes.setOnClickListener { signHashes(prepareHashesToSign(11)) }
 
         btnCreateWalletSecpK1.setOnClickListener { createWallet(EllipticCurve.Secp256k1, swIsPermanentWallet.isChecked) }
         btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1, swIsPermanentWallet.isChecked) }
