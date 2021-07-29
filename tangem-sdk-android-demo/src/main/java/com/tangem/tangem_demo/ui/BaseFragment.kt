@@ -46,9 +46,9 @@ abstract class BaseFragment : Fragment() {
         get() {
             if (selectedIndexOfWallet == -1) return null
             val card = card ?: return null
-            if (card.walletsCount == 0 || selectedIndexOfWallet > card.walletsCount) return null
+            if (card.wallets.isEmpty() || selectedIndexOfWallet >= card.wallets.size) return null
 
-            return card.walletsPublicKeys[selectedIndexOfWallet]
+            return card.wallets[selectedIndexOfWallet].publicKey
         }
 
     protected var bshDlg: BottomSheetDialog? = null

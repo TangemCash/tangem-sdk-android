@@ -63,7 +63,7 @@ data class Card internal constructor(
      */
     val isPasscodeSet: Boolean?,
 
-    //TODO: isAccessCodeSet
+        //TODO: isAccessCodeSet
 
     /**
      * Array of ellipctic curves, supported by this card. Only wallets with these curves can be created.
@@ -73,7 +73,7 @@ data class Card internal constructor(
     /**
      * Wallets, created on the card, that can be used for signature
      */
-    internal val wallets: List<CardWallet>,
+    val wallets: List<CardWallet>,
 
     /**
      * Card's attestation report
@@ -93,12 +93,6 @@ data class Card internal constructor(
      */
     internal var remainingSignatures: Int? = null,
 ) : CommandResponse {
-
-    val walletsCount: Int
-        get() = wallets.size
-
-    val walletsPublicKeys: List<ByteArray>
-        get() = wallets.map { it.publicKey }
 
     fun setWallets(newWallets: List<CardWallet>): Card {
         val sortedWallets = newWallets.toMutableList().apply { sortBy { it.index } }

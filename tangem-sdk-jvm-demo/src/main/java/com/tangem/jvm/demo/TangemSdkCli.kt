@@ -84,9 +84,9 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
 
     private fun getWalletPublicKey(index: Int): ByteArray? {
         val card = card ?: return null
-        if (index < 0 || index >= card.walletsCount) return null
+        if (index < 0 || index >= card.wallets.size) return null
 
-        return card.walletsPublicKeys[index]
+        return card.wallets[index].publicKey
     }
 
     private fun parseHashes(hashesArgument: String): Array<ByteArray> {

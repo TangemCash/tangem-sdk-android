@@ -108,15 +108,15 @@ class CommandListFragment : BaseFragment() {
             selectedIndexOfWallet = -1
             return
         }
-        if (card.walletsCount == 0) {
+        val walletsCount = card.wallets.size
+        if (walletsCount == 0) {
             walletIndexesContainer.visibility = View.GONE
             selectedIndexOfWallet = -1
             return
         }
 
         sliderWallet.post {
-            val walletsCount = card.walletsCount.toFloat()
-            if (walletsCount == 1f) {
+            if (walletsCount == 1) {
                 selectedIndexOfWallet = 0
                 walletIndexesContainer.visibility = View.GONE
                 sliderWallet.valueTo = 0f
@@ -127,7 +127,7 @@ class CommandListFragment : BaseFragment() {
             sliderWallet.valueFrom = 0f
             sliderWallet.valueTo = walletsCount - 1f
 
-            if (selectedIndexOfWallet == -1 || selectedIndexOfWallet >= card.walletsCount) {
+            if (selectedIndexOfWallet == -1 || selectedIndexOfWallet >= walletsCount) {
                 selectedIndexOfWallet = 0
             }
             sliderWallet.value = selectedIndexOfWallet.toFloat()
