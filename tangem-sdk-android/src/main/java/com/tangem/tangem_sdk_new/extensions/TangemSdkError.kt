@@ -8,7 +8,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
     val resId = when (this) {
         is TangemSdkError.EncodingFailedTypeMismatch, is TangemSdkError.EncodingFailed,
         is TangemSdkError.DecodingFailedMissingTag, is TangemSdkError.DecodingFailedTypeMismatch,
-        is TangemSdkError.DecodingFailed -> null
+        is TangemSdkError.DecodingFailed, is TangemSdkError.CryptoUtilsError, is TangemSdkError.NetworkError,
+        is TangemSdkError.ExceptionError -> null
 
         is TangemSdkError.TagLost -> R.string.error_tag_lost
         is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_operation
@@ -66,10 +67,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.WalletError -> R.string.error_wallet_error
         is TangemSdkError.UnsupportedWalletConfig -> R.string.error_wallet_index_not_correct
         is TangemSdkError.WalletCannotBeCreated -> R.string.error_wallet_cannot_be_created
-
-        is TangemSdkError.CryptoUtilsError -> R.string.error_crypto_utils
-        is TangemSdkError.NetworkError -> R.string.error_network
     }
+
     return if (resId != null) {
         context.getString(resId)
     } else {

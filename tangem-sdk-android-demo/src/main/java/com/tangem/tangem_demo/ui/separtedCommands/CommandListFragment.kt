@@ -16,7 +16,7 @@ import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
-import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
+import com.tangem.tangem_sdk_new.extensions.createLogger
 import com.tangem.tangem_sdk_new.extensions.init
 import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.issuer_data.*
@@ -33,7 +33,7 @@ import kotlinx.android.synthetic.main.wallet.*
 class CommandListFragment : BaseFragment() {
 
     private val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
-    private val logger = DefaultSessionViewDelegate.createLogger()
+    private val logger = TangemSdk.createLogger()
 
     override fun initSdk(): TangemSdk = TangemSdk.init(this.requireActivity(), createSdkConfig())
 
@@ -47,6 +47,7 @@ class CommandListFragment : BaseFragment() {
             else Log.removeLogger(logger)
         }
         btnScanCard.setOnClickListener { scanCard() }
+        btnLoadCardInfo.setOnClickListener { loadCardInfo() }
 
         btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }
         btnSignHashes.setOnClickListener { signHashes(prepareHashesToSign(11)) }

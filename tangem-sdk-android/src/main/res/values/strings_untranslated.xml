@@ -2,6 +2,7 @@
 <resources>
 
     <string name="lorem_ipsum" translatable="false">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem</string>
+    <string name="common_retry" translatable="false">Retry</string>
     <string name="error_no_space_for_new_wallet" translatable="false">Max number of wallets already created</string>
     <string name="error_wallet_index_exceeds_max_value" translatable="false">Wallet index exceeds max value</string>
     <string name="error_wallet_not_found" translatable="false">The operation can\'t be completed. There is no wallet on the card.</string>
@@ -15,7 +16,13 @@
     <string name="error_wallet_error" translatable="false">Wallet error</string>
     <string name="error_wallet_index_not_correct" translatable="false">Wallet index not correct</string>
     <string name="error_wallet_cannot_be_created" translatable="false">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
-    <string name="error_crypto_utils" translatable="false">Empty</string>
-    <string name="error_network" translatable="false">Empty</string>
+
+    <string name="dialog_attestation_did_failed_title" translatable="false">@string/error_card_verification_failed</string>
+    <string name="dialog_attestation_did_failed_message" translatable="false">This card may be production sample or counterfeit. You can continue at your own risk</string>
+    <string name="dialog_attestation_did_failed_message_dev_card" translatable="false">This is a development card. You can continue at your own risk</string>
+    <string name="dialog_attestation_completed_offline_title" translatable="false">Online attestation failed</string>
+    <string name="dialog_attestation_completed_offline_message" translatable="false">We cannot finish card\'s online attestation at this time. You can continue at your own risk and try again later, retry now or cancel the operation</string>
+    <string name="dialog_attestation_completed_with_warnings_title" translatable="false">Warning</string>
+    <string name="dialog_attestation_completed_with_warnings_message" translatable="false">Too large runs count of Attest Wallet or Sign looks suspicious</string>
 
 </resources>

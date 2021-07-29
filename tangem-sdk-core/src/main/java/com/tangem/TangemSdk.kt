@@ -11,10 +11,13 @@ import com.tangem.common.files.FileHashHelper
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.services.Result
 import com.tangem.common.services.secure.SecureStorage
+import com.tangem.common.services.toTangemSdkError
 import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.*
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
+import com.tangem.operations.attestation.OnlineCardVerifier
 import com.tangem.operations.files.*
 import com.tangem.operations.issuerAndUserData.*
 import com.tangem.operations.personalization.DepersonalizeCommand
@@ -30,6 +33,7 @@ import com.tangem.operations.sign.SignHashCommand
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignResponse
 import com.tangem.operations.wallet.*
+import kotlinx.coroutines.*
 
 /**
  * The main interface of Tangem SDK that allows your app to communicate with Tangem cards.
@@ -50,6 +54,7 @@ class TangemSdk(
 ) {
 
     private var cardSession: CardSession? = null
+    private val onlineCardVerifier = OnlineCardVerifier()
     private val jsonRpcConverter: JSONRPCConverter by lazy { JSONRPCConverter.shared() }
 
     init {
@@ -187,25 +192,22 @@ class TangemSdk(
 
     /**
      *  Get the card info and verify with Tangem backend. Do not use for developer cards
-     *  cardPublicKey: CardPublicKey returned by [ReadCommand]
      *
+     *  @param cardPublicKey: CardPublicKey returned by [ReadCommand]
      *  @param cardId: CID, Unique Tangem card ID number.
-     *  @param callback: [CardVerifyAndGetInfoResponse.Item]
+     *  @param callback: [CardVerifyAndGetInfo.Response.Item]
      */
     fun loadCardInfo(
         cardPublicKey: ByteArray,
         cardId: String,
         callback: CompletionCallback<CardVerifyAndGetInfo.Response.Item>
     ) {
-//        val onlineCardVerifier = OnlineCardVerifier().getCardInfo(cardId, cardPublicKey)
-//                .receive(on: DispatchQueue.main)
-//        .sink(receiveCompletion: { receivedCompletion in
-//                if case let .failure(error) = receivedCompletion {
-//                    completion(.failure(error.toTangemSdkError()))
-//                }
-//        }, receiveValue: { response in
-//                completion(.success(response))
-//        })
+        onlineCardVerifier.scope.launch {
+            when (val result = onlineCardVerifier.getCardInfo(cardId, cardPublicKey)) {
+                is Result.Success -> callback(CompletionResult.Success(result.data))
+                is Result.Failure -> callback(CompletionResult.Failure(result.toTangemSdkError()))
+            }
+        }
     }
 
     /**

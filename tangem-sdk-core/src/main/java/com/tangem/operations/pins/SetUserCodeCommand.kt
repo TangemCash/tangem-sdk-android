@@ -125,7 +125,6 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
             return
         }
 
-        //TODO: UserCode: нужен полноценный колбэк с succes, failure
         session.viewDelegate.requestUserCodeChange(type) { result ->
             codes[type] = UserCodeAction.StringValue(result)
             callback(CompletionResult.Success(Unit))

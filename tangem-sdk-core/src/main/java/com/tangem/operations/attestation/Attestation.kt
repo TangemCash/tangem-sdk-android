@@ -47,15 +47,16 @@ data class Attestation(
             val values = rawRepresentation.split(",").mapNotNull { it.toIntOrNull() }
             if (values.size != 5) return null
 
-            val statusList = values.subList(1, 4).mapNotNull { Status.fromInt(it) }
+            val index = values[0]
+            val statusList = values.subList(1, 5).mapNotNull { Status.fromInt(it) }
             if (statusList.size != 4) return null
 
             return Attestation(
                     statusList[0],
                     statusList[1],
                     statusList[2],
-                    statusList[3],
-            )
+                    statusList[3]
+            ).apply { this.index = index }
         }
     }
 

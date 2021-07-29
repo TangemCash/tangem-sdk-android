@@ -48,6 +48,10 @@ object Log {
         logInternal(message, Level.View)
     }
 
+    fun info(message: () -> String){
+        logInternal(message, Level.Info)
+    }
+
     private fun logInternal(message: () -> String, level: Level) {
         if (loggers.isEmpty()) return
 
@@ -63,16 +67,17 @@ object Log {
     }
 
     enum class Level(val prefix: String) {
-        Command(""),
         Tlv(""),
         Apdu(""),
-        Session("CardSession"),
         Nfc("NFCReader"),
+        Command(""),
+        Session("CardSession"),
+        View("ViewDelegate"),
+        Network(""),
+        Debug("Debug"),
+        Info("Info"),
         Warning(""),
         Error(""),
-        Debug(""),
-        Network(""),
-        View("ViewDelegate"),
     }
 
     enum class Config(val levels: List<Level>) {

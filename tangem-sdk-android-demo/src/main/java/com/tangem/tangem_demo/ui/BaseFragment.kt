@@ -94,6 +94,14 @@ abstract class BaseFragment : Fragment() {
         }
     }
 
+    protected fun loadCardInfo() {
+        if (card?.cardId == null || card?.cardPublicKey == null) {
+            showToast("CardId & publicKey required. Scan your card before proceeding")
+            return
+        }
+        sdk.loadCardInfo(card?.cardPublicKey!!, card?.cardId!!) { handleResult(it) }
+    }
+
     protected fun signHash(hash: ByteArray) {
         val publicKey = selectedWalletPubKey.guard {
             showToast("Wallet publicKey is null")
@@ -133,8 +141,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun writeIssuerData() {
-        val cardId = card?.cardId
-        if (cardId == null) {
+        val cardId = card?.cardId.guard {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
@@ -154,8 +161,7 @@ abstract class BaseFragment : Fragment() {
 
     @Deprecated("Deprecated in the TangemSdk")
     protected fun writeIssuerExtraData() {
-        val cardId = card?.cardId
-        if (cardId == null) {
+        val cardId = card?.cardId.guard {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
@@ -171,10 +177,6 @@ abstract class BaseFragment : Fragment() {
                 signatures.startingSignature!!, signatures.finalizingSignature!!,
                 counter, initialMessage
         ) { handleResult(it) }
-    }
-
-    protected fun verify() {
-//        sdk.verify(false, initialMessage = initialMessage) { handleResult(it) }
     }
 
     protected fun readUserData() {
@@ -206,8 +208,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun writeFilesSigned() {
-        val cardId = card?.cardId
-        if (cardId == null) {
+        val cardId = card?.cardId.guard {
             showToast("CardId required. Scan your card before proceeding")
             return
         }

@@ -68,13 +68,13 @@ class LoggingSessionDelegate : SessionViewDelegate {
     override fun setMessage(message: Message?) {
     }
 
-    override fun attestationDidFail(positive: VoidCallback, negative: VoidCallback) {
+    override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {
     }
 
     override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {
     }
 
-    override fun attestationCompletedWithWarnings(neutral: VoidCallback) {
+    override fun attestationCompletedWithWarnings(positive: VoidCallback) {
     }
 
     companion object {

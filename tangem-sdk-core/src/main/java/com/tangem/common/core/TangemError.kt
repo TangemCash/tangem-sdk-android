@@ -172,6 +172,10 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
 
 
     //SDK Errors
+    class ExceptionError(val throwable: Throwable?) : TangemSdkError(50000) {
+        override var customMessage: String = throwable?.localizedMessage ?: "empty"
+    }
+
     class UnknownError : TangemSdkError(50001)
 
     /**
@@ -243,5 +247,7 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
         }
     }
 }
+
+fun Throwable?.toTangemSdkError(): TangemSdkError = TangemSdkError.ExceptionError(this)
 
 

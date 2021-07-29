@@ -24,16 +24,12 @@ class ScanTask : CardSessionRunnable<Card> {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
         }
-        //TODO: доделать аттестацию
-//        runAttestation(session, callback)
-
-        callback(CompletionResult.Success(session.environment.card!!))
-        return
+        runAttestation(session, callback)
     }
 
     private fun runAttestation(session: CardSession, callback: CompletionCallback<Card>) {
         val mode = session.environment.config.attestationMode
-        val secureStorage= session.environment.secureStorage
+        val secureStorage = session.environment.secureStorage
         val secureService = SecureService(secureStorage)
         val jsonConverter = MoshiJsonConverter.INSTANCE
         val trustedCardsRepo = TrustedCardsRepo(secureStorage, jsonConverter, secureService)
@@ -60,12 +56,7 @@ class ScanTask : CardSessionRunnable<Card> {
 
                 //Possible production sample or development card
                 if (isDevelopmentCard || session.environment.config.allowUntrustedCards) {
-                    val message = if (isDevelopmentCard) {
-                        "This is a development card. You can continue at your own risk"
-                    } else {
-                        "This card may be production sample or conterfeit. You can continue at your own risk"
-                    }
-                    session.viewDelegate.attestationDidFail({
+                    session.viewDelegate.attestationDidFail(isDevelopmentCard, {
                         callback(CompletionResult.Success(session.environment.card!!))
                     }) {
                         callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
