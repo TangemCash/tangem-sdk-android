@@ -19,7 +19,7 @@ data class CardConfig(
     internal val releaseVersion: Boolean,
     internal val issuerName: String,
     internal val series: String?,
-    internal val startNumber: Int,
+    internal val startNumber: Long,
     internal val count: Int,
     internal val numberFormat: String,
     @Json(name = "PIN")

@@ -1,27 +1,27 @@
 package com.tangem.common.json
 
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.ToJson
-import com.squareup.moshi.Types
+import com.squareup.moshi.*
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tangem.common.MaskBuilder
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.card.SigningMethod
+import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
+import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.personalization.entities.ProductMask
 import java.lang.reflect.ParameterizedType
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.KClass
 
-class MoshiJsonConverter(adapters: List<Any> = listOf()) {
+class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Class<*>, JsonAdapter<*>> = mapOf()) {
 
     val moshi: Moshi = Moshi.Builder().apply {
         adapters.forEach { this.add(it) }
+        typedAdapters.forEach { add(it.key, it.value) }
         add(KotlinJsonAdapterFactory())
     }.build()
 
@@ -77,24 +77,31 @@ class MoshiJsonConverter(adapters: List<Any> = listOf()) {
     companion object {
         var INSTANCE: MoshiJsonConverter = default()
 
-        fun default() = MoshiJsonConverter(getTangemSdkAdapters())
+        fun default() = MoshiJsonConverter(getTangemSdkAdapters(), getTangemSdkTypedAdapters())
 
         fun getTangemSdkAdapters(): List<Any> {
             return listOf(
-                    TangemSdkAdapter.ByteTypeAdapter(),
-                    TangemSdkAdapter.SigningMethodTypeAdapter(),
-                    TangemSdkAdapter.CardSettingsMaskTypeAdapter(),
-                    TangemSdkAdapter.ProductMaskTypeAdapter(),
+                    TangemSdkAdapter.ByteArrayAdapter(),
+                    TangemSdkAdapter.CardSettingsMaskAdapter(),
+                    TangemSdkAdapter.ProductMaskAdapter(),
                     TangemSdkAdapter.WalletSettingsMaskAdapter(),
-                    TangemSdkAdapter.DateTypeAdapter(),
+                    TangemSdkAdapter.DateAdapter(),
                     TangemSdkAdapter.FirmwareVersionAdapter(),
+                    TangemSdkAdapter.PreflightReadModeAdapter(),
             )
+        }
+
+        fun getTangemSdkTypedAdapters(): Map<Class<*>, JsonAdapter<*>> {
+            val map = mutableMapOf<Class<*>, JsonAdapter<*>>()
+            map[FirmwareVersion::class.java] = TangemSdkAdapter.FirmwareVersionAdapter()
+            map[SigningMethod::class.java] = TangemSdkAdapter.SigningMethodAdapter()
+            return map
         }
     }
 }
 
 class TangemSdkAdapter {
-    class ByteTypeAdapter {
+    class ByteArrayAdapter {
         @ToJson
         fun toJson(src: ByteArray): String = src.toHexString()
 
@@ -102,7 +109,7 @@ class TangemSdkAdapter {
         fun fromJson(json: String): ByteArray = json.hexToBytes()
     }
 
-    class CardSettingsMaskTypeAdapter {
+    class CardSettingsMaskAdapter {
         @ToJson
         fun toJson(src: Card.SettingsMask): List<String> = src.toList().map { it.name }
 
@@ -118,7 +125,7 @@ class TangemSdkAdapter {
         }.build()
     }
 
-    class ProductMaskTypeAdapter {
+    class ProductMaskAdapter {
         @ToJson
         fun toJson(src: ProductMask): List<String> = src.toList().map { it.name }
 
@@ -132,23 +139,6 @@ class TangemSdkAdapter {
                 }
             }
         }.build()
-    }
-
-    class SigningMethodTypeAdapter {
-        @ToJson
-        fun toJson(src: SigningMethod): List<String> = src.toList().map { it.name }
-
-        @FromJson
-        fun fromJson(jsonList: List<String>): SigningMethod {
-            val methods = jsonList.mapNotNull {
-                try {
-                    SigningMethod.Code.valueOf(it)
-                } catch (ex: IllegalArgumentException) {
-                    null
-                }
-            }
-            return SigningMethod.build(*methods.toTypedArray())
-        }
     }
 
     class WalletSettingsMaskAdapter {
@@ -167,7 +157,32 @@ class TangemSdkAdapter {
         }.build()
     }
 
-    class DateTypeAdapter {
+    class PreflightReadModeAdapter {
+        @ToJson
+        fun toJson(src: PreflightReadMode): String {
+            return when (src) {
+                PreflightReadMode.FullCardRead -> "FullCardRead"
+                PreflightReadMode.None -> "None"
+                PreflightReadMode.ReadCardOnly -> "ReadCardOnly"
+                is PreflightReadMode.ReadWallet -> src.publicKey.toHexString()
+            }
+        }
+
+        @FromJson
+        fun fromJson(json: String): PreflightReadMode {
+            return when (json) {
+                "FullCardRead" -> PreflightReadMode.FullCardRead
+                "None" -> PreflightReadMode.None
+                "ReadCardOnly" -> PreflightReadMode.ReadCardOnly
+                else -> {
+                    if (json.length == 64) PreflightReadMode.ReadWallet(json.hexToBytes())
+                    else throw java.lang.IllegalArgumentException()
+                }
+            }
+        }
+    }
+
+    class DateAdapter {
         private val dateFormatter = SimpleDateFormat("yyyy-MM-dd")
 
         @ToJson
@@ -179,11 +194,67 @@ class TangemSdkAdapter {
         fun fromJson(json: String): Date = dateFormatter.parse(json)
     }
 
-    class FirmwareVersionAdapter {
-        @ToJson
-        fun toJson(src: FirmwareVersion): String = src.stringValue
-
+    class FirmwareVersionAdapter : JsonAdapter<FirmwareVersion>() {
         @FromJson
-        fun fromJson(json: String): FirmwareVersion = FirmwareVersion(json)
+        override fun fromJson(reader: JsonReader): FirmwareVersion {
+            var version: FirmwareVersion? = null
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.nextName()) {
+                    "stringValue" -> version = FirmwareVersion(reader.nextString())
+                    else -> reader.skipValue()
+                }
+            }
+            reader.endObject()
+            return version ?: throw java.lang.IllegalArgumentException()
+        }
+
+        @ToJson
+        override fun toJson(writer: JsonWriter, value: FirmwareVersion?) {
+            writer.beginObject();
+            value?.major?.let { writer.name("major").value(it) }
+            value?.minor?.let { writer.name("minor").value(it) }
+            value?.patch?.let { writer.name("patch").value(it) }
+            value?.stringValue?.let { writer.name("stringValue").value(it) }
+            value?.type?.let { writer.name("type").value(it.rawValue) }
+            writer.endObject()
+        }
+    }
+
+    class SigningMethodAdapter : JsonAdapter<SigningMethod>() {
+        override fun fromJson(reader: JsonReader): SigningMethod? {
+            try {
+                reader.beginArray()
+                val list = mutableListOf<String>()
+                while (reader.hasNext()) {
+                    list.add(reader.nextString())
+                }
+                reader.endArray()
+                val methods = list.mapNotNull {
+                    try {
+                        SigningMethod.Code.valueOf(it)
+                    } catch (ex: IllegalArgumentException) {
+                        null
+                    }
+                }
+                return SigningMethod.build(*methods.toTypedArray())
+            } catch (ex: Exception) {
+                //Is not an array... Try parse as rawValue
+            }
+
+            return SigningMethod(reader.nextInt())
+        }
+
+        override fun toJson(writer: JsonWriter, value: SigningMethod?) {
+            val value = value.guard {
+                writer.beginObject()
+                writer.endObject()
+                return
+            }
+
+            writer.beginArray()
+            value.toList().forEach { writer.value(it.name) }
+            writer.endArray()
+        }
     }
 }

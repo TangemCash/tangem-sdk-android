@@ -26,16 +26,12 @@ class JSONRPCConverter {
 
     @Throws(JSONRPCException::class)
     fun convert(request: JSONRPCRequest): CardSessionRunnable<*> {
-        try {
-            return getHandler(request).makeRunnable(request.params)
-        } catch (ex: Exception) {
-            throw JSONRPCError(JSONRPCError.Type.MethodNotFound, ex.localizedMessage).asException()
-        }
+        return getHandler(request).makeRunnable(request.params)
     }
 
     @Throws(JSONRPCException::class)
     fun getHandler(request: JSONRPCRequest): JSONRPCHandler<*> {
-        val handler = handlers.firstOrNull { it.method == request.method }
+        val handler = handlers.firstOrNull { it.method == request.method.toUpperCase() }
         if (handler == null) {
             val errorMessage = "Can't create the CardSessionRunnable. " +
                     "Missed converter for the method ${request.method}"
@@ -47,12 +43,17 @@ class JSONRPCConverter {
     companion object {
         fun shared(): JSONRPCConverter {
             return JSONRPCConverter().apply {
-                register(ScanHandler())
-                register(SignHashesHandler())
-                register(SignHashHandler())
-                register(CreateWalletHandler())
                 register(PersonalizeHandler())
                 register(DepersonalizeHandler())
+                register(PreflightReadHandler())
+                register(ScanHandler())
+                register(CreateWalletHandler())
+                register(PurgeWalletHandler())
+                register(SignHashHandler())
+                register(SignHashesHandler())
+                register(SetAccessCodeHandler())
+                register(SetPasscodeHandler())
+                register(ResetUserCodesHandler())
             }
         }
     }
@@ -78,7 +79,7 @@ class JSONRPCRequest constructor(
             return try {
                 val method: String = extract("method", jsonMap)
                 val params: Map<String, Any> = extract("params", jsonMap)
-                val id: Int? = extract("id", jsonMap)
+                val id: Int? = extract<Double>("id", jsonMap)?.toInt()
                 val jsonrpc: String = extract("jsonrpc", jsonMap)
                 JSONRPCRequest(method, params, id, jsonrpc)
             } catch (ex: JSONRPCException) {
@@ -127,9 +128,15 @@ class JSONRPCError constructor(
 
         data class ErrorDescription(val code: Int, val message: String)
     }
+
+    override fun toString(): String {
+        return "code: $code, message: ${message}. Data: $data"
+    }
 }
 
-class JSONRPCException(val jsonRpcError: JSONRPCError) : Throwable(jsonRpcError.message)
+class JSONRPCException(val jsonRpcError: JSONRPCError) : Exception(jsonRpcError.message) {
+    override fun toString(): String = "$jsonRpcError"
+}
 
 fun JSONRPCError.toJSONRPCResponse(id: Int? = null): JSONRPCResponse {
     return JSONRPCResponse(null, this, id)

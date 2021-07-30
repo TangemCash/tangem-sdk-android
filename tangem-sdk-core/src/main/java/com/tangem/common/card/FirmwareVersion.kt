@@ -61,6 +61,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         else -> patch.compareTo(other.patch)
     }
 
+    override fun equals(other: Any?): Boolean {
+        val other = other as? FirmwareVersion ?: return false
+        return stringValue == other.stringValue
+    }
+
     companion object {
         val Min = FirmwareVersion(0, 0)
         val Max = FirmwareVersion(Int.MAX_VALUE, 0)

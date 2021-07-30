@@ -10,14 +10,16 @@ import com.tangem.operations.PreflightReadMode
  * @property hashes Array of transaction hashes.
  * @property walletPublicKey: Public key of the wallet, using for sign.
  */
+typealias SignHashesResponse = SignResponse
+
 class SignHashesCommand(
     private val hashes: Array<ByteArray>,
     private val walletPublicKey: ByteArray
-) : CardSessionRunnable<SignResponse> {
+) : CardSessionRunnable<SignHashesResponse> {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
 
-    override fun run(session: CardSession, callback: CompletionCallback<SignResponse>) {
+    override fun run(session: CardSession, callback: CompletionCallback<SignHashesResponse>) {
         SignCommand(hashes, walletPublicKey).run(session, callback)
     }
 }

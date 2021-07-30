@@ -14,7 +14,7 @@ import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.jvm.init
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.sign.SignHashesCommand
-import com.tangem.operations.sign.SignResponse
+import com.tangem.operations.sign.SignHashesResponse
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.cli.CommandLine
 import kotlin.coroutines.resume
@@ -57,7 +57,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         }
     }
 
-    private fun sign(sdk: TangemSdk, callback: CompletionCallback<SignResponse>) {
+    private fun sign(sdk: TangemSdk, callback: CompletionCallback<SignHashesResponse>) {
         if (card == null) {
             println("Scan the card, before trying to use the method")
             return

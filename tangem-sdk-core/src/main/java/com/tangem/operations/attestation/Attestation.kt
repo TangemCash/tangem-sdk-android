@@ -12,6 +12,7 @@ data class Attestation(
     /**
      * Index for storage
      */
+    @Transient
     var index: Int = 0
 
     val status: Status
