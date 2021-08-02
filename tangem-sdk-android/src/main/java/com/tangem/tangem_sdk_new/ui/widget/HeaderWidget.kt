@@ -33,7 +33,7 @@ class HeaderWidget(
     var howToIsEnabled: Boolean = false
         set(value) {
             field = value
-            btnHowTo.show(value)
+            btnHowTo.post { btnHowTo.show(value) }
         }
 
     init {

@@ -34,25 +34,7 @@ class DefaultSessionViewDelegate(
 
     override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
         Log.view { "Session started" }
-        if (readingDialog == null) createReadingDialog(activity)
-        readingDialog?.enableHowTo(enableHowTo)
-        readingDialog?.setMessage(message)
-        readingDialog?.show(SessionViewDelegateState.Ready(formatCardId(cardId), message))
-    }
-
-    private fun createReadingDialog(activity: Activity) {
-        val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
-        val themeWrapper = ContextThemeWrapper(activity, R.style.CardSdkTheme)
-        readingDialog = NfcSessionDialog(themeWrapper, nfcManager, nfcLocationProvider).apply {
-            setOwnerActivity(activity)
-            dismissWithAnimation = true
-            stoppedBySession = false
-            create()
-            setOnCancelListener {
-                if (!stoppedBySession) reader.stopSession(true)
-                createReadingDialog(activity)
-            }
-        }
+        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId), message), enableHowTo)
     }
 
     override fun onSessionStopped(message: Message?) {
@@ -97,9 +79,7 @@ class DefaultSessionViewDelegate(
 
     override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String) -> Unit) {
         Log.view { "Showing pin change request with type: $type" }
-        if (readingDialog == null) createReadingDialog(activity)
-        readingDialog?.enableHowTo(false)
-        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, callback))
+        createAndShowState(SessionViewDelegateState.PinChangeRequested(type, callback), false)
     }
 
     override fun dismiss() {
@@ -132,6 +112,30 @@ class DefaultSessionViewDelegate(
 
     override fun attestationCompletedWithWarnings(positive: VoidCallback) {
         AttestationFailedDialog.completedWithWarnings(activity, positive)
+    }
+
+    private fun createAndShowState(state: SessionViewDelegateState, enableHowTo: Boolean, message: Message? = null) {
+        postUI {
+            if (readingDialog == null) createReadingDialog(activity)
+            readingDialog?.enableHowTo(enableHowTo)
+            readingDialog?.setMessage(message)
+            readingDialog?.show(state)
+        }
+    }
+
+    private fun createReadingDialog(activity: Activity) {
+        val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
+        val themeWrapper = ContextThemeWrapper(activity, R.style.CardSdkTheme)
+        readingDialog = NfcSessionDialog(themeWrapper, nfcManager, nfcLocationProvider).apply {
+            setOwnerActivity(activity)
+            dismissWithAnimation = true
+            stoppedBySession = false
+            create()
+            setOnCancelListener {
+                if (!stoppedBySession) reader.stopSession(true)
+                createReadingDialog(activity)
+            }
+        }
     }
 
     private fun formatCardId(cardId: String?): String? {
