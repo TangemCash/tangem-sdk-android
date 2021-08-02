@@ -336,7 +336,7 @@ class CardSession(
         }
     }
 
-    fun requestUserCodeIfNeeded(type: UserCodeType, callback: CompletionCallback<Unit>) {
+    fun requestUserCodeIfNeeded(type: UserCodeType, isFirstAttempt: Boolean, callback: CompletionCallback<Unit>) {
         val userCode = when (type) {
             UserCodeType.AccessCode -> environment.accessCode.value
             UserCodeType.Passcode -> environment.passcode.value
@@ -347,7 +347,7 @@ class CardSession(
         }
 
         Log.session { "Request user code of type: $type" }
-        viewDelegate.requestUserCode(type, true) { stringValue ->
+        viewDelegate.requestUserCode(type, isFirstAttempt) { stringValue ->
             val code = UserCode(type, stringValue)
             when (type) {
                 UserCodeType.AccessCode -> environment.accessCode = code

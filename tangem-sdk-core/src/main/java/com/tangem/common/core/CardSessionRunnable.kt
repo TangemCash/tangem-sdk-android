@@ -8,7 +8,6 @@ import com.tangem.operations.PreflightReadMode
 /**
  * Basic interface for running tasks and [com.tangem.operations.Command] in a [CardSession]
  */
-//TODO: remove generic
 interface CardSessionRunnable<T : CommandResponse> {
     /**
      * Mode for preflight read. Change this property only if you understand what to do

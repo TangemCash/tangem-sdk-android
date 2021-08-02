@@ -219,8 +219,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
         }
 
         Log.session { "Request pin of type: $type" }
-        //TODO: UserCode: нужно ли передавать isFirstAttempt дальше в requestUserCodeIfNeeded -> viewDelegate
-        session.requestUserCodeIfNeeded(type) { result ->
+        session.requestUserCodeIfNeeded(type, isFirstAttempt) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     session.resume()

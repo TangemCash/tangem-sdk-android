@@ -6,7 +6,7 @@ import com.tangem.common.card.FirmwareVersion
 /**
  * Filter that can be used to limit cards that can be interacted with in TangemSdk.
  */
-data class CardFilter(
+class CardFilter(
     /**
      * Filter that can be used to limit cards that can be interacted with in TangemSdk.
      */

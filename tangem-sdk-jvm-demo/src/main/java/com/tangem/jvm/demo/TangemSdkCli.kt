@@ -20,7 +20,6 @@ import org.apache.commons.cli.CommandLine
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-//TODO: обновить cli в соответсии с рефакторингом
 class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, private val cmd: CommandLine) {
 
     private val sdk = TangemSdk.init(verbose, indexOfTerminal)
