@@ -36,9 +36,6 @@ class WriteIssuerDataCommand(
 ) : Command<SuccessResponse>(), IssuerDataVerifier by verifier {
 
     override fun performPreCheck(card: Card): TangemSdkError? {
-        if (2.30 > card.firmwareVersion.doubleValue && card.firmwareVersion.doubleValue < 3.34) {
-            return TangemSdkError.NotSupportedFirmwareVersion()
-        }
         if (issuerData.size > MAX_SIZE) {
             return TangemSdkError.DataSizeTooLarge()
         }

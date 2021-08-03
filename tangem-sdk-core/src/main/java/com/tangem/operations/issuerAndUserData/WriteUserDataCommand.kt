@@ -35,6 +35,9 @@ class WriteUserDataCommand(
     override fun requiresPasscode(): Boolean = true
 
     override fun performPreCheck(card: Card): TangemSdkError? {
+        if (2.30 > card.firmwareVersion.doubleValue && card.firmwareVersion.doubleValue < 3.34) {
+            return TangemSdkError.NotSupportedFirmwareVersion()
+        }
         if (userData?.size ?: 0 > MAX_SIZE || userProtectedData?.size ?: 0 > MAX_SIZE) {
             return TangemSdkError.DataSizeTooLarge()
         }
