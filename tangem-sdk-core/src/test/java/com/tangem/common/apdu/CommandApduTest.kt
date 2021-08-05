@@ -1,7 +1,9 @@
 package com.tangem.common.apdu
 
 import com.google.common.truth.Truth.assertThat
-import com.tangem.SessionEnvironment
+import com.tangem.common.core.Config
+import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.services.secure.UnsafeInMemoryStorage
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvTag
 import org.junit.Test
@@ -9,12 +11,12 @@ import org.junit.Test
 
 class CommandApduTest {
 
-    private val sessionEnvironment = SessionEnvironment()
+    private val environment = SessionEnvironment(Config(), UnsafeInMemoryStorage())
 
     @Test
     fun `simple READ command to bytes`() {
         val tlvBuilder = TlvBuilder()
-        tlvBuilder.append(TlvTag.Pin, sessionEnvironment.pin1?.value)
+        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         val commandApdu = CommandApdu(
                 Instruction.Read,
                 tlvBuilder.serialize()
@@ -35,7 +37,7 @@ class CommandApduTest {
                 91, 35, 82, 44, -44, 112, 36, 52, 83, -94, -103, -6, -98, 119, 35, 119, 22, 16, 58,
                 -68, 17, -95, -33, 56, -123, 94, -42, -14, -18, 24, 126, -100, 88, 43, -90)
         val tlvBuilder = TlvBuilder()
-        tlvBuilder.append(TlvTag.Pin, sessionEnvironment.pin1?.value)
+        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.TerminalPublicKey, terminalPublicKey)
         val commandApdu = CommandApdu(
                 Instruction.Read,

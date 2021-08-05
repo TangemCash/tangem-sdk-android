@@ -1,6 +1,6 @@
 package com.tangem.common.apdu
 
-import com.tangem.TangemSdkError
+import com.tangem.common.core.TangemSdkError
 
 /**
  * Part of a response from the card, shows the status of the operation
@@ -39,7 +39,7 @@ enum class StatusWord(val code: Int) {
 fun StatusWord.toTangemSdkError(): TangemSdkError? {
     return when (this) {
         StatusWord.ProcessCompleted, StatusWord.Pin1Changed,
-        StatusWord.Pin2Changed,  StatusWord.Pins12Changed, StatusWord.Pin3Changed,
+        StatusWord.Pin2Changed, StatusWord.Pins12Changed, StatusWord.Pin3Changed,
         StatusWord.Pins13Changed, StatusWord.Pins23Changed, StatusWord.Pins123Changed -> null
         StatusWord.NeedPause -> null
         StatusWord.InvalidParams -> TangemSdkError.InvalidParams()

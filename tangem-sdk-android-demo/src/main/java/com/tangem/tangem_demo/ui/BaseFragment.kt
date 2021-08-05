@@ -11,56 +11,49 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Message
 import com.tangem.TangemSdk
-import com.tangem.commands.WriteIssuerExtraDataCommand
-import com.tangem.commands.common.card.Card
-import com.tangem.commands.file.DataToWrite
-import com.tangem.commands.file.FileDataSignature
-import com.tangem.commands.file.FileSettingsChange
-import com.tangem.commands.wallet.CreateWalletResponse
-import com.tangem.commands.wallet.PurgeWalletResponse
-import com.tangem.commands.wallet.WalletConfig
-import com.tangem.commands.wallet.WalletIndex
 import com.tangem.common.CompletionResult
+import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.core.Config
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
+import com.tangem.common.files.FileDataProtectedByPasscode
+import com.tangem.common.files.FileDataProtectedBySignature
 import com.tangem.common.files.FileHashHelper
+import com.tangem.common.files.FileSettingsChange
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
+import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.tangem_demo.DemoApplication
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.Utils
 import com.tangem.tangem_demo.postUi
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
 
-/**
- * Created by Anton Zhilenkov on 23/12/2020.
- */
 abstract class BaseFragment : Fragment() {
 
     protected lateinit var shPrefs: SharedPreferences
     protected lateinit var sdk: TangemSdk
 
     protected var card: Card? = null
-    protected var intWalletIndex = -1
     protected var initialMessage: Message? = null
         private set
 
-    protected var selectedWalletPubKey: ByteArray? = null
-        private set
+    protected var selectedIndexOfWallet = -1
+    protected val selectedWalletPubKey: ByteArray?
         get() {
-            return if (intWalletIndex == -1) {
-                showToast("Scan the card before trying to use the method")
-                null
-            } else {
-                card?.wallet(WalletIndex.Index(intWalletIndex))?.publicKey.guard {
-                    showToast("PublicKey with the selected index: $intWalletIndex not found")
-                    return null
-                }
-            }
+            if (selectedIndexOfWallet == -1) return null
+            val card = card ?: return null
+            if (card.wallets.isEmpty() || selectedIndexOfWallet >= card.wallets.size) return null
+
+            return card.wallets[selectedIndexOfWallet].publicKey
         }
 
     protected var bshDlg: BottomSheetDialog? = null
+
+    private var needRescanCard = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,22 +82,58 @@ abstract class BaseFragment : Fragment() {
         initialMessage = Message(header, body)
     }
 
-    protected fun scanCard(updateOnlyCard: Boolean = false) {
-        sdk.scanCard(initialMessage) { if (updateOnlyCard) setCard(it) else handleResult(it) }
+    protected fun createSdkConfig(): Config = Config().apply {
+        linkedTerminal = false
+        filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
     }
 
-    protected fun sign(hashes: Array<ByteArray>) {
-        val publicKey = selectedWalletPubKey ?: return
+    protected fun scanCard(updateOnlyCard: Boolean = false) {
+        sdk.scanCard(initialMessage) {
+            needRescanCard = false
+            if (updateOnlyCard) setCard(it) else handleResult(it)
+        }
+    }
+
+    protected fun loadCardInfo() {
+        if (card?.cardId == null || card?.cardPublicKey == null) {
+            showToast("CardId & publicKey required. Scan your card before proceeding")
+            return
+        }
+        sdk.loadCardInfo(card?.cardPublicKey!!, card?.cardId!!) { handleResult(it) }
+    }
+
+    protected fun signHash(hash: ByteArray) {
+        val publicKey = selectedWalletPubKey.guard {
+            showToast("Wallet publicKey is null")
+            return
+        }
+        sdk.sign(hash, publicKey, card?.cardId, initialMessage) { handleResult(it) }
+    }
+
+    protected fun signHashes(hashes: Array<ByteArray>) {
+        val publicKey = selectedWalletPubKey.guard {
+            showToast("Wallet publicKey is null")
+            return
+        }
         sdk.sign(hashes, publicKey, card?.cardId, initialMessage) { handleResult(it) }
     }
 
-    protected fun createWallet(walletConfig: WalletConfig) {
-        sdk.createWallet(walletConfig, card?.cardId, initialMessage) { handleResult(it) }
+    protected fun createWallet(curve: EllipticCurve, isPermanent: Boolean) {
+        sdk.createWallet(curve, isPermanent, card?.cardId, initialMessage) {
+            needRescanCard = it is CompletionResult.Success
+            handleResult(it)
+        }
     }
 
     protected fun purgeWallet() {
-        val publicKey = selectedWalletPubKey ?: return
-        sdk.purgeWallet(WalletIndex.PublicKey(publicKey), card?.cardId, initialMessage) { handleResult(it) }
+        val publicKey = selectedWalletPubKey.guard {
+            showToast("Wallet publicKey is null")
+            return
+        }
+        sdk.purgeWallet(publicKey, card?.cardId, initialMessage) {
+            needRescanCard = it is CompletionResult.Success
+            handleResult(it)
+        }
     }
 
     protected fun readIssuerData() {
@@ -112,8 +141,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun writeIssuerData() {
-        val cardId = card?.cardId
-        if (cardId == null) {
+        val cardId = card?.cardId.guard {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
@@ -133,8 +161,7 @@ abstract class BaseFragment : Fragment() {
 
     @Deprecated("Deprecated in the TangemSdk")
     protected fun writeIssuerExtraData() {
-        val cardId = card?.cardId
-        if (cardId == null) {
+        val cardId = card?.cardId.guard {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
@@ -142,18 +169,14 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-            cardId, issuerData, counter, Utils.issuer().dataKeyPair.privateKey
+                cardId, issuerData, counter, Utils.issuer().dataKeyPair.privateKey
         )
 
         sdk.writeIssuerExtraData(
-            cardId, issuerData,
-            signatures.startingSignature!!, signatures.finalizingSignature!!,
-            counter, initialMessage
+                cardId, issuerData,
+                signatures.startingSignature!!, signatures.finalizingSignature!!,
+                counter, initialMessage
         ) { handleResult(it) }
-    }
-
-    protected fun verify() {
-        sdk.verify(false, initialMessage = initialMessage) { handleResult(it) }
     }
 
     protected fun readUserData() {
@@ -163,49 +186,48 @@ abstract class BaseFragment : Fragment() {
     protected fun writeUserData() {
         val userData = "Some of user data ${Utils.randomString(20)}".toByteArray()
         val counter = 1
-        sdk.writeUserData(card?.cardId, userData, counter, initialMessage) { handleResult(it) }
+        sdk.writeUserData(userData, counter, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun writeUserProtectedData() {
         val userProtectedData = "Some of user protected data ${Utils.randomString(20)}".toByteArray()
         val counter = 1
-        sdk.writeUserProtectedData(card?.cardId, userProtectedData, counter, initialMessage) { handleResult(it) }
+        sdk.writeUserProtectedData(userProtectedData, counter, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun setPin1() {
-        sdk.changePin1(initialMessage = initialMessage) { handleResult(it) }
+        sdk.setAccessCode(null, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun setPin2() {
-        sdk.changePin2(initialMessage = initialMessage) { handleResult(it) }
+        sdk.setPasscode(null, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun readFiles(readPrivateFiles: Boolean) {
-        sdk.readFiles(readPrivateFiles, initialMessage = initialMessage) { handleResult(it) }
+        sdk.readFiles(readPrivateFiles, null, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun writeFilesSigned() {
-        val cardId = card?.cardId
-        if (cardId == null) {
+        val cardId = card?.cardId.guard {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
         val file = prepareSignedData(cardId)
-        sdk.writeFiles(listOf(file), initialMessage = initialMessage) { handleResult(it) }
+        sdk.writeFiles(listOf(file), card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun writeFilesWithPassCode() {
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
-        val files = listOf(DataToWrite.DataProtectedByPasscode(issuerData), DataToWrite.DataProtectedByPasscode(issuerData))
-        sdk.writeFiles(files, initialMessage = initialMessage) { handleResult(it) }
+        val files = listOf(FileDataProtectedByPasscode(issuerData), FileDataProtectedByPasscode(issuerData))
+        sdk.writeFiles(files, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun deleteFiles(indices: List<Int>? = null) {
-        sdk.deleteFiles(indices, initialMessage = initialMessage) { handleResult(it) }
+        sdk.deleteFiles(indices, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun changeFilesSettings(change: FileSettingsChange) {
-        sdk.changeFilesSettings(listOf(change), initialMessage = initialMessage) { handleResult(it) }
+        sdk.changeFilesSettings(listOf(change), card?.cardId, initialMessage) { handleResult(it) }
     }
 
     private fun handleResult(result: CompletionResult<*>) {
@@ -214,16 +236,13 @@ abstract class BaseFragment : Fragment() {
     }
 
     private fun setCard(completionResult: CompletionResult<*>) {
-        when (completionResult) {
-            is CompletionResult.Success -> {
-                when (completionResult.data) {
-                    is Card -> card = completionResult.data as Card
-                    is CreateWalletResponse, is PurgeWalletResponse -> {
-                        scanCard(true)
-                    }
+        if (completionResult is CompletionResult.Success) {
+            when {
+                needRescanCard -> scanCard(true)
+                completionResult.data is Card -> {
+                    card = completionResult.data as Card
+                    onCardChanged(card)
                 }
-            }
-            is CompletionResult.Failure -> {
             }
         }
     }
@@ -243,26 +262,30 @@ abstract class BaseFragment : Fragment() {
         activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
     }
 
-    protected fun prepareHashesToSign(): Array<ByteArray> {
-        val listOfData = MutableList(10) { Utils.randomString(20) }
+    protected fun prepareHashesToSign(count: Int): Array<ByteArray> {
+        val listOfData = MutableList(count) { Utils.randomString(20) }
         val listOfHashes = listOfData.map { it.toByteArray() }
         return listOfHashes.toTypedArray()
     }
 
-    protected fun prepareSignedData(cardId: String): DataToWrite.DataProtectedBySignature {
+    protected fun prepareSignedData(cardId: String): FileDataProtectedBySignature {
         val counter = 1
+        val issuer = Utils.issuer()
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-            cardId, issuerData, counter, Utils.issuer().dataKeyPair.privateKey
+                cardId, issuerData, counter, issuer.dataKeyPair.privateKey
         )
-        return DataToWrite.DataProtectedBySignature(
-            issuerData, counter,
-            FileDataSignature(signatures.startingSignature!!, signatures.finalizingSignature!!),
-            Utils.issuer().dataKeyPair.publicKey
+        return FileDataProtectedBySignature(
+                issuerData,
+                signatures.startingSignature!!,
+                signatures.finalizingSignature!!,
+                counter,
+                issuer.dataKeyPair.publicKey
         )
     }
 
     protected abstract fun getLayoutId(): Int
     protected abstract fun initSdk(): TangemSdk
     abstract fun handleCommandResult(result: CompletionResult<*>)
+    abstract fun onCardChanged(card: Card?)
 }

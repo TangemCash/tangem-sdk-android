@@ -1,7 +1,13 @@
 package com.tangem.jvm
 
-import com.tangem.*
-import com.tangem.commands.PinType
+import com.tangem.Log
+import com.tangem.Message
+import com.tangem.SessionViewDelegate
+import com.tangem.WrongValueType
+import com.tangem.common.UserCodeType
+import com.tangem.common.core.Config
+import com.tangem.common.core.TangemError
+import com.tangem.common.extensions.VoidCallback
 
 class LoggingSessionDelegate : SessionViewDelegate {
     override fun dismiss() {
@@ -27,7 +33,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
         Log.session { "Session started" }
     }
 
-    override fun onPinRequested(pinType: PinType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {
+    override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {
         if (isFirstAttempt) {
             Log.view { "TAG: Enter PIN:" }
         } else {
@@ -38,7 +44,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
         pin?.let { callback.invoke(it) }
     }
 
-    override fun onPinChangeRequested(pinType: PinType, callback: (pin: String) -> Unit) {
+    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String) -> Unit) {
         Log.view { "TAG: Enter new PIN:" }
         val pin = readLine()
         pin?.let { callback.invoke(it) }
@@ -60,6 +66,15 @@ class LoggingSessionDelegate : SessionViewDelegate {
     }
 
     override fun setMessage(message: Message?) {
+    }
+
+    override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {
+    }
+
+    override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {
+    }
+
+    override fun attestationCompletedWithWarnings(positive: VoidCallback) {
     }
 
     companion object {

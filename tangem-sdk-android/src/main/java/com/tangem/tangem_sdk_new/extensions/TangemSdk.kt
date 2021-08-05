@@ -1,16 +1,19 @@
 package com.tangem.tangem_sdk_new.extensions
 
 import androidx.activity.ComponentActivity
-import com.squareup.sqldelight.android.AndroidSqliteDriver
-import com.tangem.Config
-import com.tangem.Database
+import com.tangem.Log
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
-import com.tangem.common.CardValuesDbStorage
+import com.tangem.TangemSdkLogger
+import com.tangem.common.core.Config
+import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
 import com.tangem.tangem_sdk_new.NfcLifecycleObserver
-import com.tangem.tangem_sdk_new.TerminalKeysStorage
 import com.tangem.tangem_sdk_new.nfc.NfcManager
+import com.tangem.tangem_sdk_new.storage.create
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Config()): TangemSdk {
     val nfcManager = TangemSdk.initNfcManager(activity)
@@ -19,20 +22,20 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
     viewDelegate.sdkConfig = config
     viewDelegate.activity = activity
 
-    val databaseDriver = AndroidSqliteDriver(Database.Schema, activity.applicationContext, "cards.db")
     return TangemSdk(
-            nfcManager.reader, viewDelegate, config,
-            CardValuesDbStorage(databaseDriver), TerminalKeysStorage(activity.application)
+            nfcManager.reader,
+            viewDelegate,
+            SecureStorage.create(activity),
+            config,
     )
 }
 
-fun TangemSdk.Companion.customInit(
-        activity: ComponentActivity,
-        viewDelegate: SessionViewDelegate? = null,
-        config: Config = Config()
+fun TangemSdk.Companion.customDelegate(
+    activity: ComponentActivity,
+    viewDelegate: SessionViewDelegate? = null,
+    config: Config = Config()
 ): TangemSdk {
     val nfcManager = TangemSdk.initNfcManager(activity)
-    val databaseDriver = AndroidSqliteDriver(Database.Schema, activity.applicationContext, "cards.db")
 
     val viewDelegate = viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader).apply {
         this.sdkConfig = config
@@ -42,8 +45,8 @@ fun TangemSdk.Companion.customInit(
     return TangemSdk(
             nfcManager.reader,
             viewDelegate,
+            SecureStorage.create(activity),
             config,
-            CardValuesDbStorage(databaseDriver), TerminalKeysStorage(activity.application)
     )
 }
 
@@ -52,4 +55,25 @@ fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager 
     nfcManager.setCurrentActivity(activity)
     activity.lifecycle.addObserver(NfcLifecycleObserver(nfcManager))
     return nfcManager
+}
+
+fun TangemSdk.Companion.createLogger(): TangemSdkLogger {
+    return object : TangemSdkLogger {
+        private val tag = "TangemSdkLogger"
+        private val dateFormatter: DateFormat = SimpleDateFormat("HH:mm:ss:SSS", Locale.getDefault())
+
+        override fun log(message: () -> String, level: Log.Level) {
+            if (!Log.Config.Verbose.levels.contains(level)) return
+
+            val prefixDelimiter = if (level.prefix.isEmpty()) "" else ": "
+            val logMessage = "${dateFormatter.format(Date())}: ${level.prefix}$prefixDelimiter${message()}"
+            when (level) {
+                Log.Level.Debug -> android.util.Log.d(tag, logMessage)
+                Log.Level.Info -> android.util.Log.i(tag, logMessage)
+                Log.Level.Warning -> android.util.Log.w(tag, logMessage)
+                Log.Level.Error -> android.util.Log.e(tag, logMessage)
+                else -> android.util.Log.v(tag, logMessage)
+            }
+        }
+    }
 }

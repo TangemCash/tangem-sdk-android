@@ -1,11 +1,15 @@
 package com.tangem
 
+import com.tangem.common.extensions.titleFormatted
+
 object Log {
 
     private val loggers: MutableList<TangemSdkLogger> = mutableListOf()
 
-    fun command(message: () -> String) {
-        logInternal(message, Level.Command)
+    fun command(any: Any, message: (() -> String)? = null) {
+        val commandName = any::class.java.simpleName
+        val message = message ?: { "Send" }
+        logInternal({ "$commandName: ${message()}".titleFormatted() }, Level.Command)
     }
 
     fun tlv(message: () -> String) {
@@ -44,6 +48,10 @@ object Log {
         logInternal(message, Level.View)
     }
 
+    fun info(message: () -> String){
+        logInternal(message, Level.Info)
+    }
+
     private fun logInternal(message: () -> String, level: Level) {
         if (loggers.isEmpty()) return
 
@@ -59,16 +67,17 @@ object Log {
     }
 
     enum class Level(val prefix: String) {
-        Command(""),
         Tlv(""),
         Apdu(""),
-        Session("CardSession"),
         Nfc("NFCReader"),
+        Command(""),
+        Session("CardSession"),
+        View("ViewDelegate"),
+        Network(""),
+        Debug("Debug"),
+        Info("Info"),
         Warning(""),
         Error(""),
-        Debug(""),
-        Network(""),
-        View("ViewDelegate"),
     }
 
     enum class Config(val levels: List<Level>) {
@@ -79,5 +88,5 @@ object Log {
 }
 
 interface TangemSdkLogger {
-    fun log(message: ()->String, level: Log.Level)
+    fun log(message: () -> String, level: Log.Level)
 }

@@ -3,22 +3,20 @@ package com.tangem.tangem_demo.ui.separtedCommands
 import android.os.Bundle
 import android.view.View
 import com.google.android.material.slider.Slider
-import com.tangem.Config
 import com.tangem.Log
 import com.tangem.TangemSdk
-import com.tangem.TangemSdkError
-import com.tangem.commands.common.card.Card
-import com.tangem.commands.common.card.EllipticCurve
-import com.tangem.commands.common.card.masks.SigningMethod
-import com.tangem.commands.common.jsonConverter.MoshiJsonConverter
-import com.tangem.commands.file.FileSettings
-import com.tangem.commands.file.FileSettingsChange
-import com.tangem.commands.wallet.WalletConfig
 import com.tangem.common.CompletionResult
+import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.guard
+import com.tangem.common.files.FileSettings
+import com.tangem.common.files.FileSettingsChange
+import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
-import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
+import com.tangem.tangem_sdk_new.extensions.createLogger
 import com.tangem.tangem_sdk_new.extensions.init
 import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.issuer_data.*
@@ -35,9 +33,9 @@ import kotlinx.android.synthetic.main.wallet.*
 class CommandListFragment : BaseFragment() {
 
     private val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
-    private val logger = DefaultSessionViewDelegate.createLogger()
+    private val logger = TangemSdk.createLogger()
 
-    override fun initSdk(): TangemSdk = TangemSdk.init(this.requireActivity(), Config())
+    override fun initSdk(): TangemSdk = TangemSdk.init(this.requireActivity(), createSdkConfig())
 
     override fun getLayoutId(): Int = R.layout.fg_command_list
 
@@ -49,11 +47,14 @@ class CommandListFragment : BaseFragment() {
             else Log.removeLogger(logger)
         }
         btnScanCard.setOnClickListener { scanCard() }
-        btnSign.setOnClickListener { sign(prepareHashesToSign()) }
+        btnLoadCardInfo.setOnClickListener { loadCardInfo() }
 
-        btnCreateWalletSecpK1.setOnClickListener { createWallet(createWalletConfig(EllipticCurve.Secp256k1)) }
-        btnCreateWalletSecpR1.setOnClickListener { createWallet(createWalletConfig(EllipticCurve.Secp256r1)) }
-        btnCreateWalletEdwards.setOnClickListener { createWallet(createWalletConfig(EllipticCurve.Ed25519)) }
+        btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }
+        btnSignHashes.setOnClickListener { signHashes(prepareHashesToSign(11)) }
+
+        btnCreateWalletSecpK1.setOnClickListener { createWallet(EllipticCurve.Secp256k1, swIsPermanentWallet.isChecked) }
+        btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1, swIsPermanentWallet.isChecked) }
+        btnCreateWalletEdwards.setOnClickListener { createWallet(EllipticCurve.Ed25519, swIsPermanentWallet.isChecked) }
         btnPurgeWallet.setOnClickListener { purgeWallet() }
 
         btnReadIssuerData.setOnClickListener { readIssuerData() }
@@ -77,16 +78,13 @@ class CommandListFragment : BaseFragment() {
         btnDeleteFirst.setOnClickListener { deleteFiles(listOf(0)) }
         btnMakeFilePublic.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Public)) }
         btnMakeFilePrivate.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Private)) }
-    }
 
-    private fun createWalletConfig(curve: EllipticCurve): WalletConfig {
-        return WalletConfig(swIsReusable.isChecked, swIsProhibitPurgeWallet.isChecked, curve, SigningMethod.SignHash)
+        sliderWallet.stepSize = 1f
     }
 
     override fun handleCommandResult(result: CompletionResult<*>) {
         when (result) {
             is CompletionResult.Success -> {
-                if (result.data is Card) updateWalletsSlider()
                 val json = jsonConverter.prettyPrint(result.data)
                 showDialog(json)
             }
@@ -100,28 +98,42 @@ class CommandListFragment : BaseFragment() {
         }
     }
 
+    override fun onCardChanged(card: Card?) {
+        updateWalletsSlider()
+    }
+
     private fun updateWalletsSlider() {
+        sliderWallet.removeOnSliderTouchListener(touchListener)
+        val card = card.guard {
+            walletIndexesContainer.visibility = View.GONE
+            selectedIndexOfWallet = -1
+            return
+        }
+        val walletsCount = card.wallets.size
+        if (walletsCount == 0) {
+            walletIndexesContainer.visibility = View.GONE
+            selectedIndexOfWallet = -1
+            return
+        }
+
         sliderWallet.post {
-            sliderWallet.removeOnSliderTouchListener(touchListener)
-            if (card?.walletsCount == null) {
+            if (walletsCount == 1) {
+                selectedIndexOfWallet = 0
                 walletIndexesContainer.visibility = View.GONE
-                sliderWallet.removeOnSliderTouchListener(touchListener)
-                intWalletIndex = 0
-            } else {
-                val walletsCount = card?.walletsCount?.toFloat() ?: 1f
-                if (walletsCount > 1) {
-                    walletIndexesContainer.visibility = View.VISIBLE
-                    sliderWallet.stepSize = 1f
-                    sliderWallet.valueFrom = 0f
-                    sliderWallet.valueTo = walletsCount - 1f
-
-                    if (intWalletIndex == -1) intWalletIndex = 0
-                    sliderWallet.value = intWalletIndex.toFloat()
-                    tvWalletIndex.text = "$intWalletIndex"
-                    sliderWallet.addOnSliderTouchListener(touchListener)
-                }
-
+                sliderWallet.valueTo = 0f
+                return@post
             }
+
+            walletIndexesContainer.visibility = View.VISIBLE
+            sliderWallet.valueFrom = 0f
+            sliderWallet.valueTo = walletsCount - 1f
+
+            if (selectedIndexOfWallet == -1 || selectedIndexOfWallet >= walletsCount) {
+                selectedIndexOfWallet = 0
+            }
+            sliderWallet.value = selectedIndexOfWallet.toFloat()
+            tvWalletIndex.text = "$selectedIndexOfWallet"
+            sliderWallet.addOnSliderTouchListener(touchListener)
         }
     }
 
@@ -130,8 +142,8 @@ class CommandListFragment : BaseFragment() {
         }
 
         override fun onStopTrackingTouch(slider: Slider) {
-            intWalletIndex = slider.value.toInt()
-            tvWalletIndex.text = "$intWalletIndex"
+            selectedIndexOfWallet = slider.value.toInt()
+            tvWalletIndex.text = "$selectedIndexOfWallet"
         }
     }
 }

@@ -62,8 +62,8 @@ enum class TlvTag(val code: Int) {
 
     Uid(0x0B),
 
-    ManufactureId(0x20),
-    ManufacturerSignature(0x86),
+    ManufacturerName(0x20),
+    CardIDManufacturerSignature(0x86),
 
     IssuerDataPublicKey(0x30),
     IssuerTransactionPublicKey(0x31),
@@ -94,16 +94,17 @@ enum class TlvTag(val code: Int) {
     WalletSignature(0x61),
     WalletRemainingSignatures(0x62),
     WalletSignedHashes(0x63),
+    CheckWalletCounter(0x64),
     WalletIndex(0x65),
     WalletsCount(0x66),
     WalletData(0x67),
     CardWallet(0x68),
 
     Firmware(0x80),
-    Batch(0x81),
+    BatchId(0x81),
     ManufactureDateTime(0x82),
-    IssuerId(0x83),
-    BlockchainId(0x84),
+    IssuerName(0x83),
+    BlockchainName(0x84),
     ManufacturerPublicKey(0x85),
     CardIdManufacturerSignature(0x86),
 
@@ -113,6 +114,7 @@ enum class TlvTag(val code: Int) {
     TokenSymbol(0xA0),
     TokenContractAddress(0xA1),
     TokenDecimal(0xA2),
+    TokenName(0xA3),
     Denomination(0xC0),
     ValidatedBalance(0xC1),
     LastSignDate(0xC2),
@@ -132,7 +134,7 @@ enum class TlvTag(val code: Int) {
     FileSettings(0x27),
 
     FileName(0x70),
-    FileData(0x71)
+    FileData(0x71),
     ;
 
     /**
@@ -140,15 +142,15 @@ enum class TlvTag(val code: Int) {
      */
     fun valueType(): TlvValueType {
         return when (this) {
-            CardId, Batch, CrExKey, Pin2IsDefault -> TlvValueType.HexString
-            ManufactureId, Firmware, IssuerId, BlockchainId, TokenSymbol, TokenContractAddress,
+            CardId, BatchId, CrExKey -> TlvValueType.HexString
+            ManufacturerName, Firmware, IssuerName, BlockchainName, TokenSymbol, TokenName, TokenContractAddress,
             FileName -> TlvValueType.Utf8String
             CurveId -> TlvValueType.EllipticCurve
             PauseBeforePin2, WalletRemainingSignatures, WalletSignedHashes, Health, TokenDecimal,
             Offset, Size -> TlvValueType.Uint16
-            FileIndex, WalletIndex, WalletsCount -> TlvValueType.Uint8
+            FileIndex, WalletIndex, WalletsCount, CheckWalletCounter -> TlvValueType.Uint8
             MaxSignatures, UserCounter, UserProtectedCounter, IssuerDataCounter -> TlvValueType.Uint32
-            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize -> TlvValueType.BoolValue
+            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize, Pin2IsDefault -> TlvValueType.BoolValue
             ManufactureDateTime -> TlvValueType.DateTime
             ProductMask -> TlvValueType.ProductMask
             SettingsMask -> TlvValueType.SettingsMask

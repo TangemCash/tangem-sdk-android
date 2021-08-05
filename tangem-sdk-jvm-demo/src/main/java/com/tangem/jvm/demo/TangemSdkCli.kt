@@ -1,18 +1,20 @@
 package com.tangem.jvm.demo
 
 import com.tangem.Log
-import com.tangem.TangemError
 import com.tangem.TangemSdk
-import com.tangem.commands.CommandResponse
-import com.tangem.commands.SignCommand
-import com.tangem.commands.SignResponse
-import com.tangem.commands.common.card.Card
-import com.tangem.commands.common.jsonConverter.ResponseConverter
-import com.tangem.commands.file.DataToWrite
-import com.tangem.commands.wallet.WalletIndex
 import com.tangem.common.CompletionResult
+import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.hexToBytes
+import com.tangem.common.files.DataToWrite
+import com.tangem.common.files.FileDataProtectedByPasscode
+import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.jvm.init
+import com.tangem.operations.CommandResponse
+import com.tangem.operations.sign.SignHashesCommand
+import com.tangem.operations.sign.SignHashesResponse
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.cli.CommandLine
 import kotlin.coroutines.resume
@@ -21,7 +23,7 @@ import kotlin.coroutines.suspendCoroutine
 class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, private val cmd: CommandLine) {
 
     private val sdk = TangemSdk.init(verbose, indexOfTerminal)
-    private val responseConverter = ResponseConverter()
+    private val responseConverter = MoshiJsonConverter.INSTANCE
 
     private var card: Card? = null
 
@@ -47,14 +49,14 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         }
     }
 
-    private fun read(sdk: TangemSdk, callback: (result: CompletionResult<out CommandResponse>) -> Unit) {
+    private fun read(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         sdk.scanCard {
             if (it is CompletionResult.Success) card = it.data
             callback(it)
         }
     }
 
-    private fun sign(sdk: TangemSdk, callback: (result: CompletionResult<SignResponse>) -> Unit) {
+    private fun sign(sdk: TangemSdk, callback: CompletionCallback<SignHashesResponse>) {
         if (card == null) {
             println("Scan the card, before trying to use the method")
             return
@@ -69,21 +71,21 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
             return
         }
 
-        val walletIndex = getWalletIndex(index)
-        if (walletIndex == null) {
+        val publicKey = getWalletPublicKey(index)
+        if (publicKey == null) {
             println("Wallet for the index: $index not found")
             return
         }
 
-        val command = SignCommand(parseHashes(hashes), walletIndex)
+        val command = SignHashesCommand(parseHashes(hashes), publicKey)
         sdk.startSessionWithRunnable(command, cid, null, callback)
     }
 
-    private fun getWalletIndex(index: Int): WalletIndex.Index? {
-        if (index < 0) return null
+    private fun getWalletPublicKey(index: Int): ByteArray? {
+        val card = card ?: return null
+        if (index < 0 || index >= card.wallets.size) return null
 
-        val walletIndex = WalletIndex.Index(index)
-        return card?.wallet(WalletIndex.Index(index))?.let { walletIndex }
+        return card.wallets[index].publicKey
     }
 
     private fun parseHashes(hashesArgument: String): Array<ByteArray> {
@@ -93,35 +95,35 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
                 .toTypedArray()
     }
 
-    private fun createWallet(sdk: TangemSdk, callback: (result: CompletionResult<out CommandResponse>) -> Unit) {
-        val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+    private fun createWallet(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
 
-        sdk.createWallet(cardId = cid, callback = callback)
+        sdk.createWallet(EllipticCurve.Secp256k1, false, cardId, null, callback)
     }
 
-    private fun purgeWallet(sdk: TangemSdk, callback: (result: CompletionResult<out CommandResponse>) -> Unit) {
+    private fun purgeWallet(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         if (card == null) {
             println("Scan the card, before trying to use the method")
             return
         }
 
         val index: Int? = cmd.getOptionValue(TangemCommandOptions.WalletIndex.opt)?.toIntOrNull()
-        val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         if (index == null) {
             println("Missing option value")
             return
         }
 
-        val walletIndex = getWalletIndex(index)
-        if (walletIndex == null) {
+        val publicKey = getWalletPublicKey(index)
+        if (publicKey == null) {
             println("Wallet for the index: $index not found")
             return
         }
 
-        sdk.purgeWallet(cardId = cid, walletIndex = walletIndex, callback = callback)
+        sdk.purgeWallet(publicKey, cardId, null, callback)
     }
 
-    private fun readFiles(sdk: TangemSdk, callback: (result: CompletionResult<out CommandResponse>) -> Unit) {
+    private fun readFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val readPrivateFiles: Boolean = cmd.hasOption(TangemCommandOptions.ReadPrivateFiles.opt)
         val fileIndices: List<Int>? = cmd.getOptionValue(TangemCommandOptions.FileIndices.opt)
@@ -134,12 +136,12 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         )
     }
 
-    private fun writeFiles(sdk: TangemSdk, callback: (result: CompletionResult<out CommandResponse>) -> Unit) {
+    private fun writeFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val files: List<DataToWrite>? = cmd.getOptionValue(TangemCommandOptions.Files.opt)
                 ?.split(",")
                 ?.map { it.trim().hexToBytes() }
-                ?.map { DataToWrite.DataProtectedByPasscode(it) }
+                ?.map { FileDataProtectedByPasscode(it) }
 
         if (files == null) {
             println("Missing option value")
@@ -150,7 +152,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
     }
 
 
-    private fun deleteFiles(sdk: TangemSdk, callback: (result: CompletionResult<out CommandResponse>) -> Unit) {
+    private fun deleteFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val fileIndices: List<Int>? = cmd.getOptionValue(TangemCommandOptions.FileIndices.opt)
                 ?.split(",")
@@ -166,7 +168,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
             }
             is CompletionResult.Failure -> handleError(result.error)
         }
-        Log.command { "Task completed" }
+        Log.command(this) { "completed" }
     }
 
     private fun handleError(error: TangemError) {

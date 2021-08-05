@@ -14,6 +14,8 @@ import kotlin.experimental.xor
 
 fun ByteArray.toHexString(): String = joinToString("") { "%02X".format(it) }
 
+fun ByteArray.toString(): String = toHexString()
+
 fun ByteArray.toUtf8(): String = String(this).removeSuffix("\u0000")
 
 fun ByteArray.toInt(): Int {

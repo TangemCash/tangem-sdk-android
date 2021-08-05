@@ -1,7 +1,7 @@
 package com.tangem.crypto
 
 import com.google.common.truth.Truth.assertThat
-import com.tangem.commands.common.card.EllipticCurve
+import com.tangem.common.card.EllipticCurve
 import com.tangem.crypto.CryptoUtils.generatePublicKey
 import com.tangem.crypto.CryptoUtils.generateRandomBytes
 import com.tangem.crypto.CryptoUtils.verify

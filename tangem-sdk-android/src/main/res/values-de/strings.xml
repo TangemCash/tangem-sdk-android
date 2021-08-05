@@ -60,6 +60,7 @@
     <string name="error_not_activated">Diese Karte ist nicht aktiviert worden</string>
     <string name="error_verification_failed">Die Datenverifizierung ist fehlgeschlagen</string>
     <string name="error_card_verification_failed">Die Kartenverifizierung ist fehlgeschlagen</string>
+    <string name="error_card_create_wallet">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
     <string name="error_data_size_too_large">Die Datengröße überschreitet die Höchstgrenze von 512 B</string>
     <string name="error_data_size_too_large_extended">Die Datengröße überschreitet die Höchstgrenze von 32 KB</string>
     <string name="error_missing_counter">Die Daten können auf die Karte nicht geschrieben werden, da kein Zähler vorhanden ist</string>

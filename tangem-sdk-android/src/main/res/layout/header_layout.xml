@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:clickable="true"
         android:focusable="true"
-        android:visibility="visible"
+        android:visibility="gone"
         android:padding="16dp"
         app:srcCompat="@drawable/ic_close"
         app:tint="@color/sdk_drawable_icon"/>

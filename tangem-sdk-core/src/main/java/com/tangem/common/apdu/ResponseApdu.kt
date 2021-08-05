@@ -1,6 +1,6 @@
 package com.tangem.common.apdu
 
-import com.tangem.TangemSdkError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateCrc16
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.tlv.Tlv
@@ -29,7 +29,7 @@ class ResponseApdu(private val data: ByteArray) {
      * @param encryptionKey key to decrypt response.
      * (Encryption / decryption functionality is not implemented yet.)
      */
-    fun getTlvData(): List<Tlv>? {
+    fun getTlvData(encryptionKey: ByteArray?): List<Tlv>? {
         return if (data.size <= 2) {
             null
         } else {

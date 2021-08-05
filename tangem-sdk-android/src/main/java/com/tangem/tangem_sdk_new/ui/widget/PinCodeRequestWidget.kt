@@ -5,8 +5,8 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.tangem.TangemSdkError
-import com.tangem.commands.PinType
+import com.tangem.common.UserCodeType
+import com.tangem.common.core.TangemSdkError
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.hideSoftKeyboard
@@ -43,14 +43,14 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
     override fun setState(params: SessionViewDelegateState) {
         when (params) {
             is SessionViewDelegateState.PinRequested -> {
-                val code = when (params.pinType) {
-                    PinType.Pin1 -> getString(R.string.pin1)
-                    PinType.Pin2 -> getString(R.string.pin2)
+                val code = when (params.type) {
+                    UserCodeType.AccessCode -> getString(R.string.pin1)
+                    UserCodeType.Passcode -> getString(R.string.pin2)
                 }
                 tilPinCode.hint = code
-                val error = when (params.pinType) {
-                    PinType.Pin1 -> TangemSdkError.WrongPin1().localizedDescription(mainView.context)
-                    PinType.Pin2 -> TangemSdkError.WrongPin2().localizedDescription(mainView.context)
+                val error = when (params.type) {
+                    UserCodeType.AccessCode -> TangemSdkError.WrongAccessCode().localizedDescription(mainView.context)
+                    UserCodeType.Passcode -> TangemSdkError.WrongPasscode().localizedDescription(mainView.context)
                 }
                 if (!params.isFirstAttempt) tilPinCode.error = error
                 etPinCode.setText("")

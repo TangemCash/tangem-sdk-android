@@ -11,9 +11,9 @@ import android.nfc.tech.IsoDep
 import android.os.Build
 import android.os.Bundle
 import com.tangem.Log
-import com.tangem.ReadingActiveListener
+import com.tangem.common.extensions.VoidCallback
+import com.tangem.common.nfc.ReadingActiveListener
 import com.tangem.tangem_sdk_new.ui.NfcEnableDialog
-import com.tangem.tangem_sdk_new.ui.animation.VoidCallback
 
 /**
  * Helps use NFC, leveraging Android NFC functionality.

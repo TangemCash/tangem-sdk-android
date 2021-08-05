@@ -33,10 +33,10 @@ object Secp256r1 {
     }
 
     private fun calculateR(signature: ByteArray, size: Int): ASN1Integer =
-        ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
+            ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
 
     private fun calculateS(signature: ByteArray, size: Int): ASN1Integer =
-        ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
+            ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
 
     internal fun loadPublicKey(publicKeyArray: ByteArray): PublicKey {
 

@@ -1,7 +1,10 @@
 package com.tangem
 
 import com.squareup.moshi.JsonClass
-import com.tangem.commands.PinType
+import com.tangem.common.UserCodeType
+import com.tangem.common.core.Config
+import com.tangem.common.core.TangemError
+import com.tangem.common.extensions.VoidCallback
 
 /**
  * Allows interaction with users and shows visual elements.
@@ -50,18 +53,24 @@ interface SessionViewDelegate {
     /**
      * It is called when a user is expected to enter pin code.
      */
-    fun onPinRequested(pinType: PinType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit)
+    fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (code: String) -> Unit)
 
     /**
      * It is called when a user wants to change pin code.
      */
-    fun onPinChangeRequested(pinType: PinType, callback: (pin: String) -> Unit)
+    fun requestUserCodeChange(type: UserCodeType, callback: (newCode: String) -> Unit)
 
     fun setConfig(config: Config)
 
     fun setMessage(message: Message?)
 
     fun dismiss()
+
+    fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback)
+
+    fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback)
+
+    fun attestationCompletedWithWarnings(positive: VoidCallback)
 }
 
 /**

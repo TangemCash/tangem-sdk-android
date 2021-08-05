@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import android.view.View
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import com.tangem.common.extensions.VoidCallback
 
 /**
  * Created by Anton Zhilenkov on 12/10/2020.
@@ -60,10 +61,10 @@ class FlipAnimator(
     private fun toFrontAnimator(duration: Long): AnimatorSet {
         return AnimatorSet().apply {
             playTogether(
-                frontView.flipEnd(duration),
-                frontView.wiggleToRight(duration),
-                backView.flipStart(duration),
-                backView.wiggleToRight(duration)
+                    frontView.flipEnd(duration),
+                    frontView.wiggleToRight(duration),
+                    backView.flipStart(duration),
+                    backView.wiggleToRight(duration)
             )
         }
     }
@@ -71,10 +72,10 @@ class FlipAnimator(
     private fun toBackAnimator(duration: Long): AnimatorSet {
         return AnimatorSet().apply {
             playTogether(
-                frontView.flipStart(duration),
-                frontView.wiggleToRight(duration),
-                backView.flipEnd(duration),
-                backView.wiggleToRight(duration)
+                    frontView.flipStart(duration),
+                    frontView.wiggleToRight(duration),
+                    backView.flipEnd(duration),
+                    backView.wiggleToRight(duration)
             )
         }
     }
