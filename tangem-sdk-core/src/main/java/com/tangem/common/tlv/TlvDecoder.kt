@@ -9,6 +9,7 @@ import com.tangem.common.extensions.toInt
 import com.tangem.common.extensions.toUtf8
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -187,6 +188,15 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                 typeCheck<T, FileSettings>(tag)
                 try {
                     FileSettings.byRawValue(tlvValue.toInt()) as T
+                } catch (exception: Exception) {
+                    logException(tag, tlvValue.toInt().toString(), exception)
+                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                }
+            }
+            TlvValueType.DerivationPath -> {
+                typeCheck<T, DerivationPath>(tag)
+                try {
+                    DerivationPath.from(tlvValue) as T
                 } catch (exception: Exception) {
                     logException(tag, tlvValue.toInt().toString(), exception)
                     throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))

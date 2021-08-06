@@ -20,7 +20,8 @@ enum class TlvValueType {
     SigningMethod,
     InteractionMode,
     FileDataMode,
-    FileSettings
+    FileSettings,
+    DerivationPath
 }
 
 /**
@@ -100,6 +101,9 @@ enum class TlvTag(val code: Int) {
     WalletData(0x67),
     CardWallet(0x68),
 
+    WalletHDPath(0x6A),
+    WalletHDChain(0x6B),
+
     Firmware(0x80),
     BatchId(0x81),
     ManufactureDateTime(0x82),
@@ -159,6 +163,7 @@ enum class TlvTag(val code: Int) {
             InteractionMode -> TlvValueType.InteractionMode
             WriteFileMode -> TlvValueType.FileDataMode
             FileSettings -> TlvValueType.FileSettings
+            WalletHDPath -> TlvValueType.DerivationPath
             else -> TlvValueType.ByteArray
         }
     }
