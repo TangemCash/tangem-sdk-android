@@ -7,6 +7,7 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.CardSession
@@ -61,8 +62,13 @@ internal class SignCommand(
     override fun performPreCheck(card: Card): TangemSdkError? {
         val wallet = card.wallet(walletPublicKey) ?: return TangemSdkError.WalletNotFound()
 
-        if (hdPath != null && card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
-            return TangemSdkError.NotSupportedFirmwareVersion()
+        if (hdPath != null) {
+            if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
+                return TangemSdkError.NotSupportedFirmwareVersion()
+            }
+            if (wallet.curve != EllipticCurve.Secp256k1) {
+                return TangemSdkError.UnsupportedCurve()
+            }
         }
 
         //Before v4
