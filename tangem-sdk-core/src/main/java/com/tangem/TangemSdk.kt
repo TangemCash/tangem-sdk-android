@@ -10,7 +10,6 @@ import com.tangem.common.files.FileHashData
 import com.tangem.common.files.FileHashHelper
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
@@ -139,33 +138,6 @@ class TangemSdk(
         callback: CompletionCallback<SignResponse>
     ) {
         val command = SignCommand(hashes, walletPublicKey, hdPath)
-        startSessionWithRunnable(command, cardId, initialMessage, callback)
-    }
-
-    /**
-     * This method launches a [DerivePublicKeyCommand] on a new thread.
-     *
-     * This command derives the public key by the card, according to the BIP32.
-     * You can derive the public key without the card, if you need non-hardened derivation only.
-     * It's preferred to use `ExtendedPublicKey.derivePublicKey(Long)` for non-hardened derivation,
-     * because the card never reveals the secret key. `Secp256k1` only
-     * @param walletPublicKey: Public key of wallet that should sign hashes.
-     * @param cardId: CID, Unique Tangem card ID number
-     * @param hdPath: Derivation path of the wallet
-     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
-     * If null, default message will be used
-     * @param callback: is triggered on the completion of the [DerivePublicKeyCommand] and provides
-     * card response in the form of [ExtendedPublicKey] if the task was performed successfully
-     * or [TangemSdkError] in case of an error.
-     */
-    fun derivePublicKey(
-        walletPublicKey: ByteArray,
-        cardId: String,
-        hdPath: DerivationPath,
-        initialMessage: Message? = null,
-        callback: CompletionCallback<ExtendedPublicKey>
-    ) {
-        val command = DerivePublicKeyCommand(walletPublicKey, hdPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 

@@ -5,8 +5,6 @@ import com.tangem.common.card.Card
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.operations.DerivePublicKeyCommand
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
 import com.tangem.operations.personalization.DepersonalizeCommand
@@ -136,15 +134,3 @@ class ResetUserCodesHandler : JSONRPCHandler<SuccessResponse> {
         return SetUserCodeCommand.resetUserCodes()
     }
 }
-
-class DerivePublicKeyHandler : JSONRPCHandler<ExtendedPublicKey> {
-    override val method: String = "DERIVE_PUBLIC_KEY"
-    override val requiresCardId: Boolean = true
-
-    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKey> {
-        val publicKey = (params["walletPublicKey"] as String).hexToBytes()
-        val hdPath = DerivationPath((params["hdPath"] as String))
-        return DerivePublicKeyCommand(publicKey, hdPath)
-    }
-}
-

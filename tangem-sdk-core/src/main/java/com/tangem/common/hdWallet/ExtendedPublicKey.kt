@@ -52,7 +52,7 @@ class ExtendedPublicKey(
     @Throws(HDWalletError::class)
     fun derivePublicKey(derivationPath: DerivationPath): ExtendedPublicKey {
         var key: ExtendedPublicKey = this
-        derivationPath.path.forEach {
+        derivationPath.nodes.forEach {
             key = key.derivePublicKey(it)
         }
         return key

@@ -20,6 +20,13 @@ sealed class DerivationNode(
     class Hardened(index: Long) : DerivationNode(index, true)
     class NotHardened(index: Long) : DerivationNode(index, false)
 
+    fun toNonHardened(): DerivationNode {
+        return when (this) {
+            is Hardened -> NotHardened(this.index - BIP32.hardenedOffset)
+            else -> this
+        }
+    }
+
     override fun equals(other: Any?): Boolean {
         val other = other as? DerivationNode ?: return false
 
@@ -32,10 +39,6 @@ sealed class DerivationNode(
     )
 
     companion object {
-        fun create(index: Long, notHardenedOnly: Boolean): DerivationNode {
-            return if (notHardenedOnly) NotHardened(index) else Hardened(index)
-        }
-
         fun DerivationNode.serialize(): ByteArray {
             return index.toByteArray(4)
         }

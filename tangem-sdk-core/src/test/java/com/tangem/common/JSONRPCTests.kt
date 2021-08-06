@@ -5,7 +5,6 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.personalization.DepersonalizeResponse
@@ -147,15 +146,6 @@ class JSONRPCTests {
     @Test
     fun testSetPasscode() {
         testMethod("SetPasscode", null)
-    }
-
-    @Test
-    fun testDerivePublicKey() {
-        val result = ExtendedPublicKey(
-                "03E9EC49A559E9C5F31CAD60733AB16F694D69045B12CE9F669A7F33B68B230F7B".hexToBytes(),
-                "A37E3B27C64AA0DB1107175E9929F870B2AD5968A33A51864C1CDB12BCE49325".hexToBytes()
-        )
-        testMethod("DerivePublicKey", result)
     }
 
     private fun testMethod(name: String, response: CommandResponse?) {

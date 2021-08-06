@@ -137,7 +137,7 @@ class TlvEncoder {
             }
             TlvValueType.DerivationPath -> {
                 typeCheck<T, DerivationPath>(tag)
-                return (value as DerivationPath).path.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
+                return (value as DerivationPath).nodes.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
             }
         }
     }

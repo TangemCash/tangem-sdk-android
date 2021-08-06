@@ -5,28 +5,48 @@ import com.tangem.common.extensions.calculateHashCode
 import com.tangem.common.extensions.remove
 import com.tangem.common.hdWallet.bip.BIP32
 
-class DerivationPath constructor(
-    val rawPath: String,
-    val path: List<DerivationNode>
-) {
+/**
+ * BIP32 derivation Path
+ */
+class DerivationPath {
+    val rawPath: String
+    val nodes: List<DerivationNode>
 
+    @Throws(TangemSdkError::class)
+    constructor(rawPath: String, path: List<DerivationNode>) {
+        this.rawPath = rawPath
+        this.nodes = path
+    }
+
+    /**
+     * Parse derivation path.
+     * @param rawPath: Path. E.g. "m/0'/0/1/0"
+     */
     @Throws(TangemSdkError::class)
     constructor(rawPath: String) : this(rawPath, createPath(rawPath))
 
     constructor(path: List<DerivationNode>) : this(createRawPath(path), path)
 
+
+    /**
+     * Convert path to non-hardened nodes only
+     * We can use non-hardened derivation only without tapping the Tangem card.
+     * @return Non-hardened path according BIP32
+     */
+    fun toNonHardened(): DerivationPath = DerivationPath(nodes.map { it.toNonHardened() })
+
     override fun equals(other: Any?): Boolean {
         val other = other as? DerivationPath ?: return false
 
-        this.path.forEachIndexed { index, node ->
-            if (node != other.path[index]) return false
+        this.nodes.forEachIndexed { index, node ->
+            if (node != other.nodes[index]) return false
         }
         return true
     }
 
     override fun hashCode(): Int = calculateHashCode(
             rawPath.hashCode(),
-            calculateHashCode(*path.map { it.hashCode() }.toIntArray())
+            calculateHashCode(*nodes.map { it.hashCode() }.toIntArray())
     )
 
     companion object {

@@ -84,11 +84,11 @@ class HDWalletTests {
         assert(derivationPath == derivationPath2)
         assert(derivationPath == derivationPath3)
 
-        assert(derivationPath.path[0] == DerivationNode.Hardened(44))
-        assert(derivationPath.path[1] == DerivationNode.Hardened(0))
-        assert(derivationPath.path[2] == DerivationNode.Hardened(0))
-        assert(derivationPath.path[3] == DerivationNode.NotHardened(1))
-        assert(derivationPath.path[4] == DerivationNode.NotHardened(0))
+        assert(derivationPath.nodes[0] == DerivationNode.Hardened(44))
+        assert(derivationPath.nodes[1] == DerivationNode.Hardened(0))
+        assert(derivationPath.nodes[2] == DerivationNode.Hardened(0))
+        assert(derivationPath.nodes[3] == DerivationNode.NotHardened(1))
+        assert(derivationPath.nodes[4] == DerivationNode.NotHardened(0))
 
         assert(derivationPathIsThrowException("44'/m'/0'/1/0"))
         assert(derivationPathIsThrowException("m /"))
@@ -119,14 +119,14 @@ class HDWalletTests {
     @Test
     fun testBitcoinBip44() {
         val buidler = BIP44(0, 0, BIP44.Chain.External, 0)
-        val path = buidler.buildPath(false).rawPath
+        val path = buidler.buildPath().rawPath
         assert(path == "m/44'/0'/0'/0/0")
     }
 
     @Test
     fun testBitcoinBip44ForTangem() {
         val buidler = BIP44(0, 0, BIP44.Chain.External, 0)
-        val path = buidler.buildPath().rawPath
+        val path = buidler.buildPath().toNonHardened().rawPath
         assert(path == "m/44/0/0/0/0")
     }
 
@@ -168,7 +168,7 @@ class HDWalletTests {
                 "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
                 "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes()
         )
-        val ethPath = BIP44.buildPath(60)
+        val ethPath = BIP44.buildPath(60).toNonHardened()
         val childKey = masterKey.derivePublicKey(ethPath)
         val childKey1 = masterKey.derivePublicKey(DerivationPath("m/44/60"))
         assert(childKey == childKey1)
@@ -181,7 +181,7 @@ class HDWalletTests {
 
     @Test
     fun testPathDerivationBip44() {
-        val path = BIP44(0, 0, BIP44.Chain.Internal, 0).buildPath()
+        val path = BIP44(0, 0, BIP44.Chain.Internal, 0).buildPath().toNonHardened()
         val masterKey = ExtendedPublicKey(
                 "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
                 "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes()
@@ -196,7 +196,7 @@ class HDWalletTests {
 
     @Test
     fun testPathDerivationFailed() {
-        val path = BIP44(0, 0, BIP44.Chain.External, 0).buildPath(false)
+        val path = BIP44(0, 0, BIP44.Chain.External, 0).buildPath()
         val masterKey = ExtendedPublicKey(
                 "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
                 "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes()

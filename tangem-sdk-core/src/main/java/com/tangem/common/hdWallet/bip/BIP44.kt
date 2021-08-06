@@ -15,16 +15,14 @@ class BIP44(
 
     /**
      * Build path
-     * @param notHardenedOnly: Because we don't have access to the private key, we can use non-hardened
-     * derivation only without tapping the Tangem card.
      * @return Path according BIP32
      */
-    fun buildPath(notHardenedOnly: Boolean = true): DerivationPath {
+    fun buildPath(): DerivationPath {
         val nodes = listOf(
-                DerivationNode.create(purpose, notHardenedOnly),
-                DerivationNode.create(coinType, notHardenedOnly),
-                DerivationNode.create(account, notHardenedOnly),
-                DerivationNode.NotHardened(change.ordinal.toLong()),
+                DerivationNode.Hardened(purpose),
+                DerivationNode.Hardened(coinType),
+                DerivationNode.Hardened(account),
+                DerivationNode.NotHardened(change.index),
                 DerivationNode.NotHardened(addressIndex),
         )
         return DerivationPath(nodes)
@@ -44,7 +42,8 @@ class BIP44(
         }
     }
 
-    enum class Chain {
-        External, Internal
+    enum class Chain(val index: Long) {
+        External(0),
+        Internal(1);
     }
 }
