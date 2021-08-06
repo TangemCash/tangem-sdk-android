@@ -1,6 +1,7 @@
 package com.tangem.common.hdWallet
 
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.calculateHashCode
 import com.tangem.common.extensions.remove
 import com.tangem.common.hdWallet.bip.BIP32
 
@@ -9,6 +10,7 @@ class DerivationPath constructor(
     val path: List<DerivationNode>
 ) {
 
+    @Throws(TangemSdkError::class)
     constructor(rawPath: String) : this(rawPath, createPath(rawPath))
 
     constructor(path: List<DerivationNode>) : this(createRawPath(path), path)
@@ -16,10 +18,19 @@ class DerivationPath constructor(
     override fun equals(other: Any?): Boolean {
         val other = other as? DerivationPath ?: return false
 
-        return this.path.isEquals(other.path)
+        this.path.forEachIndexed { index, node ->
+            if (node != other.path[index]) return false
+        }
+        return true
     }
 
+    override fun hashCode(): Int = calculateHashCode(
+            rawPath.hashCode(),
+            calculateHashCode(*path.map { it.hashCode() }.toIntArray())
+    )
+
     companion object {
+
         @Throws(TangemSdkError::class)
         fun from(data: ByteArray): DerivationPath {
             if (data.size % 4 != 0) {
@@ -27,16 +38,12 @@ class DerivationPath constructor(
                 throw TangemSdkError.DecodingFailed(message)
             }
             val chunks = 0 until data.size / 4
-            val dataChunks = chunks.map {
-                val howMuchDrop = it * 4
-                val dropped = data.drop(howMuchDrop)
-                val taked = dropped.take(4)
-                taked.toByteArray()
-            }
+            val dataChunks = chunks.map { data.drop(it * 4).take(4).toByteArray() }
             val path = dataChunks.map { DerivationNode.deserialize(it) }
             return DerivationPath(path)
         }
 
+        @Throws(TangemSdkError::class)
         private fun createPath(rawPath: String): List<DerivationNode> {
             val splittedPath = rawPath.toLowerCase().split(BIP32.separatorSymbol)
             if (splittedPath.size < 2) throw HDWalletError.WrongPath
@@ -59,11 +66,4 @@ class DerivationPath constructor(
             return "${BIP32.masterKeySymbol}${BIP32.separatorSymbol}$description"
         }
     }
-}
-
-private fun List<DerivationNode>.isEquals(path: List<DerivationNode>): Boolean {
-    this.forEachIndexed { index, node ->
-        if (node != path[index]) return false
-    }
-    return true
 }

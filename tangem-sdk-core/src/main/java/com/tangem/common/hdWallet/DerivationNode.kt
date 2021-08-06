@@ -1,5 +1,6 @@
 package com.tangem.common.hdWallet
 
+import com.tangem.common.extensions.calculateHashCode
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.extensions.toLong
 import com.tangem.common.hdWallet.bip.BIP32
@@ -24,6 +25,11 @@ sealed class DerivationNode(
 
         return this.internalIndex == other.internalIndex && this.isHardened == other.isHardened
     }
+
+    override fun hashCode(): Int = calculateHashCode(
+            isHardened.hashCode(),
+            internalIndex.hashCode()
+    )
 
     companion object {
         fun create(index: Long, notHardenedOnly: Boolean): DerivationNode {

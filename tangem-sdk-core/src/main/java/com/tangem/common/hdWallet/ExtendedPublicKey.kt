@@ -1,5 +1,6 @@
 package com.tangem.common.hdWallet
 
+import com.tangem.common.extensions.calculateHashCode
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.hdWallet.bip.BIP32
 import com.tangem.crypto.Secp256k1
@@ -63,4 +64,9 @@ class ExtendedPublicKey(
         return compressedPublicKey.contentEquals(other.compressedPublicKey)
                 && chainCode.contentEquals(other.chainCode)
     }
+
+    override fun hashCode(): Int = calculateHashCode(
+            compressedPublicKey.contentHashCode(),
+            chainCode.contentHashCode()
+    )
 }

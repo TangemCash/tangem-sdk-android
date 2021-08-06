@@ -66,6 +66,8 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         return stringValue == other.stringValue
     }
 
+    override fun hashCode(): Int = stringValue.hashCode()
+
     companion object {
         val Min = FirmwareVersion(0, 0)
         val Max = FirmwareVersion(Int.MAX_VALUE, 0)
@@ -88,7 +90,7 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         /**
          * HD Wallet
          */
-        val HDWalletAvailable = FirmwareVersion(4,28)
+        val HDWalletAvailable = FirmwareVersion(4, 28)
     }
 
     enum class FirmwareType(val rawValue: String?) {
