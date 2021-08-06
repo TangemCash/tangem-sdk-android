@@ -84,6 +84,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          * Read-write files
          */
         val FilesAvailable = FirmwareVersion(3, 29)
+
+        /**
+         * HD Wallet
+         */
+        val HDWalletAvailable = FirmwareVersion(4,28)
     }
 
     enum class FirmwareType(val rawValue: String?) {

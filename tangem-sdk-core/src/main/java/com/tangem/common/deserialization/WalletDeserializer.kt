@@ -33,6 +33,7 @@ class WalletDeserializer {
 
             return CardWallet(
                     decoder.decode(TlvTag.WalletPublicKey),
+                    decoder.decodeOptional(TlvTag.WalletHDChain),
                     decoder.decode(TlvTag.CurveId),
                     settings,
                     decoder.decode(TlvTag.WalletSignedHashes),

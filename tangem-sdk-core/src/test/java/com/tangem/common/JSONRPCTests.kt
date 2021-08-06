@@ -106,6 +106,7 @@ class JSONRPCTests {
     @Test
     fun testCreateWallet() {
         val wallet = CardWallet("5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348".hexToBytes(),
+                null,
                 EllipticCurve.Secp256r1,
                 CardWallet.Settings(true),
                 10,

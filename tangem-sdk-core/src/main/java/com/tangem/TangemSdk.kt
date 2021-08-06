@@ -9,6 +9,8 @@ import com.tangem.common.files.DataToWrite
 import com.tangem.common.files.FileHashData
 import com.tangem.common.files.FileHashHelper
 import com.tangem.common.files.FileSettingsChange
+import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
@@ -87,6 +89,7 @@ class TangemSdk(
      * @param hash: Transaction hash for sign by card.
      * @param walletPublicKey: Public key of wallet that should sign hash.
      * @param cardId: CID, Unique Tangem card ID number
+     * @param hdPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * default message will be used
      * @param callback: is triggered on the completion of the [SignCommand] and provides response
@@ -96,11 +99,12 @@ class TangemSdk(
     fun sign(
         hash: ByteArray,
         walletPublicKey: ByteArray,
-        cardId: String? = null,
+        cardId: String,
+        hdPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignHashResponse>
     ) {
-        val command = SignHashCommand(hash, walletPublicKey)
+        val command = SignHashCommand(hash, walletPublicKey, hdPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -119,6 +123,7 @@ class TangemSdk(
      * @param hashes: Array of transaction hashes. It can be from one or up to ten hashes of the same length.
      * @param walletPublicKey: Public key of the wallet that should sign hashes.
      * @param cardId: CID, Unique Tangem card ID number
+     * @param hdPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
      * @param callback: is triggered on the completion of the [SignCommand] and provides response
@@ -128,11 +133,39 @@ class TangemSdk(
     fun sign(
         hashes: Array<ByteArray>,
         walletPublicKey: ByteArray,
-        cardId: String? = null,
+        cardId: String,
+        hdPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignResponse>
     ) {
-        val command = SignCommand(hashes, walletPublicKey)
+        val command = SignCommand(hashes, walletPublicKey, hdPath)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
+
+    /**
+     * This method launches a [DerivePublicKeyCommand] on a new thread.
+     *
+     * This command derives the public key by the card, according to the BIP32.
+     * You can derive the public key without the card, if you need non-hardened derivation only.
+     * It's preferred to use `ExtendedPublicKey.derivePublicKey(Long)` for non-hardened derivation,
+     * because the card never reveals the secret key. `Secp256k1` only
+     * @param walletPublicKey: Public key of wallet that should sign hashes.
+     * @param cardId: CID, Unique Tangem card ID number
+     * @param hdPath: Derivation path of the wallet
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used
+     * @param callback: is triggered on the completion of the [DerivePublicKeyCommand] and provides
+     * card response in the form of [ExtendedPublicKey] if the task was performed successfully
+     * or [TangemSdkError] in case of an error.
+     */
+    fun derivePublicKey(
+        walletPublicKey: ByteArray,
+        cardId: String,
+        hdPath: DerivationPath,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<ExtendedPublicKey>
+    ) {
+        val command = DerivePublicKeyCommand(walletPublicKey, hdPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -161,7 +194,7 @@ class TangemSdk(
     fun createWallet(
         curve: EllipticCurve,
         isPermanent: Boolean,
-        cardId: String? = null,
+        cardId: String,
         initialMessage: Message? = null,
         callback: CompletionCallback<CreateWalletResponse>
     ) {
@@ -183,7 +216,7 @@ class TangemSdk(
      */
     fun purgeWallet(
         walletPublicKey: ByteArray,
-        cardId: String? = null,
+        cardId: String,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
@@ -276,7 +309,7 @@ class TangemSdk(
      * */
     fun setAccessCode(
         accessCode: String? = null,
-        cardId: String? = null,
+        cardId: String,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
@@ -299,7 +332,7 @@ class TangemSdk(
      * */
     fun setPasscode(
         passcode: String? = null,
-        cardId: String? = null,
+        cardId: String,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {

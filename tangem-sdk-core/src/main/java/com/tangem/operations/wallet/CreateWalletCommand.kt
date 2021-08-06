@@ -141,6 +141,7 @@ class CreateWalletCommand(
         val index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex!!
         val wallet = CardWallet(
                 decoder.decode(TlvTag.WalletPublicKey),
+                decoder.decodeOptional(TlvTag.WalletHDChain),
                 curve,
                 CardWallet.Settings(isPermanent),
                 0,

@@ -12,6 +12,7 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDeserializer
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -33,7 +34,8 @@ class ReadWalletResponse(
  * information about it and perform prechecks
  */
 class ReadWalletCommand(
-    private val walletPublicKey: ByteArray
+    private val walletPublicKey: ByteArray,
+    private val hdPath: DerivationPath? = null
 ) : Command<ReadWalletResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
@@ -57,6 +59,7 @@ class ReadWalletCommand(
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.InteractionMode, ReadMode.Wallet)
         tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
+        tlvBuilder.append(TlvTag.WalletHDPath, hdPath)
 
         return CommandApdu(Instruction.Read, tlvBuilder.serialize())
     }
