@@ -1,8 +1,10 @@
 package com.tangem.common.hdWallet
 
 import com.tangem.common.extensions.toByteArray
+import com.tangem.common.hdWallet.bip.BIP32
 import com.tangem.crypto.Secp256k1
 import com.tangem.crypto.hmacSha512
+import com.tangem.operations.CommandResponse
 
 /**
  * Created by Anton Zhilenkov on 03/08/2021.
@@ -10,32 +12,34 @@ import com.tangem.crypto.hmacSha512
 class ExtendedPublicKey(
     val compressedPublicKey: ByteArray,
     val chainCode: ByteArray,
-) {
+) : CommandResponse {
 
     /**
      *  This function performs CKDpub((Kpar, cpar), i) → (Ki, ci) to compute a child extended public key from
      *  the parent extended public key. It is only defined for non-hardened child keys.
      */
-    fun derivePublicKey(index: Int): ExtendedPublicKey {
+    @Throws(HDWalletError::class)
+    fun derivePublicKey(index: Long): ExtendedPublicKey {
         //We can derive only non-hardened keys
-        if (index < 0 || index > maxNonHardenedIndex) throw HDWalletError.HardenedNotSupported
+        if (index < 0 || index >= BIP32.hardenedOffset) throw HDWalletError.HardenedNotSupported
 
         val data = compressedPublicKey + index.toByteArray(4)
         val hmac = chainCode.hmacSha512(data)
-        val I = hmac.clone()
-        val Il = I.sliceArray(0 until 32)
-        val Ir = I.sliceArray(32 until 64)
+        val i = hmac.clone()
+        val iL = i.sliceArray(0 until 32)
+        val iR = i.sliceArray(32 until 64)
 
-        val ki = Secp256k1.gMultiplyAndAddPoint(Il, compressedPublicKey)
+        val ki = Secp256k1.gMultiplyAndAddPoint(iL, compressedPublicKey)
         val derivedPublicKey = ki.getEncoded(true)
 
-        return ExtendedPublicKey(derivedPublicKey, Ir)
+        return ExtendedPublicKey(derivedPublicKey, iR)
     }
 
     /**
      * This function performs CKDpub((Kpar, cpar), i) → (Ki, ci) to compute a child extended public key from the
      * parent extended public key. It is only defined for non-hardened child keys.
      */
+    @Throws(HDWalletError::class)
     fun derivePublicKey(node: DerivationNode): ExtendedPublicKey {
         return derivePublicKey(node.index)
     }
@@ -44,6 +48,7 @@ class ExtendedPublicKey(
      * This function performs CKDpub((Kpar, cpar), i) → (Ki, ci) to compute a child extended public key from the
      * parent extended public key. It is only defined for non-hardened child keys.
      */
+    @Throws(HDWalletError::class)
     fun derivePublicKey(derivationPath: DerivationPath): ExtendedPublicKey {
         var key: ExtendedPublicKey = this
         derivationPath.path.forEach {
@@ -52,8 +57,10 @@ class ExtendedPublicKey(
         return key
     }
 
-    companion object {
-        // 2^31-1. Index must be less then or equal this value
-        val maxNonHardenedIndex = 2147483647
+    override fun equals(other: Any?): Boolean {
+        val other = other as? ExtendedPublicKey ?: return false
+
+        return compressedPublicKey.contentEquals(other.compressedPublicKey)
+                && chainCode.contentEquals(other.chainCode)
     }
 }

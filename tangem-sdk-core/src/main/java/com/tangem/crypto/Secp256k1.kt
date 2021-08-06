@@ -17,6 +17,22 @@ import java.security.Signature
 
 object Secp256k1 {
 
+    internal fun compressPublicKey(key: ByteArray): ByteArray = if (key.size == 65) {
+        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
+        val publicKeyPoint = spec.curve.decodePoint(key)
+        publicKeyPoint.getEncoded(true)
+    } else {
+        key
+    }
+
+    internal fun decompressPublicKey(key: ByteArray): ByteArray = if (key.size == 33) {
+        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
+        val publicKeyPoint = spec.curve.decodePoint(key)
+        publicKeyPoint.getEncoded(false)
+    } else {
+        key
+    }
+
     internal fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray): Boolean {
         val signatureInstance = Signature.getInstance("SHA256withECDSA")
         val loadedPublicKey = loadPublicKey(publicKey)
@@ -33,7 +49,6 @@ object Secp256k1 {
     }
 
     internal fun loadPublicKey(publicKeyArray: ByteArray): PublicKey {
-
         val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
         val factory = KeyFactory.getInstance("EC", "SC")
 
@@ -51,7 +66,6 @@ object Secp256k1 {
 
 
     internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
-
         val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
         val factory = KeyFactory.getInstance("EC", "SC")
 
@@ -87,7 +101,6 @@ object Secp256k1 {
     }
 
     private fun toByte64(enc: ByteArray): ByteArray {
-
         var rLength = enc[3].toInt()
         var sLength = enc[5 + rLength].toInt()
 

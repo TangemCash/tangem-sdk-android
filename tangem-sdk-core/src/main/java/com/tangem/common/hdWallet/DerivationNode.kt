@@ -1,45 +1,46 @@
 package com.tangem.common.hdWallet
 
 import com.tangem.common.extensions.toByteArray
-import com.tangem.common.extensions.toInt
+import com.tangem.common.extensions.toLong
+import com.tangem.common.hdWallet.bip.BIP32
 
-sealed class DerivationNode(val index: Int, val pathDescription: String) {
-    class Hardened(index: Int) : DerivationNode(index.withOffset(), "$index${DerivationPath.hardenedSymbol}")
-    class NotHardened(index: Int) : DerivationNode(index, "$index")
+sealed class DerivationNode(
+    private val internalIndex: Long,
+    private val isHardened: Boolean = true
+) {
+    val index: Long
+        get() = if (isHardened) internalIndex + BIP32.hardenedOffset
+        else internalIndex
+
+    val pathDescription: String
+        get() = if (isHardened) "$internalIndex${BIP32.hardenedSymbol}"
+        else "$internalIndex"
+
+    class Hardened(index: Long) : DerivationNode(index, true)
+    class NotHardened(index: Long) : DerivationNode(index, false)
 
     override fun equals(other: Any?): Boolean {
         val other = other as? DerivationNode ?: return false
 
-        when (this) {
-            is Hardened -> if (other !is Hardened) return false
-            is NotHardened -> if (other !is NotHardened) return false
-        }
-        return this.index == other.index && this.pathDescription == other.pathDescription
+        return this.internalIndex == other.internalIndex && this.isHardened == other.isHardened
     }
 
     companion object {
-        val hardenedOffset: Long = 0x80000000
+        fun create(index: Long, notHardenedOnly: Boolean): DerivationNode {
+            return if (notHardenedOnly) NotHardened(index) else Hardened(index)
+        }
 
         fun DerivationNode.serialize(): ByteArray {
             return index.toByteArray(4)
         }
 
         fun deserialize(data: ByteArray): DerivationNode {
-            val index = data.toInt()
-            return if (index >= hardenedOffset) {
-                Hardened(index.withOutOffset())
+            val index = data.toLong()
+            return if (index >= BIP32.hardenedOffset) {
+                Hardened(index - BIP32.hardenedOffset)
             } else {
                 NotHardened(index)
             }
         }
     }
 }
-
-private fun Int.withOffset(): Int {
-    return (this + DerivationNode.hardenedOffset).toInt()
-}
-
-private fun Int.withOutOffset(): Int {
-    return (this - DerivationNode.hardenedOffset).toInt()
-}
-
