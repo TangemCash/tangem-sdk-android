@@ -7,6 +7,7 @@ import com.tangem.common.card.CardWallet
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.crypto.CryptoUtils
+import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.personalization.entities.ProductMask
 import org.junit.Test
 
@@ -66,6 +67,21 @@ class MoshiJsonConverterTest {
     }
 
     @Test
+    fun attestation(){
+        val attestation = Attestation(
+                Attestation.Status.Verified,
+                Attestation.Status.Failed,
+                Attestation.Status.Warning,
+                Attestation.Status.VerifiedOffline,
+        )
+
+        val json = moshi.toJson(attestation)
+        val result:Attestation? = moshi.fromJson(json)
+
+        assert(attestation == result)
+    }
+
+    @Test
     fun toMap() {
         val list = listOf("1", "2", "3")
         var resultMap: Map<String, Any> = moshi.toMap(list)
@@ -100,5 +116,4 @@ class MoshiJsonConverterTest {
         resultMap = moshi.toMap(jsonArray)
         assert(resultMap.isEmpty())
     }
-
 }

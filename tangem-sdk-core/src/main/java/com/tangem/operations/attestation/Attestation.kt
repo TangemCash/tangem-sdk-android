@@ -1,7 +1,9 @@
 package com.tangem.operations.attestation
 
+import com.squareup.moshi.JsonClass
 import com.tangem.operations.CommandResponse
 
+@JsonClass(generateAdapter = true)
 data class Attestation(
     val cardKeyAttestation: Status,
     val walletKeysAttestation: Status,
@@ -34,6 +36,7 @@ data class Attestation(
             return "$index,$joinedStatuses"
         }
 
+    @Transient
     private val statuses: List<Status> = listOf(
             cardKeyAttestation,
             walletKeysAttestation,
