@@ -8,8 +8,10 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
+import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.services.Result
 import com.tangem.common.services.TrustedCardsRepo
+import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +26,7 @@ import java.util.*
 
 class AttestationTask(
     private val mode: Mode,
-    private val trustedCardsRepo: TrustedCardsRepo,
+    secureStorage: SecureStorage
 ) : CardSessionRunnable<Attestation> {
 
     /**
@@ -37,6 +39,7 @@ class AttestationTask(
      * Attest wallet count or sign command count greater this value is looks suspicious.
      */
     private val maxCounter = 100000
+    private val trustedCardsRepo = TrustedCardsRepo(secureStorage, MoshiJsonConverter.INSTANCE)
     private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
     private var currentAttestationStatus: Attestation = Attestation.empty
@@ -146,11 +149,12 @@ class AttestationTask(
             //check for hacking attempts with signs
             var hasWarnings = card.wallets.mapNotNull { it.totalSignedHashes }.any { it > maxCounter }
             var shouldReturn = false
+            var flowIsCompleted = false
 
             flow {
                 attestationCommands.forEach { emit(it) }
             }.onCompletion {
-                callback(CompletionResult.Success(hasWarnings))
+                flowIsCompleted = true
             }.collect {
                 if (shouldReturn) return@collect
 
@@ -161,6 +165,7 @@ class AttestationTask(
                             if (result.data.counter != null && result.data.counter > maxCounter) {
                                 hasWarnings = true
                             }
+                            if (flowIsCompleted) callback(CompletionResult.Success(hasWarnings))
                         }
                         is CompletionResult.Failure -> {
                             shouldReturn = true
