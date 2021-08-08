@@ -29,6 +29,7 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
+import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.tangem_demo.DemoApplication
 import com.tangem.tangem_demo.R
@@ -104,6 +105,11 @@ abstract class BaseFragment : Fragment() {
             return
         }
         sdk.loadCardInfo(card?.cardPublicKey!!, card?.cardId!!) { handleResult(it) }
+    }
+
+    protected fun attestCard(mode: AttestationTask.Mode) {
+        val command = AttestationTask(mode, sdk.secureStorage)
+        sdk.startSessionWithRunnable(command, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun derivePublicKey() {

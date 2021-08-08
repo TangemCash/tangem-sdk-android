@@ -15,11 +15,14 @@ import com.tangem.common.extensions.guard
 import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.json.MoshiJsonConverter
+import com.tangem.operations.attestation.AttestationTask
 import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
+import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.tangem_sdk_new.extensions.createLogger
 import com.tangem.tangem_sdk_new.extensions.init
+import kotlinx.android.synthetic.main.attestation.*
 import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
@@ -51,6 +54,15 @@ class CommandListFragment : BaseFragment() {
         }
         btnScanCard.setOnClickListener { scanCard() }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
+
+        chipGroupAttest.fitChipsByGroupWidth()
+        btnAttest.setOnClickListener {
+            val mode = when (chipGroupAttest.checkedChipId) {
+                R.id.chipAttestNormal -> AttestationTask.Mode.Normal
+                else -> AttestationTask.Mode.Full
+            }
+            attestCard(mode)
+        }
 
         val adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, listOf(
                 "m/0/1",

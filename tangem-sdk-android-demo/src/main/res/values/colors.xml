@@ -9,4 +9,7 @@
     <color name="log_error">#ffff4444</color>
     <color name="log">#000000</color>
     <color name="log_warning">#977F04</color>
+
+    <color name="backgroundLightGray">#F9F9F9</color>
+
 </resources>
