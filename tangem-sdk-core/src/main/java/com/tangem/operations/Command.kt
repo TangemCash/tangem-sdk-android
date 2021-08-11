@@ -144,7 +144,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                             if (remainingTime != null) {
                                 session.viewDelegate.onSecurityDelay(
                                         remainingTime,
-                                        session.environment.card!!.settings.securityDelay
+                                        session.environment.card?.settings?.securityDelay ?: 0
                                 )
                             }
                             transceiveApdu(apdu, session, callback)

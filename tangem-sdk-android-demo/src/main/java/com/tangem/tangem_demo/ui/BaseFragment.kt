@@ -29,6 +29,8 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
+import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.tangem_demo.DemoApplication
@@ -92,10 +94,10 @@ abstract class BaseFragment : Fragment() {
         filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
     }
 
-    protected fun scanCard(updateOnlyCard: Boolean = false) {
+    protected fun scanCard() {
         sdk.scanCard(initialMessage) {
             needRescanCard = false
-            if (updateOnlyCard) setCard(it) else handleResult(it)
+            handleResult(it)
         }
     }
 
@@ -313,7 +315,13 @@ abstract class BaseFragment : Fragment() {
     private fun setCard(completionResult: CompletionResult<*>) {
         if (completionResult is CompletionResult.Success) {
             when {
-                needRescanCard -> scanCard(true)
+                needRescanCard -> {
+                    val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
+                    sdk.startSessionWithRunnable(command) {
+                        needRescanCard = false
+                        setCard(it)
+                    }
+                }
                 completionResult.data is Card -> {
                     card = completionResult.data as Card
                     onCardChanged(card)
@@ -368,7 +376,6 @@ abstract class BaseFragment : Fragment() {
         } catch (ex: Exception) {
             null
         }
-
     }
 
     protected abstract fun getLayoutId(): Int
