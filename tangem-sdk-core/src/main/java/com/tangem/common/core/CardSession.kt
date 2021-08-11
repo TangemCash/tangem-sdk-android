@@ -9,6 +9,7 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.core.*
 import com.tangem.common.extensions.calculateSha256
+import com.tangem.common.extensions.titleFormatted
 import com.tangem.common.json.JSONRPCConverter
 import com.tangem.common.json.JSONRPCException
 import com.tangem.common.json.JSONRPCRequest
@@ -290,13 +291,13 @@ class CardSession(
     }
 
     private suspend fun establishEncryptionIfNeeded(): CompletionResult<Boolean> {
-        Log.session { "Try establish encryption" }
         if (environment.encryptionMode == EncryptionMode.None || environment.encryptionKey != null) {
             return CompletionResult.Success(true)
         }
 
         val encryptionHelper = EncryptionHelper.create(environment.encryptionMode)
                 ?: return CompletionResult.Failure(TangemSdkError.CryptoUtilsError())
+        Log.session { "Launching OpenSession Command".titleFormatted() }
 
         val openSessionCommand = OpenSessionCommand(encryptionHelper.keyA)
         val apdu = openSessionCommand.serialize(environment)
@@ -316,6 +317,8 @@ class CardSession(
                 val secret = encryptionHelper.generateSecret(result.sessionKeyB)
                 val sessionKey = (secret + protocolKey).calculateSha256()
                 environment.encryptionKey = sessionKey
+
+                Log.session { "Encryption Established".titleFormatted() }
 
                 return CompletionResult.Success(true)
             }

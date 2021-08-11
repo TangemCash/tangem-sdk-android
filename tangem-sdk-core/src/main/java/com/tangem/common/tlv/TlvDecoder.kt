@@ -9,6 +9,7 @@ import com.tangem.common.extensions.toInt
 import com.tangem.common.extensions.toUtf8
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
+import com.tangem.common.hdwallet.DerivationPath
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -140,7 +141,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     typeCheck<T, Card.Status>(tag)
                     Card.Status.byCode(tlvValue.toInt()) as T
                 } catch (exception: Exception) {
-                    Log.warning { "Status is not Card.Status type. Trying to check CardWallet.Status" }
                     try {
                         typeCheck<T, CardWallet.Status>(tag)
                         CardWallet.Status.byCode(tlvValue.toInt()) as T
@@ -164,7 +164,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     typeCheck<T, IssuerExtraDataMode>(tag)
                     IssuerExtraDataMode.byCode(tlvValue.toInt().toByte()) as T
                 } catch (ex: Exception) {
-                    Log.warning { "InteractionMode is not IssuerDataMode type. Trying to check ReadMode" }
                     try {
                         typeCheck<T, ReadMode>(tag)
                         ReadMode.byRawValue(tlvValue.toInt()) as T
@@ -187,6 +186,15 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                 typeCheck<T, FileSettings>(tag)
                 try {
                     FileSettings.byRawValue(tlvValue.toInt()) as T
+                } catch (exception: Exception) {
+                    logException(tag, tlvValue.toInt().toString(), exception)
+                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                }
+            }
+            TlvValueType.DerivationPath -> {
+                typeCheck<T, DerivationPath>(tag)
+                try {
+                    DerivationPath.from(tlvValue) as T
                 } catch (exception: Exception) {
                     logException(tag, tlvValue.toInt().toString(), exception)
                     throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
@@ -215,8 +223,18 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             val error = TangemSdkError.DecodingFailedTypeMismatch(
                     "Decoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
             )
-            Log.error { error.customMessage }
+            checkAndLog(error)
             throw error
         }
+    }
+}
+
+fun checkAndLog(error: TangemSdkError) {
+    if (
+        (!error.customMessage.contains("Status must be Status. It is class com.tangem.common.card.CardWallet\$Status")) &&
+        (!error.customMessage.contains("SettingsMask must be SettingsMask. It is class com.tangem.common.card.CardWallet\$SettingsMask")) &&
+        (!error.customMessage.contains("InteractionMode must be InteractionMode. It is class com.tangem.operations.read.ReadMode"))
+    ) {
+        Log.error { error.customMessage }
     }
 }

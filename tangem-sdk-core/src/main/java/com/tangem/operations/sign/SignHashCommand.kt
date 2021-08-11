@@ -5,8 +5,10 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.TangemSdkError
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.read.WalletPointer
 
 /**
  * Response for [SignHashCommand].
@@ -27,6 +29,8 @@ data class SignHashResponse(
      * Total number of signed  hashes returned by the wallet since its creation. COS: 1.16+
      */
     val totalSignedHashes: Int?,
+//    val walletHdPath: ByteArray?,
+//    val walletHdChain: ByteArray?,
 ) : CommandResponse
 
 /**
@@ -36,20 +40,29 @@ data class SignHashResponse(
  */
 class SignHashCommand(
     private val hash: ByteArray,
-    private val walletPublicKey: ByteArray,
+    private val walletPointer: WalletPointer,
 ) : CardSessionRunnable<SignHashResponse> {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
+    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.FullCardRead
 
     override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
-        val signCommand = SignCommand(arrayOf(hash), walletPublicKey)
+
+        val wallet = session.environment.card?.wallets?.firstOrNull()
+        if (wallet == null) {
+            callback(CompletionResult.Failure(TangemSdkError.WalletNotFound()))
+            return
+        }
+
+        val signCommand = SignCommand(arrayOf(hash), walletPointer)
         signCommand.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     val response = SignHashResponse(
-                            result.data.cardId,
-                            result.data.signatures[0],
-                            result.data.totalSignedHashes
+                        result.data.cardId,
+                        result.data.signatures[0],
+                        result.data.totalSignedHashes,
+//                        result.data.walletHdPath,
+//                        result.data.walletHdChain
                     )
                     callback(CompletionResult.Success(response))
                 }

@@ -7,11 +7,13 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.hdwallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -19,6 +21,7 @@ import com.tangem.crypto.sign
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.read.WalletPointer
 
 /**
  * @property cardId CID, Unique Tangem card ID number
@@ -30,6 +33,8 @@ class SignResponse(
     val cardId: String,
     val signatures: List<ByteArray>,
     val totalSignedHashes: Int?,
+//    val walletHdPath: ByteArray?,
+//    val walletHdChain: ByteArray?,
 ) : CommandResponse
 
 /**
@@ -37,12 +42,13 @@ class SignResponse(
  * @property hashes Array of transaction hashes.
  * @property walletPublicKey Public key of the wallet, using for sign.
  */
-internal class SignCommand(
+class SignCommand(
     private val hashes: Array<ByteArray>,
-    private val walletPublicKey: ByteArray
+    private val walletPointer: WalletPointer,
 ) : Command<SignResponse>() {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
+    override fun preflightReadMode(): PreflightReadMode =
+        PreflightReadMode.ReadWallet(walletPointer)
 
     override fun requiresPasscode(): Boolean = true
 
@@ -54,8 +60,9 @@ internal class SignCommand(
     private val currentChunkNumber: Int
         get() = signatures.size / CHUNK_SIZE
 
+
     override fun performPreCheck(card: Card): TangemSdkError? {
-        val wallet = card.wallet(walletPublicKey) ?: return TangemSdkError.WalletNotFound()
+        val wallet = card.wallets.firstOrNull() ?: return TangemSdkError.WalletNotFound()
 
         //Before v4
         if (wallet.remainingSignatures == 0) {
@@ -92,18 +99,21 @@ internal class SignCommand(
                 is CompletionResult.Success -> {
                     signatures.addAll(result.data.signatures)
                     if (signatures.size == hashes.size) {
-                        session.environment.card?.wallet(walletPublicKey)?.let {
+                        session.environment.card?.wallets?.first()?.let {
                             val wallet = it.copy(
-                                    totalSignedHashes = result.data.totalSignedHashes,
-                                    remainingSignatures = it.remainingSignatures?.minus(signatures.size)
+                                totalSignedHashes = result.data.totalSignedHashes,
+                                remainingSignatures = it.remainingSignatures?.minus(signatures.size)
                             )
                             session.environment.card?.updateWallet(wallet)
                         }
 
                         val finalResponse = SignResponse(
-                                result.data.cardId,
-                                signatures.toList(),
-                                result.data.totalSignedHashes)
+                            result.data.cardId,
+                            signatures.toList(),
+                            result.data.totalSignedHashes,
+//                            result.data.walletHdPath,
+//                            result.data.walletHdChain
+                        )
                         callback(CompletionResult.Success(finalResponse))
                     } else {
                         sign(session, callback)
@@ -132,7 +142,14 @@ internal class SignCommand(
         tlvBuilder.append(TlvTag.TransactionOutHash, dataToSign)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
         // Wallet index works only on COS v.4.0 and higher. For previous version index will be ignored
-        tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
+        when (walletPointer) {
+            is WalletPointer.WalletIndex ->
+                tlvBuilder.append(TlvTag.WalletIndex, walletPointer.index)
+            is WalletPointer.WalletPublicKey ->
+                tlvBuilder.append(TlvTag.WalletPublicKey, walletPointer.publicKey)
+        }
+        tlvBuilder.append(TlvTag.WalletHdPath, walletPointer.walletHdPath)
+        tlvBuilder.append(TlvTag.WalletTweak, walletPointer.walletTweak)
 
         val isLinkedTerminalSupported = environment.card?.settings?.isLinkedTerminalEnabled == true
         if (environment.terminalKeys != null && isLinkedTerminalSupported) {
@@ -152,9 +169,11 @@ internal class SignCommand(
         val splittedSignatures = splitSignedSignature(signature, getChunk().count())
 
         return SignResponse(
-                decoder.decode(TlvTag.CardId),
-                splittedSignatures,
-                decoder.decodeOptional(TlvTag.WalletSignedHashes)
+            decoder.decode(TlvTag.CardId),
+            splittedSignatures,
+            decoder.decodeOptional(TlvTag.WalletSignedHashes),
+//            decoder.decodeOptional(TlvTag.WalletHdPath),
+//            decoder.decodeOptional(TlvTag.WalletHdChain)
         )
     }
 
@@ -164,7 +183,10 @@ internal class SignCommand(
         return from until to
     }
 
-    private fun splitSignedSignature(signature: ByteArray, numberOfSignatures: Int): List<ByteArray> {
+    private fun splitSignedSignature(
+        signature: ByteArray,
+        numberOfSignatures: Int,
+    ): List<ByteArray> {
         val signatures = mutableListOf<ByteArray>()
         val signatureSize = signature.size / numberOfSignatures
         for (index in 0 until numberOfSignatures) {

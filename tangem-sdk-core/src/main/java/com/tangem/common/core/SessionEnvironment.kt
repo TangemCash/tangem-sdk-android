@@ -29,7 +29,7 @@ class SessionEnvironment(
 
 
     var terminalKeysService: WeakReference<TerminalKeysService> = WeakReference(TerminalKeysStorage(secureStorage))
-    var encryptionMode: EncryptionMode = EncryptionMode.None
+    var encryptionMode: EncryptionMode = EncryptionMode.Strong
     var encryptionKey: ByteArray? = null
     var cvc: ByteArray? = null
     var accessCode: UserCode = UserCode(UserCodeType.AccessCode)

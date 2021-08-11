@@ -10,6 +10,7 @@ import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
+import com.tangem.common.hdwallet.DerivationPath
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.personalization.entities.ProductMask
 import java.lang.reflect.ParameterizedType
@@ -87,7 +88,8 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                     TangemSdkAdapter.WalletSettingsMaskAdapter(),
                     TangemSdkAdapter.DateAdapter(),
                     TangemSdkAdapter.FirmwareVersionAdapter(),
-                    TangemSdkAdapter.PreflightReadModeAdapter(),
+                TangemSdkAdapter.DerivationPathAdapter()
+//                    TangemSdkAdapter.PreflightReadModeAdapter(),
             )
         }
 
@@ -157,30 +159,38 @@ class TangemSdkAdapter {
         }.build()
     }
 
-    class PreflightReadModeAdapter {
+    class DerivationPathAdapter {
         @ToJson
-        fun toJson(src: PreflightReadMode): String {
-            return when (src) {
-                PreflightReadMode.FullCardRead -> "FullCardRead"
-                PreflightReadMode.None -> "None"
-                PreflightReadMode.ReadCardOnly -> "ReadCardOnly"
-                is PreflightReadMode.ReadWallet -> src.publicKey.toHexString()
-            }
-        }
+        fun toJson(src: DerivationPath): String = src.rawPath
 
         @FromJson
-        fun fromJson(json: String): PreflightReadMode {
-            return when (json) {
-                "FullCardRead" -> PreflightReadMode.FullCardRead
-                "None" -> PreflightReadMode.None
-                "ReadCardOnly" -> PreflightReadMode.ReadCardOnly
-                else -> {
-                    if (json.length == 64) PreflightReadMode.ReadWallet(json.hexToBytes())
-                    else throw java.lang.IllegalArgumentException()
-                }
-            }
-        }
+        fun fromJson(json: String): DerivationPath = DerivationPath(json)
     }
+
+//    class PreflightReadModeAdapter {
+//        @ToJson
+//        fun toJson(src: PreflightReadMode): String {
+//            return when (src) {
+//                PreflightReadMode.FullCardRead -> "FullCardRead"
+//                PreflightReadMode.None -> "None"
+//                PreflightReadMode.ReadCardOnly -> "ReadCardOnly"
+//                is PreflightReadMode.ReadWallet -> src.publicKey.toHexString()
+//            }
+//        }
+//
+//        @FromJson
+//        fun fromJson(json: String): PreflightReadMode {
+//            return when (json) {
+//                "FullCardRead" -> PreflightReadMode.FullCardRead
+//                "None" -> PreflightReadMode.None
+//                "ReadCardOnly" -> PreflightReadMode.ReadCardOnly
+//                else -> {
+//                    if (json.length == 64) PreflightReadMode.ReadWallet(json.hexToBytes())
+//                    else throw java.lang.IllegalArgumentException()
+//                }
+//            }
+//        }
+//    }
 
     class DateAdapter {
         private val dateFormatter = SimpleDateFormat("yyyy-MM-dd")

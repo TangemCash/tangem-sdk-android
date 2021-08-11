@@ -16,21 +16,22 @@ import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.Command
 import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.read.WalletPointer
 
 /**
  * This command deletes all wallet data and its private and public keys
  * @property walletPublicKey: Public key of the wallet to delete
  */
 class PurgeWalletCommand(
-    private val walletPublicKey: ByteArray
+    private val walletPointer: WalletPointer
 ) : Command<SuccessResponse>() {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
+    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPointer)
 
     override fun requiresPasscode(): Boolean = true
 
     override fun performPreCheck(card: Card): TangemSdkError? {
-        val wallet = card.wallet(walletPublicKey)
+        val wallet = card.wallets.firstOrNull()
 
         return when {
             wallet == null -> TangemSdkError.WalletNotFound()
@@ -47,7 +48,7 @@ class PurgeWalletCommand(
                         callback(CompletionResult.Failure(TangemSdkError.CardError()))
                         return@run
                     }
-                    session.environment.card = card.removeWallet(walletPublicKey)
+//                    session.environment.card = card.removeWallet(walletPublicKey)
                     callback(CompletionResult.Success(result.data))
                 }
                 is CompletionResult.Failure -> callback(result)
@@ -60,8 +61,12 @@ class PurgeWalletCommand(
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
-
+        when (walletPointer) {
+            is WalletPointer.WalletIndex ->
+                tlvBuilder.append(TlvTag.WalletIndex, walletPointer.index)
+            is WalletPointer.WalletPublicKey ->
+                tlvBuilder.append(TlvTag.WalletPublicKey, walletPointer.publicKey)
+        }
         return CommandApdu(Instruction.PurgeWallet, tlvBuilder.serialize())
     }
 

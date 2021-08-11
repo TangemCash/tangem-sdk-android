@@ -12,6 +12,8 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDeserializer
+import com.tangem.common.extensions.toHexString
+import com.tangem.common.hdwallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -25,7 +27,7 @@ import com.tangem.operations.PreflightReadMode
 @JsonClass(generateAdapter = true)
 class ReadWalletResponse(
     val cid: String,
-    val wallet: CardWallet
+    val wallet: CardWallet,
 ) : CommandResponse
 
 /**
@@ -33,17 +35,18 @@ class ReadWalletResponse(
  * information about it and perform prechecks
  */
 class ReadWalletCommand(
-    private val walletPublicKey: ByteArray
+    private val walletPointer: WalletPointer,
 ) : Command<ReadWalletResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadWalletResponse>) {
-        Log.debug { "Attempt to read wallet with key: $walletPublicKey" }
+        Log.debug { "Attempt to read wallet: $walletPointer" }
         super.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    session.environment.card = session.environment.card?.setWallets(listOf(result.data.wallet))
+                    session.environment.card =
+                        session.environment.card?.setWallets(listOf(result.data.wallet))
                     callback(result)
                 }
                 is CompletionResult.Failure -> callback(result)
@@ -56,13 +59,24 @@ class ReadWalletCommand(
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.InteractionMode, ReadMode.Wallet)
-        tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
+        when (walletPointer) {
+            is WalletPointer.WalletIndex ->
+                tlvBuilder.append(TlvTag.WalletIndex, walletPointer.index)
+            is WalletPointer.WalletPublicKey ->
+                tlvBuilder.append(TlvTag.WalletPublicKey, walletPointer.publicKey)
+        }
+        tlvBuilder.append(TlvTag.WalletHdPath, walletPointer.walletHdPath)
+        tlvBuilder.append(TlvTag.WalletTweak, walletPointer.walletTweak)
 
         return CommandApdu(Instruction.Read, tlvBuilder.serialize())
     }
 
-    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadWalletResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+    override fun deserialize(
+        environment: SessionEnvironment,
+        apdu: ResponseApdu,
+    ): ReadWalletResponse {
+        val tlvData = apdu.getTlvData(environment.encryptionKey)
+            ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         val wallet = try {
@@ -73,5 +87,31 @@ class ReadWalletCommand(
 
         Log.debug { "Read wallet: $wallet" }
         return ReadWalletResponse(decoder.decode(TlvTag.CardId), wallet!!)
+    }
+}
+
+sealed class WalletPointer(
+    val walletHdPath: DerivationPath?,
+    val walletTweak: ByteArray?,
+) {
+    class WalletIndex(
+        val index: Int,
+        walletHdPath: DerivationPath?,
+        walletTweak: ByteArray?,
+    ) : WalletPointer(walletHdPath, walletTweak) {
+        override fun toString(): String {
+            return "Index: $index"
+        }
+    }
+
+    class WalletPublicKey(
+        val publicKey: ByteArray,
+        walletHdPath: DerivationPath? = null,
+        walletTweak: ByteArray? = null,
+    ) : WalletPointer(walletHdPath, walletTweak) {
+
+        override fun toString(): String {
+            return publicKey.toHexString()
+        }
     }
 }

@@ -10,6 +10,7 @@ import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
 import com.tangem.operations.pins.SetUserCodeCommand
+import com.tangem.operations.read.WalletPointer
 import com.tangem.operations.sign.SignCommand
 import com.tangem.operations.sign.SignHashCommand
 import com.tangem.operations.sign.SignHashResponse
@@ -89,21 +90,21 @@ class SignHashHandler : JSONRPCHandler<SignHashResponse> {
         val hash = (params["hash"] as String).hexToBytes()
         val publicKey = (params["walletPublicKey"] as String).hexToBytes()
 
-        return SignHashCommand(hash, publicKey)
+        return SignHashCommand(hash, WalletPointer.WalletPublicKey(publicKey))
     }
 }
 
-class SignHashesHandler : JSONRPCHandler<SignResponse> {
-    override val method: String = "SIGN_HASHES"
-    override val requiresCardId: Boolean = true
-
-    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignResponse> {
-        val hashes = (params["hashes"] as List<String>).map { it.hexToBytes() }
-        val publicKey = (params["walletPublicKey"] as String).hexToBytes()
-
-        return SignCommand(hashes.toTypedArray(), publicKey)
-    }
-}
+//class SignHashesHandler : JSONRPCHandler<SignResponse> {
+//    override val method: String = "SIGN_HASHES"
+//    override val requiresCardId: Boolean = true
+//
+//    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignResponse> {
+////        val hashes = (params["hashes"] as List<String>).map { it.hexToBytes() }
+////        val publicKey = (params["walletPublicKey"] as String).hexToBytes()
+////
+////        return SignCommand(hashes.toTypedArray(), publicKey)
+//    }
+//}
 
 class SetAccessCodeHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "SET_ACCESSCODE"

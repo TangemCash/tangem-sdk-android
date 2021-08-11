@@ -1,7 +1,9 @@
 package com.tangem.common.apdu
 
+import com.tangem.Log
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateCrc16
+import com.tangem.common.extensions.titleFormatted
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.tlv.Tlv
 import com.tangem.crypto.decrypt
@@ -59,7 +61,10 @@ class ResponseApdu(private val data: ByteArray) {
         val crc: ByteArray = answerData.calculateCrc16()
         if (!baCRC.contentEquals(crc)) throw TangemSdkError.InvalidResponse()
 
-        return ResponseApdu(answerData + data[data.size - 2] + data[data.size - 1])
+        val decryptedApdu = ResponseApdu(answerData + data[data.size - 2] + data[data.size - 1])
+        Log.nfc { "Decrypted data".titleFormatted() }
+        Log.nfc { "${decryptedApdu.data.toHexString()}" }
+        return decryptedApdu
     }
 
     override fun toString(): String {

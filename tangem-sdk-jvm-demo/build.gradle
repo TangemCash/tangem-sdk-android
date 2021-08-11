@@ -36,7 +36,7 @@ compileKotlin {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'AppKt'
+                'Main-Class': "com.tangem.jvm.demo.AppKt"
         )
     }
     from {
@@ -46,7 +46,7 @@ jar {
 
 // Use this task to build a jar file with all the dependencies
 shadowJar {
-    archiveBaseName.set('tangem-desktop')
+    archiveBaseName.set('tangem-matterfi')
     archiveClassifier.set('')
     archiveVersion.set('')
 }

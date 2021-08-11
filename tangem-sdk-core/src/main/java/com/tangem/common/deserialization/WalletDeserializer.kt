@@ -29,15 +29,18 @@ class WalletDeserializer {
         }
 
         private fun deserialize(decoder: TlvDecoder): CardWallet {
-            val settings = CardWallet.Settings(decoder.decode(TlvTag.SettingsMask) as CardWallet.SettingsMask)
+            val settings =
+                CardWallet.Settings(decoder.decode(TlvTag.SettingsMask) as CardWallet.SettingsMask)
 
             return CardWallet(
-                    decoder.decode(TlvTag.WalletPublicKey),
-                    decoder.decode(TlvTag.CurveId),
-                    settings,
-                    decoder.decode(TlvTag.WalletSignedHashes),
-                    null,
-                    decoder.decode(TlvTag.WalletIndex)
+                decoder.decode(TlvTag.WalletPublicKey),
+                decoder.decode(TlvTag.CurveId),
+                settings,
+                decoder.decode(TlvTag.WalletSignedHashes),
+                null,
+                decoder.decode(TlvTag.WalletIndex),
+                decoder.decodeOptional(TlvTag.WalletHdChain),
+                decoder.decodeOptional(TlvTag.WalletHdPath)
             )
         }
     }

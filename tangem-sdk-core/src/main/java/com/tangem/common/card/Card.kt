@@ -3,9 +3,11 @@ package com.tangem.common.card
 import com.squareup.moshi.JsonClass
 import com.tangem.common.BaseMask
 import com.tangem.common.Mask
+import com.tangem.common.hdwallet.DerivationPath
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.read.ReadCommand
+import com.tangem.operations.read.WalletPointer
 import java.util.*
 
 /**
@@ -100,6 +102,12 @@ data class Card internal constructor(
     }
 
     fun wallet(publicKey: ByteArray): CardWallet? = wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
+    fun wallet(walletPointer: WalletPointer): CardWallet? =
+        when (walletPointer) {
+            is WalletPointer.WalletIndex -> wallets.getOrNull(walletPointer.index)
+            is WalletPointer.WalletPublicKey -> wallets.firstOrNull { it.publicKey.contentEquals(walletPointer.publicKey) }
+        }
+
 
     fun addWallet(wallet: CardWallet): Card {
         val sortedWallets = wallets.toMutableList().apply {
@@ -338,7 +346,9 @@ data class CardWallet(
     /**
      *  Index of the wallet in the card storage
      */
-    val index: Int
+    val index: Int,
+    val hdChain: ByteArray?,
+    val hdPath: DerivationPath?
 ) {
     /**
      * Status of the wallet.

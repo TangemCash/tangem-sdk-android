@@ -22,18 +22,21 @@ class CardDeserializer {
             val firmware = FirmwareVersion(decoder.decode(TlvTag.Firmware))
             val cardSettingsMask: Card.SettingsMask = decoder.decode(TlvTag.SettingsMask)
 
-            val isPasscodeSet: Boolean? = if (firmware >= FirmwareVersion.IsPasscodeStatusAvailable) {
-                !(decoder.decode(TlvTag.Pin2IsDefault) as Boolean)
-            } else {
-                null
-            }
+            val isPasscodeSet: Boolean? =
+                if (firmware >= FirmwareVersion.IsPasscodeStatusAvailable) {
+                    !(decoder.decode(TlvTag.Pin2IsDefault) as Boolean)
+                } else {
+                    null
+                }
 
-            val defaultCurve: EllipticCurve = decoder.decode(TlvTag.CurveId)
-            val supportedCurves: List<EllipticCurve> = if (firmware < FirmwareVersion.MultiWalletAvailable) {
-                listOf(defaultCurve)
-            } else {
-                EllipticCurve.values().toList()
-            }
+            val defaultCurve: EllipticCurve =
+                decoder.decodeOptional(TlvTag.CurveId) ?: EllipticCurve.Secp256k1
+            val supportedCurves: List<EllipticCurve> =
+                if (firmware < FirmwareVersion.MultiWalletAvailable) {
+                    listOf(defaultCurve)
+                } else {
+                    EllipticCurve.values().toList()
+                }
             val wallets = mutableListOf<CardWallet>()
             var remainingSignatures: Int? = null
 
@@ -42,24 +45,26 @@ class CardDeserializer {
                 val walletSettings = CardWallet.Settings(cardSettingsMask.toWalletSettingsMask())
 
                 val wallet = CardWallet(
-                        decoder.decode(TlvTag.WalletPublicKey),
-                        defaultCurve,
-                        walletSettings,
-                        decoder.decodeOptional(TlvTag.WalletSignedHashes),
-                        remainingSignatures,
-                        0
+                    decoder.decode(TlvTag.WalletPublicKey),
+                    defaultCurve,
+                    walletSettings,
+                    decoder.decodeOptional(TlvTag.WalletSignedHashes),
+                    remainingSignatures,
+                    0,
+                    null,
+                    null
                 )
                 wallets.add(wallet)
             }
 
             val manufacturer = Card.Manufacturer(
-                    decoder.decode(TlvTag.ManufacturerName),
-                    cardDataDecoder.decode(TlvTag.ManufactureDateTime),
-                    cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
+                decoder.decode(TlvTag.ManufacturerName),
+                cardDataDecoder.decode(TlvTag.ManufactureDateTime),
+                cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
             )
             val issuer = Card.Issuer(
-                    cardDataDecoder.decode(TlvTag.IssuerName),
-                    decoder.decode(TlvTag.IssuerDataPublicKey),
+                cardDataDecoder.decode(TlvTag.IssuerName),
+                decoder.decode(TlvTag.IssuerDataPublicKey),
             )
 
             val terminalStatus = if (decoder.decode(TlvTag.TerminalIsLinked)) {
@@ -71,29 +76,33 @@ class CardDeserializer {
             val settings = cardSettings(decoder, cardSettingsMask, defaultCurve)
 
             return Card(
-                    decoder.decode(TlvTag.CardId),
-                    cardDataDecoder.decode(TlvTag.BatchId),
-                    decoder.decode(TlvTag.CardPublicKey),
-                    firmware,
-                    manufacturer,
-                    issuer,
-                    settings,
-                    terminalStatus,
-                    isPasscodeSet,
-                    supportedCurves,
-                    wallets.toList(),
-                    health = decoder.decodeOptional(TlvTag.Health),
-                    remainingSignatures = remainingSignatures
+                decoder.decode(TlvTag.CardId),
+                cardDataDecoder.decode(TlvTag.BatchId),
+                decoder.decode(TlvTag.CardPublicKey),
+                firmware,
+                manufacturer,
+                issuer,
+                settings,
+                terminalStatus,
+                isPasscodeSet,
+                supportedCurves,
+                wallets.toList(),
+                health = decoder.decodeOptional(TlvTag.Health),
+                remainingSignatures = remainingSignatures
             )
         }
 
         internal fun getDecoder(environment: SessionEnvironment, apdu: ResponseApdu): TlvDecoder {
-            val tlv = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+            val tlv = apdu.getTlvData(environment.encryptionKey)
+                ?: throw TangemSdkError.DeserializeApduFailed()
 
             return TlvDecoder(tlv)
         }
 
-        internal fun getCardDataDecoder(environment: SessionEnvironment, tlvData: List<Tlv>): TlvDecoder? {
+        internal fun getCardDataDecoder(
+            environment: SessionEnvironment,
+            tlvData: List<Tlv>,
+        ): TlvDecoder? {
             val cardDataValue = tlvData.find { it.tag == TlvTag.CardData }?.let {
                 Tlv.deserialize(it.value)
             }
@@ -115,13 +124,13 @@ class CardDeserializer {
         private fun cardSettings(
             decoder: TlvDecoder,
             mask: Card.SettingsMask,
-            defaultCurve: EllipticCurve
+            defaultCurve: EllipticCurve,
         ): Card.Settings = Card.Settings(
-                decoder.decodeOptional<Int>(TlvTag.PauseBeforePin2)?.let { it * 10 } ?: 0,
-                decoder.decodeOptional(TlvTag.WalletsCount) ?: 1,
-                mask,
-                decoder.decode(TlvTag.SigningMethod),
-                defaultCurve,
+            decoder.decodeOptional<Int>(TlvTag.PauseBeforePin2)?.let { it * 10 } ?: 0,
+            decoder.decodeOptional(TlvTag.WalletsCount) ?: 1,
+            mask,
+            decoder.decodeOptional(TlvTag.SigningMethod),
+            defaultCurve,
         )
     }
 }

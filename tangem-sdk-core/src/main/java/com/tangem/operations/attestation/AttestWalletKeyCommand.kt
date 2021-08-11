@@ -14,6 +14,7 @@ import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.read.WalletPointer
 
 /**
  * Deserialized response from the Tangem card after `AttestWalletKeyCommand`.
@@ -52,7 +53,7 @@ class AttestWalletKeyCommand(
     var challenge: ByteArray? = null,
 ) : Command<AttestWalletKeyResponse>() {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
+    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(WalletPointer.WalletPublicKey(walletPublicKey))
 
     override fun run(session: CardSession, callback: CompletionCallback<AttestWalletKeyResponse>) {
         challenge = challenge ?: CryptoUtils.generateRandomBytes(16)

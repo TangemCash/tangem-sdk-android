@@ -11,6 +11,8 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
+import com.tangem.common.hdwallet.DerivationNode.Companion.serialize
+import com.tangem.common.hdwallet.DerivationPath
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -95,7 +97,6 @@ class TlvEncoder {
                     val rawValue = (value as Card.SettingsMask).rawValue
                     rawValue.toByteArray(determineByteArraySize(rawValue))
                 } catch (ex: TangemSdkError.EncodingFailedTypeMismatch) {
-                    Log.warning { "Type of mask is not CardSettingsMask. Trying to check CardWalletSettingsMask" }
                     typeCheck<T, CardWallet.SettingsMask>(tag)
                     val rawValue = (value as CardWallet.SettingsMask).rawValue
                     rawValue.toByteArray(4)
@@ -106,7 +107,6 @@ class TlvEncoder {
                     typeCheck<T, Card.Status>(tag)
                     (value as Card.Status).code.toByteArray()
                 } catch (ex: Exception) {
-                    Log.warning { "Status is not Card.Status type. Trying to check CardWallet.Status" }
                     typeCheck<T, CardWallet.Status>(tag)
                     (value as CardWallet.Status).code.toByteArray()
                 }
@@ -120,7 +120,6 @@ class TlvEncoder {
                     typeCheck<T, IssuerExtraDataMode>(tag)
                     byteArrayOf((value as IssuerExtraDataMode).code)
                 } catch (ex: Exception) {
-                    Log.warning { "InteractionMode is not IssuerDataMode type. Trying to check ReadMode" }
                     typeCheck<T, ReadMode>(tag)
                     byteArrayOf((value as ReadMode).rawValue.toByte())
                 }
@@ -133,6 +132,10 @@ class TlvEncoder {
                 typeCheck<T, FileSettings>(tag)
                 (value as FileSettings).rawValue.toByteArray(2)
             }
+            TlvValueType.DerivationPath -> {
+                typeCheck<T, DerivationPath>(tag)
+                return (value as DerivationPath).nodes.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
+            }
         }
     }
 
@@ -143,10 +146,11 @@ class TlvEncoder {
 
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
         if (T::class != ExpectedT::class) {
+
             val error = TangemSdkError.EncodingFailedTypeMismatch(
-                    "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+                "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
             )
-            Log.error { error.customMessage }
+            checkAndLog(error)
             throw error
         }
     }

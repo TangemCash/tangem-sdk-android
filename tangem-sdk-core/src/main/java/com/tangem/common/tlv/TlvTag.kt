@@ -20,7 +20,8 @@ enum class TlvValueType {
     SigningMethod,
     InteractionMode,
     FileDataMode,
-    FileSettings
+    FileSettings,
+    DerivationPath,
 }
 
 /**
@@ -135,6 +136,15 @@ enum class TlvTag(val code: Int) {
 
     FileName(0x70),
     FileData(0x71),
+
+    TerminalLinkState(0x5F),
+    TerminalCurveId(0x5E),
+    WalletSharedSecret(0x69),
+    WalletHdPath(0x6A),
+    WalletHdChain(0x6B),
+    WalletTweak(0x6C),
+    Passphrase(0x6D),
+    Mnemonic(0x6E)
     ;
 
     /**
@@ -144,8 +154,8 @@ enum class TlvTag(val code: Int) {
         return when (this) {
             CardId, BatchId, CrExKey -> TlvValueType.HexString
             ManufacturerName, Firmware, IssuerName, BlockchainName, TokenSymbol, TokenName, TokenContractAddress,
-            FileName -> TlvValueType.Utf8String
-            CurveId -> TlvValueType.EllipticCurve
+            FileName, Mnemonic, Passphrase -> TlvValueType.Utf8String
+            CurveId, TerminalCurveId -> TlvValueType.EllipticCurve
             PauseBeforePin2, WalletRemainingSignatures, WalletSignedHashes, Health, TokenDecimal,
             Offset, Size -> TlvValueType.Uint16
             FileIndex, WalletIndex, WalletsCount, CheckWalletCounter -> TlvValueType.Uint8
@@ -159,6 +169,7 @@ enum class TlvTag(val code: Int) {
             InteractionMode -> TlvValueType.InteractionMode
             WriteFileMode -> TlvValueType.FileDataMode
             FileSettings -> TlvValueType.FileSettings
+            WalletHdPath -> TlvValueType.DerivationPath
             else -> TlvValueType.ByteArray
         }
     }

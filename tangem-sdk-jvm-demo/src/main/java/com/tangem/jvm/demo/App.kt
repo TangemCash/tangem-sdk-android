@@ -1,6 +1,11 @@
 package com.tangem.jvm.demo
 
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.cli.*
+import org.apache.commons.cli.HelpFormatter
+
+
+
 
 
 fun main(args: Array<String>) {
@@ -29,7 +34,7 @@ fun main(args: Array<String>) {
 
     val tangemSdkDesktop = TangemSdkCli(verbose, indexOfTerminal, cmd)
 
-    tangemSdkDesktop.execute(command)
+     tangemSdkDesktop.execute(command)
 }
 
 fun createParsedCommandLine(args: Array<String>, command: Command): CommandLine? {

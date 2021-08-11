@@ -50,7 +50,7 @@ class JSONRPCConverter {
                 register(CreateWalletHandler())
                 register(PurgeWalletHandler())
                 register(SignHashHandler())
-                register(SignHashesHandler())
+//                register(SignHashesHandler())
                 register(SetAccessCodeHandler())
                 register(SetPasscodeHandler())
                 register(ResetUserCodesHandler())

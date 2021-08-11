@@ -4,6 +4,7 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.EncryptionMode
 import com.tangem.common.core.*
 import com.tangem.common.files.DataToWrite
 import com.tangem.common.files.FileHashData
@@ -28,6 +29,7 @@ import com.tangem.operations.personalization.entities.CardConfig
 import com.tangem.operations.personalization.entities.Issuer
 import com.tangem.operations.personalization.entities.Manufacturer
 import com.tangem.operations.pins.SetUserCodeCommand
+import com.tangem.operations.read.WalletPointer
 import com.tangem.operations.sign.SignCommand
 import com.tangem.operations.sign.SignHashCommand
 import com.tangem.operations.sign.SignHashResponse
@@ -100,7 +102,7 @@ class TangemSdk(
         initialMessage: Message? = null,
         callback: CompletionCallback<SignHashResponse>
     ) {
-        val command = SignHashCommand(hash, walletPublicKey)
+        val command = SignHashCommand(hash, WalletPointer.WalletPublicKey(walletPublicKey))
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -132,8 +134,8 @@ class TangemSdk(
         initialMessage: Message? = null,
         callback: CompletionCallback<SignResponse>
     ) {
-        val command = SignCommand(hashes, walletPublicKey)
-        startSessionWithRunnable(command, cardId, initialMessage, callback)
+//        val command = SignCommand(hashes, walletPublicKey)
+//        startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
     /**
@@ -165,7 +167,7 @@ class TangemSdk(
         initialMessage: Message? = null,
         callback: CompletionCallback<CreateWalletResponse>
     ) {
-        startSessionWithRunnable(CreateWalletCommand(curve, isPermanent), cardId, initialMessage, callback)
+        startSessionWithRunnable(CreateWalletCommand(curve, isPermanent, null), cardId, initialMessage, callback)
     }
 
     /**
@@ -187,7 +189,7 @@ class TangemSdk(
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
-        startSessionWithRunnable(PurgeWalletCommand(walletPublicKey), cardId, initialMessage, callback)
+        startSessionWithRunnable(PurgeWalletCommand(WalletPointer.WalletPublicKey(walletPublicKey)), cardId, initialMessage, callback)
     }
 
     /**
@@ -718,6 +720,25 @@ class TangemSdk(
 
         configure()
         cardSession = makeSession(cardId, initialMessage)
+        Thread().run { cardSession?.startWithRunnable(runnable, callback) }
+    }
+
+    fun <T : CommandResponse> startSessionWithRunnableAndEstablishEncryptionMode(
+        runnable: CardSessionRunnable<T>,
+        encryption: EncryptionMode = EncryptionMode.None,
+        cardId: String? = null,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<T>
+        ) {
+        if (checkSession()) {
+            callback(CompletionResult.Failure(TangemSdkError.Busy()))
+            return
+        }
+
+        configure()
+        cardSession = makeSession(cardId, initialMessage)
+        cardSession?.environment?.encryptionMode = encryption
+
         Thread().run { cardSession?.startWithRunnable(runnable, callback) }
     }
 

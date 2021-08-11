@@ -12,6 +12,7 @@ import com.tangem.common.extensions.toHexString
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.read.ReadWalletCommand
 import com.tangem.operations.read.ReadWalletsListCommand
+import com.tangem.operations.read.WalletPointer
 
 /**
  * Mode for preflight read task
@@ -35,9 +36,8 @@ sealed class PreflightReadMode {
      * Read card info and single wallet specified in associated index `WalletIndex`.
      * Valid for cards with COS v.4 and higher. Older card will always read card and wallet info
      */
-    class ReadWallet(val publicKey: ByteArray) : PreflightReadMode() {
-        override fun toString(): String = publicKey.toHexString()
-    }
+    data class ReadWallet(val walletPointer: WalletPointer) : PreflightReadMode()
+
 
     /**
      * Read card info and all wallets. Used by default
@@ -79,14 +79,17 @@ class PreflightReadTask(
         }
 
         when (readMode) {
-            is PreflightReadMode.ReadWallet -> readWallet(readMode.publicKey, session, card, callback)
+            is PreflightReadMode.ReadWallet -> readWallet(readMode.walletPointer, session, card, callback)
             PreflightReadMode.FullCardRead -> readWalletsList(session, card, callback)
             PreflightReadMode.ReadCardOnly, PreflightReadMode.None -> callback(CompletionResult.Success(card))
         }
     }
 
-    private fun readWallet(publicKey: ByteArray, session: CardSession, card: Card, callback: CompletionCallback<Card>) {
-        ReadWalletCommand(publicKey).run(session) { result ->
+    private fun readWallet(
+        walletPointer: WalletPointer,
+
+        session: CardSession, card: Card, callback: CompletionCallback<Card>) {
+        ReadWalletCommand(walletPointer).run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> callback(CompletionResult.Success(card))
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))

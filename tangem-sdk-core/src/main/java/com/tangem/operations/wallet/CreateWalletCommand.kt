@@ -28,6 +28,7 @@ class CreateWalletResponse(
      * Created wallet
      */
     val wallet: CardWallet,
+    val mnemonic: String?,
 ) : CommandResponse
 
 /**
@@ -46,7 +47,8 @@ class CreateWalletResponse(
  */
 class CreateWalletCommand(
     private val curve: EllipticCurve,
-    private val isPermanent: Boolean
+    private val isPermanent: Boolean,
+    private val passphrase: String?,
 ) : Command<CreateWalletResponse>() {
 
     private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
@@ -83,7 +85,8 @@ class CreateWalletCommand(
         val allIndexes = 0 until maxIndex
 
         walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
-            val error = if (maxIndex == 1) TangemSdkError.AlreadyCreated() else TangemSdkError.MaxNumberOfWalletsCreated()
+            val error =
+                if (maxIndex == 1) TangemSdkError.AlreadyCreated() else TangemSdkError.MaxNumberOfWalletsCreated()
             callback(CompletionResult.Failure(error))
             return
         }
@@ -91,7 +94,8 @@ class CreateWalletCommand(
         super.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    session.environment.card = session.environment.card?.addWallet(result.data.wallet)
+                    session.environment.card =
+                        session.environment.card?.addWallet(result.data.wallet)
                     callback(CompletionResult.Success(result.data))
                 }
                 is CompletionResult.Failure -> callback(result)
@@ -129,25 +133,36 @@ class CreateWalletCommand(
             tlvBuilder.append(TlvTag.SettingsMask, cardWalletSettingsMask)
             tlvBuilder.append(TlvTag.CurveId, curve)
             tlvBuilder.append(TlvTag.SigningMethod, signingMethod)
+            tlvBuilder.append(TlvTag.Passphrase, passphrase)
         }
 
         return CommandApdu(Instruction.CreateWallet, tlvBuilder.serialize())
     }
 
-    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): CreateWalletResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+    override fun deserialize(
+        environment: SessionEnvironment,
+        apdu: ResponseApdu,
+    ): CreateWalletResponse {
+        val tlvData = apdu.getTlvData(environment.encryptionKey)
+            ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         val index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex!!
         val wallet = CardWallet(
-                decoder.decode(TlvTag.WalletPublicKey),
-                curve,
-                CardWallet.Settings(isPermanent),
-                0,
-                environment.card?.remainingSignatures,
-                index
+            decoder.decode(TlvTag.WalletPublicKey),
+            curve,
+            CardWallet.Settings(isPermanent),
+            0,
+            environment.card?.remainingSignatures,
+            index,
+            decoder.decodeOptional(TlvTag.WalletHdChain),
+            decoder.decodeOptional(TlvTag.WalletHdPath)
         )
-        return CreateWalletResponse(decoder.decode(TlvTag.CardId), wallet)
+        return CreateWalletResponse(
+            decoder.decode(TlvTag.CardId),
+            wallet,
+            decoder.decodeOptional(TlvTag.Mnemonic)
+        )
     }
 }
 

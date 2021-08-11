@@ -46,7 +46,7 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
                     }
 
                     if (receivedWalletsCount != session.environment.card?.settings?.maxWalletsCount) {
-                        super.run(session, callback)
+                        run(session, callback)
                         return@transceive
                     }
 
