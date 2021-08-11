@@ -7,6 +7,7 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
+import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
@@ -102,6 +103,10 @@ class ReadIssuerExtraDataCommand(
     private var issuerDataSize: Int = 0
 
     override fun performPreCheck(card: Card): TangemSdkError? {
+        if (card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
+            return TangemSdkError.NotSupportedFirmwareVersion()
+        }
+
         issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
 
         return null
