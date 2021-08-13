@@ -79,7 +79,7 @@ class JSONRPCRequest constructor(
             return try {
                 val method: String = extract("method", jsonMap)
                 val params: Map<String, Any> = extract("params", jsonMap)
-                val id: Int? = extract<Double>("id", jsonMap)?.toInt()
+                val id: Int? = if (jsonMap.containsKey("id")) extract<Double>("id", jsonMap).toInt() else null
                 val jsonrpc: String = extract("jsonrpc", jsonMap)
                 JSONRPCRequest(method, params, id, jsonrpc)
             } catch (ex: JSONRPCException) {
