@@ -74,11 +74,18 @@ class Tlv {
 
     override fun toString(): String {
         val tagName = this.tag.toString().capitalize()
+        val tagFullName = "TAG_$tagName"
         val size = String.format("%02d", value.size)
-        var tagCode = tagRaw.toString(16).toUpperCase()
-        if (tagCode.length == 1) tagCode = "0$tagCode"
-        return "TAG_$tagName [0x$tagCode:$size]: ${value.toHexString()}"
+        return "$tagFullName [0x$tagRaw:$size]: ${value.toHexString()}"
     }
+}
+
+inline fun<reified T> Tlv.sendToLog(value: T) {
+    var tlvString = this.toString()
+    if (this.tag.valueType() != TlvValueType.ByteArray && this.tag.valueType() != TlvValueType.HexString) {
+        tlvString += " ($value)"
+    }
+    Log.tlv { tlvString }
 }
 
 fun List<Tlv>.serialize(): ByteArray =
