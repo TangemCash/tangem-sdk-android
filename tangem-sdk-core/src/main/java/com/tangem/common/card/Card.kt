@@ -272,7 +272,7 @@ data class Card internal constructor(
         }
     }
 
-    data class SettingsMask(override val rawValue: Int) : BaseMask() {
+    class SettingsMask(override val rawValue: Int) : BaseMask() {
 
         override val values: List<Code> = Code.values().toList()
 
@@ -382,7 +382,7 @@ data class CardWallet(
         ) : this(mask.contains(SettingsMask.Code.IsPermanent))
     }
 
-    data class SettingsMask(override var rawValue: Int) : BaseMask() {
+    class SettingsMask(override var rawValue: Int) : BaseMask() {
 
         override val values: List<Code> = Code.values().toList()
 

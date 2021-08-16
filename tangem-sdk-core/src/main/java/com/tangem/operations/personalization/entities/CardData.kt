@@ -1,12 +1,10 @@
 package com.tangem.operations.personalization.entities
 
-import com.squareup.moshi.JsonClass
 import java.util.*
 
 /**
  * Detailed information about card contents.
  */
-@JsonClass(generateAdapter = true)
 internal class CardData(
     /**
      * Tangem internal manufacturing batch ID.

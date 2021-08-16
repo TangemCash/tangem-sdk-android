@@ -65,7 +65,6 @@ class PersonalizeCommand(
         val encryptionKey = session.environment.encryptionKey
         session.environment.encryptionMode = EncryptionMode.None
         session.environment.encryptionKey = devPersonalizationKey
-        transceive(session) {}
         super.run(session) { result ->
             session.environment.encryptionMode = encryptionMode
             session.environment.encryptionKey = encryptionKey
@@ -97,6 +96,7 @@ class PersonalizeCommand(
         tlvBuilder.append(TlvTag.SettingsMask, config.createSettingsMask())
         tlvBuilder.append(TlvTag.PauseBeforePin2, config.pauseBeforePin2 / 10)
         tlvBuilder.append(TlvTag.Cvc, config.cvc.toByteArray())
+        tlvBuilder.append(TlvTag.NdefData, serializeNdef(config))
         tlvBuilder.append(TlvTag.CreateWalletAtPersonalize, createWallet)
         tlvBuilder.append(TlvTag.WalletsCount, config.walletsCount)
         tlvBuilder.append(TlvTag.NewPin, config.pinSha256())
@@ -107,7 +107,6 @@ class PersonalizeCommand(
         tlvBuilder.append(TlvTag.IssuerTransactionPublicKey, issuer.transactionKeyPair.publicKey)
         tlvBuilder.append(TlvTag.AcquirerPublicKey, acquirer?.keyPair?.publicKey)
         tlvBuilder.append(TlvTag.CardData, serializeCardData(cardData))
-        tlvBuilder.append(TlvTag.NdefData, serializeNdef(config))
 
         return tlvBuilder.serialize()
     }

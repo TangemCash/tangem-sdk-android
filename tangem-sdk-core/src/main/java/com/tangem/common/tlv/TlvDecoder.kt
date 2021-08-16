@@ -54,7 +54,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
     inline fun <reified T> decode(tag: TlvTag, logError: Boolean = true): T {
         val tlv = tlvList.find { it.tag == tag }
                 ?: if (tag.valueType() == TlvValueType.BoolValue && T::class == Boolean::class) {
-                    logTlv(Tlv(tag, "00".toByteArray()), false)
+                    Tlv(tag, "00".toByteArray()).sendToLog(false)
                     return false as T
                 } else {
                     if (logError) {
@@ -66,7 +66,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                 }
 
         val decodedValue: T = decodeTlv(tlv)
-        logTlv(tlv, decodedValue)
+        tlv.sendToLog(decodedValue)
         return decodedValue
     }
 
@@ -203,14 +203,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                 }
             }
         }
-    }
-
-    fun <T> logTlv(tlv: Tlv, value: T) {
-        var tlvString = tlv.toString()
-        if (tlv.tag.valueType() != TlvValueType.ByteArray && tlv.tag.valueType() != TlvValueType.HexString) {
-            tlvString += " ($value)"
-        }
-        Log.tlv { tlvString }
     }
 
     fun provideDecodingFailedMessage(tag: TlvTag): String =

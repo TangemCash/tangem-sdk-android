@@ -7,13 +7,14 @@ import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.tangem.tangem_sdk_new.R
+import com.tangem.tangem_sdk_new.extensions.sdkThemeContext
 
 class NfcEnableDialog {
 
     private var dialog: AlertDialog? = null
 
     fun show(activity: Activity) {
-        val builder = MaterialAlertDialogBuilder(activity)
+        val builder = MaterialAlertDialogBuilder(activity.sdkThemeContext())
         builder.setCancelable(false)
             .setIcon(R.drawable.ic_action_nfc_gray)
             .setTitle(R.string.dialog_nfc_enable_title)

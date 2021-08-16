@@ -7,6 +7,7 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.calculateSha256
+import com.tangem.common.extensions.hexToBytes
 import com.tangem.crypto.sign
 import java.util.*
 
@@ -37,6 +38,7 @@ data class CardConfig(
     internal val curveID: EllipticCurve,
     @Json(name = "SigningMethod")
     internal val signingMethod: SigningMethod,
+    @Json(name = "MaxSignatures")
     internal val maxSignatures: Int?,
     @Json(name = "allowSwapPIN")
     internal val allowSetPIN1: Boolean,
@@ -65,7 +67,7 @@ data class CardConfig(
     @Json(name = "skipCheckPIN2andCVCIfValidatedByIssuer")
     internal val skipCheckPIN2CVCIfValidatedByIssuer: Boolean,
     internal val skipSecurityDelayIfValidatedByLinkedTerminal: Boolean,
-    internal val restrictOverwriteIssuerExtraData: Boolean?,
+    internal val restrictOverwriteIssuerDataEx: Boolean?,
     internal val disableIssuerData: Boolean?,
     internal val disableUserData: Boolean?,
     internal val disableFiles: Boolean?,
@@ -76,7 +78,7 @@ data class CardConfig(
     /**
      * Number of wallets supported by card, by default - 1
      */
-    internal val walletsCount: Byte?,
+    internal val walletsCount: Int?,
 ) {
 
     fun pinSha256(): ByteArray = pin.calculateSha256()
@@ -89,19 +91,28 @@ data class CardConfig(
         val date: Date?,
         val batch: String,
         val blockchain: String,
+        @Json(name = "product_note")
         val productNote: Boolean?,
+        @Json(name = "product_tag")
         val productTag: Boolean?,
+        @Json(name = "product_id_card")
         val productIdCard: Boolean?,
+        @Json(name = "product_id_issuer")
         val productIdIssuer: Boolean?,
+        @Json(name = "product_authentication")
         val productAuthentication: Boolean?,
+        @Json(name = "product_twin_card")
         val productTwin: Boolean?,
+        @Json(name = "token_symbol")
         val tokenSymbol: String?,
+        @Json(name = "token_contract_address")
         val tokenContractAddress: String?,
+        @Json(name = "token_decimal")
         val tokenDecimal: Int?,
     ) {
 
         internal fun createPersonalizationCardData(issuer: Issuer, manufacturer: Manufacturer, cardId: String): CardData {
-            val manufacturerSignature = cardId.toByteArray().sign(manufacturer.keyPair.privateKey)
+            val manufacturerSignature = cardId.hexToBytes().sign(manufacturer.keyPair.privateKey)
 
             return CardData(batch,
                     date ?: Date(),
@@ -205,7 +216,7 @@ internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     if (skipSecurityDelayIfValidatedByLinkedTerminal) {
         builder.add(Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal)
     }
-    if (restrictOverwriteIssuerExtraData == true) {
+    if (restrictOverwriteIssuerDataEx == true) {
         builder.add(Card.SettingsMask.Code.RestrictOverwriteIssuerExtraData)
     }
     if (disableIssuerData == true) {
