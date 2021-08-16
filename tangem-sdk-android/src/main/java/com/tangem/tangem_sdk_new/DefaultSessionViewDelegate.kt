@@ -2,7 +2,6 @@ package com.tangem.tangem_sdk_new
 
 import android.app.Activity
 import android.os.Build
-import android.view.ContextThemeWrapper
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
@@ -12,6 +11,7 @@ import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.nfc.CardReader
+import com.tangem.tangem_sdk_new.extensions.sdkThemeContext
 import com.tangem.tangem_sdk_new.nfc.NfcAntennaLocationProvider
 import com.tangem.tangem_sdk_new.nfc.NfcManager
 import com.tangem.tangem_sdk_new.ui.AttestationFailedDialog
@@ -125,8 +125,7 @@ class DefaultSessionViewDelegate(
 
     private fun createReadingDialog(activity: Activity) {
         val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
-        val themeWrapper = ContextThemeWrapper(activity, R.style.CardSdkTheme)
-        readingDialog = NfcSessionDialog(themeWrapper, nfcManager, nfcLocationProvider).apply {
+        readingDialog = NfcSessionDialog(activity.sdkThemeContext(), nfcManager, nfcLocationProvider).apply {
             setOwnerActivity(activity)
             dismissWithAnimation = true
             stoppedBySession = false
