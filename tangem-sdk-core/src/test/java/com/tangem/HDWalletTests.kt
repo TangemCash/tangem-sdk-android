@@ -12,7 +12,8 @@ import com.tangem.common.hdWallet.bip.BIP44
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag
 import org.junit.Test
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.assertThrows
 
 class HDWalletTests {
@@ -194,14 +195,6 @@ class HDWalletTests {
                 "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
                 "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes()
         )
-
-        var error: HDWalletError? = null
-        try {
-            masterKey.derivePublicKey(path)
-        } catch (ex: Exception) {
-            error = ex as? HDWalletError
-        }
-        assertNotNull(error)
-        assertEquals(error, HDWalletError.HardenedNotSupported)
+        assertThrows<HDWalletError.HardenedNotSupported> { masterKey.derivePublicKey(path) }
     }
 }
