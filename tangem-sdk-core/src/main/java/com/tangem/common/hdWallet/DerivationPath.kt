@@ -12,7 +12,6 @@ class DerivationPath {
     val rawPath: String
     val nodes: List<DerivationNode>
 
-    @Throws(TangemSdkError::class)
     constructor(rawPath: String, path: List<DerivationNode>) {
         this.rawPath = rawPath
         this.nodes = path
@@ -22,7 +21,7 @@ class DerivationPath {
      * Parse derivation path.
      * @param rawPath: Path. E.g. "m/0'/0/1/0"
      */
-    @Throws(TangemSdkError::class)
+    @Throws(HDWalletError::class)
     constructor(rawPath: String) : this(rawPath, createPath(rawPath))
 
     constructor(path: List<DerivationNode>) : this(createRawPath(path), path)
@@ -63,7 +62,7 @@ class DerivationPath {
             return DerivationPath(path)
         }
 
-        @Throws(TangemSdkError::class)
+        @Throws(HDWalletError::class)
         private fun createPath(rawPath: String): List<DerivationNode> {
             val splittedPath = rawPath.toLowerCase().split(BIP32.separatorSymbol)
             if (splittedPath.size < 2) throw HDWalletError.WrongPath
