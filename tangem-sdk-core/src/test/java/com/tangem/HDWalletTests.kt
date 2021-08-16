@@ -12,23 +12,25 @@ import com.tangem.common.hdWallet.bip.BIP44
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
 
 class HDWalletTests {
 
     @Test
     fun indexSerialization() {
-        fun compare(toCompare: Long, shouldFail: Boolean = false) {
+        fun compare(toCompare: Long, shouldBeEqual: Boolean = true) {
             val fromStandard = toCompare.toByteArray().toLong()
             val fromHalf = toCompare.toByteArray(4).toLong()
 
-            if (shouldFail) assert(fromStandard != fromHalf) else assert(fromStandard == fromHalf)
+            if (shouldBeEqual) assertEquals(fromStandard, fromHalf) else assertNotEquals(fromStandard, fromHalf)
         }
 
         compare(100)
         compare(Int.MAX_VALUE.toLong() + 100L)
         compare(Long.MAX_VALUE.toByteArray(4).toLong())
-        compare(Long.MAX_VALUE, true)
-        compare(-100500, true)
+        compare(Long.MAX_VALUE, false)
+        compare(-100500, false)
     }
 
     @Test
@@ -41,8 +43,8 @@ class HDWalletTests {
         val derived = masterKey.derivePublicKey(1)
         val key = derived.compressedPublicKey.toHexString().toLowerCase()
         val chainCode = derived.chainCode.toHexString().toLowerCase()
-        assert(key == "037c2098fd2235660734667ff8821dbbe0e6592d43cfd86b5dde9ea7c839b93a50")
-        assert(chainCode == "8dd96414ff4d5b4750be3af7fecce207173f86d6b5f58f9366297180de8e109b")
+        assertEquals(key, "037c2098fd2235660734667ff8821dbbe0e6592d43cfd86b5dde9ea7c839b93a50")
+        assertEquals(chainCode, "8dd96414ff4d5b4750be3af7fecce207173f86d6b5f58f9366297180de8e109b")
     }
 
     @Test
@@ -55,21 +57,12 @@ class HDWalletTests {
         val derived = masterKey.derivePublicKey(0)
         val key = derived.compressedPublicKey.toHexString().toLowerCase()
         val chainCode = derived.chainCode.toHexString().toLowerCase()
-        assert(key == "02fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea")
-        assert(chainCode == "f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c")
+        assertEquals(key, "02fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea")
+        assertEquals(chainCode, "f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c")
     }
 
     @Test
     fun testParsePath() {
-        fun derivationPathIsThrowException(rawPath: String): Boolean {
-            try {
-                DerivationPath(rawPath)
-            } catch (ex: Exception) {
-                return true
-            }
-            return false
-        }
-
         val derivationPath = DerivationPath("m / 44' / 0' / 0' / 1 / 0")
         val derivationPath1 = DerivationPath("m/44'/0'/0'/1/0")
         val derivationPath2 = DerivationPath("M/44'/0'/0'/1/0")
@@ -80,19 +73,19 @@ class HDWalletTests {
                 DerivationNode.NotHardened(1),
                 DerivationNode.NotHardened(0)
         ))
-        assert(derivationPath == derivationPath1)
-        assert(derivationPath == derivationPath2)
-        assert(derivationPath == derivationPath3)
+        assertEquals(derivationPath, derivationPath1)
+        assertEquals(derivationPath, derivationPath2)
+        assertEquals(derivationPath, derivationPath3)
 
-        assert(derivationPath.nodes[0] == DerivationNode.Hardened(44))
-        assert(derivationPath.nodes[1] == DerivationNode.Hardened(0))
-        assert(derivationPath.nodes[2] == DerivationNode.Hardened(0))
-        assert(derivationPath.nodes[3] == DerivationNode.NotHardened(1))
-        assert(derivationPath.nodes[4] == DerivationNode.NotHardened(0))
+        assertEquals(derivationPath.nodes[0], DerivationNode.Hardened(44))
+        assertEquals(derivationPath.nodes[1], DerivationNode.Hardened(0))
+        assertEquals(derivationPath.nodes[2], DerivationNode.Hardened(0))
+        assertEquals(derivationPath.nodes[3], DerivationNode.NotHardened(1))
+        assertEquals(derivationPath.nodes[4], DerivationNode.NotHardened(0))
 
-        assert(derivationPathIsThrowException("44'/m'/0'/1/0"))
-        assert(derivationPathIsThrowException("m /"))
-        assert(derivationPathIsThrowException("m|44'|0'|0'|1|0"))
+        assertThrows<HDWalletError> { DerivationPath("44'/m'/0'/1/0") }
+        assertThrows<HDWalletError> { DerivationPath("m /") }
+        assertThrows<HDWalletError> { DerivationPath("m|44'|0'|0'|1|0") }
     }
 
     @Test
@@ -100,8 +93,8 @@ class HDWalletTests {
         fun encodeToHexString(path: DerivationPath): String {
             return TlvEncoder().encode(TlvTag.WalletHDPath, path).value.toHexString()
         }
-        assert("0000000000000001" == encodeToHexString(DerivationPath("m/0/1")))
-        assert("800000008000000100000002" == encodeToHexString(DerivationPath("m/0'/1'/2")))
+        assertEquals("0000000000000001", encodeToHexString(DerivationPath("m/0/1")))
+        assertEquals("800000008000000100000002", encodeToHexString(DerivationPath("m/0'/1'/2")))
     }
 
     @Test
@@ -111,23 +104,23 @@ class HDWalletTests {
         } catch (ex: Exception) {
             null
         }
-        assert("m/0/1" == decodeRawPathFromHex("0000000000000001"))
-        assert("m/0'/1'/2" == decodeRawPathFromHex("800000008000000100000002"))
-        assert(null == decodeRawPathFromHex("000000000000000100"))
+        assertEquals("m/0/1", decodeRawPathFromHex("0000000000000001"))
+        assertEquals("m/0'/1'/2", decodeRawPathFromHex("800000008000000100000002"))
+        assertEquals(null, decodeRawPathFromHex("000000000000000100"))
     }
 
     @Test
     fun testBitcoinBip44() {
-        val buidler = BIP44(0, 0, BIP44.Chain.External, 0)
-        val path = buidler.buildPath().rawPath
-        assert(path == "m/44'/0'/0'/0/0")
+        val builder = BIP44(0, 0, BIP44.Chain.External, 0)
+        val path = builder.buildPath().rawPath
+        assertEquals(path, "m/44'/0'/0'/0/0")
     }
 
     @Test
     fun testBitcoinBip44ForTangem() {
-        val buidler = BIP44(0, 0, BIP44.Chain.External, 0)
-        val path = buidler.buildPath().toNonHardened().rawPath
-        assert(path == "m/44/0/0/0/0")
+        val builder = BIP44(0, 0, BIP44.Chain.External, 0)
+        val path = builder.buildPath().toNonHardened().rawPath
+        assertEquals(path, "m/44/0/0/0/0")
     }
 
     @Test
@@ -141,8 +134,8 @@ class HDWalletTests {
         val childKey = masterKey.derivePublicKey(path)
         val code = childKey.chainCode.toHexString().toLowerCase()
         val key = childKey.compressedPublicKey.toHexString().toLowerCase()
-        assert(code == "f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c")
-        assert(key == "02fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea")
+        assertEquals(code, "f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c")
+        assertEquals(key, "02fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea")
     }
 
     @Test
@@ -157,8 +150,8 @@ class HDWalletTests {
         val childKey = masterKey.derivePublicKey(path)
         val code = childKey.chainCode.toHexString().toLowerCase()
         val key = childKey.compressedPublicKey.toHexString().toLowerCase()
-        assert(code == "8d5e25bfe038e4ef37e2c5ec963b7a7c7a745b4319bff873fc40f1a52c7d6fd1")
-        assert(key == "02d27a781fd1b3ec5ba5017ca55b9b900fde598459a0204597b37e6c66a0e35c98")
+        assertEquals(code, "8d5e25bfe038e4ef37e2c5ec963b7a7c7a745b4319bff873fc40f1a52c7d6fd1")
+        assertEquals(key, "02d27a781fd1b3ec5ba5017ca55b9b900fde598459a0204597b37e6c66a0e35c98")
     }
 
     @Test
@@ -171,12 +164,12 @@ class HDWalletTests {
         val ethPath = BIP44.buildPath(60).toNonHardened()
         val childKey = masterKey.derivePublicKey(ethPath)
         val childKey1 = masterKey.derivePublicKey(DerivationPath("m/44/60"))
-        assert(childKey == childKey1)
+        assertEquals(childKey, childKey1)
 
         val code = childKey.chainCode.toHexString().toLowerCase()
         val key = childKey.compressedPublicKey.toHexString().toLowerCase()
-        assert(code == "8bef790efd848a775aef08bbfd702dc8fe7fabaab2fcce473ddd8a9bd113aef1")
-        assert(key == "02c2fd0dc466bc05b0aadd14d933bf7ece3705af0846c471eaf16cf98c1341013d")
+        assertEquals(code, "8bef790efd848a775aef08bbfd702dc8fe7fabaab2fcce473ddd8a9bd113aef1")
+        assertEquals(key, "02c2fd0dc466bc05b0aadd14d933bf7ece3705af0846c471eaf16cf98c1341013d")
     }
 
     @Test
@@ -190,8 +183,8 @@ class HDWalletTests {
         val childKey = masterKey.derivePublicKey(path)
         val code = childKey.chainCode.toHexString().toLowerCase()
         val key = childKey.compressedPublicKey.toHexString().toLowerCase()
-        assert(code == "70009e1a12a32e3c106af696222dbdbd678278495fe3cd12eb4611965821f368")
-        assert(key == "02c2c9e694b2862b061acbe77bb926ac3e766cde72c7b4ac814b862c83fe80d239")
+        assertEquals(code, "70009e1a12a32e3c106af696222dbdbd678278495fe3cd12eb4611965821f368")
+        assertEquals(key, "02c2c9e694b2862b061acbe77bb926ac3e766cde72c7b4ac814b862c83fe80d239")
     }
 
     @Test
@@ -208,8 +201,7 @@ class HDWalletTests {
         } catch (ex: Exception) {
             error = ex as? HDWalletError
         }
-
-        assert(error != null)
-        assert(error == HDWalletError.HardenedNotSupported)
+        assertNotNull(error)
+        assertEquals(error, HDWalletError.HardenedNotSupported)
     }
 }
