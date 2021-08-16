@@ -28,9 +28,7 @@ class TlvEncoder {
      */
     inline fun <reified T> encode(tag: TlvTag, value: T?): Tlv {
         if (value != null) {
-            val tlv = Tlv(tag, encodeValue(tag, value))
-            Log.tlv { tlv.toString() }
-            return tlv
+            return Tlv(tag, encodeValue(tag, value)).apply { sendToLog(value) }
         } else {
             val error = TangemSdkError.EncodingFailed("Encoding error. Value for tag $tag is null")
             Log.error { error.customMessage }

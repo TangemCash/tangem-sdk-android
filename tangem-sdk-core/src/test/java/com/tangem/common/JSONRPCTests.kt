@@ -49,8 +49,9 @@ class JSONRPCTests {
 
     @Test
     fun testJsonRPCRequestParse() {
-        val json = "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, \"minuend\": 42}, \"id\": 3}"
+        JSONRPCRequest("{\"jsonrpc\": \"2.0\", \"method\": \"any\", \"params\": {}}")
 
+        val json = "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, \"minuend\": 42}, \"id\": 3}"
         val request = JSONRPCRequest(json)
         assert(request.method == "subtract")
         assert(request.params["subtrahend"] == 23.0)

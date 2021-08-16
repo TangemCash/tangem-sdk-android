@@ -43,7 +43,7 @@ class DepersonalizeHandler : JSONRPCHandler<DepersonalizeResponse> {
 
 class PreflightReadHandler : JSONRPCHandler<Card> {
     override val method: String = "PREFLIGHT_READ"
-    override val requiresCardId: Boolean = true
+    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<Card> {
         return MoshiJsonConverter.INSTANCE.let {

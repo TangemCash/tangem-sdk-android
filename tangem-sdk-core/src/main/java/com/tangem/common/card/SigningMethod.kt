@@ -6,7 +6,7 @@ import com.tangem.common.Mask
 /**
  * Determines which type of data is required for signing.
  */
-data class SigningMethod(override val rawValue: Int) : BaseMask() {
+class SigningMethod(override val rawValue: Int) : BaseMask() {
 
     override fun contains(code: Mask.Code): Boolean {
         return if (rawValue and 0x80 == 0) {
