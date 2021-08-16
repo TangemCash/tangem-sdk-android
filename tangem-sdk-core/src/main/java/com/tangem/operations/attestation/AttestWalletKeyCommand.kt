@@ -1,5 +1,6 @@
 package com.tangem.operations.attestation
 
+import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
@@ -18,6 +19,7 @@ import com.tangem.operations.PreflightReadMode
 /**
  * Deserialized response from the Tangem card after `AttestWalletKeyCommand`.
  */
+@JsonClass(generateAdapter = true)
 class AttestWalletKeyResponse(
     /**
      * Unique Tangem card ID number

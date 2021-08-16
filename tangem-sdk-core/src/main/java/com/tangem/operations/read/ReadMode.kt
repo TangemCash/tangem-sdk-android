@@ -4,7 +4,7 @@ package com.tangem.operations.read
  * Created by Anton Zhilenkov on 26/03/2021.
  *
  * Available modes for reading card information
- * Note: This modes available for cards with COS v.4.0 and higher
+ * Note: This modes available for cards with COS v. 4.0 and higher
  */
 enum class ReadMode(val rawValue: Int) {
     Card(0x01),

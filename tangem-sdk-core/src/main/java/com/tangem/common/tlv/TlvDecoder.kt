@@ -9,6 +9,7 @@ import com.tangem.common.extensions.toInt
 import com.tangem.common.extensions.toUtf8
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -53,7 +54,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
     inline fun <reified T> decode(tag: TlvTag, logError: Boolean = true): T {
         val tlv = tlvList.find { it.tag == tag }
                 ?: if (tag.valueType() == TlvValueType.BoolValue && T::class == Boolean::class) {
-                    logTlv(Tlv(tag, "00".toByteArray()), false)
+                    Tlv(tag, "00".toByteArray()).sendToLog(false)
                     return false as T
                 } else {
                     if (logError) {
@@ -65,7 +66,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                 }
 
         val decodedValue: T = decodeTlv(tlv)
-        logTlv(tlv, decodedValue)
+        tlv.sendToLog(decodedValue)
         return decodedValue
     }
 
@@ -192,15 +193,16 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                 }
             }
+            TlvValueType.DerivationPath -> {
+                typeCheck<T, DerivationPath>(tag)
+                try {
+                    DerivationPath.from(tlvValue) as T
+                } catch (exception: Exception) {
+                    logException(tag, tlvValue.toInt().toString(), exception)
+                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                }
+            }
         }
-    }
-
-    fun <T> logTlv(tlv: Tlv, value: T) {
-        var tlvString = tlv.toString()
-        if (tlv.tag.valueType() != TlvValueType.ByteArray && tlv.tag.valueType() != TlvValueType.HexString) {
-            tlvString += " ($value)"
-        }
-        Log.tlv { tlvString }
     }
 
     fun provideDecodingFailedMessage(tag: TlvTag): String =

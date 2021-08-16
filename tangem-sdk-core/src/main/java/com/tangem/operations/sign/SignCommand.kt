@@ -7,11 +7,14 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -36,10 +39,12 @@ class SignResponse(
  * Signs transaction hashes using a wallet private key, stored on the card.
  * @property hashes Array of transaction hashes.
  * @property walletPublicKey Public key of the wallet, using for sign.
+ * @property hdPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
  */
 internal class SignCommand(
     private val hashes: Array<ByteArray>,
-    private val walletPublicKey: ByteArray
+    private val walletPublicKey: ByteArray,
+    private val hdPath: DerivationPath? = null
 ) : Command<SignResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
@@ -56,6 +61,15 @@ internal class SignCommand(
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         val wallet = card.wallet(walletPublicKey) ?: return TangemSdkError.WalletNotFound()
+
+        if (hdPath != null) {
+            if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
+                return TangemSdkError.NotSupportedFirmwareVersion()
+            }
+            if (wallet.curve != EllipticCurve.Secp256k1) {
+                return TangemSdkError.UnsupportedCurve()
+            }
+        }
 
         //Before v4
         if (wallet.remainingSignatures == 0) {
@@ -131,7 +145,7 @@ internal class SignCommand(
         tlvBuilder.append(TlvTag.TransactionOutHashSize, byteArrayOf(hashSizes.toByte()))
         tlvBuilder.append(TlvTag.TransactionOutHash, dataToSign)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
-        // Wallet index works only on COS v.4.0 and higher. For previous version index will be ignored
+        // Wallet index works only on COS v. 4.0 and higher. For previous version index will be ignored
         tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
 
         val isLinkedTerminalSupported = environment.card?.settings?.isLinkedTerminalEnabled == true
@@ -140,6 +154,7 @@ internal class SignCommand(
             tlvBuilder.append(TlvTag.TerminalTransactionSignature, signedData)
             tlvBuilder.append(TlvTag.TerminalPublicKey, environment.terminalKeys!!.publicKey)
         }
+        tlvBuilder.append(TlvTag.WalletHDPath, hdPath)
 
         return CommandApdu(Instruction.Sign, tlvBuilder.serialize())
     }

@@ -24,6 +24,14 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     override var customMessage: String = code.toString()
     override val messageResId: Int? = null
 
+    override fun toString(): String {
+        return if (code.toString() == customMessage) {
+            "$code: ${this::class.java.simpleName}"
+        } else {
+            customMessage
+        }
+    }
+
     /**
      * This error is returned when Android  NFC reader loses a tag
      * (e.g. a user detaches card from the phone's NFC module) while the NFC session is in progress.

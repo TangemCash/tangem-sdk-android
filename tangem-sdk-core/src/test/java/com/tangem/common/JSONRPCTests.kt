@@ -13,6 +13,9 @@ import com.tangem.operations.sign.SignHashesResponse
 import com.tangem.operations.wallet.CreateWalletResponse
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -44,16 +47,17 @@ class JSONRPCTests {
 
         val mapFromJson = converter.toMap(json)
         val mapFromObject = converter.toMap(converter.toJson(testCard))
-        assert(jsonMapVerifier(mapFromJson, mapFromObject))
+        assertTrue(jsonMapVerifier(mapFromJson, mapFromObject))
     }
 
     @Test
     fun testJsonRPCRequestParse() {
-        val json = "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, \"minuend\": 42}, \"id\": 3}"
+        JSONRPCRequest("{\"jsonrpc\": \"2.0\", \"method\": \"any\", \"params\": {}}")
 
+        val json = "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, \"minuend\": 42}, \"id\": 3}"
         val request = JSONRPCRequest(json)
-        assert(request.method == "subtract")
-        assert(request.params["subtrahend"] == 23.0)
+        assertEquals(request.method, "subtract")
+        assertEquals(request.params["subtrahend"], 23.0)
     }
 
     @Test
@@ -61,8 +65,8 @@ class JSONRPCTests {
         val json = "{\"header\": \"Some header\", \"body\": \"Some body\"}"
 
         val message: Message = converter.fromJson(json)!!
-        assert(message.header == "Some header")
-        assert(message.body == "Some body")
+        assertEquals(message.header, "Some header")
+        assertEquals(message.body, "Some body")
     }
 
     @Test
@@ -73,7 +77,7 @@ class JSONRPCTests {
 
         val mapJsonResponse = converter.toMap(result.toJSONRPCResponse(1).toJson())
         val mapTestJsonResponse = converter.toMap(testResponse)
-        assert(jsonMapVerifier(mapJsonResponse, mapTestJsonResponse))
+        assertTrue(jsonMapVerifier(mapJsonResponse, mapTestJsonResponse))
     }
 
     @Test
@@ -105,6 +109,7 @@ class JSONRPCTests {
     @Test
     fun testCreateWallet() {
         val wallet = CardWallet("5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348".hexToBytes(),
+                null,
                 EllipticCurve.Secp256r1,
                 CardWallet.Settings(true),
                 10,
@@ -148,18 +153,13 @@ class JSONRPCTests {
     }
 
     private fun testMethod(name: String, response: CommandResponse?) {
-        val structure: HandlersStructure
-        try {
-            structure = converter.fromJson(readJson(name))!!
-        } catch (ex: Exception) {
-            throw Exception("Json conversion failed to structure for $name", ex)
+        val structure: HandlersStructure = assertDoesNotThrow("Json conversion failed to structure for $name") {
+            converter.fromJson(readJson(name))!!
         }
 
         structure.requests.forEachIndexed { index, request ->
-            try {
+            assertDoesNotThrow("Conversion to JSONRPC Failed. File: ${name}, index: $index") {
                 jsonRpcConverter.convert(request)
-            } catch (ex: Exception) {
-                throw Exception("Conversion to JSONRPC Failed. File: ${name}, index: $index", ex)
             }
         }
 
@@ -168,7 +168,7 @@ class JSONRPCTests {
             val jsonResponseMap = converter.toMap(structure.response)
             val resultJsonRpcResponse = result.toJSONRPCResponse(structure.response.id)
             val testResponseMap = converter.toMap(resultJsonRpcResponse)
-            assert(jsonMapVerifier(testResponseMap, jsonResponseMap))
+            assertTrue(jsonMapVerifier(testResponseMap, jsonResponseMap))
         }
     }
 

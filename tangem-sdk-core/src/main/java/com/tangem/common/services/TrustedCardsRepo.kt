@@ -15,9 +15,9 @@ import kotlin.collections.set
 class TrustedCardsRepo internal constructor(
     private val storage: SecureStorage,
     private val jsonConverter: MoshiJsonConverter,
-    private val secureService: SecureService
 ) {
     private val maxCards = 1000
+    private val secureService = SecureService(storage)
 
     //Key is Hash of card's public key
     private val data = mutableMapOf<String, Attestation>()

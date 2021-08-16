@@ -4,6 +4,7 @@ import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.extensions.hexToBytes
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
 import com.tangem.operations.personalization.DepersonalizeCommand
@@ -43,7 +44,7 @@ class DepersonalizeHandler : JSONRPCHandler<DepersonalizeResponse> {
 
 class PreflightReadHandler : JSONRPCHandler<Card> {
     override val method: String = "PREFLIGHT_READ"
-    override val requiresCardId: Boolean = true
+    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<Card> {
         return MoshiJsonConverter.INSTANCE.let {
@@ -88,8 +89,9 @@ class SignHashHandler : JSONRPCHandler<SignHashResponse> {
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignHashResponse> {
         val hash = (params["hash"] as String).hexToBytes()
         val publicKey = (params["walletPublicKey"] as String).hexToBytes()
+        val hdPath: DerivationPath? = (params["hdPath"] as? String)?.let { DerivationPath(it) }
 
-        return SignHashCommand(hash, publicKey)
+        return SignHashCommand(hash, publicKey, hdPath)
     }
 }
 
@@ -100,8 +102,9 @@ class SignHashesHandler : JSONRPCHandler<SignResponse> {
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignResponse> {
         val hashes = (params["hashes"] as List<String>).map { it.hexToBytes() }
         val publicKey = (params["walletPublicKey"] as String).hexToBytes()
+        val hdPath: DerivationPath? = (params["hdPath"] as? String)?.let { DerivationPath(it) }
 
-        return SignCommand(hashes.toTypedArray(), publicKey)
+        return SignCommand(hashes.toTypedArray(), publicKey, hdPath)
     }
 }
 
@@ -131,4 +134,3 @@ class ResetUserCodesHandler : JSONRPCHandler<SuccessResponse> {
         return SetUserCodeCommand.resetUserCodes()
     }
 }
-

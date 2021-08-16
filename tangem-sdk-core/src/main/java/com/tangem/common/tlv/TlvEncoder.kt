@@ -11,6 +11,8 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
+import com.tangem.common.hdWallet.DerivationNode.Companion.serialize
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -28,9 +30,7 @@ class TlvEncoder {
      */
     inline fun <reified T> encode(tag: TlvTag, value: T?): Tlv {
         if (value != null) {
-            val tlv = Tlv(tag, encodeValue(tag, value))
-            Log.tlv { tlv.toString() }
-            return tlv
+            return Tlv(tag, encodeValue(tag, value)).apply { sendToLog(value) }
         } else {
             val error = TangemSdkError.EncodingFailed("Encoding error. Value for tag $tag is null")
             Log.error { error.customMessage }
@@ -132,6 +132,10 @@ class TlvEncoder {
             TlvValueType.FileSettings -> {
                 typeCheck<T, FileSettings>(tag)
                 (value as FileSettings).rawValue.toByteArray(2)
+            }
+            TlvValueType.DerivationPath -> {
+                typeCheck<T, DerivationPath>(tag)
+                return (value as DerivationPath).nodes.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
             }
         }
     }

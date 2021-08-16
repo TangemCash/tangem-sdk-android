@@ -59,7 +59,7 @@ data class Card internal constructor(
 
     /**
      * PIN2 (aka Passcode) is set.
-     * Available only for cards with COS v.4.0 and higher.
+     * Available only for cards with COS v. 4.0 and higher.
      */
     val isPasscodeSet: Boolean?,
 
@@ -272,7 +272,7 @@ data class Card internal constructor(
         }
     }
 
-    data class SettingsMask(override val rawValue: Int) : BaseMask() {
+    class SettingsMask(override val rawValue: Int) : BaseMask() {
 
         override val values: List<Code> = Code.values().toList()
 
@@ -312,6 +312,11 @@ data class CardWallet(
      *  Wallet's public key.
      */
     val publicKey: ByteArray,
+
+    /**
+     * Optional chain code for BIP32 derivation.
+     */
+    val chainCode: ByteArray?,
 
     /**
      *  Elliptic curve used for all wallet key operations.
@@ -377,7 +382,7 @@ data class CardWallet(
         ) : this(mask.contains(SettingsMask.Code.IsPermanent))
     }
 
-    data class SettingsMask(override var rawValue: Int) : BaseMask() {
+    class SettingsMask(override var rawValue: Int) : BaseMask() {
 
         override val values: List<Code> = Code.values().toList()
 

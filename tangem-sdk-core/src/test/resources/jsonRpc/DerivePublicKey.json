@@ -1,0 +1,21 @@
+{
+  "requests": [
+    {
+      "jsonrpc": "2.0",
+      "method": "derive_public_key",
+      "params": {
+        "walletPublicKey": "0291C5CDE99C31A286DCA1137821DF7929A61DCE77CB87342C300D278C8B8C7A8E",
+        "hdPath": "m/44'/0'"
+      },
+      "id": 1
+    }
+  ],
+  "response": {
+    "jsonrpc": "2.0",
+    "result": {
+      "compressedPublicKey": "03E9EC49A559E9C5F31CAD60733AB16F694D69045B12CE9F669A7F33B68B230F7B",
+      "chainCode": "A37E3B27C64AA0DB1107175E9929F870B2AD5968A33A51864C1CDB12BCE49325"
+    },
+    "id": 1
+  }
+}

@@ -3,6 +3,9 @@ package com.tangem.crypto
 import com.tangem.common.KeyPair
 import com.tangem.common.card.EllipticCurve
 import net.i2p.crypto.eddsa.EdDSASecurityProvider
+import org.spongycastle.crypto.digests.SHA512Digest
+import org.spongycastle.crypto.macs.HMac
+import org.spongycastle.crypto.params.KeyParameter
 import org.spongycastle.jce.provider.BouncyCastleProvider
 import java.security.PublicKey
 import java.security.SecureRandom
@@ -81,6 +84,20 @@ object CryptoUtils {
             EllipticCurve.Ed25519 -> Ed25519.loadPublicKey(publicKey)
         }
     }
+
+    fun compressPublicKey(key: ByteArray, curve: EllipticCurve = EllipticCurve.Secp256k1): ByteArray {
+        return when (curve) {
+            EllipticCurve.Secp256k1 -> Secp256k1.compressPublicKey(key)
+            else -> throw UnsupportedOperationException()
+        }
+    }
+
+    fun decompressPublicKey(key: ByteArray, curve: EllipticCurve = EllipticCurve.Secp256k1): ByteArray {
+        return when (curve) {
+            EllipticCurve.Secp256k1 -> Secp256k1.decompressPublicKey(key)
+            else -> throw UnsupportedOperationException()
+        }
+    }
 }
 
 fun Secp256k1.generateKeyPair(): KeyPair {
@@ -123,6 +140,17 @@ fun ByteArray.decrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
 
 fun ByteArray.pbkdf2Hash(salt: ByteArray, iterations: Int): ByteArray {
     return Pbkdf2().deriveKey(this, salt, iterations)
+}
+
+
+fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
+    val key = this
+    val hMac = HMac(SHA512Digest())
+    hMac.init(KeyParameter(key))
+    hMac.update(input, 0, input.size)
+    val out = ByteArray(64)
+    hMac.doFinal(out, 0)
+    return out
 }
 
 private const val ENCRYPTION_SPEC_PKCS7 = "AES/CBC/PKCS7PADDING"

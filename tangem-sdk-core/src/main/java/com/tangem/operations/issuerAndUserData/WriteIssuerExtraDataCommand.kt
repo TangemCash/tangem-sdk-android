@@ -7,6 +7,7 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
+import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.*
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
@@ -43,6 +44,9 @@ class WriteIssuerExtraDataCommand(
     private var offset: Int = 0
 
     override fun performPreCheck(card: Card): TangemSdkError? {
+        if (card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
+            return TangemSdkError.NotSupportedFirmwareVersion()
+        }
         if (issuerData.size > MAX_SIZE) {
             return TangemSdkError.DataSizeTooLarge()
         }

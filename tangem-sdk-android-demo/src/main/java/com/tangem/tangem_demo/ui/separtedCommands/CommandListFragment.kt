@@ -2,6 +2,8 @@ package com.tangem.tangem_demo.ui.separtedCommands
 
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
+import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
 import com.tangem.Log
 import com.tangem.TangemSdk
@@ -13,12 +15,16 @@ import com.tangem.common.extensions.guard
 import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.json.MoshiJsonConverter
+import com.tangem.operations.attestation.AttestationTask
 import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
+import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.tangem_sdk_new.extensions.createLogger
 import com.tangem.tangem_sdk_new.extensions.init
+import kotlinx.android.synthetic.main.attestation.*
 import kotlinx.android.synthetic.main.file_data.*
+import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.scan_card.*
@@ -48,6 +54,24 @@ class CommandListFragment : BaseFragment() {
         }
         btnScanCard.setOnClickListener { scanCard() }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
+
+        chipGroupAttest.fitChipsByGroupWidth()
+        btnAttest.setOnClickListener {
+            val mode = when (chipGroupAttest.checkedChipId) {
+                R.id.chipAttestNormal -> AttestationTask.Mode.Normal
+                else -> AttestationTask.Mode.Full
+            }
+            attestCard(mode)
+        }
+
+        val adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, listOf(
+                "m/0/1",
+                "m/0'/1'/2",
+                "m/44'/0'/0'/1/0"
+        ))
+        etDerivePublicKey.setAdapter(adapter)
+        etDerivePublicKey.addTextChangedListener { hdPath = if (it!!.isEmpty()) null else it!!.toString() }
+        btnDerivePublicKey.setOnClickListener { derivePublicKey() }
 
         btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }
         btnSignHashes.setOnClickListener { signHashes(prepareHashesToSign(11)) }

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.tangem_sdk_new.R
+import com.tangem.tangem_sdk_new.extensions.sdkThemeContext
 import com.tangem.tangem_sdk_new.postUI
 
 /**
@@ -46,7 +47,7 @@ class AttestationFailedDialog {
             negative: VoidCallback? = null,
             neutral: VoidCallback? = null
         ): AlertDialog.Builder {
-            return MaterialAlertDialogBuilder(context).apply {
+            return MaterialAlertDialogBuilder(context.sdkThemeContext()).apply {
                 setCancelable(false)
                 setTitle(title)
                 setMessage(message)

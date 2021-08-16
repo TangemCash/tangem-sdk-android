@@ -4,15 +4,34 @@ import com.tangem.common.extensions.toHexString
 import org.spongycastle.asn1.ASN1EncodableVector
 import org.spongycastle.asn1.ASN1Integer
 import org.spongycastle.asn1.DERSequence
+import org.spongycastle.asn1.x9.X9ECParameters
+import org.spongycastle.crypto.ec.CustomNamedCurves
 import org.spongycastle.jce.ECNamedCurveTable
 import org.spongycastle.jce.spec.ECPrivateKeySpec
 import org.spongycastle.jce.spec.ECPublicKeySpec
+import org.spongycastle.math.ec.ECPoint
 import java.math.BigInteger
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.Signature
 
 object Secp256k1 {
+
+    internal fun compressPublicKey(key: ByteArray): ByteArray = if (key.size == 65) {
+        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
+        val publicKeyPoint = spec.curve.decodePoint(key)
+        publicKeyPoint.getEncoded(true)
+    } else {
+        key
+    }
+
+    internal fun decompressPublicKey(key: ByteArray): ByteArray = if (key.size == 33) {
+        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
+        val publicKeyPoint = spec.curve.decodePoint(key)
+        publicKeyPoint.getEncoded(false)
+    } else {
+        key
+    }
 
     internal fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray): Boolean {
         val signatureInstance = Signature.getInstance("SHA256withECDSA")
@@ -30,7 +49,6 @@ object Secp256k1 {
     }
 
     internal fun loadPublicKey(publicKeyArray: ByteArray): PublicKey {
-
         val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
         val factory = KeyFactory.getInstance("EC", "SC")
 
@@ -48,7 +66,6 @@ object Secp256k1 {
 
 
     internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
-
         val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
         val factory = KeyFactory.getInstance("EC", "SC")
 
@@ -84,7 +101,6 @@ object Secp256k1 {
     }
 
     private fun toByte64(enc: ByteArray): ByteArray {
-
         var rLength = enc[3].toInt()
         var sLength = enc[5 + rLength].toInt()
 
@@ -111,8 +127,19 @@ object Secp256k1 {
         return res
     }
 
-    internal fun generatePublicKey(privateKeyArray: ByteArray): ByteArray {
-        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
-        return spec.g.multiply(BigInteger(1, privateKeyArray)).getEncoded(false)
+    internal fun generatePublicKey(privateKeyArray: ByteArray, compressed: Boolean = false): ByteArray {
+        return multiply(privateKeyArray).getEncoded(compressed)
+    }
+
+    internal fun gMultiplyAndAddPoint(key: ByteArray, encodedPoint: ByteArray): ECPoint {
+        val x9ECParameters = CustomNamedCurves.getByName("secp256k1")
+        val multiplied = multiply(key, x9ECParameters)
+        val decoded = x9ECParameters.curve.decodePoint(encodedPoint)
+        return multiplied.add(decoded)
+    }
+
+    private fun multiply(privateKeyArray: ByteArray, curveSpec: X9ECParameters? = null): ECPoint {
+        val spec = curveSpec ?: CustomNamedCurves.getByName("secp256k1")
+        return spec.g.multiply(BigInteger(1, privateKeyArray))
     }
 }
