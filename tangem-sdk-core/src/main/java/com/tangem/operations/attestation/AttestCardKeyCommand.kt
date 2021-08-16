@@ -1,5 +1,6 @@
 package com.tangem.operations.attestation
 
+import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
@@ -19,6 +20,7 @@ import com.tangem.operations.CommandResponse
 /**
  * Deserialized response from the Tangem card after `AttestCardKeyCommand`.
  */
+@JsonClass(generateAdapter = true)
 class AttestCardKeyResponse(
     val cardId: String,
     val salt: ByteArray,

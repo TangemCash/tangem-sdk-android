@@ -73,7 +73,9 @@ class CardSession(
      */
     fun <T : CardSessionRunnable<R>, R : CommandResponse> startWithRunnable(runnable: T, callback: CompletionCallback<R>) {
         if (state != CardSessionState.Inactive) {
-            callback(CompletionResult.Failure(TangemSdkError.Busy()))
+            val error = TangemSdkError.Busy()
+            Log.error { "$error" }
+            callback(CompletionResult.Failure(error))
             return
         }
 
@@ -83,6 +85,7 @@ class CardSession(
                 is CompletionResult.Success -> {
                     start { session, error ->
                         if (error != null) {
+                            Log.error { "$error" }
                             callback(CompletionResult.Failure(error))
                             return@start
                         }
@@ -97,7 +100,10 @@ class CardSession(
                         }
                     }
                 }
-                is CompletionResult.Failure -> callback(CompletionResult.Failure(prepareResult.error))
+                is CompletionResult.Failure -> {
+                    Log.error { "${prepareResult.error}" }
+                    callback(CompletionResult.Failure(prepareResult.error))
+                }
             }
 
         }
@@ -197,6 +203,7 @@ class CardSession(
                         else -> null
                     }
                     if (wrongType != null) {
+                        Log.error { "${result.error}" }
                         viewDelegate.onWrongCard(wrongType)
                         scope.launch(scope.coroutineContext) {
                             delay(3500)
@@ -260,7 +267,12 @@ class CardSession(
                     .map { apdu.encrypt(environment.encryptionMode, environment.encryptionKey) }
                     .map { encryptedApdu -> reader.transceiveApdu(encryptedApdu) }
                     .map { responseApdu -> decrypt(responseApdu) }
-                    .catch { if (it is TangemSdkError) callback(CompletionResult.Failure(it)) }
+                    .catch {
+                        if (it is TangemSdkError) {
+                            Log.error { "$it" }
+                            callback(CompletionResult.Failure(it))
+                        }
+                    }
                     .collect { result ->
                         when (result) {
                             is CompletionResult.Success -> {
@@ -271,6 +283,7 @@ class CardSession(
                                 when (result.error) {
                                     is TangemSdkError.TagLost -> Log.session { "Tag lost. Waiting for tag..." }
                                     else -> {
+                                        Log.error { "${result.error}" }
                                         subscription.cancel()
                                         callback(result)
                                     }

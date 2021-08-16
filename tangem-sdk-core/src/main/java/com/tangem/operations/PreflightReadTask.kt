@@ -15,7 +15,7 @@ import com.tangem.operations.read.ReadWalletsListCommand
 
 /**
  * Mode for preflight read task
- * Note: Valid for cards with COS v.4 and higher. Older card will always read the card and the wallet info.
+ * Note: Valid for cards with COS v. 4.0 and higher. Older card will always read the card and the wallet info.
  * `fullCardRead` will be used by default
  */
 sealed class PreflightReadMode {
@@ -26,14 +26,14 @@ sealed class PreflightReadMode {
     object None : PreflightReadMode()
 
     /**
-     * Read only card info without wallet info. Valid for cards with COS v.4 and higher.
+     * Read only card info without wallet info. Valid for cards with COS v. 4.0 and higher.
      * Older card will always read card and wallet info
      */
     object ReadCardOnly : PreflightReadMode()
 
     /**
      * Read card info and single wallet specified in associated index `WalletIndex`.
-     * Valid for cards with COS v.4 and higher. Older card will always read card and wallet info
+     * Valid for cards with COS v. 4.0 and higher. Older card will always read card and wallet info
      */
     class ReadWallet(val publicKey: ByteArray) : PreflightReadMode() {
         override fun toString(): String = publicKey.toHexString()

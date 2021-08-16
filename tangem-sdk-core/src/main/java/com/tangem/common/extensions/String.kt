@@ -34,3 +34,9 @@ fun String.titleFormatted(maxLength: Int = 50): String {
     val quote = "=".repeat(quotesSize)
     return "$quote $this $quote"
 }
+
+fun String.remove(vararg symbols: String): String {
+    var newString = this
+    symbols.forEach { newString = newString.replace(it, "") }
+    return newString
+}

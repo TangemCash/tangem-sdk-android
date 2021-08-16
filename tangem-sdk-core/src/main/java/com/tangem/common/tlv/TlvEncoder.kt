@@ -11,6 +11,8 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
+import com.tangem.common.hdWallet.DerivationNode.Companion.serialize
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -130,6 +132,10 @@ class TlvEncoder {
             TlvValueType.FileSettings -> {
                 typeCheck<T, FileSettings>(tag)
                 (value as FileSettings).rawValue.toByteArray(2)
+            }
+            TlvValueType.DerivationPath -> {
+                typeCheck<T, DerivationPath>(tag)
+                return (value as DerivationPath).nodes.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
             }
         }
     }

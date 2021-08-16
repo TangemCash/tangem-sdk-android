@@ -1,5 +1,6 @@
 package com.tangem.operations.read
 
+import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
@@ -14,6 +15,12 @@ import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.PreflightReadMode
+
+@JsonClass(generateAdapter = true)
+data class ReadResponse(
+    val card: Card,
+    val walletData: WalletData?
+) : CommandResponse
 
 /**
  * This command receives from the Tangem Card all the data about the card and the wallet,
@@ -66,8 +73,3 @@ class ReadCommand : Command<ReadResponse>() {
         return ReadResponse(card, walletData)
     }
 }
-
-data class ReadResponse(
-    val card: Card,
-    val walletData: WalletData?
-) : CommandResponse

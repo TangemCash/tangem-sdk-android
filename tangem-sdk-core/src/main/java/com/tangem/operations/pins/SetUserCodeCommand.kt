@@ -1,6 +1,5 @@
 package com.tangem.operations.pins
 
-import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.UserCodeType
@@ -17,19 +16,6 @@ import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.Command
-import com.tangem.operations.CommandResponse
-
-/**
- * Deserialized response from the Tangem card after `SetPintCommand`.
- */
-@JsonClass(generateAdapter = true)
-class SetPinResponse(
-    /**
-     * CID, Unique Tangem card ID number.
-     */
-    val cardId: String,
-    val status: SetPinStatus
-) : CommandResponse
 
 class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
 
@@ -82,7 +68,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
     private fun runCommand(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
         //Restrict default codes except reset command
         if (shouldRestrictDefaultCodes && (!isCodeAllowed(UserCodeType.AccessCode)
-                || !isCodeAllowed(UserCodeType.Passcode))) {
+                        || !isCodeAllowed(UserCodeType.Passcode))) {
             callback(CompletionResult.Failure(TangemSdkError.PasscodeCannotBeChanged()))
         } else {
             super.run(session, callback)

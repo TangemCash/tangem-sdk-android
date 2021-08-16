@@ -71,6 +71,19 @@ class ByteArrayExtensionsTest {
     }
 
     @Test
+    fun `to long and back`() {
+        fun compare(toCompare: Long) {
+            val left = toCompare.toByteArray().toLong()
+            val right = toCompare.toByteArray().toLong()
+            assert(left == right)
+        }
+
+        compare(100)
+        compare(Long.MIN_VALUE)
+        compare(Long.MAX_VALUE)
+    }
+
+    @Test
     fun toDate() {
         val bytes1 = byteArrayOf(7, -30, 7, 27)
         val expected1 = Calendar.getInstance().apply { this.set(2018, 6, 27, 0, 0, 0) }.time

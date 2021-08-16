@@ -5,9 +5,6 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.*
-import com.tangem.common.json.MoshiJsonConverter
-import com.tangem.common.services.TrustedCardsRepo
-import com.tangem.common.services.secure.SecureService
 import com.tangem.operations.*
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
@@ -30,11 +27,8 @@ class ScanTask : CardSessionRunnable<Card> {
     private fun runAttestation(session: CardSession, callback: CompletionCallback<Card>) {
         val mode = session.environment.config.attestationMode
         val secureStorage = session.environment.secureStorage
-        val secureService = SecureService(secureStorage)
-        val jsonConverter = MoshiJsonConverter.INSTANCE
-        val trustedCardsRepo = TrustedCardsRepo(secureStorage, jsonConverter, secureService)
+        val attestationTask = AttestationTask(mode, secureStorage)
 
-        val attestationTask = AttestationTask(mode, trustedCardsRepo)
         attestationTask.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> processAttestationReport(result.data, attestationTask, session, callback)

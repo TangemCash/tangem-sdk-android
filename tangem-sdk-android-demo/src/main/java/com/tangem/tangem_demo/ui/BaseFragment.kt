@@ -16,17 +16,22 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
+import com.tangem.common.core.toTangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
+import com.tangem.common.extensions.toCompressedPublicKey
 import com.tangem.common.files.FileDataProtectedByPasscode
 import com.tangem.common.files.FileDataProtectedBySignature
 import com.tangem.common.files.FileHashHelper
 import com.tangem.common.files.FileSettingsChange
+import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
+import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.tangem_demo.DemoApplication
 import com.tangem.tangem_demo.R
@@ -36,10 +41,12 @@ import com.tangem.tangem_demo.ui.settings.SettingsFragment
 
 abstract class BaseFragment : Fragment() {
 
+    protected var bshDlg: BottomSheetDialog? = null
     protected lateinit var shPrefs: SharedPreferences
     protected lateinit var sdk: TangemSdk
 
     protected var card: Card? = null
+    protected var hdPath: String? = null
     protected var initialMessage: Message? = null
         private set
 
@@ -52,8 +59,6 @@ abstract class BaseFragment : Fragment() {
 
             return card.wallets[selectedIndexOfWallet].publicKey
         }
-
-    protected var bshDlg: BottomSheetDialog? = null
 
     private var needRescanCard = true
 
@@ -104,35 +109,97 @@ abstract class BaseFragment : Fragment() {
         sdk.loadCardInfo(card?.cardPublicKey!!, card?.cardId!!) { handleResult(it) }
     }
 
+    protected fun attestCard(mode: AttestationTask.Mode) {
+        val command = AttestationTask(mode, sdk.secureStorage)
+        sdk.startSessionWithRunnable(command, card?.cardId, initialMessage) { handleResult(it) }
+    }
+
+    protected fun derivePublicKey() {
+        val card = card.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
+        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
+            showToast("Not supported firmware version")
+            return
+        }
+        val wallet = card.wallets.firstOrNull { it.curve == EllipticCurve.Secp256k1 }.guard {
+            showToast("Wallet with the Secp256k1 curve not found")
+            return
+        }
+        val chainCode = wallet.chainCode.guard {
+            showToast("Wallet chainCode is null. ALERT !!!")
+            return
+        }
+        val path = createDerivationPath().guard {
+            showToast("Failed to parse hd path")
+            return
+        }
+
+        val masterKey = ExtendedPublicKey(wallet.publicKey.toCompressedPublicKey(), chainCode)
+        try {
+            val childKey = masterKey.derivePublicKey(path)
+            handleResult(CompletionResult.Success(childKey))
+        } catch (ex: Exception) {
+            handleResult(CompletionResult.Failure<ExtendedPublicKey>(ex.toTangemSdkError()))
+        }
+    }
+
     protected fun signHash(hash: ByteArray) {
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
         val publicKey = selectedWalletPubKey.guard {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.sign(hash, publicKey, card?.cardId, initialMessage) { handleResult(it) }
+        val path = createDerivationPath()
+        if (!hdPath.isNullOrBlank() && path == null) {
+            showToast("Failed to parse hd path")
+            return
+        }
+        sdk.sign(hash, publicKey, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun signHashes(hashes: Array<ByteArray>) {
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
         val publicKey = selectedWalletPubKey.guard {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.sign(hashes, publicKey, card?.cardId, initialMessage) { handleResult(it) }
+        val path = createDerivationPath()
+        if (!hdPath.isNullOrBlank() && path == null) {
+            showToast("Failed to parse hd path")
+            return
+        }
+        sdk.sign(hashes, publicKey, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun createWallet(curve: EllipticCurve, isPermanent: Boolean) {
-        sdk.createWallet(curve, isPermanent, card?.cardId, initialMessage) {
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
+        sdk.createWallet(curve, isPermanent, cardId, initialMessage) {
             needRescanCard = it is CompletionResult.Success
             handleResult(it)
         }
     }
 
     protected fun purgeWallet() {
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
         val publicKey = selectedWalletPubKey.guard {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.purgeWallet(publicKey, card?.cardId, initialMessage) {
+        sdk.purgeWallet(publicKey, cardId, initialMessage) {
             needRescanCard = it is CompletionResult.Success
             handleResult(it)
         }
@@ -198,11 +265,19 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun setPin1() {
-        sdk.setAccessCode(null, card?.cardId, initialMessage) { handleResult(it) }
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
+        sdk.setAccessCode(null, cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun setPin2() {
-        sdk.setPasscode(null, card?.cardId, initialMessage) { handleResult(it) }
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
+        sdk.setPasscode(null, cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun readFiles(readPrivateFiles: Boolean) {
@@ -290,6 +365,17 @@ abstract class BaseFragment : Fragment() {
                 counter,
                 issuer.dataKeyPair.publicKey
         )
+    }
+
+    private fun createDerivationPath(): DerivationPath? {
+        val hdPath = hdPath ?: return null
+        if (hdPath.isEmpty() || hdPath.isBlank()) return null
+
+        return try {
+            DerivationPath(hdPath)
+        } catch (ex: Exception) {
+            null
+        }
     }
 
     protected abstract fun getLayoutId(): Int

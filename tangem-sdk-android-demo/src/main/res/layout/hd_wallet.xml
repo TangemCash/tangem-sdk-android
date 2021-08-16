@@ -19,7 +19,7 @@
         android:background="?android:windowBackground"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="Card"
+        android:text="HD wallet"
         android:translationX="10dp"
         android:translationY="-10dp" />
 
@@ -35,17 +35,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btnScanCard"
+            <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                android:id="@+id/etDerivePublicKey"
+                android:completionThreshold="1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Full scan" />
+                android:hint="Derivation path (ex: m/0/1)" />
 
             <Button
-                android:id="@+id/btnLoadCardInfo"
+                android:id="@+id/btnDerivePublicKey"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Load card info" />
+                android:text="Derive public key" />
 
         </LinearLayout>
 

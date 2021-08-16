@@ -12,6 +12,10 @@
 
         <include layout="@layout/scan_card" />
 
+        <include layout="@layout/attestation" />
+
+        <include layout="@layout/hd_wallet" />
+
         <include layout="@layout/sign" />
 
         <include layout="@layout/wallet" />
