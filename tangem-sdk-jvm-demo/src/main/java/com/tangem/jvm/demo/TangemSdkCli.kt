@@ -3,34 +3,51 @@ package com.tangem.jvm.demo
 import com.tangem.Log
 import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
+import com.tangem.common.backup.BackupSession
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.files.DataToWrite
 import com.tangem.common.files.FileDataProtectedByPasscode
 import com.tangem.common.json.MoshiJsonConverter
+import com.tangem.common.tlv.TlvBuilder
 import com.tangem.jvm.init
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.sign.SignHashesCommand
 import com.tangem.operations.sign.SignHashesResponse
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.cli.CommandLine
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, private val cmd: CommandLine) {
 
-    private val sdk = TangemSdk.init(verbose, indexOfTerminal)
+    val sdk = TangemSdk.init(verbose, indexOfTerminal)
     private val responseConverter = MoshiJsonConverter.INSTANCE
 
     private var card: Card? = null
+
+    private val backupSessionFileName = "./backupSession.json"
+    private val backupSessionFilePath: Path = Paths.get(backupSessionFileName)
+    private var backupSession: BackupSession? = null
 
     fun execute(command: Command) {
         if (sdk == null) {
             println("There's no NFC terminal to execute command.")
             return
+        }
+        sdk.config.filter.allowedCardTypes = listOf(FirmwareVersion.FirmwareType.Release, FirmwareVersion.FirmwareType.Sdk)
+
+        if (backupSessionFilePath.toFile().exists()) {
+            backupSession = responseConverter.fromJson<BackupSession>(String(Files.readAllBytes(backupSessionFilePath), Charsets.UTF_8))
         }
 
         runBlocking {
@@ -43,9 +60,18 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
                     Command.DeleteFiles -> deleteFiles(sdk) { continuation.resume(it) }
                     Command.CreateWallet -> createWallet(sdk) { continuation.resume(it) }
                     Command.PurgeWallet -> purgeWallet(sdk) { continuation.resume(it) }
+                    Command.BackupGetMasterKey -> backupGetMasterKey(sdk) { continuation.resume(it) }
+                    Command.BackupGetSlaveKey -> backupGetSlaveKey(sdk) { continuation.resume(it) }
+                    Command.BackupLinkSlaveCards -> backupLinkSlaveCards(sdk) { continuation.resume(it) }
+                    Command.BackupReadData -> backupReadData(sdk) { continuation.resume(it) }
+                    Command.BackupLinkMasterCard -> backupLinkMasterCard(sdk) { continuation.resume(it) }
+                    Command.BackupWriteData -> backupWriteData(sdk) { continuation.resume(it) }
                 }
             }
             handleResult(result)
+            if (backupSession != null) {
+                Files.write(Paths.get(backupSessionFileName), responseConverter.toJson(backupSession).toByteArray(Charsets.UTF_8))
+            }
         }
     }
 
@@ -90,9 +116,9 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
 
     private fun parseHashes(hashesArgument: String): Array<ByteArray> {
         return hashesArgument
-                .split(",")
-                .map { hash -> hash.trim().hexToBytes() }
-                .toTypedArray()
+            .split(",")
+            .map { hash -> hash.trim().hexToBytes() }
+            .toTypedArray()
     }
 
     private fun createWallet(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
@@ -101,6 +127,88 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         sdk.createWallet(EllipticCurve.Secp256k1, false, cardId, null, callback)
     }
 
+    final val sdkIssuerPrivateKey = "11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92".hexToBytes()
+
+    private fun backupGetMasterKey(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+
+        sdk.backupGetMasterKey(cardId, null) {
+            if (it is CompletionResult.Success) {
+                it.data.master.certificate=sdk.getCardCertificate(it.data.master.cardKey, sdkIssuerPrivateKey)
+                backupSession = BackupSession(it.data.master)
+            }
+            callback(it)
+        }
+    }
+
+    private fun backupGetSlaveKey(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+        if (backupSession == null) throw TangemSdkError.BackupNoMaster()
+        backupSession?.let { backupSession ->
+            sdk.backupGetSlaveKey(cardId, backupSession, null) {
+                if (it is CompletionResult.Success) {
+                    it.data.slave.certificate=sdk.getCardCertificate(it.data.slave.cardKey, sdkIssuerPrivateKey);
+                    backupSession.slaves[it.data.cardId] = it.data.slave
+                }
+                callback(it)
+            }
+        }
+    }
+
+    private fun backupLinkSlaveCards(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+        if (backupSession == null) throw TangemSdkError.BackupNoMaster()
+        backupSession!!.newPIN="123456".calculateSha256()
+        backupSession!!.newPIN2="1234".calculateSha256()
+        backupSession?.let { backupSession ->
+            sdk.backupLinkSlaveCards(cardId, backupSession, null) {
+                if (it is CompletionResult.Success) {
+                    backupSession.attestSignature = it.data.attestSignature
+                }
+                callback(it)
+            }
+        }
+    }
+
+    private fun backupReadData(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+        if (backupSession == null) throw TangemSdkError.BackupNoMaster()
+        backupSession?.let { backupSession ->
+            sdk.backupReadAllData(cardId, backupSession, null) {
+                if (it is CompletionResult.Success) {
+                    backupSession.slaves = it.data.slaves
+                }
+                callback(it)
+            }
+        }
+    }
+
+    private fun backupLinkMasterCard(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+        if (backupSession == null) throw TangemSdkError.BackupNoMaster()
+        backupSession?.let { backupSession ->
+            sdk.backupLinkMasterCard(cardId, backupSession, null) {
+                if (it is CompletionResult.Success) {
+                    backupSession.slaves[it.data.cardId]!!.state = it.data.state
+                }
+                callback(it)
+            }
+        }
+    }
+
+    private fun backupWriteData(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+
+        if (backupSession == null) throw TangemSdkError.BackupNoMaster()
+        backupSession?.let { backupSession ->
+            sdk.backupWriteData(cardId, backupSession, null) {
+                if (it is CompletionResult.Success) {
+                    backupSession.slaves[it.data.cardId]!!.state = it.data.state
+                }
+                callback(it)
+            }
+        }
+    }
     private fun purgeWallet(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         if (card == null) {
             println("Scan the card, before trying to use the method")
@@ -127,21 +235,21 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val readPrivateFiles: Boolean = cmd.hasOption(TangemCommandOptions.ReadPrivateFiles.opt)
         val fileIndices: List<Int>? = cmd.getOptionValue(TangemCommandOptions.FileIndices.opt)
-                ?.split(",")
-                ?.mapNotNull { it.trim().toIntOrNull() }
+            ?.split(",")
+            ?.mapNotNull { it.trim().toIntOrNull() }
 
         sdk.readFiles(
-                readPrivateFiles = readPrivateFiles, indices = fileIndices, cardId = cid,
-                callback = callback
+            readPrivateFiles = readPrivateFiles, indices = fileIndices, cardId = cid,
+            callback = callback
         )
     }
 
     private fun writeFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val files: List<DataToWrite>? = cmd.getOptionValue(TangemCommandOptions.Files.opt)
-                ?.split(",")
-                ?.map { it.trim().hexToBytes() }
-                ?.map { FileDataProtectedByPasscode(it) }
+            ?.split(",")
+            ?.map { it.trim().hexToBytes() }
+            ?.map { FileDataProtectedByPasscode(it) }
 
         if (files == null) {
             println("Missing option value")
@@ -155,8 +263,8 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
     private fun deleteFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val fileIndices: List<Int>? = cmd.getOptionValue(TangemCommandOptions.FileIndices.opt)
-                ?.split(",")
-                ?.mapNotNull { it.trim().toIntOrNull() }
+            ?.split(",")
+            ?.mapNotNull { it.trim().toIntOrNull() }
 
         sdk.deleteFiles(indices = fileIndices, cardId = cid, callback = callback)
     }
@@ -184,7 +292,13 @@ enum class Command(val value: String) {
     WriteFiles("writefiles"),
     DeleteFiles("deletefiles"),
     CreateWallet("createwallet"),
-    PurgeWallet("purgewallet");
+    PurgeWallet("purgewallet"),
+    BackupGetMasterKey("backup-get-master-key"),
+    BackupGetSlaveKey("backup-get-slave-key"),
+    BackupLinkSlaveCards("backup-link-slave-cards"),
+    BackupReadData("backup-read-data"),
+    BackupLinkMasterCard("backup-link-master-card"),
+    BackupWriteData("backup-write-data");
 
     companion object {
         private val values = values()

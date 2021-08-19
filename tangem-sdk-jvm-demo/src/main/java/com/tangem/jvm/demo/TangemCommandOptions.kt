@@ -6,7 +6,7 @@ import org.apache.commons.cli.Options
 enum class TangemCommandOptions(val option: Option) {
 
     Verbose(Option("v", "verbose", false, "provide detailed logs")),
-    TerminalNumber(Option("t", "terminal", false, "terminal number")),
+    TerminalNumber(Option("t", "terminal", true, "terminal number")),
     Hashes(Option("hashes", true, "hashes to sign")),
     CardId(Option("cid", "cardid", true, "card id")),
     WalletIndex(Option("wi", "walletIndex", true, "index of the selected wallet")),
@@ -48,6 +48,12 @@ fun Command.generateOptions(): Options {
         }
         Command.PurgeWallet -> {
             options.addOption(TangemCommandOptions.WalletIndex.option)
+            options.addOption(TangemCommandOptions.CardId.option)
+        }
+        Command.BackupGetMasterKey -> {
+            options.addOption(TangemCommandOptions.CardId.option)
+        }
+        Command.BackupGetSlaveKey -> {
             options.addOption(TangemCommandOptions.CardId.option)
         }
     }

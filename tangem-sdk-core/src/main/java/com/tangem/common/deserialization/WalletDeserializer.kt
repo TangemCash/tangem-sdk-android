@@ -29,7 +29,9 @@ class WalletDeserializer {
         }
 
         private fun deserialize(decoder: TlvDecoder): CardWallet {
-            val settings = CardWallet.Settings(decoder.decode(TlvTag.SettingsMask) as CardWallet.SettingsMask)
+            val settingsMask = decoder.decodeOptional(TlvTag.SettingsMask) as CardWallet.SettingsMask?
+
+            val settings = if( settingsMask!=null ) CardWallet.Settings(settingsMask) else null
 
             return CardWallet(
                     decoder.decode(TlvTag.WalletPublicKey),

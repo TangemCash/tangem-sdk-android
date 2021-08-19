@@ -75,6 +75,7 @@ data class Card internal constructor(
      */
     val wallets: List<CardWallet>,
 
+
     /**
      * Card's attestation report
      */
@@ -92,6 +93,8 @@ data class Card internal constructor(
      *  Note: This counter were deprecated for cards with COS 4.0 and higher
      */
     internal var remainingSignatures: Int? = null,
+
+    val backupStatus: BackupStatus? = null,
 ) : CommandResponse {
 
     fun setWallets(newWallets: List<CardWallet>): Card {
@@ -175,6 +178,20 @@ data class Card internal constructor(
         }
     }
 
+    /**
+     * Status of backup
+     */
+    enum class BackupStatus(val code: Int) {
+        NoBackup(0),
+        CardLinked(1),
+        Active(2);
+
+        companion object {
+            private val values = values()
+            fun byCode(code: Int): BackupStatus? = values.find { it.code == code }
+        }
+    }
+
     class Settings internal constructor(
         /**
          * Delay in milliseconds before executing a command that affects any sensitive data or wallets on the card
@@ -207,6 +224,14 @@ data class Card internal constructor(
         val isLinkedTerminalEnabled: Boolean,
 
         /**
+         */
+        val isHDWalletsEnabled: Boolean,
+
+        /**
+         */
+        val isBackupEnabled: Boolean,
+
+        /**
          * All  encryption modes supported by the card
          */
         val supportedEncryptionModes: List<EncryptionMode>,
@@ -232,6 +257,7 @@ data class Card internal constructor(
         defaultCurve: EllipticCurve?,
         isIssuerDataProtectedAgainstReplay: Boolean,
         isSelectBlockchainAllowed: Boolean,
+        val settingsMask: SettingsMask
     ) {
 
         internal constructor(
@@ -247,6 +273,8 @@ data class Card internal constructor(
                 mask.contains(SettingsMask.Code.AllowSetPIN2),
                 mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
                 mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
+                mask.contains(SettingsMask.Code.AllowHDWallets),
+                  mask.contains(SettingsMask.Code.AllowBackup),
                 createEncryptionModes(mask),
                 mask.contains(SettingsMask.Code.PermanentWallet),
                 mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
@@ -254,6 +282,7 @@ data class Card internal constructor(
                 defaultCurve,
                 mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
                 mask.contains(SettingsMask.Code.AllowSelectBlockchain),
+                settingsMask=mask
         )
 
         internal var isOverwritingIssuerExtraDataRestricted: Boolean = isOverwritingIssuerExtraDataRestricted
@@ -300,6 +329,9 @@ data class Card internal constructor(
             SkipSecurityDelayIfValidatedByLinkedTerminal(0x00080000),
             SkipCheckPIN2CVCIfValidatedByIssuer(0x00040000),
             SkipSecurityDelayIfValidatedByIssuer(0x00020000),
+
+            AllowHDWallets(0x00200000),
+            AllowBackup(0x00400000),
             DisableIssuerData(0x01000000),
             DisableUserData(0x02000000),
             DisableFiles(0x04000000);
@@ -326,7 +358,7 @@ data class CardWallet(
     /**
      *  Wallet's settings
      */
-    val settings: Settings,
+    val settings: Settings?,
 
     /**
      * Total number of signed hashes returned by the wallet since its creation
@@ -362,7 +394,18 @@ data class CardWallet(
         /**
          * Wallet was purged and can't be recreated or used for signing
          */
-        Purged(3);
+        Purged(3),
+
+
+        /**
+         * Wallet created and can be used for signing, backup data read
+         */
+        Backuped(0x82),
+
+        /**
+         *Wallet was purged and can't be recreated or used for signing, but backup data read and wallet can be usable on backup card
+         */
+        BackupedAndPurged(0x83);
 
         companion object {
             fun byCode(code: Int): Status? {

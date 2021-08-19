@@ -2,6 +2,7 @@ package com.tangem
 
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
+import com.tangem.common.backup.BackupSession
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
@@ -15,10 +16,14 @@ import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
+import com.tangem.common.tlv.TlvBuilder
+import com.tangem.common.tlv.TlvTag
 import com.tangem.crypto.CryptoUtils
+import com.tangem.crypto.sign
 import com.tangem.operations.*
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
+import com.tangem.operations.backup.*
 import com.tangem.operations.files.*
 import com.tangem.operations.issuerAndUserData.*
 import com.tangem.operations.personalization.DepersonalizeCommand
@@ -166,7 +171,7 @@ class TangemSdk(
     fun createWallet(
         curve: EllipticCurve,
         isPermanent: Boolean,
-        cardId: String,
+        cardId: String?,
         initialMessage: Message? = null,
         callback: CompletionCallback<CreateWalletResponse>
     ) {
@@ -188,7 +193,7 @@ class TangemSdk(
      */
     fun purgeWallet(
         walletPublicKey: ByteArray,
-        cardId: String,
+        cardId: String?,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
@@ -266,6 +271,78 @@ class TangemSdk(
         startSessionWithRunnable(DepersonalizeCommand(), null, initialMessage, callback)
     }
 
+    fun backupGetMasterKey(
+        cardId: String?,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<GetMasterKeyResponse>
+    ) {
+        startSessionWithRunnable(GetMasterKeyCommand(), cardId, initialMessage, callback)
+    }
+
+    fun backupGetSlaveKey(
+        cardId: String?,
+        backupSession: BackupSession,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<GetSlaveKeyResponse>
+    ) {
+        startSessionWithRunnable(GetSlaveKeyCommand(backupSession), cardId, initialMessage, callback)
+    }
+
+    fun getCardCertificate(cardPublicKey: ByteArray, IssuerPrivateKey: ByteArray): ByteArray {
+        val tlvBuilder= TlvBuilder()
+        tlvBuilder.append(TlvTag.CardPublicKey,cardPublicKey)
+        tlvBuilder.append(TlvTag.IssuerDataSignature,cardPublicKey.sign(IssuerPrivateKey))
+        return tlvBuilder.serialize()
+    }
+
+
+    fun backupLinkSlaveCards(
+        cardId: String?,
+        backupSession: BackupSession,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<LinkSlaveCardsResponse>
+    ) {
+        startSessionWithRunnable(LinkSlaveCardsCommand(backupSession), cardId, initialMessage, callback)
+    }
+
+    fun backupReadData(
+        cardId: String?,
+        backupSession: BackupSession,
+        slaveBackupKey: ByteArray,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<ReadBackupDataResponse>
+    ) {
+        startSessionWithRunnable(ReadBackupDataCommand(backupSession, slaveBackupKey), cardId, initialMessage, callback)
+    }
+
+    fun backupReadAllData(
+        cardId: String? = null,
+        backupSession: BackupSession,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<ReadBackupDataTaskResponse>
+    ) {
+        val task = ReadBackupDataTask(backupSession)
+        startSessionWithRunnable(task, cardId, initialMessage, callback)
+    }
+
+
+    fun backupLinkMasterCard(
+        cardId: String?,
+        backupSession: BackupSession,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<LinkMasterCardResponse>
+    ) {
+        startSessionWithRunnable(LinkMasterCardCommand(backupSession), cardId, initialMessage, callback)
+    }
+
+    fun backupWriteData(
+        cardId: String?,
+        backupSession: BackupSession,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<WriteBackupDataResponse>
+    ) {
+        startSessionWithRunnable(WriteBackupDataCommand(backupSession), cardId, initialMessage, callback)
+    }
     /**
      * This method launches a [SetUserCodeCommand] on a new thread.
      *

@@ -145,6 +145,16 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     //Write Extra Issuer Data Errors
     class ExtendedDataSizeTooLarge : TangemSdkError(41101)
 
+    // Backup errors
+    class BackupCannotBeCreated : TangemSdkError(41201)
+    class BackupSlaveCardAlreadyInList: TangemSdkError(41202)
+    class BackupNoMaster: TangemSdkError(41203)
+    class BackupInvalidSignature: TangemSdkError(41204)
+    class BackupMasterCardRequired : TangemSdkError(41205)
+    class BackupToMuchSlaveCards: TangemSdkError(41206)
+    class BackupSlaveCardRequired : TangemSdkError(41207)
+    class BackupInvalidCommandSequence : TangemSdkError(41208)
+
     //General Errors
     class NotPersonalized : TangemSdkError(40001)
     class NotActivated : TangemSdkError(40002)

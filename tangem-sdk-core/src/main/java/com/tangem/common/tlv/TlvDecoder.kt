@@ -151,6 +151,10 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     }
                 }
             }
+            TlvValueType.BackupStatus -> {
+                typeCheck<T, Card.BackupStatus>(tag)
+                Card.BackupStatus.byCode(tlvValue.toInt()) as T
+            }
             TlvValueType.SigningMethod -> {
                 typeCheck<T, SigningMethod>(tag)
                 try {

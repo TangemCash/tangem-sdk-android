@@ -34,7 +34,7 @@ class PurgeWalletCommand(
 
         return when {
             wallet == null -> TangemSdkError.WalletNotFound()
-            wallet.settings.isPermanent -> TangemSdkError.PurgeWalletProhibited()
+            if ( wallet.settings!=null ) wallet.settings.isPermanent else card.settings.isPermanentWallet -> TangemSdkError.PurgeWalletProhibited()
             else -> null
         }
     }
