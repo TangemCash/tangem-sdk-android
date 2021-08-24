@@ -18,6 +18,7 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
+import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
@@ -116,7 +117,7 @@ internal class SignCommand(
 
                         val finalResponse = SignResponse(
                                 result.data.cardId,
-                                signatures.toList(),
+                                processSignatures(session.environment, signatures.toList()),
                                 result.data.totalSignedHashes)
                         callback(CompletionResult.Success(finalResponse))
                     } else {
@@ -171,6 +172,14 @@ internal class SignCommand(
                 splittedSignatures,
                 decoder.decodeOptional(TlvTag.WalletSignedHashes)
         )
+    }
+
+    private fun processSignatures(environment: SessionEnvironment, signatures: List<ByteArray>): List<ByteArray> {
+        if (!environment.config.canonizeSecp256k1Signatures) return signatures
+        val wallet = environment.card?.wallet(walletPublicKey) ?: return signatures
+        if (wallet.curve != EllipticCurve.Secp256k1) return signatures
+
+        return signatures.map { CryptoUtils.normalize(it) }
     }
 
     private fun getChunk(): IntRange {
