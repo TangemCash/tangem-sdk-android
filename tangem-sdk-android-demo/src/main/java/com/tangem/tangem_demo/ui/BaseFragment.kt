@@ -304,7 +304,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun changeFilesSettings(change: FileSettingsChange) {
-        sdk.changeFilesSettings(listOf(change), card?.cardId, initialMessage) { handleResult(it) }
+        sdk.changeFileSettings(listOf(change), card?.cardId, initialMessage) { handleResult(it) }
     }
 
     private fun handleResult(result: CompletionResult<*>) {
