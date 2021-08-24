@@ -1,0 +1,34 @@
+{
+  "requests": [
+    {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "READ_FILES",
+      "params": {
+        "readPrivateFiles": true,
+        "indices": [
+          1,
+          2
+        ]
+      }
+    }
+  ],
+  "response": {
+    "jsonrpc": "2.0",
+    "result": {
+      "files": [
+        {
+          "fileIndex": 1,
+          "fileData": "00AABBCCDD",
+          "fileSettings": "Private"
+        },
+        {
+          "fileIndex": 2,
+          "fileData": "00AABBCCDD",
+          "fileSettings": "Public"
+        }
+      ]
+    },
+    "id": 1
+  }
+}

@@ -11,18 +11,18 @@ import com.tangem.common.core.TangemSdkError
  * This task allows to delete multiple or all files written to the card with [WriteFileCommand].
  * Passcode (PIN2) is required to delete the files.
  *
- * @property filesIndices indices of files to be deleted. If [filesIndices] are not provided,
+ * @property filesToDelete indices of files to be deleted. If [filesToDelete] are not provided,
  * then all files will be deleted.
  */
 class DeleteFilesTask(
-    private val filesIndices: List<Int>? = null
+    private val filesToDelete: List<Int>? = null
 ) : CardSessionRunnable<SuccessResponse> {
 
     override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        if (filesIndices == null) {
+        if (filesToDelete == null) {
             deleteAllFiles(session, callback)
         } else {
-            deleteFiles(filesIndices.sorted(), session, callback)
+            deleteFiles(filesToDelete.sorted(), session, callback)
         }
     }
 

@@ -363,7 +363,6 @@ abstract class BaseFragment : Fragment() {
                 signatures.startingSignature!!,
                 signatures.finalizingSignature!!,
                 counter,
-                issuer.dataKeyPair.publicKey
         )
     }
 

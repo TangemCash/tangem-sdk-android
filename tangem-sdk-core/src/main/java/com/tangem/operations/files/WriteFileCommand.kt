@@ -69,9 +69,7 @@ class WriteFileCommand(
             if (!isCounterValid(dataToWrite.counter, card)) {
                 return TangemSdkError.MissingCounter()
             }
-            val publicKey = dataToWrite.issuerPublicKey ?: return TangemSdkError.MissingIssuerPubicKey()
-
-            if (!verifySignatures(publicKey, card.cardId)) {
+            if (!verifySignatures(card.issuer.publicKey, card.cardId)) {
                 return TangemSdkError.VerificationFailed()
             }
         }

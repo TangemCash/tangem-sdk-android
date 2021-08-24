@@ -7,6 +7,7 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
+import com.tangem.operations.files.*
 import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
@@ -128,5 +129,41 @@ class ResetUserCodesHandler : JSONRPCHandler<SuccessResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         return SetUserCodeCommand.resetUserCodes()
+    }
+}
+
+class ReadFilesHandler : JSONRPCHandler<ReadFilesResponse> {
+    override val method: String = "READ_FILES"
+    override val requiresCardId: Boolean = false
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ReadFilesResponse> {
+        return make<ReadFilesTask>(params)
+    }
+}
+
+class WriteFilesHandler : JSONRPCHandler<WriteFilesResponse> {
+    override val method: String = "WRITE_FILES"
+    override val requiresCardId: Boolean = false
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<WriteFilesResponse> {
+        return make<WriteFilesTask>(params)
+    }
+}
+
+class DeleteFilesHandler : JSONRPCHandler<SuccessResponse> {
+    override val method: String = "DELETE_FILES"
+    override val requiresCardId: Boolean = false
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
+        return make<DeleteFilesTask>(params)
+    }
+}
+
+class ChangeFileSettingsHandler : JSONRPCHandler<SuccessResponse> {
+    override val method: String = "CHANGE_FILE_SETTINGS"
+    override val requiresCardId: Boolean = false
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
+        return make<ChangeFileSettingsTask>(params)
     }
 }

@@ -54,6 +54,10 @@ class JSONRPCConverter {
                 register(SetAccessCodeHandler())
                 register(SetPasscodeHandler())
                 register(ResetUserCodesHandler())
+                register(ReadFilesHandler())
+                register(WriteFilesHandler())
+                register(DeleteFilesHandler())
+                register(ChangeFileSettingsHandler())
             }
         }
     }
