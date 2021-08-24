@@ -11,10 +11,10 @@ import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignHashesResponse
 import com.tangem.operations.wallet.CreateWalletResponse
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.nio.file.Files
 import java.nio.file.Path
@@ -28,7 +28,7 @@ class JSONRPCTests {
     private lateinit var jsonRpcConverter: JSONRPCConverter
     private lateinit var testCard: Card
 
-    @Before
+    @BeforeEach
     fun init() {
         workingDir = Path.of("", "src/test/resources/jsonRpc")!!
         converter = MoshiJsonConverter.INSTANCE

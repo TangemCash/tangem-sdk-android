@@ -9,8 +9,8 @@ import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.personalization.entities.ProductMask
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 class MoshiJsonConverterTest {
     private val moshi = MoshiJsonConverter.INSTANCE

@@ -7,7 +7,7 @@ import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.operations.personalization.entities.ProductMask
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 
