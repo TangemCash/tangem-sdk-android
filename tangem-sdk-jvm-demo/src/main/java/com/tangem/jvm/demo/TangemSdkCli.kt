@@ -97,7 +97,10 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
 
     private fun createWallet(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
-
+        if (cardId == null) {
+            println("Missing option value")
+            return
+        }
         sdk.createWallet(EllipticCurve.Secp256k1, false, cardId, null, callback)
     }
 
@@ -109,7 +112,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
 
         val index: Int? = cmd.getOptionValue(TangemCommandOptions.WalletIndex.opt)?.toIntOrNull()
         val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
-        if (index == null) {
+        if (index == null || cardId == null) {
             println("Missing option value")
             return
         }
