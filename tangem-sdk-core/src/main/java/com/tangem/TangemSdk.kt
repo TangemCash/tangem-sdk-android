@@ -360,7 +360,7 @@ class TangemSdk(
     }
 
     /**
-     * This method launches a [ChangeFilesSettingsTask] on a new thread.
+     * This method launches a [ChangeFileSettingsTask] on a new thread.
      *
      * Updates selected file settings provided within [File].
      * To perform file settings update you should initially read all files (`readFiles` command), select files
@@ -372,17 +372,17 @@ class TangemSdk(
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
-     * @param callback: is triggered on the completion of the [ChangeFilesSettingsTask] and provides
+     * @param callback: is triggered on the completion of the [ChangeFileSettingsTask] and provides
      * card response in the form of [SuccessResponse] if the task was performed successfully
      * or [TangemSdkError] in case of an error.
      */
-    fun changeFilesSettings(
+    fun changeFileSettings(
         changes: List<FileSettingsChange>,
         cardId: String? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
-        val task = ChangeFilesSettingsTask(changes)
+        val task = ChangeFileSettingsTask(changes)
         startSessionWithRunnable(task, cardId, initialMessage, callback)
     }
 

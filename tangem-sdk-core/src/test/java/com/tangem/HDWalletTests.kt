@@ -11,9 +11,9 @@ import com.tangem.common.hdWallet.HDWalletError
 import com.tangem.common.hdWallet.bip.BIP44
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class HDWalletTests {

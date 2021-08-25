@@ -5,7 +5,7 @@ import com.tangem.common.core.Config
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.services.secure.UnsafeInMemoryStorage
 import com.tangem.common.tlv.TlvTag
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class ResponseApduTest {
 

@@ -16,7 +16,7 @@ import com.tangem.common.files.FileSettingsChange
  * @property changes contains list of [FileSettingsChange] -
  * indices of files that are to be changed and desired settings.
  */
-class ChangeFilesSettingsTask(
+class ChangeFileSettingsTask(
     private val changes: List<FileSettingsChange>
 ) : CardSessionRunnable<SuccessResponse> {
 

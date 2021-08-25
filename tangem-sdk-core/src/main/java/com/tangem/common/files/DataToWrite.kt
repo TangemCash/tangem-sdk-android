@@ -26,7 +26,6 @@ class FileDataProtectedBySignature(
     internal val startingSignature: ByteArray,
     internal val finalizingSignature: ByteArray,
     internal val counter: Int,
-    internal val issuerPublicKey: ByteArray?,
 ) : DataToWrite {
 
     override val minFirmwareVersion: FirmwareVersion

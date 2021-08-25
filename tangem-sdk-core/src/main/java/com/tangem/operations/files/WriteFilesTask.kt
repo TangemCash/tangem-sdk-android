@@ -13,12 +13,12 @@ import com.tangem.operations.CommandResponse
 /**
  * Response for [WriteFilesTask].
  * @property cardId: CID, Unique Tangem card ID number
- * @property fileIndices: Indicies of created files
+ * @property filesIndices: Indices of created files
  */
 @JsonClass(generateAdapter = true)
 class WriteFilesResponse(
     val cardId: String,
-    val fileIndices: List<Int>
+    val filesIndices: List<Int>
 ) : CommandResponse
 
 /**
@@ -30,7 +30,7 @@ class WriteFilesResponse(
  * Passcode (PIN2) is required for the command.
  */
 class WriteFilesTask(
-    private val data: List<DataToWrite>,
+    private val files: List<DataToWrite>,
     private val overwriteAllFiles: Boolean = false
 ) : CardSessionRunnable<WriteFilesResponse> {
 
@@ -38,7 +38,7 @@ class WriteFilesTask(
     private val savedFilesIndices = mutableListOf<Int>()
 
     override fun run(session: CardSession, callback: CompletionCallback<WriteFilesResponse>) {
-        if (data.isEmpty()) {
+        if (files.isEmpty()) {
             callback(CompletionResult.Success(WriteFilesResponse("", listOf())))
             return
         }
@@ -64,12 +64,12 @@ class WriteFilesTask(
             return
         }
 
-        val fileData = data[currentIndex]
+        val fileData = files[currentIndex]
         WriteFileCommand(fileData).run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     result.data.fileIndex?.let { savedFilesIndices.add(it) }
-                    if (currentIndex == data.lastIndex) {
+                    if (currentIndex == files.lastIndex) {
                         callback(CompletionResult.Success(WriteFilesResponse(card.cardId, savedFilesIndices)))
                     } else {
                         currentIndex += 1

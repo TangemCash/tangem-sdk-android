@@ -5,32 +5,35 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.extensions.hexToBytes
+import com.tangem.common.files.File
+import com.tangem.common.files.FileSettings
 import com.tangem.common.json.*
 import com.tangem.operations.CommandResponse
+import com.tangem.operations.files.ReadFilesResponse
+import com.tangem.operations.files.WriteFilesResponse
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignHashesResponse
 import com.tangem.operations.wallet.CreateWalletResponse
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Created by Anton Zhilenkov on 29/07/2021.
  */
 class JSONRPCTests {
-    private lateinit var workingDir: Path
     private lateinit var converter: MoshiJsonConverter
     private lateinit var jsonRpcConverter: JSONRPCConverter
     private lateinit var testCard: Card
 
-    @Before
+    @BeforeEach
     fun init() {
-        workingDir = Path.of("", "src/test/resources/jsonRpc")!!
         converter = MoshiJsonConverter.INSTANCE
         jsonRpcConverter = JSONRPCConverter.shared()
         initCard()
@@ -152,6 +155,20 @@ class JSONRPCTests {
         testMethod("SetPasscode", null)
     }
 
+    @Test
+    fun testFiles() {
+        testMethod("files/ReadFiles", ReadFilesResponse(listOf(
+                File(0, FileSettings.Public, "00AABBCCDD".hexToBytes())))
+        )
+        testMethod("files/ReadFilesByIndex", ReadFilesResponse(listOf(
+                File(1, FileSettings.Private, "00AABBCCDD".hexToBytes()),
+                File(2, FileSettings.Public, "00AABBCCDD".hexToBytes())))
+        )
+        testMethod("files/DeleteFiles", SuccessResponse("c000111122223333"))
+        testMethod("files/WriteFiles", WriteFilesResponse("c000111122223333", listOf(0, 1)))
+        testMethod("files/ChangeFileSettings", SuccessResponse("c000111122223333"))
+    }
+
     private fun testMethod(name: String, response: CommandResponse?) {
         val structure: HandlersStructure = assertDoesNotThrow("Json conversion failed to structure for $name") {
             converter.fromJson(readJson(name))!!
@@ -173,8 +190,8 @@ class JSONRPCTests {
     }
 
     private fun readJson(fileName: String): String {
-        val file: Path = workingDir.resolve("$fileName.json")
-        return Files.readString(file)
+        val workingDir: Path = Paths.get("src/test/resources/jsonRpc", "$fileName.json")!!
+        return String(Files.readAllBytes(workingDir))
     }
 
     private fun jsonMapVerifier(lMap: Map<String, *>, rMap: Map<String, *>): Boolean {

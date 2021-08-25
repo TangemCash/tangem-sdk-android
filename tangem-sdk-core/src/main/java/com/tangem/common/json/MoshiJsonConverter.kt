@@ -10,6 +10,9 @@ import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
+import com.tangem.common.files.DataToWrite
+import com.tangem.common.files.FileDataProtectedByPasscode
+import com.tangem.common.files.FileDataProtectedBySignature
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.personalization.entities.ProductMask
 import java.lang.reflect.ParameterizedType
@@ -88,6 +91,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                     TangemSdkAdapter.DateAdapter(),
                     TangemSdkAdapter.FirmwareVersionAdapter(),
                     TangemSdkAdapter.PreflightReadModeAdapter(),
+                    TangemSdkAdapter.DataToWriteAdapter(),
             )
         }
 
@@ -255,6 +259,48 @@ class TangemSdkAdapter {
             writer.beginArray()
             value.toList().forEach { writer.value(it.name) }
             writer.endArray()
+        }
+    }
+
+    class DataToWriteAdapter {
+        @ToJson
+        fun toJson(src: DataToWrite): String {
+            return when (src) {
+                is FileDataProtectedBySignature -> DataProtectedBySignatureAdapter().toJson(src)
+                is FileDataProtectedByPasscode -> DataProtectedByPasscodeAdapter().toJson(src)
+                else -> throw UnsupportedOperationException()
+            }
+        }
+
+        @FromJson
+        fun fromJson(map: MutableMap<String, Any>): DataToWrite {
+            return if (map.containsKey("startingSignature")) {
+                DataProtectedBySignatureAdapter().fromJson(map)
+            } else {
+                DataProtectedByPasscodeAdapter().fromJson(map)
+            }
+        }
+    }
+
+    class DataProtectedBySignatureAdapter {
+        @ToJson
+        fun toJson(src: FileDataProtectedBySignature): String = MoshiJsonConverter.default().toJson(src)
+
+        @FromJson
+        fun fromJson(map: MutableMap<String, Any>): FileDataProtectedBySignature {
+            val converter = MoshiJsonConverter.default()
+            return converter.fromJson(converter.toJson(map))!!
+        }
+    }
+
+    class DataProtectedByPasscodeAdapter {
+        @ToJson
+        fun toJson(src: FileDataProtectedByPasscode): String = MoshiJsonConverter.default().toJson(src)
+
+        @FromJson
+        fun fromJson(map: MutableMap<String, Any>): FileDataProtectedByPasscode {
+            val converter = MoshiJsonConverter.default()
+            return converter.fromJson(converter.toJson(map))!!
         }
     }
 }
