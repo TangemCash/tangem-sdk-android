@@ -98,6 +98,13 @@ object CryptoUtils {
             else -> throw UnsupportedOperationException()
         }
     }
+
+    fun normalize(signature: ByteArray, curve: EllipticCurve = EllipticCurve.Secp256k1): ByteArray {
+        return when (curve) {
+            EllipticCurve.Secp256k1 -> Secp256k1.normalize(signature)
+            else -> throw UnsupportedOperationException()
+        }
+    }
 }
 
 fun Secp256k1.generateKeyPair(): KeyPair {
