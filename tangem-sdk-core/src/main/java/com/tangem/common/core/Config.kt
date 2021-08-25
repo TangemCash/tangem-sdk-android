@@ -51,5 +51,10 @@ class Config(
      */
     var allowUntrustedCards: Boolean = false,
 
-    var filter: CardFilter = CardFilter.default()
+    var filter: CardFilter = CardFilter.default(),
+
+    /**
+     * Convert all secp256k1 signatures, produced by the card, to a lowers-S form. True by default
+     */
+    var canonizeSecp256k1Signatures: Boolean = true
 )
