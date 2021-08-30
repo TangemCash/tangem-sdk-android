@@ -153,9 +153,6 @@ class TangemSdk(
      * RemainingSignature is set to MaxSignatures.
      *
      * @param curve: Wallet's elliptic curve
-     * @param isPermanent: If this wallet can be deleted or not.
-     * COS before v4: The card will be able to create a wallet according to its personalization only.
-     * The value of this parameter can be obtained in this way: `card.settings.isPermanentWallet`
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used
@@ -165,12 +162,11 @@ class TangemSdk(
      */
     fun createWallet(
         curve: EllipticCurve,
-        isPermanent: Boolean,
         cardId: String,
         initialMessage: Message? = null,
         callback: CompletionCallback<CreateWalletResponse>
     ) {
-        startSessionWithRunnable(CreateWalletCommand(curve, isPermanent), cardId, initialMessage, callback)
+        startSessionWithRunnable(CreateWalletCommand(curve), cardId, initialMessage, callback)
     }
 
     /**

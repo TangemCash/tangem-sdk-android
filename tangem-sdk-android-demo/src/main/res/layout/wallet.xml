@@ -82,15 +82,6 @@
                 android:layout_marginTop="8dp"
                 android:layout_height="wrap_content">
 
-                <androidx.appcompat.widget.SwitchCompat
-                    android:text="Is prohibit purge wallet"
-                    android:paddingStart="4dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/swIsPermanentWallet"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
                 <Button
                     android:id="@+id/btnCreateWalletSecpK1"
                     android:layout_width="0dp"
@@ -100,7 +91,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletEdwards"
-                    app:layout_constraintTop_toBottomOf="@+id/swIsPermanentWallet" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <Button
                     android:id="@+id/btnCreateWalletEdwards"
