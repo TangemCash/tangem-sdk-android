@@ -5,8 +5,7 @@
       "id": 1,
       "method": "create_wallet",
       "params": {
-        "curve": "Secp256r1",
-        "isPermanent": true
+        "curve": "Secp256r1"
       }
     }
   ],

@@ -76,9 +76,9 @@ class CommandListFragment : BaseFragment() {
         btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }
         btnSignHashes.setOnClickListener { signHashes(prepareHashesToSign(11)) }
 
-        btnCreateWalletSecpK1.setOnClickListener { createWallet(EllipticCurve.Secp256k1, swIsPermanentWallet.isChecked) }
-        btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1, swIsPermanentWallet.isChecked) }
-        btnCreateWalletEdwards.setOnClickListener { createWallet(EllipticCurve.Ed25519, swIsPermanentWallet.isChecked) }
+        btnCreateWalletSecpK1.setOnClickListener { createWallet(EllipticCurve.Secp256k1) }
+        btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1) }
+        btnCreateWalletEdwards.setOnClickListener { createWallet(EllipticCurve.Ed25519) }
         btnPurgeWallet.setOnClickListener { purgeWallet() }
 
         btnReadIssuerData.setOnClickListener { readIssuerData() }
