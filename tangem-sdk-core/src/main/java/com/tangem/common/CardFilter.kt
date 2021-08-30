@@ -10,7 +10,10 @@ class CardFilter(
     /**
      * Filter that can be used to limit cards that can be interacted with in TangemSdk.
      */
-    var allowedCardTypes: List<FirmwareVersion.FirmwareType> = listOf(FirmwareVersion.FirmwareType.Release),
+    var allowedCardTypes: List<FirmwareVersion.FirmwareType> = listOf(
+            FirmwareVersion.FirmwareType.Release,
+            FirmwareVersion.FirmwareType.Sdk
+    ),
 
     /**
      * Use this filter to configure batches allowed to work with your app
