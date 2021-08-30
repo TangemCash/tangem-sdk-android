@@ -92,6 +92,7 @@ data class Card internal constructor(
      *  Remaining number of `SignCommand` operations before the wallet will stop signing transactions.
      *  Note: This counter were deprecated for cards with COS 4.0 and higher
      */
+    @Transient
     internal var remainingSignatures: Int? = null,
 ) : CommandResponse {
 
