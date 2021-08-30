@@ -85,12 +85,14 @@ data class Card internal constructor(
      *  User should withdraw the value to other blockchain wallet as soon as possible.
      *  Non-zero Health tag will also appear in responses of all other commands.
      */
+    @Transient
     internal var health: Int? = null,
 
     /**
      *  Remaining number of `SignCommand` operations before the wallet will stop signing transactions.
      *  Note: This counter were deprecated for cards with COS 4.0 and higher
      */
+    @Transient
     internal var remainingSignatures: Int? = null,
 ) : CommandResponse {
 
@@ -218,20 +220,36 @@ data class Card internal constructor(
 
         /**
          * Is overwriting issuer extra data restricted
+         * Default value used only for Moshi
          */
-        isOverwritingIssuerExtraDataRestricted: Boolean,
+        @Transient
+        internal val isOverwritingIssuerExtraDataRestricted: Boolean = false,
 
         /**
          * Card's default signing methods according personalization.
+         * Default value used only for Moshi
          */
-        defaultSigningMethods: SigningMethod?,
+        @Transient
+        internal val defaultSigningMethods: SigningMethod? = null,
 
         /**
          * Card's default curve according personalization.
+         * Default value used only for Moshi
          */
-        defaultCurve: EllipticCurve?,
-        isIssuerDataProtectedAgainstReplay: Boolean,
-        isSelectBlockchainAllowed: Boolean,
+        @Transient
+        internal val defaultCurve: EllipticCurve? = null,
+
+        /**
+         * Default value used only for Moshi
+         */
+        @Transient
+        internal val isIssuerDataProtectedAgainstReplay: Boolean = false,
+
+        /**
+         * Default value used only for Moshi
+         */
+        @Transient
+        internal val isSelectBlockchainAllowed: Boolean = false,
     ) {
 
         internal constructor(
@@ -255,12 +273,6 @@ data class Card internal constructor(
                 mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
                 mask.contains(SettingsMask.Code.AllowSelectBlockchain),
         )
-
-        internal var isOverwritingIssuerExtraDataRestricted: Boolean = isOverwritingIssuerExtraDataRestricted
-        internal var defaultSigningMethods: SigningMethod? = defaultSigningMethods
-        internal var defaultCurve: EllipticCurve? = defaultCurve
-        internal var isIssuerDataProtectedAgainstReplay: Boolean = isIssuerDataProtectedAgainstReplay
-        internal var isSelectBlockchainAllowed: Boolean = isSelectBlockchainAllowed
 
         companion object {
             private fun createEncryptionModes(mask: SettingsMask): List<EncryptionMode> {
