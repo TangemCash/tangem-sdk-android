@@ -119,7 +119,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
             when (type) {
                 CommandType.Scan -> scanCard()
                 CommandType.Sign -> signHashes(prepareHashesToSign(11))
-                CommandType.WalletCreate -> createWallet(EllipticCurve.Secp256k1, false)
+                CommandType.WalletCreate -> createWallet(EllipticCurve.Secp256k1)
                 CommandType.WalletPurge -> purgeWallet()
                 CommandType.IssuerDataRead -> readIssuerData()
                 CommandType.IssuerDataWrite -> writeIssuerData()

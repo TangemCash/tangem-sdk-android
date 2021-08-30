@@ -40,13 +40,9 @@ class CreateWalletResponse(
  * RemainingSignature is set to MaxSignatures.
  *
  *  @property curve: Elliptic curve of the wallet
- *  @property isPermanent: If true, this wallet cannot be deleted.
- *  COS before v4: The card will be able to create a wallet according to its personalization only. The value of
- *  this parameter can be obtained in this way: `card.settings.isPermanentWallet`
  */
 class CreateWalletCommand(
-    private val curve: EllipticCurve,
-    private val isPermanent: Boolean
+    private val curve: EllipticCurve
 ) : Command<CreateWalletResponse>() {
 
     private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
@@ -62,9 +58,6 @@ class CreateWalletCommand(
             return TangemSdkError.UnsupportedCurve()
         }
         if (card.firmwareVersion < FirmwareVersion.MultiWalletAvailable) {
-            if (isPermanent != card.settings.isPermanentWallet) {
-                return TangemSdkError.UnsupportedWalletConfig()
-            }
             card.settings.defaultSigningMethods?.let {
                 if (!it.toList().containsAll(signingMethod.toList())) {
                     return TangemSdkError.UnsupportedWalletConfig()
@@ -123,7 +116,6 @@ class CreateWalletCommand(
         if (firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
             val cardWalletSettingsMask = MaskBuilder().apply {
                 add(CardWallet.SettingsMask.Code.IsReusable)
-                if (isPermanent) add(CardWallet.SettingsMask.Code.IsPermanent)
             }.build<CardWallet.SettingsMask>()
 
             tlvBuilder.append(TlvTag.SettingsMask, cardWalletSettingsMask)
@@ -136,6 +128,7 @@ class CreateWalletCommand(
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): CreateWalletResponse {
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val card = environment.card ?: throw TangemSdkError.UnknownError()
 
         val decoder = TlvDecoder(tlvData)
         val index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex!!
@@ -143,9 +136,9 @@ class CreateWalletCommand(
                 decoder.decode(TlvTag.WalletPublicKey),
                 decoder.decodeOptional(TlvTag.WalletHDChain),
                 curve,
-                CardWallet.Settings(isPermanent),
+                CardWallet.Settings(card.settings.isPermanentWallet),
                 0,
-                environment.card?.remainingSignatures,
+                card.remainingSignatures,
                 index
         )
         return CreateWalletResponse(decoder.decode(TlvTag.CardId), wallet)
