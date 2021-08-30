@@ -179,12 +179,12 @@ abstract class BaseFragment : Fragment() {
         sdk.sign(hashes, publicKey, cardId, path, initialMessage) { handleResult(it) }
     }
 
-    protected fun createWallet(curve: EllipticCurve, isPermanent: Boolean) {
+    protected fun createWallet(curve: EllipticCurve) {
         val cardId = card?.cardId.guard {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        sdk.createWallet(curve, isPermanent, cardId, initialMessage) {
+        sdk.createWallet(curve, cardId, initialMessage) {
             needRescanCard = it is CompletionResult.Success
             handleResult(it)
         }
