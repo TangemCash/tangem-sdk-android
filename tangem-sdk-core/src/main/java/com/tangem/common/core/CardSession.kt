@@ -136,6 +136,7 @@ class CardSession(
 
         scope.launch {
             reader.tag.asFlow()
+                    .drop(1)
                     .collect {
                         if (it == null) {
                             viewDelegate.onTagLost()
