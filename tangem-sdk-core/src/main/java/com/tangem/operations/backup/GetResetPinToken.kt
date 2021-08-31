@@ -5,46 +5,52 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.backup.BackupSession
+import com.tangem.common.backup.ResetPin_CardToReset
 import com.tangem.common.card.Card
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.files.AuthorizeMode
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
+import com.tangem.operations.PreflightReadMode
 
 /**
+ * Response from the Tangem card after `CreateWalletCommand`.
  */
 @JsonClass(generateAdapter = true)
-class WriteBackupDataResponse(
+class GetResetPinTokenResponse(
     /**
      * Unique Tangem card ID number
      */
     val cardId: String,
-    val state: Card.BackupStatus
+    /**
+     * Session for backup
+     */
+    val cardToReset: ResetPin_CardToReset
 ) : CommandResponse
 
 /**
  */
-class WriteBackupDataCommand(private val backupSession: BackupSession) : Command<WriteBackupDataResponse>() {
+class GetResetPinTokenCommand : Command<GetResetPinTokenResponse>() {
 
-    override fun requiresPasscode(): Boolean = true
+    override fun requiresPasscode(): Boolean = false
+    override fun preflightReadMode(): PreflightReadMode {
+        return PreflightReadMode.ReadCardOnly
+    }
 
     override fun performPreCheck(card: Card): TangemSdkError? {
-        if (card.backupStatus==Card.BackupStatus.NoBackup) {
-            return TangemSdkError.BackupCannotBeCreated()
+        if (card.backupStatus!=Card.BackupStatus.Active) {
+            return TangemSdkError.InvalidState()
         }
-        if (!backupSession.slaves.containsKey(card.cardId)) return TangemSdkError.BackupSlaveCardRequired()
-        if (backupSession.slaves[card.cardId]!!.encryptedData==null) return TangemSdkError.BackupInvalidCommandSequence()
-
         return null
     }
 
-    override fun run(session: CardSession, callback: CompletionCallback<WriteBackupDataResponse>) {
+    override fun run(session: CardSession, callback: CompletionCallback<GetResetPinTokenResponse>) {
         val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
         super.run(session) { result ->
@@ -58,19 +64,21 @@ class WriteBackupDataCommand(private val backupSession: BackupSession) : Command
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
-        tlvBuilder.append(TlvTag.Salt,backupSession.slaves[environment.card?.cardId]?.encryptionSalt)
-        tlvBuilder.append(TlvTag.IssuerData, backupSession.slaves[environment.card?.cardId]?.encryptedData)
+        tlvBuilder.append(TlvTag.AuthorizeMode, AuthorizeMode.Token_Get.rawValue)
 
-        return CommandApdu(Instruction.Backup_WriteData, tlvBuilder.serialize())
+        return CommandApdu(Instruction.Authorize, tlvBuilder.serialize())
     }
 
-    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): WriteBackupDataResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): GetResetPinTokenResponse {
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
-
-        return WriteBackupDataResponse(decoder.decode(TlvTag.CardId), Card.BackupStatus.byCode(decoder.decode(TlvTag.Backup_State))!!)
+        val cardToReset = ResetPin_CardToReset(
+            token = decoder.decode(TlvTag.Challenge),
+            attestSignature = decoder.decode(TlvTag.Backup_AttestSignature),
+            backupKey = decoder.decode(TlvTag.Backup_MasterKey)
+        )
+        return GetResetPinTokenResponse(decoder.decode(TlvTag.CardId), cardToReset)
     }
 }
 

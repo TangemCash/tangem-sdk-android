@@ -9,6 +9,7 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
+import com.tangem.common.files.AuthorizeMode
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
 import com.tangem.common.hdWallet.DerivationNode.Companion.serialize
@@ -111,10 +112,10 @@ class TlvEncoder {
                     (value as CardWallet.Status).code.toByteArray()
                 }
             }
-            TlvValueType.BackupStatus -> {
-                typeCheck<T, Card.BackupStatus>(tag)
-                (value as Card.BackupStatus).code.toByteArray()
-            }
+//            TlvValueType.BackupStatus -> {
+//                typeCheck<T, Card.BackupStatus>(tag)
+//                (value as Card.BackupStatus).code.toByteArray()
+//            }
             TlvValueType.SigningMethod -> {
                 typeCheck<T, SigningMethod>(tag)
                 byteArrayOf((value as SigningMethod).rawValue.toByte())
@@ -133,6 +134,10 @@ class TlvEncoder {
                 typeCheck<T, FileDataMode>(tag)
                 byteArrayOf((value as FileDataMode).rawValue.toByte())
             }
+//            TlvValueType.AuthorizeMode -> {
+//                typeCheck<T, FileDataMode>(tag)
+//                byteArrayOf((value as AuthorizeMode).rawValue.toByte())
+//            }
             TlvValueType.FileSettings -> {
                 typeCheck<T, FileSettings>(tag)
                 (value as FileSettings).rawValue.toByteArray(2)

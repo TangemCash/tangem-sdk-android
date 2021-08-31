@@ -101,7 +101,6 @@ class LinkSlaveCardsCommand(private val backupSession: BackupSession) : Command<
         }
         dataAttest+=backupSession.newPIN!!
         dataAttest+=backupSession.newPIN2!!
-        dataAttest+=environment.card!!.settings.settingsMask.rawValue.toByteArray(4)
         if (!CryptoUtils.verify(backupSession.master.cardKey, dataAttest, attestSignature)) {
             throw TangemSdkError.BackupInvalidSignature()
         }

@@ -25,6 +25,8 @@ enum class Instruction(var code: Int) {
     Depersonalize(0xE3),
     WriteFileData(0xD0),
     ReadFileData(0xD1),
+    ManageFileOwners(0xD2),
+    Authorize(0xD3),
     Backup_GetMasterKey(0xE8),
     Backup_GetSlaveKey(0xE9),
     Backup_LinkSlaveCards(0xEA),

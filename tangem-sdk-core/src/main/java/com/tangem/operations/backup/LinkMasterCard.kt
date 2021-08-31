@@ -92,7 +92,7 @@ class LinkMasterCardCommand(private val backupSession: BackupSession) : Command<
 
         val decoder = TlvDecoder(tlvData)
 
-        return LinkMasterCardResponse(decoder.decode(TlvTag.CardId), decoder.decode(TlvTag.Backup_State))
+        return LinkMasterCardResponse(decoder.decode(TlvTag.CardId), Card.BackupStatus.byCode(decoder.decode(TlvTag.Backup_State))!!)
     }
 }
 

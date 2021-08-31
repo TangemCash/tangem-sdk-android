@@ -73,6 +73,12 @@ class CardDeserializer {
             } else {
                 EllipticCurve.values().toList()
             }
+
+            val iBackupStatus: Int?=decoder.decodeOptional(TlvTag.Backup_State)
+            var backupStatus: Card.BackupStatus?=Card.BackupStatus.NoBackup
+            iBackupStatus?.let { backupStatus=Card.BackupStatus.byCode(it) }
+
+
             return Card(
                     decoder.decode(TlvTag.CardId),
                     cardDataDecoder.decode(TlvTag.BatchId),
@@ -86,9 +92,8 @@ class CardDeserializer {
                     supportedCurves,
                     wallets.toList(),
                     health = decoder.decodeOptional(TlvTag.Health),
-                    remainingSignatures = remainingSignatures
-
-//                    backupStatus = decoder.decodeOptional(TlvTag.Backup_State)
+                    remainingSignatures = remainingSignatures,
+                    backupStatus = backupStatus
             )
         }
 

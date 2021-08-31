@@ -22,7 +22,8 @@ enum class TlvValueType {
     FileDataMode,
     FileSettings,
     DerivationPath,
-    BackupStatus
+//    BackupStatus,
+//    AuthorizeMode,
 }
 
 /**
@@ -140,6 +141,8 @@ enum class TlvTag(val code: Int) {
     FileIndex(0x26),
     FileSettings(0x27),
 
+    AuthorizeMode(0x23),
+
     FileName(0x70),
     FileData(0x71),
 
@@ -172,9 +175,10 @@ enum class TlvTag(val code: Int) {
             SigningMethod -> TlvValueType.SigningMethod
             InteractionMode -> TlvValueType.InteractionMode
             WriteFileMode -> TlvValueType.FileDataMode
+            AuthorizeMode -> TlvValueType.Uint8 // AuthorizeMode
             FileSettings -> TlvValueType.FileSettings
             WalletHDPath -> TlvValueType.DerivationPath
-            Backup_State -> TlvValueType.BackupStatus
+            Backup_State -> TlvValueType.Uint8 // BackupStatus
             else -> TlvValueType.ByteArray
         }
     }

@@ -7,6 +7,7 @@ import com.tangem.common.extensions.toDate
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.extensions.toInt
 import com.tangem.common.extensions.toUtf8
+import com.tangem.common.files.AuthorizeMode
 import com.tangem.common.files.FileDataMode
 import com.tangem.common.files.FileSettings
 import com.tangem.common.hdWallet.DerivationPath
@@ -151,10 +152,10 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     }
                 }
             }
-            TlvValueType.BackupStatus -> {
-                typeCheck<T, Card.BackupStatus>(tag)
-                Card.BackupStatus.byCode(tlvValue.toInt()) as T
-            }
+//            TlvValueType.BackupStatus -> {
+//                typeCheck<T, Card.BackupStatus>(tag)
+//                Card.BackupStatus.byCode(tlvValue.toInt()) as T
+//            }
             TlvValueType.SigningMethod -> {
                 typeCheck<T, SigningMethod>(tag)
                 try {
@@ -188,6 +189,15 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                 }
             }
+//            TlvValueType.AuthorizeMode -> {
+//                typeCheck<T, AuthorizeMode>(tag)
+//                try {
+//                    AuthorizeMode.byRawValue(tlvValue.toInt()) as T
+//                } catch (exception: Exception) {
+//                    logException(tag, tlvValue.toInt().toString(), exception)
+//                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+//                }
+//            }
             TlvValueType.FileSettings -> {
                 typeCheck<T, FileSettings>(tag)
                 try {

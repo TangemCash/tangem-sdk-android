@@ -3,6 +3,7 @@ package com.tangem
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.backup.BackupSession
+import com.tangem.common.backup.ResetPinSession
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
@@ -289,9 +290,9 @@ class TangemSdk(
     }
 
     fun getCardCertificate(cardPublicKey: ByteArray, IssuerPrivateKey: ByteArray): ByteArray {
-        val tlvBuilder= TlvBuilder()
-        tlvBuilder.append(TlvTag.CardPublicKey,cardPublicKey)
-        tlvBuilder.append(TlvTag.IssuerDataSignature,cardPublicKey.sign(IssuerPrivateKey))
+        val tlvBuilder = TlvBuilder()
+        tlvBuilder.append(TlvTag.CardPublicKey, cardPublicKey)
+        tlvBuilder.append(TlvTag.IssuerDataSignature, cardPublicKey.sign(IssuerPrivateKey))
         return tlvBuilder.serialize()
     }
 
@@ -343,6 +344,33 @@ class TangemSdk(
     ) {
         startSessionWithRunnable(WriteBackupDataCommand(backupSession), cardId, initialMessage, callback)
     }
+
+    fun resetPinGetToken(
+        cardId: String?,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<GetResetPinTokenResponse>
+    ) {
+        startSessionWithRunnable(GetResetPinTokenCommand(), cardId, initialMessage, callback)
+    }
+
+    fun resetPinSignToken(
+        cardId: String?,
+        resetPinSession: ResetPinSession,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<SignResetPinTokenResponse>
+    ) {
+        startSessionWithRunnable(SignResetPinTokenCommand(resetPinSession), cardId, initialMessage, callback)
+    }
+
+    fun resetPinAuthorizeTokenAndSetNewPin(
+        cardId: String?,
+        resetPinSession: ResetPinSession,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<SuccessResponse>
+    ) {
+        startSessionWithRunnable(ResetPinTask(resetPinSession), cardId, initialMessage, callback)
+    }
+
     /**
      * This method launches a [SetUserCodeCommand] on a new thread.
      *
@@ -589,10 +617,10 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteIssuerDataCommand(
-                issuerData,
-                issuerDataSignature,
-                issuerDataCounter,
-                config.issuerPublicKey
+            issuerData,
+            issuerDataSignature,
+            issuerDataCounter,
+            config.issuerPublicKey
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
@@ -659,10 +687,10 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteIssuerExtraDataCommand(
-                issuerData,
-                startingSignature, finalizingSignature,
-                issuerDataCounter,
-                config.issuerPublicKey
+            issuerData,
+            startingSignature, finalizingSignature,
+            issuerDataCounter,
+            config.issuerPublicKey
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
@@ -767,8 +795,8 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteUserDataCommand(
-                userProtectedData = userProtectedData,
-                userProtectedCounter = userProtectedCounter
+            userProtectedData = userProtectedData,
+            userProtectedCounter = userProtectedCounter
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
