@@ -764,31 +764,54 @@ class TangemSdk(
         initialMessage: String?,
         callback: (String) -> Unit
     ) {
-        val request: JSONRPCRequest = try {
-            JSONRPCRequest(jsonRequest)
+        val converter = MoshiJsonConverter.INSTANCE
+        val linkersList: List<JSONRPCLinker> = try {
+            JSONRPCLinker.parse(jsonRequest, converter)
         } catch (ex: JSONRPCException) {
             callback(ex.toJSONRPCResponse(null).toJson())
             return
         }
+
+        linkersList.forEach { it.initRunnable(jsonRpcConverter) }
+        if (linkersList.any { it.hasError() }) {
+            val jsonRpcResponse = converter.toJson(linkersList.map { it.response })
+            callback(jsonRpcResponse)
+            return
+        }
+
         try {
             if (checkSession()) throw TangemSdkError.Busy()
-            assertCardId(cardId, request)
 
             configure()
-            val message: Message? = initialMessage?.let { MoshiJsonConverter.INSTANCE.fromJson(it) }
-            cardSession = makeSession(cardId, message)
-            val runnable = jsonRpcConverter.convert(request)
-            Thread().run {
-                cardSession?.startWithRunnable(runnable) { callback(it.toJSONRPCResponse(request.id).toJson()) }
-            }
+            val message: Message? = initialMessage?.let { converter.fromJson(it) }
 
-        } catch (ex: Throwable) {
-            val jsonStringConvertible = when (ex) {
-                is TangemError -> ex.toJSONRPCError().toJSONRPCResponse(request.id)
-                is JSONRPCException -> ex.toJSONRPCResponse(request.id)
-                else -> JSONRPCError(JSONRPCError.Type.UnknownError, ex.localizedMessage).toJSONRPCResponse(request.id)
+            if (linkersList.size == 1) {
+                val jsonrpcLinker = linkersList[0]
+                assertCardId(cardId, jsonrpcLinker.request!!)
+
+                cardSession = makeSession(cardId, message)
+                Thread().run {
+                    cardSession?.startWithRunnable(jsonrpcLinker.runnable!!) {
+                        jsonrpcLinker.linkResult(it)
+                        callback(jsonrpcLinker.response.toJson())
+                    }
+                }
+            } else {
+                val task = RunnablesTask(linkersList)
+                cardSession = makeSession(cardId, message)
+                cardSession!!.startWithRunnable(task) { result ->
+                    when (result) {
+                        is CompletionResult.Success -> callback(converter.toJson(result.data.responses))
+                        is CompletionResult.Failure -> {
+                            linkersList.forEach { it.linkeError(result.error) }
+                            callback(converter.toJson(linkersList.map { it.response }))
+                        }
+                    }
+                }
             }
-            callback(jsonStringConvertible.toJson())
+        } catch (ex: TangemSdkError) {
+            linkersList.forEach { it.linkeError(ex) }
+            callback(converter.toJson(linkersList.map { it.response }))
         }
     }
 
@@ -815,6 +838,7 @@ class TangemSdk(
         return session.state == CardSession.CardSessionState.Active
     }
 
+    @Throws(TangemSdkError::class)
     private fun assertCardId(cardId: String?, request: JSONRPCRequest) {
         val handler = jsonRpcConverter.getHandler(request)
         if (handler.requiresCardId && cardId == null) throw TangemSdkError.InvalidParams()

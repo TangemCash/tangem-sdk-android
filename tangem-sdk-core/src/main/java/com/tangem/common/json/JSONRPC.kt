@@ -26,7 +26,19 @@ class JSONRPCConverter {
 
     @Throws(JSONRPCException::class)
     fun convert(request: JSONRPCRequest): CardSessionRunnable<*> {
-        return getHandler(request).makeRunnable(request.params)
+        return try {
+            getHandler(request).makeRunnable(request.params)
+        } catch (ex: Exception) {
+            when (ex) {
+                is JSONRPCException -> throw ex
+                else -> {
+                    // JsonDataException and others
+                    throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                }
+            }
+
+        }
+
     }
 
     @Throws(JSONRPCException::class)
@@ -138,31 +150,112 @@ class JSONRPCError constructor(
     }
 }
 
+internal class JSONRPCLinker {
+
+    constructor(jsonString: String) {
+        request = createRequest(jsonString)
+    }
+
+    constructor(map: Map<String, Any>) {
+        request = createRequest(map)
+    }
+
+    val request: JSONRPCRequest?
+
+    var response: JSONRPCResponse = JSONRPCResponse(null, null, null)
+        private set(value) {
+            // if incoming id is NULL, get it from the request
+            field = field.copy(result = value.result, error = value.error, id = value.id ?: request?.id)
+        }
+
+    var runnable: CardSessionRunnable<*>? = null
+
+    fun initRunnable(jsonRpcConverter: JSONRPCConverter) {
+        if (request == null) return
+
+        try {
+            runnable = jsonRpcConverter.convert(request)
+        } catch (ex: JSONRPCException) {
+            response = JSONRPCResponse(null, ex.jsonRpcError)
+        }
+    }
+
+    fun linkResult(result: CompletionResult<*>) {
+        when (result) {
+            is CompletionResult.Success -> response = JSONRPCResponse(result.data, null)
+            is CompletionResult.Failure -> linkeError(result.error)
+        }
+    }
+
+    fun linkeError(tangemError: TangemError) {
+        response = JSONRPCResponse(null, tangemError.toJSONRPCError())
+    }
+
+    fun hasError(): Boolean = request == null || response.error != null
+
+    private fun createRequest(jsonString: String): JSONRPCRequest? {
+        val converter = MoshiJsonConverter.INSTANCE
+        val jsonMap = try {
+            converter.toMap(jsonString)
+        } catch (ex: Exception) {
+            val error = JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage)
+            response = JSONRPCResponse(null, error)
+            return null
+        }
+
+        return createRequest(jsonMap)
+    }
+
+    private fun createRequest(map: Map<String, Any>): JSONRPCRequest? {
+        val id = if (map.containsKey("id")) extract<Double>("id", map).toInt() else null
+        // initiate blank response with id
+        response = JSONRPCResponse(null, null, id)
+
+        return try {
+            val params: Map<String, Any> = if (map.containsKey("params")) extract("params", map) else mapOf()
+            val jsonrpc: String = extract("jsonrpc", map)
+            val method: String = extract("method", map)
+            JSONRPCRequest(method, params, id, jsonrpc)
+        } catch (ex: Exception) {
+            val error = JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage)
+            response = JSONRPCResponse(null, error)
+            null
+        }
+    }
+
+    @Throws(IllegalArgumentException::class)
+    private inline fun <reified T> extract(name: String, jsonMap: Map<String, Any>): T {
+        try {
+            return jsonMap[name] as T
+        } catch (ex: Exception) {
+            throw IllegalArgumentException(name, ex)
+        }
+    }
+
+    companion object {
+        fun parse(jsonRequest: String, converter: MoshiJsonConverter): List<JSONRPCLinker> {
+            val trimmed = jsonRequest.trim()
+            val isJsonArray = trimmed.trim().let { it.startsWith("[") && it.endsWith("]") }
+            return if (isJsonArray) {
+                val listOfMap: List<Map<String, Any>>? = converter.fromJson(trimmed)
+                listOfMap?.map { JSONRPCLinker(it) }
+                        ?: throw JSONRPCError(JSONRPCError.Type.ParseError, "Empty requests").asException()
+            } else {
+                listOf(JSONRPCLinker(jsonRequest))
+            }
+        }
+    }
+}
+
 class JSONRPCException(val jsonRpcError: JSONRPCError) : Exception(jsonRpcError.message) {
     override fun toString(): String = "$jsonRpcError"
 }
 
-fun JSONRPCError.toJSONRPCResponse(id: Int? = null): JSONRPCResponse {
-    return JSONRPCResponse(null, this, id)
-}
-
-fun JSONRPCException.toJSONRPCResponse(id: Int? = null): JSONRPCResponse {
-    return this.jsonRpcError.toJSONRPCResponse(id)
-}
-
-fun <T> CompletionResult<T>.toJSONRPCResponse(id: Int? = null): JSONRPCResponse = when (this) {
-    is CompletionResult.Success -> this.toJSONRPCResponse(id)
-    is CompletionResult.Failure -> this.toJSONRPCResponse(id)
-}
-
-fun <T> CompletionResult.Success<T>.toJSONRPCResponse(id: Int? = null): JSONRPCResponse {
-    return JSONRPCResponse(this.data, null, id)
-}
-
-fun <T> CompletionResult.Failure<T>.toJSONRPCResponse(id: Int? = null): JSONRPCResponse {
-    return JSONRPCResponse(null, this.error.toJSONRPCError(), id)
+fun JSONRPCException.toJSONRPCResponse(id: Int?): JSONRPCResponse {
+    return JSONRPCResponse(null, this.jsonRpcError, id)
 }
 
 fun TangemError.toJSONRPCError(): JSONRPCError {
     return JSONRPCError(JSONRPCError.Type.ServerError, code)
 }
+
