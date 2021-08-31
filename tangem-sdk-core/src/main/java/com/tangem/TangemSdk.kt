@@ -761,7 +761,7 @@ class TangemSdk(
     fun startSessionWithJsonRequest(
         jsonRequest: String,
         cardId: String?,
-        initialMessage: Message?,
+        initialMessage: String?,
         callback: (String) -> Unit
     ) {
         val request: JSONRPCRequest = try {
@@ -775,7 +775,8 @@ class TangemSdk(
             assertCardId(cardId, request)
 
             configure()
-            cardSession = makeSession(cardId, initialMessage)
+            val message: Message? = initialMessage?.let { MoshiJsonConverter.INSTANCE.fromJson(it) }
+            cardSession = makeSession(cardId, message)
             val runnable = jsonRpcConverter.convert(request)
             Thread().run {
                 cardSession?.startWithRunnable(runnable) { callback(it.toJSONRPCResponse(request.id).toJson()) }
