@@ -768,14 +768,13 @@ class TangemSdk(
         val linkersList: List<JSONRPCLinker> = try {
             JSONRPCLinker.parse(jsonRequest, converter)
         } catch (ex: JSONRPCException) {
-            callback(ex.toJSONRPCResponse(null).toJson())
+            callback(JSONRPCResponse(null, ex.jsonRpcError, id = null).toJson())
             return
         }
 
         linkersList.forEach { it.initRunnable(jsonRpcConverter) }
         if (linkersList.any { it.hasError() }) {
-            val jsonRpcResponse = converter.toJson(linkersList.map { it.response })
-            callback(jsonRpcResponse)
+            callback(converter.toJson(linkersList.map { it.response }))
             return
         }
 

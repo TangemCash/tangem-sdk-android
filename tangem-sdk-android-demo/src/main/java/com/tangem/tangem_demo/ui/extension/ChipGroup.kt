@@ -1,5 +1,7 @@
 package com.tangem.tangem_demo.ui.extension
 
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.core.view.forEach
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -21,4 +23,13 @@ fun ChipGroup.fitChipsByGroupWidth() {
         it.forEach { chip -> (chip as? Chip)?.width = width }
         layoutStateHandler.detach()
     }
+}
+
+fun Context.getFromClipboard(default: CharSequence? = null): CharSequence? {
+    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            ?: return default
+    val clipData = clipboard.primaryClip ?: return default
+    if (clipData.itemCount == 0) return default
+
+    return clipData.getItemAt(0).text
 }

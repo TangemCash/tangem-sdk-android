@@ -14,12 +14,12 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
-import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
+import com.tangem.tangem_demo.ui.extension.getFromClipboard
 import com.tangem.tangem_sdk_new.extensions.createLogger
 import com.tangem.tangem_sdk_new.extensions.init
 import kotlinx.android.synthetic.main.attestation.*
@@ -27,6 +27,7 @@ import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
+import kotlinx.android.synthetic.main.json_rpc.*
 import kotlinx.android.synthetic.main.scan_card.*
 import kotlinx.android.synthetic.main.set_pin.*
 import kotlinx.android.synthetic.main.sign.*
@@ -38,7 +39,6 @@ import kotlinx.android.synthetic.main.wallet.*
  */
 class CommandListFragment : BaseFragment() {
 
-    private val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
     private val logger = TangemSdk.createLogger()
 
     override fun initSdk(): TangemSdk = TangemSdk.init(this.requireActivity(), createSdkConfig())
@@ -103,6 +103,11 @@ class CommandListFragment : BaseFragment() {
         btnMakeFilePublic.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Public)) }
         btnMakeFilePrivate.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Private)) }
 
+        etJsonRpc.setText(jsonRpcSingleCommandTemplate)
+        btnSingleJsonRpc.setOnClickListener { etJsonRpc.setText(jsonRpcSingleCommandTemplate) }
+        btnListJsonRpc.setOnClickListener { etJsonRpc.setText(jsonRpcListCommandsTemplate) }
+        btnPasteJsonRpc.setOnClickListener { requireContext().getFromClipboard()?.let { etJsonRpc.setText(it) } }
+        btnLaunchJsonRpc.setOnClickListener { launchJSONRPC(etJsonRpc.text.toString().trim()) }
         sliderWallet.stepSize = 1f
     }
 
@@ -170,4 +175,37 @@ class CommandListFragment : BaseFragment() {
             tvWalletIndex.text = "$selectedIndexOfWallet"
         }
     }
+
+    private var jsonRpcSingleCommandTemplate: String = """
+    {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "scan",
+        "params": {}
+    }
+    """.trim()
+
+    private var jsonRpcListCommandsTemplate: String = """
+    [
+        {
+          "method": "scan",
+          "params": {},
+          "id": 1,
+          "jsonrpc": "2.0"
+        },
+        {
+          "method": "create_wallet",
+          "params": {
+            "curve": "Secp256k1"
+          },
+          "jsonrpc": "2.0"
+        },
+        {
+          "method": "scan",
+          "id": 2,
+          "jsonrpc": "2.0"
+        }
+    ]
+    """.trim()
+
 }

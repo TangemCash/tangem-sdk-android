@@ -46,7 +46,7 @@ class JSONRPCConverter {
         val handler = handlers.firstOrNull { it.method == request.method.toUpperCase() }
         if (handler == null) {
             val errorMessage = "Can't create the CardSessionRunnable. " +
-                    "Missed converter for the method ${request.method}"
+                    "Missed converter for the method: ${request.method}"
             throw JSONRPCError(JSONRPCError.Type.MethodNotFound, errorMessage).asException()
         }
         return handler
@@ -237,7 +237,11 @@ internal class JSONRPCLinker {
             val trimmed = jsonRequest.trim()
             val isJsonArray = trimmed.trim().let { it.startsWith("[") && it.endsWith("]") }
             return if (isJsonArray) {
-                val listOfMap: List<Map<String, Any>>? = converter.fromJson(trimmed)
+                val listOfMap: List<Map<String, Any>>? = try {
+                    converter.fromJson(trimmed)
+                } catch (ex: Exception) {
+                    throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                }
                 listOfMap?.map { JSONRPCLinker(it) }
                         ?: throw JSONRPCError(JSONRPCError.Type.ParseError, "Empty requests").asException()
             } else {
@@ -251,11 +255,7 @@ class JSONRPCException(val jsonRpcError: JSONRPCError) : Exception(jsonRpcError.
     override fun toString(): String = "$jsonRpcError"
 }
 
-fun JSONRPCException.toJSONRPCResponse(id: Int?): JSONRPCResponse {
-    return JSONRPCResponse(null, this.jsonRpcError, id)
-}
-
 fun TangemError.toJSONRPCError(): JSONRPCError {
-    return JSONRPCError(JSONRPCError.Type.ServerError, code)
+    return JSONRPCError(JSONRPCError.Type.ServerError, "$code: ${this::class.java.simpleName}")
 }
 
