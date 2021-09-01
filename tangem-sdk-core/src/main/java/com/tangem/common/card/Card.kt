@@ -78,7 +78,7 @@ data class Card internal constructor(
     /**
      * Card's attestation report
      */
-    internal val attestation: Attestation = Attestation.empty,
+    val attestation: Attestation = Attestation.empty,
 
     /**
      *  Any non-zero value indicates that the card experiences some hardware problems.
