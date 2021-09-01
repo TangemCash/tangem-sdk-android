@@ -101,7 +101,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
             println("Missing option value")
             return
         }
-        sdk.createWallet(EllipticCurve.Secp256k1, false, cardId, null, callback)
+        sdk.createWallet(EllipticCurve.Secp256k1, cardId, null, callback)
     }
 
     private fun purgeWallet(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
