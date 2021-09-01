@@ -250,6 +250,12 @@ internal class JSONRPCLinker {
     }
 }
 
+internal fun List<JSONRPCLinker>.createResult(converter: MoshiJsonConverter): String = when {
+    isEmpty() -> ""
+    size == 1 -> converter.toJson(this[0].response)
+    else -> converter.toJson(this.map { it.response })
+}
+
 class JSONRPCException(val jsonRpcError: JSONRPCError) : Exception(jsonRpcError.message) {
     override fun toString(): String = "$jsonRpcError"
 }
