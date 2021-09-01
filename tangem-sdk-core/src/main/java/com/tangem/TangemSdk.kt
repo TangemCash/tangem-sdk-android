@@ -760,8 +760,8 @@ class TangemSdk(
 
     fun startSessionWithJsonRequest(
         jsonRequest: String,
-        cardId: String?,
-        initialMessage: String?,
+        cardId: String? = null,
+        initialMessage: String? = null,
         callback: (String) -> Unit
     ) {
         val converter = MoshiJsonConverter.INSTANCE
@@ -786,8 +786,6 @@ class TangemSdk(
 
             if (linkersList.size == 1) {
                 val jsonrpcLinker = linkersList[0]
-                assertCardId(cardId, jsonrpcLinker.request!!)
-
                 cardSession = makeSession(cardId, message)
                 Thread().run {
                     cardSession?.startWithRunnable(jsonrpcLinker.runnable!!) {
@@ -835,12 +833,6 @@ class TangemSdk(
     private fun checkSession(): Boolean {
         val session = cardSession ?: return false
         return session.state == CardSession.CardSessionState.Active
-    }
-
-    @Throws(TangemSdkError::class)
-    private fun assertCardId(cardId: String?, request: JSONRPCRequest) {
-        val handler = jsonRpcConverter.getHandler(request)
-        if (handler.requiresCardId && cardId == null) throw TangemSdkError.InvalidParams()
     }
 
     companion object
