@@ -29,7 +29,6 @@ private inline fun <reified C> make(params: Map<String, Any?>): C {
 
 class PersonalizeHandler : JSONRPCHandler<Card> {
     override val method: String = "PERSONALIZE"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<Card> {
         return make<PersonalizeCommand>(params)
@@ -38,7 +37,6 @@ class PersonalizeHandler : JSONRPCHandler<Card> {
 
 class DepersonalizeHandler : JSONRPCHandler<DepersonalizeResponse> {
     override val method: String = "DEPERSONALIZE"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<DepersonalizeResponse> {
         return make<DepersonalizeCommand>(params)
@@ -47,7 +45,6 @@ class DepersonalizeHandler : JSONRPCHandler<DepersonalizeResponse> {
 
 class PreflightReadHandler : JSONRPCHandler<Card> {
     override val method: String = "PREFLIGHT_READ"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<Card> {
         return make<PreflightReadTask>(params)
@@ -56,14 +53,12 @@ class PreflightReadHandler : JSONRPCHandler<Card> {
 
 class ScanHandler : JSONRPCHandler<Card> {
     override val method: String = "SCAN"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<Card> = ScanTask()
 }
 
 class CreateWalletHandler : JSONRPCHandler<CreateWalletResponse> {
     override val method: String = "CREATE_WALLET"
-    override val requiresCardId: Boolean = true
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<CreateWalletResponse> {
         return make<CreateWalletCommand>(params)
@@ -72,7 +67,6 @@ class CreateWalletHandler : JSONRPCHandler<CreateWalletResponse> {
 
 class PurgeWalletHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "PURGE_WALLET"
-    override val requiresCardId: Boolean = true
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         return make<PurgeWalletCommand>(params)
@@ -81,7 +75,6 @@ class PurgeWalletHandler : JSONRPCHandler<SuccessResponse> {
 
 class SignHashHandler : JSONRPCHandler<SignHashResponse> {
     override val method: String = "SIGN_HASH"
-    override val requiresCardId: Boolean = true
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignHashResponse> {
         val hash = (params["hash"] as String).hexToBytes()
@@ -94,7 +87,6 @@ class SignHashHandler : JSONRPCHandler<SignHashResponse> {
 
 class SignHashesHandler : JSONRPCHandler<SignResponse> {
     override val method: String = "SIGN_HASHES"
-    override val requiresCardId: Boolean = true
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignResponse> {
         val hashes = (params["hashes"] as List<String>).map { it.hexToBytes() }
@@ -107,7 +99,6 @@ class SignHashesHandler : JSONRPCHandler<SignResponse> {
 
 class SetAccessCodeHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "SET_ACCESSCODE"
-    override val requiresCardId: Boolean = true
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         return SetUserCodeCommand.changeAccessCode(params["accessCode"] as String)
@@ -116,7 +107,6 @@ class SetAccessCodeHandler : JSONRPCHandler<SuccessResponse> {
 
 class SetPasscodeHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "SET_PASSCODE"
-    override val requiresCardId: Boolean = true
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         return SetUserCodeCommand.changePasscode(params["passcode"] as String)
@@ -125,7 +115,6 @@ class SetPasscodeHandler : JSONRPCHandler<SuccessResponse> {
 
 class ResetUserCodesHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "RESET_USERCODES"
-    override val requiresCardId: Boolean = true
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         return SetUserCodeCommand.resetUserCodes()
@@ -134,7 +123,6 @@ class ResetUserCodesHandler : JSONRPCHandler<SuccessResponse> {
 
 class ReadFilesHandler : JSONRPCHandler<ReadFilesResponse> {
     override val method: String = "READ_FILES"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ReadFilesResponse> {
         return make<ReadFilesTask>(params)
@@ -143,7 +131,6 @@ class ReadFilesHandler : JSONRPCHandler<ReadFilesResponse> {
 
 class WriteFilesHandler : JSONRPCHandler<WriteFilesResponse> {
     override val method: String = "WRITE_FILES"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<WriteFilesResponse> {
         return make<WriteFilesTask>(params)
@@ -152,7 +139,6 @@ class WriteFilesHandler : JSONRPCHandler<WriteFilesResponse> {
 
 class DeleteFilesHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "DELETE_FILES"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         return make<DeleteFilesTask>(params)
@@ -161,7 +147,6 @@ class DeleteFilesHandler : JSONRPCHandler<SuccessResponse> {
 
 class ChangeFileSettingsHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "CHANGE_FILE_SETTINGS"
-    override val requiresCardId: Boolean = false
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         return make<ChangeFileSettingsTask>(params)

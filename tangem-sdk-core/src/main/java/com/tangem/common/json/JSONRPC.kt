@@ -11,7 +11,6 @@ import com.tangem.operations.CommandResponse
  */
 interface JSONRPCHandler<R : CommandResponse> {
     val method: String
-    val requiresCardId: Boolean
 
     fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<R>
 }
