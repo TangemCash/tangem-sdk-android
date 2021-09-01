@@ -84,8 +84,8 @@ class JSONRPCRequest constructor(
     companion object {
         operator fun invoke(jsonString: String): JSONRPCRequest {
             val converter = MoshiJsonConverter.INSTANCE
-            val jsonMap = try {
-                converter.toMap(jsonString)
+            val jsonMap: Map<String, Any?> = try {
+                converter.fromJson(jsonString, converter.typedMap())!!
             } catch (ex: Exception) {
                 throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
             }
@@ -93,7 +93,7 @@ class JSONRPCRequest constructor(
             return JSONRPCRequest(jsonMap)
         }
 
-        operator fun invoke(map: Map<String, Any>): JSONRPCRequest {
+        operator fun invoke(map: Map<String, Any?>): JSONRPCRequest {
             return try {
                 val id = if (map.containsKey("id")) (map["id"] as? Double)?.toInt() else null
                 val params: Map<String, Any> = if (map.containsKey("params")) extract("params", map) else mapOf()
@@ -101,16 +101,22 @@ class JSONRPCRequest constructor(
                 val method: String = extract("method", map)
                 JSONRPCRequest(method, params, id, jsonrpc)
             } catch (ex: Exception) {
-                throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                when (ex) {
+                    is JSONRPCException -> throw ex
+                    else -> throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                }
             }
         }
 
         @Throws(IllegalArgumentException::class)
-        private inline fun <reified T> extract(name: String, jsonMap: Map<String, Any>): T {
+        private inline fun <reified T> extract(name: String, jsonMap: Map<String, Any?>): T {
             try {
                 return jsonMap[name] as T
             } catch (ex: Exception) {
-                throw IllegalArgumentException(name, ex)
+                throw JSONRPCError(
+                        JSONRPCError.Type.InvalidRequest,
+                        "The field is missing or an unsupported value is used: $name"
+                ).asException()
             }
         }
     }
@@ -157,8 +163,8 @@ internal class JSONRPCLinker {
     constructor(jsonString: String) {
         request = try {
             JSONRPCRequest(jsonString)
-        } catch (ex: Exception) {
-            response = JSONRPCResponse(null, JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage))
+        } catch (ex: JSONRPCException) {
+            response = JSONRPCResponse(null, ex.jsonRpcError)
             null
         }
     }
@@ -166,8 +172,8 @@ internal class JSONRPCLinker {
     constructor(map: Map<String, Any>) {
         request = try {
             JSONRPCRequest(map)
-        } catch (ex: Exception) {
-            response = JSONRPCResponse(null, JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage))
+        } catch (ex: JSONRPCException) {
+            response = JSONRPCResponse(null, ex.jsonRpcError)
             null
         }
     }
