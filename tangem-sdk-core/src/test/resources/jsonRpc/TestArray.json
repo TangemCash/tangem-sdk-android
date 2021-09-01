@@ -1,0 +1,17 @@
+{
+  "requests" : [
+    {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "scan"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "method": "create_wallet",
+      "params": {
+        "curve": "Secp256r1"
+      }
+    }
+  ]
+}

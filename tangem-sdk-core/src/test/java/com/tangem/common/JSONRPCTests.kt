@@ -15,8 +15,7 @@ import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignHashesResponse
 import com.tangem.operations.wallet.CreateWalletResponse
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -78,7 +77,11 @@ class JSONRPCTests {
         val result: CompletionResult<SuccessResponse> = CompletionResult.Success(response)
         val testResponse = "{\n \"jsonrpc\" : \"2.0\",\n \"result\" : {\n \"cardId\" : \"c000111122223333\"\n},\n\"id\" : 1\n}"
 
-        val mapJsonResponse = converter.toMap(result.toJSONRPCResponse(1).toJson())
+        val jsonRpcResponse = when (result) {
+            is CompletionResult.Success -> JSONRPCResponse(result.data, null, 1)
+            is CompletionResult.Failure -> JSONRPCResponse(null, result.error.toJSONRPCError(), 1)
+        }
+        val mapJsonResponse = converter.toMap(jsonRpcResponse.toJson())
         val mapTestJsonResponse = converter.toMap(testResponse)
         assertTrue(jsonMapVerifier(mapJsonResponse, mapTestJsonResponse))
     }
@@ -169,6 +172,17 @@ class JSONRPCTests {
         testMethod("files/ChangeFileSettings", SuccessResponse("c000111122223333"))
     }
 
+    @Test
+    fun testParseArrayOfRequests() {
+        val fileText = readJson("TestArray")
+        val fileMap = converter.toMap(fileText)
+        val requestsJson = converter.toJson(fileMap["requests"])
+        val linkersList = JSONRPCLinker.parse(requestsJson, converter)
+        linkersList.forEach { it.initRunnable(jsonRpcConverter) }
+
+        assertFalse(linkersList.any { it.hasError() })
+    }
+
     private fun testMethod(name: String, response: CommandResponse?) {
         val structure: HandlersStructure = assertDoesNotThrow("Json conversion failed to structure for $name") {
             converter.fromJson(readJson(name))!!
@@ -180,10 +194,13 @@ class JSONRPCTests {
             }
         }
 
-        val result: CompletionResult.Success<CommandResponse>? = response?.let { CompletionResult.Success(it) }
+        val result: CompletionResult<CommandResponse>? = response?.let { CompletionResult.Success(it) }
         if (structure.response != null && result != null) {
             val jsonResponseMap = converter.toMap(structure.response)
-            val resultJsonRpcResponse = result.toJSONRPCResponse(structure.response.id)
+            val resultJsonRpcResponse = when (result) {
+                is CompletionResult.Success -> JSONRPCResponse(result.data, null, structure.response.id)
+                is CompletionResult.Failure -> JSONRPCResponse(null, result.error.toJSONRPCError(), structure.response.id)
+            }
             val testResponseMap = converter.toMap(resultJsonRpcResponse)
             assertTrue(jsonMapVerifier(testResponseMap, jsonResponseMap))
         }

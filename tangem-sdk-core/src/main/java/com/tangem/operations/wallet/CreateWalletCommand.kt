@@ -65,22 +65,21 @@ class CreateWalletCommand(
             }
         }
 
-        return null
-    }
-
-    override fun run(session: CardSession, callback: CompletionCallback<CreateWalletResponse>) {
-        val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
-
         val maxIndex = card.settings.maxWalletsCount
         val occupiedIndexes = card.wallets.map { it.index }
         val allIndexes = 0 until maxIndex
 
         walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
-            val error = if (maxIndex == 1) TangemSdkError.AlreadyCreated() else TangemSdkError.MaxNumberOfWalletsCreated()
-            callback(CompletionResult.Failure(error))
-            return
+            return if (maxIndex == 1) {
+                TangemSdkError.AlreadyCreated()
+            } else {
+                TangemSdkError.MaxNumberOfWalletsCreated()
+            }
         }
+        return null
+    }
 
+    override fun run(session: CardSession, callback: CompletionCallback<CreateWalletResponse>) {
         super.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {

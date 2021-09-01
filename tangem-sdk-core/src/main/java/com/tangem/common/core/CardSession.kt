@@ -9,10 +9,7 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.core.*
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.json.JSONRPCConverter
-import com.tangem.common.json.JSONRPCException
-import com.tangem.common.json.JSONRPCRequest
-import com.tangem.common.json.toJSONRPCResponse
+import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
@@ -167,19 +164,15 @@ class CardSession(
     }
 
     fun run(jsonRequest: String, callback: (String) -> Unit) {
-        val request: JSONRPCRequest = try {
-            JSONRPCRequest(jsonRequest)
-        } catch (ex: JSONRPCException) {
-            callback(ex.toJSONRPCResponse(null).toJson())
+        val jsonrpcLinker = JSONRPCLinker(jsonRequest).apply { initRunnable(jsonRpcConverter) }
+        if (jsonrpcLinker.hasError()) {
+            callback(jsonrpcLinker.response.toJson())
             return
         }
-        try {
-            val runnable = jsonRpcConverter.convert(request)
-            runnable.run(this) {
-                callback(it.toJSONRPCResponse(request.id).toJson())
-            }
-        } catch (ex: JSONRPCException) {
-            callback(ex.toJSONRPCResponse(request.id).toJson())
+
+        jsonrpcLinker.runnable!!.run(this) {
+            jsonrpcLinker.linkResult(it)
+            callback(jsonrpcLinker.response.toJson())
         }
     }
 

@@ -30,6 +30,8 @@
 
         <include layout="@layout/file_data" />
 
+        <include layout="@layout/json_rpc" />
+
     </LinearLayout>
 
 </ScrollView>

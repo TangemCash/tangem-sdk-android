@@ -27,6 +27,7 @@ import com.tangem.common.files.FileHashHelper
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
+import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.PreflightReadMode
@@ -44,6 +45,7 @@ abstract class BaseFragment : Fragment() {
     protected var bshDlg: BottomSheetDialog? = null
     protected lateinit var shPrefs: SharedPreferences
     protected lateinit var sdk: TangemSdk
+    protected val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
 
     protected var card: Card? = null
     protected var hdPath: String? = null
@@ -92,6 +94,14 @@ abstract class BaseFragment : Fragment() {
     protected fun createSdkConfig(): Config = Config().apply {
         linkedTerminal = false
         filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
+    }
+
+    protected fun launchJSONRPC(json: String) {
+        val message = initialMessage?.let { jsonConverter.toJson(it) }
+        sdk.startSessionWithJsonRequest(json, card?.cardId, message) {
+            val response = jsonConverter.prettyPrint(jsonConverter.fromJson<Any>(it))
+            postUi { showDialog(response) }
+        }
     }
 
     protected fun scanCard() {
