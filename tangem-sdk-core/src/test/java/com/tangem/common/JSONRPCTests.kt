@@ -184,22 +184,23 @@ class JSONRPCTests {
     }
 
     private fun testMethod(name: String, response: CommandResponse?) {
-        val structure: HandlersStructure = assertDoesNotThrow("Json conversion failed to structure for $name") {
-            converter.fromJson(readJson(name))!!
+        val jsonMap = converter.toMap(readJson(name))
+        val jsonRequest = converter.toJson(jsonMap["request"])
+        val request: JSONRPCRequest = assertDoesNotThrow("Json conversion failed to structure for $name") {
+            JSONRPCRequest(jsonRequest)
         }
 
-        structure.requests.forEachIndexed { index, request ->
-            assertDoesNotThrow("Conversion to JSONRPC Failed. File: ${name}, index: $index") {
-                jsonRpcConverter.convert(request)
-            }
+        assertDoesNotThrow("Conversion to JSONRPC Failed. File: ${name}") {
+            jsonRpcConverter.convert(request)
         }
 
+        val jsonResponse: JSONRPCResponse? = jsonMap["response"]?.let { converter.toJson(it)?.let { converter.fromJson(it) } }
         val result: CompletionResult<CommandResponse>? = response?.let { CompletionResult.Success(it) }
-        if (structure.response != null && result != null) {
-            val jsonResponseMap = converter.toMap(structure.response)
+        if (jsonResponse != null && result != null) {
+            val jsonResponseMap = converter.toMap(jsonResponse)
             val resultJsonRpcResponse = when (result) {
-                is CompletionResult.Success -> JSONRPCResponse(result.data, null, structure.response.id)
-                is CompletionResult.Failure -> JSONRPCResponse(null, result.error.toJSONRPCError(), structure.response.id)
+                is CompletionResult.Success -> JSONRPCResponse(result.data, null, jsonResponse.id)
+                is CompletionResult.Failure -> JSONRPCResponse(null, result.error.toJSONRPCError(), jsonResponse.id)
             }
             val testResponseMap = converter.toMap(resultJsonRpcResponse)
             assertTrue(jsonMapVerifier(testResponseMap, jsonResponseMap))
@@ -247,9 +248,4 @@ class JSONRPCTests {
         }
         return true
     }
-
-    private data class HandlersStructure(
-        val requests: List<JSONRPCRequest>,
-        val response: JSONRPCResponse? = null
-    )
 }

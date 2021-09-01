@@ -1,31 +1,11 @@
 {
-  "requests": [
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "preflight_read",
-      "params": {
-        "readMode": "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348",
-        "cardId": "BB03000000000004"
-      }
-    },
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "preflight_read",
-      "params": {
-        "readMode": "None",
-        "cardId": "BB03000000000004"
-      }
-    },
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "preflight_read",
-      "params": {
-        "readMode": "ReadCardOnly",
-        "cardId": "BB03000000000004"
-      }
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "preflight_read",
+    "params": {
+      "readMode": "fullCardRead",
+      "cardId": "BB03000000000004"
     }
-  ]
+  }
 }

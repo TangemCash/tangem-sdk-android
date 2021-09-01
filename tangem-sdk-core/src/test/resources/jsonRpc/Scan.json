@@ -1,10 +1,7 @@
 {
-  "requests": [
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "scan",
-      "params": {}
-    }
-  ]
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "scan"
+  }
 }
