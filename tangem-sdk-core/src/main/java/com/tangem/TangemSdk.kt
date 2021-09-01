@@ -774,7 +774,7 @@ class TangemSdk(
 
         linkersList.forEach { it.initRunnable(jsonRpcConverter) }
         if (linkersList.any { it.hasError() }) {
-            callback(converter.toJson(linkersList.map { it.response }))
+            callback(linkersList.createResult(converter))
             return
         }
 
@@ -801,14 +801,14 @@ class TangemSdk(
                         is CompletionResult.Success -> callback(converter.toJson(result.data.responses))
                         is CompletionResult.Failure -> {
                             linkersList.forEach { it.linkeError(result.error) }
-                            callback(converter.toJson(linkersList.map { it.response }))
+                            callback(linkersList.createResult(converter))
                         }
                     }
                 }
             }
         } catch (ex: TangemSdkError) {
             linkersList.forEach { it.linkeError(ex) }
-            callback(converter.toJson(linkersList.map { it.response }))
+            callback(linkersList.createResult(converter))
         }
     }
 
