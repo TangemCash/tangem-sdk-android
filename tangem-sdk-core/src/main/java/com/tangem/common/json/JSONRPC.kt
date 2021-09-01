@@ -206,7 +206,7 @@ internal class JSONRPCLinker {
     }
 
     private fun createRequest(map: Map<String, Any>): JSONRPCRequest? {
-        val id = if (map.containsKey("id")) extract<Double>("id", map).toInt() else null
+        val id = if (map.containsKey("id")) (map["id"] as? Double)?.toInt() else null
         // initiate blank response with id
         response = JSONRPCResponse(null, null, id)
 
@@ -257,4 +257,3 @@ class JSONRPCException(val jsonRpcError: JSONRPCError) : Exception(jsonRpcError.
 fun TangemError.toJSONRPCError(): JSONRPCError {
     return JSONRPCError(JSONRPCError.Type.ServerError, "$code: ${this::class.java.simpleName}")
 }
-
