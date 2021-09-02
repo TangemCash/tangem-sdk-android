@@ -101,7 +101,7 @@ class SetAccessCodeHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "SET_ACCESSCODE"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
-        return SetUserCodeCommand.changeAccessCode(params["accessCode"] as String)
+        return SetUserCodeCommand.changeAccessCode(params["accessCode"] as? String)
     }
 }
 
@@ -109,7 +109,7 @@ class SetPasscodeHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "SET_PASSCODE"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
-        return SetUserCodeCommand.changePasscode(params["passcode"] as String)
+        return SetUserCodeCommand.changePasscode(params["passcode"] as? String)
     }
 }
 
