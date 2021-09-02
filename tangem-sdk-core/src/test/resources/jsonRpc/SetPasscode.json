@@ -1,14 +1,12 @@
 {
-  "requests": [
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "set_passcode",
-      "params": {
-        "passcode": "ABCDEFGH"
-      }
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "set_passcode",
+    "params": {
+      "passcode": "ABCDEFGH"
     }
-  ],
+  },
   "response": {
     "jsonrpc": "2.0",
     "result": {

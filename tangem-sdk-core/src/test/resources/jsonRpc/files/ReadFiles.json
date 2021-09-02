@@ -1,12 +1,10 @@
 {
-  "requests": [
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "READ_FILES",
-      "params": {}
-    }
-  ],
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "READ_FILES",
+    "params": {}
+  },
   "response": {
     "jsonrpc": "2.0",
     "result": {
@@ -14,7 +12,7 @@
         {
           "fileIndex": 0,
           "fileData": "00AABBCCDD",
-          "fileSettings": "Public"
+          "fileSettings": "public"
         }
       ]
     },

@@ -1,18 +1,16 @@
 {
-  "requests": [
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "READ_FILES",
-      "params": {
-        "readPrivateFiles": true,
-        "indices": [
-          1,
-          2
-        ]
-      }
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "READ_FILES",
+    "params": {
+      "readPrivateFiles": true,
+      "indices": [
+        1,
+        2
+      ]
     }
-  ],
+  },
   "response": {
     "jsonrpc": "2.0",
     "result": {
@@ -20,12 +18,12 @@
         {
           "fileIndex": 1,
           "fileData": "00AABBCCDD",
-          "fileSettings": "Private"
+          "fileSettings": "private"
         },
         {
           "fileIndex": 2,
           "fileData": "00AABBCCDD",
-          "fileSettings": "Public"
+          "fileSettings": "public"
         }
       ]
     },

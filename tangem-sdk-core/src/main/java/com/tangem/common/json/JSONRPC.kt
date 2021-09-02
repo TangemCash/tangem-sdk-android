@@ -74,7 +74,6 @@ class JSONRPCConverter {
     }
 }
 
-@JsonClass(generateAdapter = true)
 class JSONRPCRequest constructor(
     val method: String,
     val params: Map<String, Any?>,
@@ -83,31 +82,41 @@ class JSONRPCRequest constructor(
 ) : JSONStringConvertible {
 
     companion object {
-        @Throws(JSONRPCException::class)
         operator fun invoke(jsonString: String): JSONRPCRequest {
             val converter = MoshiJsonConverter.INSTANCE
-            val jsonMap = try {
-                converter.toMap(jsonString)
+            val jsonMap: Map<String, Any?> = try {
+                converter.fromJson(jsonString, converter.typedMap())!!
             } catch (ex: Exception) {
                 throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
             }
+
+            return JSONRPCRequest(jsonMap)
+        }
+
+        operator fun invoke(map: Map<String, Any?>): JSONRPCRequest {
             return try {
-                val method: String = extract("method", jsonMap)
-                val params: Map<String, Any> = extract("params", jsonMap)
-                val id: Int? = if (jsonMap.containsKey("id")) extract<Double>("id", jsonMap).toInt() else null
-                val jsonrpc: String = extract("jsonrpc", jsonMap)
+                val id = if (map.containsKey("id")) (map["id"] as? Double)?.toInt() else null
+                val params: Map<String, Any> = if (map.containsKey("params")) extract("params", map) else mapOf()
+                val jsonrpc: String = extract("jsonrpc", map)
+                val method: String = extract("method", map)
                 JSONRPCRequest(method, params, id, jsonrpc)
-            } catch (ex: JSONRPCException) {
-                throw JSONRPCError(JSONRPCError.Type.ParseError, converter.toJson(ex)).asException()
+            } catch (ex: Exception) {
+                when (ex) {
+                    is JSONRPCException -> throw ex
+                    else -> throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                }
             }
         }
 
-        @Throws(JSONRPCException::class)
-        private inline fun <reified T> extract(name: String, jsonMap: Map<String, Any>): T {
+        @Throws(IllegalArgumentException::class)
+        private inline fun <reified T> extract(name: String, jsonMap: Map<String, Any?>): T {
             try {
                 return jsonMap[name] as T
-            } catch (ex: java.lang.Exception) {
-                throw JSONRPCError(JSONRPCError.Type.InvalidRequest, name).asException()
+            } catch (ex: Exception) {
+                throw JSONRPCError(
+                        JSONRPCError.Type.InvalidRequest,
+                        "The field is missing or an unsupported value is used: $name"
+                ).asException()
             }
         }
     }
@@ -152,11 +161,21 @@ class JSONRPCError constructor(
 internal class JSONRPCLinker {
 
     constructor(jsonString: String) {
-        request = createRequest(jsonString)
+        request = try {
+            JSONRPCRequest(jsonString)
+        } catch (ex: JSONRPCException) {
+            response = JSONRPCResponse(null, ex.jsonRpcError)
+            null
+        }
     }
 
     constructor(map: Map<String, Any>) {
-        request = createRequest(map)
+        request = try {
+            JSONRPCRequest(map)
+        } catch (ex: JSONRPCException) {
+            response = JSONRPCResponse(null, ex.jsonRpcError)
+            null
+        }
     }
 
     val request: JSONRPCRequest?
@@ -191,45 +210,6 @@ internal class JSONRPCLinker {
     }
 
     fun hasError(): Boolean = request == null || response.error != null
-
-    private fun createRequest(jsonString: String): JSONRPCRequest? {
-        val converter = MoshiJsonConverter.INSTANCE
-        val jsonMap = try {
-            converter.toMap(jsonString)
-        } catch (ex: Exception) {
-            val error = JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage)
-            response = JSONRPCResponse(null, error)
-            return null
-        }
-
-        return createRequest(jsonMap)
-    }
-
-    private fun createRequest(map: Map<String, Any>): JSONRPCRequest? {
-        val id = if (map.containsKey("id")) (map["id"] as? Double)?.toInt() else null
-        // initiate blank response with id
-        response = JSONRPCResponse(null, null, id)
-
-        return try {
-            val params: Map<String, Any> = if (map.containsKey("params")) extract("params", map) else mapOf()
-            val jsonrpc: String = extract("jsonrpc", map)
-            val method: String = extract("method", map)
-            JSONRPCRequest(method, params, id, jsonrpc)
-        } catch (ex: Exception) {
-            val error = JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage)
-            response = JSONRPCResponse(null, error)
-            null
-        }
-    }
-
-    @Throws(IllegalArgumentException::class)
-    private inline fun <reified T> extract(name: String, jsonMap: Map<String, Any>): T {
-        try {
-            return jsonMap[name] as T
-        } catch (ex: Exception) {
-            throw IllegalArgumentException(name, ex)
-        }
-    }
 
     companion object {
         fun parse(jsonRequest: String, converter: MoshiJsonConverter): List<JSONRPCLinker> {

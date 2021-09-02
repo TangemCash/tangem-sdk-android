@@ -1,21 +1,19 @@
 {
-  "requests": [
-    {
-      "jsonrpc": "2.0",
-      "id": 1,
-      "method": "create_wallet",
-      "params": {
-        "curve": "Secp256r1"
-      }
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "create_wallet",
+    "params": {
+      "curve": "secp256r1"
     }
-  ],
+  },
   "response": {
     "jsonrpc": "2.0",
     "result": {
       "cardId": "c000111122223333",
       "wallet": {
         "publicKey": "5130869115A2FF91959774C99D4DC2873F0C41AF3E0BB23D027AB16D39DE1348",
-        "curve": "Secp256r1",
+        "curve": "secp256r1",
         "settings": {
           "isPermanent": true
         },

@@ -3,17 +3,16 @@ package com.tangem.common.json
 import com.squareup.moshi.*
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tangem.common.MaskBuilder
-import com.tangem.common.card.Card
-import com.tangem.common.card.CardWallet
-import com.tangem.common.card.FirmwareVersion
-import com.tangem.common.card.SigningMethod
+import com.tangem.common.card.*
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
-import com.tangem.common.files.DataToWrite
-import com.tangem.common.files.FileDataProtectedByPasscode
-import com.tangem.common.files.FileDataProtectedBySignature
+import com.tangem.common.files.*
+import com.tangem.common.hdWallet.bip.BIP44
 import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.attestation.Attestation
+import com.tangem.operations.attestation.AttestationTask
+import com.tangem.operations.files.settings.FileWriteSettings
 import com.tangem.operations.personalization.entities.ProductMask
 import java.lang.reflect.ParameterizedType
 import java.text.SimpleDateFormat
@@ -92,6 +91,22 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                     TangemSdkAdapter.FirmwareVersionAdapter(),
                     TangemSdkAdapter.PreflightReadModeAdapter(),
                     TangemSdkAdapter.DataToWriteAdapter(),
+                    TangemSdkAdapter.EllipticCurveAdapter(),
+                    TangemSdkAdapter.LinkedTerminalStatusAdapter(),
+                    TangemSdkAdapter.CardStatusAdapter(),
+                    TangemSdkAdapter.CardWalletStatusAdapter(),
+                    TangemSdkAdapter.CardSettingsMaskCodeAdapter(),
+                    TangemSdkAdapter.CardWalletSettingsMaskCodeAdapter(),
+                    TangemSdkAdapter.SigningMethodCodeAdapter(),
+                    TangemSdkAdapter.ProductMaskCodeAdapter(),
+                    TangemSdkAdapter.EncryptionModeAdapter(),
+                    TangemSdkAdapter.FirmwareTypeAdapter(),
+                    TangemSdkAdapter.FileDataModeAdapter(),
+                    TangemSdkAdapter.FileSettingsAdapter(),
+                    TangemSdkAdapter.FileWriteSettingsAdapter(),
+                    TangemSdkAdapter.AttestationStatusAdapter(),
+                    TangemSdkAdapter.AttestationModeAdapter(),
+                    TangemSdkAdapter.BIP44ChainAdapter(),
             )
         }
 
@@ -165,9 +180,9 @@ class TangemSdkAdapter {
         @ToJson
         fun toJson(src: PreflightReadMode): String {
             return when (src) {
-                PreflightReadMode.FullCardRead -> "FullCardRead"
-                PreflightReadMode.None -> "None"
-                PreflightReadMode.ReadCardOnly -> "ReadCardOnly"
+                PreflightReadMode.FullCardRead -> "fullCardRead"
+                PreflightReadMode.None -> "none"
+                PreflightReadMode.ReadCardOnly -> "readCardOnly"
                 is PreflightReadMode.ReadWallet -> src.publicKey.toHexString()
             }
         }
@@ -175,9 +190,9 @@ class TangemSdkAdapter {
         @FromJson
         fun fromJson(json: String): PreflightReadMode {
             return when (json) {
-                "FullCardRead" -> PreflightReadMode.FullCardRead
-                "None" -> PreflightReadMode.None
-                "ReadCardOnly" -> PreflightReadMode.ReadCardOnly
+                "fullCardRead" -> PreflightReadMode.FullCardRead
+                "none" -> PreflightReadMode.None
+                "readCardOnly" -> PreflightReadMode.ReadCardOnly
                 else -> {
                     if (json.length == 64) PreflightReadMode.ReadWallet(json.hexToBytes())
                     else throw java.lang.IllegalArgumentException()
@@ -301,6 +316,142 @@ class TangemSdkAdapter {
         fun fromJson(map: MutableMap<String, Any>): FileDataProtectedByPasscode {
             val converter = MoshiJsonConverter.default()
             return converter.fromJson(converter.toJson(map))!!
+        }
+    }
+
+    class EllipticCurveAdapter {
+        @ToJson
+        fun toJson(src: EllipticCurve): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): EllipticCurve = EnumConverter.toEnum(json)
+    }
+
+    class LinkedTerminalStatusAdapter {
+        @ToJson
+        fun toJson(src: Card.LinkedTerminalStatus): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): Card.LinkedTerminalStatus = EnumConverter.toEnum(json)
+    }
+
+    class CardStatusAdapter {
+        @ToJson
+        fun toJson(src: Card.Status): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): Card.Status = EnumConverter.toEnum(json)
+    }
+
+    class CardWalletStatusAdapter {
+        @ToJson
+        fun toJson(src: CardWallet.Status): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): CardWallet.Status = EnumConverter.toEnum(json)
+    }
+
+    class CardSettingsMaskCodeAdapter {
+        @ToJson
+        fun toJson(src: Card.SettingsMask.Code): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): Card.SettingsMask.Code = EnumConverter.toEnum(json)
+    }
+
+    class CardWalletSettingsMaskCodeAdapter {
+        @ToJson
+        fun toJson(src: CardWallet.SettingsMask.Code): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): CardWallet.SettingsMask.Code = EnumConverter.toEnum(json)
+    }
+
+    class SigningMethodCodeAdapter {
+        @ToJson
+        fun toJson(src: SigningMethod.Code): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): SigningMethod.Code = EnumConverter.toEnum(json)
+    }
+
+    class ProductMaskCodeAdapter {
+        @ToJson
+        fun toJson(src: ProductMask.Code): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): ProductMask.Code = EnumConverter.toEnum(json)
+    }
+
+    class EncryptionModeAdapter {
+        @ToJson
+        fun toJson(src: EncryptionMode): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): EncryptionMode = EnumConverter.toEnum(json)
+    }
+
+    class FirmwareTypeAdapter {
+        @ToJson
+        fun toJson(src: FirmwareVersion.FirmwareType): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): FirmwareVersion.FirmwareType = EnumConverter.toEnum(json)
+    }
+
+    class FileDataModeAdapter {
+        @ToJson
+        fun toJson(src: FileDataMode): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): FileDataMode = EnumConverter.toEnum(json)
+    }
+
+    class FileSettingsAdapter {
+        @ToJson
+        fun toJson(src: FileSettings): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): FileSettings = EnumConverter.toEnum(json)
+    }
+
+    class FileWriteSettingsAdapter {
+        @ToJson
+        fun toJson(src: FileWriteSettings): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): FileWriteSettings = EnumConverter.toEnum(json)
+    }
+
+    class AttestationStatusAdapter {
+        @ToJson
+        fun toJson(src: Attestation.Status): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): Attestation.Status = EnumConverter.toEnum(json)
+    }
+
+    class AttestationModeAdapter {
+        @ToJson
+        fun toJson(src: AttestationTask.Mode): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): AttestationTask.Mode = EnumConverter.toEnum(json)
+    }
+
+    class BIP44ChainAdapter {
+        @ToJson
+        fun toJson(src: BIP44.Chain): String = EnumConverter.toJson(src)
+
+        @FromJson
+        fun fromJson(json: String): BIP44.Chain = EnumConverter.toEnum(json)
+    }
+
+    private class EnumConverter {
+        companion object {
+            inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(json.capitalize())
+
+            fun toJson(enum: Enum<*>): String = enum.name.decapitalize()
         }
     }
 }
