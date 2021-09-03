@@ -119,8 +119,7 @@ class NfcReader : CardReader {
         val startTime = System.currentTimeMillis()
         val rawResponse = nfcTag?.isoDep?.transceive(data)
         val finishTime = System.currentTimeMillis()
-        Log.command(this) { "execution time is: ${finishTime - startTime} ms" }
-        Log.nfc { "Success response from card received" }
+        Log.nfc { "Success response from card received. Execution time is: ${finishTime - startTime} ms" }
         return rawResponse
     }
 

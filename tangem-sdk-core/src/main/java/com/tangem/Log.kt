@@ -20,6 +20,10 @@ object Log {
         logInternal(message, Level.Apdu)
     }
 
+    fun apduCommand(message: () -> String) {
+        logInternal({ message().titleFormatted("-") }, Level.Apdu)
+    }
+
     fun session(message: () -> String) {
         logInternal(message, Level.Session)
     }
@@ -48,7 +52,7 @@ object Log {
         logInternal(message, Level.View)
     }
 
-    fun info(message: () -> String){
+    fun info(message: () -> String) {
         logInternal(message, Level.Info)
     }
 

@@ -6,7 +6,6 @@ import com.tangem.common.apdu.*
 import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.core.*
-import com.tangem.common.extensions.titleFormatted
 import com.tangem.common.extensions.toInt
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvTag
@@ -74,9 +73,9 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
     }
 
     private fun transceiveInternal(session: CardSession, callback: CompletionCallback<T>) {
-        Log.apdu { "C-APDU serialization start".titleFormatted() }
+        Log.apduCommand { "C-APDU serialization start" }
         val apdu = serialize(session.environment)
-        Log.apdu { "C-APDU serialization finish".titleFormatted() }
+        Log.apduCommand { "C-APDU serialization finish" }
         showMissingSecurityDelay(session)
         transceiveApdu(apdu, session) { result ->
             when (result) {
@@ -113,9 +112,9 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                 }
                 is CompletionResult.Success -> {
                     try {
-                        Log.apdu { "R-APDU deserialization start".titleFormatted() }
+                        Log.apduCommand { "R-APDU deserialization start" }
                         val response = deserialize(session.environment, result.data)
-                        Log.apdu { "R-APDU deserialization finish".titleFormatted() }
+                        Log.apduCommand { "R-APDU deserialization finish" }
                         callback(CompletionResult.Success(response))
                     } catch (error: TangemSdkError) {
                         callback(CompletionResult.Failure(error))

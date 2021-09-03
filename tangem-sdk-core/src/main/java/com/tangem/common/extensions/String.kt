@@ -29,9 +29,9 @@ fun String.toSnakeCase(): String = replace("(?<=.)(?=\\p{Upper})".toRegex(), "_"
 
 fun String.toCamelCase(): String = split('_').joinToString("", transform = String::capitalize)
 
-fun String.titleFormatted(maxLength: Int = 50): String {
+fun String.titleFormatted(symbol: String = "=", maxLength: Int = 50): String {
     val quotesSize = (maxLength - this.length) / 2
-    val quote = "=".repeat(quotesSize)
+    val quote = symbol.repeat(quotesSize)
     return "$quote $this $quote"
 }
 
