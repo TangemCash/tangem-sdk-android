@@ -47,7 +47,7 @@ class SessionEnvironment(
     fun isUserCodeSet(type: UserCodeType): Boolean {
         return when (type) {
             UserCodeType.AccessCode -> accessCode.value?.contentEquals(type.defaultValue.calculateSha256()) == false
-            UserCodeType.Passcode -> accessCode.value?.contentEquals(type.defaultValue.calculateSha256()) == false
+            UserCodeType.Passcode -> passcode.value?.contentEquals(type.defaultValue.calculateSha256()) == false
         }
     }
 
