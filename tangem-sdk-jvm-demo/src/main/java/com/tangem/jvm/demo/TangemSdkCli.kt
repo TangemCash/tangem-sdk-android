@@ -3,6 +3,7 @@ package com.tangem.jvm.demo
 import com.tangem.Log
 import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCode
 import com.tangem.common.backup.BackupSession
 import com.tangem.common.backup.ResetPinSession
 import com.tangem.common.card.Card
@@ -73,6 +74,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
                     Command.BackupReadData -> backupReadData(sdk) { continuation.resume(it) }
                     Command.BackupLinkMasterCard -> backupLinkMasterCard(sdk) { continuation.resume(it) }
                     Command.BackupWriteData -> backupWriteData(sdk) { continuation.resume(it) }
+                    Command.BackupReset -> backupReset(sdk) { continuation.resume(it) }
                     Command.ResetPinGetToken -> resetPinGetToken(sdk) { continuation.resume(it) }
                     Command.ResetPinSignToken -> resetPinSignToken(sdk) { continuation.resume(it) }
                     Command.ResetPinAuthorizeAndSetNew -> resetPinAuthorizeTokenAndSetNew(sdk) { continuation.resume(it) }
@@ -223,6 +225,13 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         }
     }
 
+    private fun backupReset(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+        val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
+        sdk.backupReset(cardId, null) {
+            callback(it)
+        }
+    }
+
     private fun resetPinGetToken(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cardId: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
 
@@ -352,6 +361,7 @@ enum class Command(val value: String) {
     BackupReadData("backup-read-data"),
     BackupLinkMasterCard("backup-link-master-card"),
     BackupWriteData("backup-write-data"),
+    BackupReset("backup-reset"),
     ResetPinGetToken("reset-pin-get-token"),
     ResetPinSignToken("reset-pin-sign-token"),
     ResetPinAuthorizeAndSetNew("reset-pin");

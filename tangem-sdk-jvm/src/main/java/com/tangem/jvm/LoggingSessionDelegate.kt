@@ -34,10 +34,20 @@ class LoggingSessionDelegate : SessionViewDelegate {
     }
 
     override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {
-        if (isFirstAttempt) {
-            Log.view { "TAG: Enter PIN:" }
-        } else {
-            Log.view { "TAG: Wrong Pin. Enter correct PIN:" }
+        when(type)
+        {
+            UserCodeType.AccessCode ->
+                if (isFirstAttempt) {
+                    Log.view { "TAG: Enter PIN:" }
+                } else {
+                    Log.view { "TAG: Wrong Pin. Enter correct PIN:" }
+                }
+            UserCodeType.Passcode ->
+                if (isFirstAttempt) {
+                    Log.view { "TAG: Enter PIN2:" }
+                } else {
+                    Log.view { "TAG: Wrong Pin2. Enter correct PIN2:" }
+                }
         }
 
         val pin = readLine()

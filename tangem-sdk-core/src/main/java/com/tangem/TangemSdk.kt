@@ -345,6 +345,14 @@ class TangemSdk(
         startSessionWithRunnable(WriteBackupDataCommand(backupSession), cardId, initialMessage, callback)
     }
 
+    fun backupReset(
+        cardId: String?,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<BackupResetResponse>
+    ) {
+        startSessionWithRunnable(BackupResetCommand(), cardId, initialMessage, callback)
+    }
+
     fun resetPinGetToken(
         cardId: String?,
         initialMessage: Message? = null,

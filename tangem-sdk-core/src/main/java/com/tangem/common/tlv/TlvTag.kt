@@ -167,7 +167,7 @@ enum class TlvTag(val code: Int) {
             Offset, Size -> TlvValueType.Uint16
             FileIndex, WalletIndex, WalletsCount, CheckWalletCounter, Backup_Count -> TlvValueType.Uint8
             MaxSignatures, UserCounter, UserProtectedCounter, IssuerDataCounter -> TlvValueType.Uint32
-            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize, Pin2IsDefault -> TlvValueType.BoolValue
+            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize, PinIsDefault, Pin2IsDefault -> TlvValueType.BoolValue
             ManufactureDateTime -> TlvValueType.DateTime
             ProductMask -> TlvValueType.ProductMask
             SettingsMask -> TlvValueType.SettingsMask

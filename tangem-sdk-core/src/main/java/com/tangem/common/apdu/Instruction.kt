@@ -32,7 +32,8 @@ enum class Instruction(var code: Int) {
     Backup_LinkSlaveCards(0xEA),
     Backup_ReadData(0xEB),
     Backup_LinkMasterCard(0xEC),
-    Backup_WriteData(0xED);
+    Backup_WriteData(0xED),
+    Backup_Reset(0xEE);
 
     companion object {
         private val values = values()

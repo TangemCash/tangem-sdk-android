@@ -92,7 +92,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                         val mappedError = mapError(session.environment.card, result.error)
                         if (mappedError is TangemSdkError.AccessCodeRequired) {
                             requestPin(UserCodeType.AccessCode, session, callback)
-                        } else if (mappedError is TangemSdkError.InvalidParams) {
+                        } else if (mappedError is TangemSdkError.InvalidParams || mappedError is TangemSdkError.PasscodeRequired) {
                             if (requiresPasscode()) {
                                 //Addition check for COS v4 and newer to prevent false-positive pin2 request
                                 val isPasscodeSet = session.environment.card?.isPasscodeSet == false

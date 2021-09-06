@@ -157,6 +157,8 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
 
     class ResetPinNoCardToReset: TangemSdkError(41210)
 
+    class BackupNotActive : TangemSdkError(41220)
+
     //General Errors
     class NotPersonalized : TangemSdkError(40001)
     class NotActivated : TangemSdkError(40002)

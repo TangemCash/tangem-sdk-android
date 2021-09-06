@@ -19,40 +19,41 @@ import com.tangem.common.tlv.TlvTag
 import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
+import com.tangem.operations.PreflightReadMode
 
 /**
  * Response from the Tangem card after `CreateWalletCommand`.
  */
 @JsonClass(generateAdapter = true)
-class LinkMasterCardResponse(
+class BackupResetResponse(
     /**
      * Unique Tangem card ID number
      */
     val cardId: String,
-    val state: Card.BackupStatus
+    val state: Card.BackupStatus,
+    val settingsMask: Card.SettingsMask,
+    val isDefaultPIN: Boolean,
+    val isDefaultPIN2: Boolean
 ) : CommandResponse
 
 /**
  */
-class LinkMasterCardCommand(private val backupSession: BackupSession) : Command<LinkMasterCardResponse>() {
+class BackupResetCommand() : Command<BackupResetResponse>() {
 
     override fun requiresPasscode(): Boolean = true
+    override fun preflightReadMode(): PreflightReadMode {
+        return PreflightReadMode.ReadCardOnly
+    }
 
     override fun performPreCheck(card: Card): TangemSdkError? {
-        if (card.wallets.isNotEmpty()) {
-            return TangemSdkError.BackupCannotBeCreated()
+        if (card.backupStatus!=Card.BackupStatus.Active) {
+            return TangemSdkError.BackupNotActive()
         }
-        if (!card.settings.isBackupEnabled) {
-            return TangemSdkError.BackupCannotBeCreated()
-        }
-        if (backupSession.attestSignature==null) return TangemSdkError.BackupMasterCardRequired()
-        if (!backupSession.slaves.containsKey(card.cardId)) return TangemSdkError.BackupSlaveCardRequired()
-        if (backupSession.slaves.count()>2) return TangemSdkError.BackupToMuchSlaveCards()
 
         return null
     }
 
-    override fun run(session: CardSession, callback: CompletionCallback<LinkMasterCardResponse>) {
+    override fun run(session: CardSession, callback: CompletionCallback<BackupResetResponse>) {
         val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
         super.run(session) { result ->
@@ -68,30 +69,17 @@ class LinkMasterCardCommand(private val backupSession: BackupSession) : Command<
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-        tlvBuilder.append(TlvTag.Backup_MasterKey, backupSession.master.backupKey)
-        tlvBuilder.append(TlvTag.Certificate, backupSession.master.certificate)
-        tlvBuilder.append(TlvTag.Backup_AttestSignature, backupSession.attestSignature)
-        tlvBuilder.append(TlvTag.NewPin, backupSession.newPIN)
-        tlvBuilder.append(TlvTag.NewPin2, backupSession.newPIN2)
-        var i=0
-        for(s in backupSession.slaves)
-        {
-            val tlvCardLink =TlvBuilder()
-            tlvCardLink.append(TlvTag.FileIndex, i)
-            tlvCardLink.append(TlvTag.Backup_SlaveKey, s.value.backupKey)
-            tlvBuilder.append(TlvTag.Backup_CardLink, tlvCardLink.serialize())
-            i++
-        }
-
-        return CommandApdu(Instruction.Backup_LinkMasterCard, tlvBuilder.serialize())
+        return CommandApdu(Instruction.Backup_Reset, tlvBuilder.serialize())
     }
 
-    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): LinkMasterCardResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): BackupResetResponse {
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
 
-        return LinkMasterCardResponse(decoder.decode(TlvTag.CardId), Card.BackupStatus.byCode(decoder.decode(TlvTag.Backup_State))!!)
+        return BackupResetResponse(decoder.decode(TlvTag.CardId),
+            Card.BackupStatus.byCode(decoder.decode(TlvTag.Backup_State))!!, decoder.decode(TlvTag.SettingsMask),
+            decoder.decode(TlvTag.PinIsDefault), decoder.decode(TlvTag.Pin2IsDefault))
     }
 }
 
