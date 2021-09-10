@@ -55,8 +55,8 @@ And add Tangem library to the dependencies (in an app or module `build.gradle` f
 
 ```gradle 
 dependencies {
-    implementation "com.github.tangem.tangem-sdk-android:tangem-core:$latestVersion"
-    implementation "com.github.tangem.tangem-sdk-android:tangem-sdk:$latestVersion"
+    implementation "com.tangem.tangem-sdk-kotlin:android:$latestVersion"
+    implementation "com.tangem.tangem-sdk-kotlin:core:$latestVersion"
 }
 ```
 `tangem-core` is a JVM library (without Android dependencies) that provides core functionality of interacting with Tangem cards.
@@ -83,6 +83,52 @@ dependencies {
     android:name=“android.nfc.action.TECH_DISCOVERED”
     android:resource=“@xml/tech_filter” />
 ```
+
+## Getting Started - JVM
+
+### Requirements
+Compatible NFC reader, connected to the computer.
+
+### Installation
+
+1. Add Tangem library to the project:
+
+Add to a project `build.gradle` file:
+
+```gradle
+allprojects {
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+
+And add Tangem library to the dependencies (in an app or module `build.gradle` file):
+
+```gradle 
+dependencies {
+    implementation "com.tangem.tangem-sdk-kotlin:core:$latestVersion"
+    implementation "com.tangem.tangem-sdk-kotlin:jvm:$latestVersion"
+}
+```
+`tangem-core` is a JVM library that provides core functionality of interacting with Tangem cards.
+`tangem-jvm` is a JVM library that allowes to use Tangem core library with NFC readers connected to a Windows/Linux/Mac computer. 
+
+2. Make sure that external reader is connected and that all the necessary drivers are installed so that the system have access to the reader. 
+
+On Mac and Linux execute the terminal command `pcsctest` to check that the reader is connected.  This command lists all available connected readers.
+
+On Windows available readers should be listed in `Device Manager` under  `Smart Card readers` header.
+
+3. Initialize TangemSdk interface using this static initializer function:
+
+```kotlin 
+val tangemSdk = TangemSdk.init(
+    verbose = true, // select depending on whether detailed logs are needed
+    indexOfTerminal = 0 // can be omitted when only one NFC reader is connected to the computer
+)
+```
+
 
 ## Usage
 Tangem SDK is a self-sufficient solution that implements a card abstraction model, methods of interaction with the card and interactions with the user via UI.
