@@ -110,6 +110,8 @@ class CreateWalletCommand(
             tlvBuilder.append(TlvTag.CurveId, curve)
             tlvBuilder.append(TlvTag.SigningMethod, signingMethod)
 
+            // We need to execute this wallet index calculation stuff only after precheck.
+            // Run fires only before precheck. And precheck will not fire if error handling disabled
             val maxIndex = card.settings.maxWalletsCount
             val occupiedIndexes = card.wallets.map { it.index }
             val allIndexes = 0 until maxIndex
