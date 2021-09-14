@@ -9,6 +9,7 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.*
+import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -61,7 +62,10 @@ class WriteIssuerExtraDataCommand(
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
 
         issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         Log.command(this)

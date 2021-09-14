@@ -9,6 +9,7 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -64,7 +65,10 @@ class ReadIssuerDataCommand(
 ) : Command<ReadIssuerDataResponse>(), IssuerDataVerifier by verifier {
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadIssuerDataResponse>) {
-        val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
 
         issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         super.run(session) { result ->
