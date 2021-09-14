@@ -32,7 +32,7 @@ class JSONRPCConverter {
                 is JSONRPCException -> throw ex
                 else -> {
                     // JsonDataException and others
-                    throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                    throw JSONRPCErrorType.ParseError.toJSONRPCError(ex.localizedMessage).asException()
                 }
             }
 
@@ -46,7 +46,7 @@ class JSONRPCConverter {
         if (handler == null) {
             val errorMessage = "Can't create the CardSessionRunnable. " +
                     "Missed converter for the method: ${request.method}"
-            throw JSONRPCError(JSONRPCError.Type.MethodNotFound, errorMessage).asException()
+            throw JSONRPCErrorType.MethodNotFound.toJSONRPCError(errorMessage).asException()
         }
         return handler
     }
@@ -87,7 +87,7 @@ class JSONRPCRequest constructor(
             val jsonMap: Map<String, Any?> = try {
                 converter.fromJson(jsonString, converter.typedMap())!!
             } catch (ex: Exception) {
-                throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                throw JSONRPCErrorType.ParseError.toJSONRPCError(ex.localizedMessage).asException()
             }
 
             return JSONRPCRequest(jsonMap)
@@ -103,7 +103,7 @@ class JSONRPCRequest constructor(
             } catch (ex: Exception) {
                 when (ex) {
                     is JSONRPCException -> throw ex
-                    else -> throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                    else -> throw JSONRPCErrorType.ParseError.toJSONRPCError(ex.localizedMessage).asException()
                 }
             }
         }
@@ -113,8 +113,7 @@ class JSONRPCRequest constructor(
             try {
                 return jsonMap[name] as T
             } catch (ex: Exception) {
-                throw JSONRPCError(
-                        JSONRPCError.Type.InvalidRequest,
+                throw JSONRPCErrorType.InvalidRequest.toJSONRPCError(
                         "The field is missing or an unsupported value is used: $name"
                 ).asException()
             }
@@ -130,31 +129,36 @@ data class JSONRPCResponse(
     val jsonrpc: String = "2.0",
 ) : JSONStringConvertible
 
+data class ErrorData(val code: Int, val message: String)
+
 @JsonClass(generateAdapter = true)
 class JSONRPCError constructor(
     val code: Int,
     val message: String,
-    val data: Any? = null
+    val data: ErrorData? = null
 ) : JSONStringConvertible {
 
-    constructor(type: Type, data: Any? = null) : this(type.error.code, type.error.message, data)
+    constructor(type: JSONRPCErrorType, data: ErrorData? = null) : this(type.errorData.code, type.errorData.message, data)
 
     fun asException(): JSONRPCException = JSONRPCException(this)
 
-    enum class Type(val error: ErrorDescription) {
-        ParseError(ErrorDescription(-32700, "Parse error")),
-        InvalidRequest(ErrorDescription(-32600, "Invalid request")),
-        MethodNotFound(ErrorDescription(-32601, "Method not found")),
-        InvalidParams(ErrorDescription(-32602, "Invalid parameters")),
-        InternalError(ErrorDescription(-32603, "Internal error")),
-        ServerError(ErrorDescription(-32000, "Server error")),
-        UnknownError(ErrorDescription(-32999, "Unknown error"));
-
-        data class ErrorDescription(val code: Int, val message: String)
-    }
-
     override fun toString(): String {
         return "code: $code, message: ${message}. Data: $data"
+    }
+}
+
+enum class JSONRPCErrorType(val errorData: ErrorData) {
+    ParseError(ErrorData(-32700, "Parse error")),
+    InvalidRequest(ErrorData(-32600, "Invalid request")),
+    MethodNotFound(ErrorData(-32601, "Method not found")),
+    InvalidParams(ErrorData(-32602, "Invalid parameters")),
+    InternalError(ErrorData(-32603, "Internal error")),
+    ServerError(ErrorData(-32000, "Server error")),
+    UnknownError(ErrorData(-32999, "Unknown error"));
+
+    fun toJSONRPCError(customMessage: String? = null): JSONRPCError {
+        val description = ErrorData(this.errorData.code, customMessage ?: this.errorData.message)
+        return JSONRPCError(this, description)
     }
 }
 
@@ -201,11 +205,11 @@ internal class JSONRPCLinker {
     fun linkResult(result: CompletionResult<*>) {
         when (result) {
             is CompletionResult.Success -> response = JSONRPCResponse(result.data, null)
-            is CompletionResult.Failure -> linkeError(result.error)
+            is CompletionResult.Failure -> linkError(result.error)
         }
     }
 
-    fun linkeError(tangemError: TangemError) {
+    fun linkError(tangemError: TangemError) {
         response = JSONRPCResponse(null, tangemError.toJSONRPCError())
     }
 
@@ -219,10 +223,10 @@ internal class JSONRPCLinker {
                 val listOfMap: List<Map<String, Any>>? = try {
                     converter.fromJson(trimmed)
                 } catch (ex: Exception) {
-                    throw JSONRPCError(JSONRPCError.Type.ParseError, ex.localizedMessage).asException()
+                    throw JSONRPCErrorType.ParseError.toJSONRPCError(ex.localizedMessage).asException()
                 }
                 listOfMap?.map { JSONRPCLinker(it) }
-                        ?: throw JSONRPCError(JSONRPCError.Type.ParseError, "Empty requests").asException()
+                        ?: throw JSONRPCErrorType.ParseError.toJSONRPCError("Empty requests").asException()
             } else {
                 listOf(JSONRPCLinker(jsonRequest))
             }
@@ -241,5 +245,6 @@ class JSONRPCException(val jsonRpcError: JSONRPCError) : Exception(jsonRpcError.
 }
 
 fun TangemError.toJSONRPCError(): JSONRPCError {
-    return JSONRPCError(JSONRPCError.Type.ServerError, "$code: ${this::class.java.simpleName}")
+    val description = ErrorData(code, this::class.java.simpleName)
+    return JSONRPCError(JSONRPCErrorType.ServerError, description)
 }
