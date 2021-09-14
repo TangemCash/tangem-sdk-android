@@ -30,8 +30,10 @@ sealed class Result<out T> {
 }
 
 fun Result.Failure.toTangemSdkError(): TangemSdkError {
-    val message = "Network error. Cause: ${error?.toString() ?: "none"}"
-    return TangemSdkError.NetworkError(message)
+    return when (this.error) {
+        is TangemSdkError -> this.error
+        else -> TangemSdkError.NetworkError("Network error. Cause: ${error?.toString() ?: "none"}")
+    }
 }
 
 suspend fun <T> performRequest(block: suspend () -> T): Result<T> {
