@@ -95,6 +95,20 @@ class CreateWalletCommand(
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
+        // We need to execute this wallet index calculation stuff only after precheck.
+        // Run fires only before precheck. And precheck will not fire if error handling disabled
+        val maxIndex = card.settings.maxWalletsCount
+        val occupiedIndexes = card.wallets.map { it.index }
+        val allIndexes = 0 until maxIndex
+
+        walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
+            if (maxIndex == 1) {
+                throw TangemSdkError.AlreadyCreated()
+            } else {
+                throw TangemSdkError.MaxNumberOfWalletsCreated()
+            }
+        }
+
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
@@ -110,19 +124,6 @@ class CreateWalletCommand(
             tlvBuilder.append(TlvTag.CurveId, curve)
             tlvBuilder.append(TlvTag.SigningMethod, signingMethod)
 
-            // We need to execute this wallet index calculation stuff only after precheck.
-            // Run fires only before precheck. And precheck will not fire if error handling disabled
-            val maxIndex = card.settings.maxWalletsCount
-            val occupiedIndexes = card.wallets.map { it.index }
-            val allIndexes = 0 until maxIndex
-
-            walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
-                if (maxIndex == 1) {
-                    throw TangemSdkError.AlreadyCreated()
-                } else {
-                    throw TangemSdkError.MaxNumberOfWalletsCreated()
-                }
-            }
             tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
         }
 
