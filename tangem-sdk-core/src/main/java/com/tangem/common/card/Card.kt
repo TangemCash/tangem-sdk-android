@@ -216,7 +216,7 @@ data class Card internal constructor(
         /**
          * Is allowed to delete wallet. COS before v4
          */
-        val isPermanentWallet: Boolean,
+        internal val isPermanentWallet: Boolean,
 
         /**
          * Is overwriting issuer extra data restricted

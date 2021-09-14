@@ -65,17 +65,6 @@ class CreateWalletCommand(
             }
         }
 
-        val maxIndex = card.settings.maxWalletsCount
-        val occupiedIndexes = card.wallets.map { it.index }
-        val allIndexes = 0 until maxIndex
-
-        walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
-            return if (maxIndex == 1) {
-                TangemSdkError.AlreadyCreated()
-            } else {
-                TangemSdkError.MaxNumberOfWalletsCreated()
-            }
-        }
         return null
     }
 
@@ -104,15 +93,29 @@ class CreateWalletCommand(
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
+
+        // We need to execute this wallet index calculation stuff only after precheck.
+        // Run fires only before precheck. And precheck will not fire if error handling disabled
+        val maxIndex = card.settings.maxWalletsCount
+        val occupiedIndexes = card.wallets.map { it.index }
+        val allIndexes = 0 until maxIndex
+
+        walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
+            if (maxIndex == 1) {
+                throw TangemSdkError.AlreadyCreated()
+            } else {
+                throw TangemSdkError.MaxNumberOfWalletsCreated()
+            }
+        }
+
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-        tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
+        tlvBuilder.append(TlvTag.CardId, card.cardId)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
 
-        val firmwareVersion = environment.card?.firmwareVersion ?: FirmwareVersion.Min
-        if (firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
+        if (card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
             val cardWalletSettingsMask = MaskBuilder().apply {
                 add(CardWallet.SettingsMask.Code.IsReusable)
             }.build<CardWallet.SettingsMask>()
@@ -120,6 +123,8 @@ class CreateWalletCommand(
             tlvBuilder.append(TlvTag.SettingsMask, cardWalletSettingsMask)
             tlvBuilder.append(TlvTag.CurveId, curve)
             tlvBuilder.append(TlvTag.SigningMethod, signingMethod)
+
+            tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
         }
 
         return CommandApdu(Instruction.CreateWallet, tlvBuilder.serialize())

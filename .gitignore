@@ -10,10 +10,8 @@ local.properties
 .gradle
 
 # User-specific configurations
-.idea/caches/
-.idea/libraries/
+.idea/
 .idea/*.xml
-.idea/codeStyles
 
 # LayoutInspector files
 /captures
