@@ -8,6 +8,7 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.toHexString
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.read.ReadWalletCommand
@@ -79,14 +80,18 @@ class PreflightReadTask(
         }
 
         when (readMode) {
-            is PreflightReadMode.ReadWallet -> readWallet(readMode.publicKey, session, card, callback)
-            PreflightReadMode.FullCardRead -> readWalletsList(session, card, callback)
+            is PreflightReadMode.ReadWallet -> readWallet(readMode.publicKey, session, callback)
+            PreflightReadMode.FullCardRead -> readWalletsList(session, callback)
             PreflightReadMode.ReadCardOnly, PreflightReadMode.None -> callback(CompletionResult.Success(card))
         }
     }
 
-    private fun readWallet(publicKey: ByteArray, session: CardSession, card: Card, callback: CompletionCallback<Card>) {
+    private fun readWallet(publicKey: ByteArray, session: CardSession, callback: CompletionCallback<Card>) {
         ReadWalletCommand(publicKey).run(session) { result ->
+            val card = session.environment.card.guard {
+                callback(CompletionResult.Failure(TangemSdkError.CardError()))
+                return@run
+            }
             when (result) {
                 is CompletionResult.Success -> callback(CompletionResult.Success(card))
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
@@ -94,8 +99,12 @@ class PreflightReadTask(
         }
     }
 
-    private fun readWalletsList(session: CardSession, card: Card, callback: CompletionCallback<Card>) {
+    private fun readWalletsList(session: CardSession, callback: CompletionCallback<Card>) {
         ReadWalletsListCommand().run(session) { result ->
+            val card = session.environment.card.guard {
+                callback(CompletionResult.Failure(TangemSdkError.CardError()))
+                return@run
+            }
             when (result) {
                 is CompletionResult.Success -> callback(CompletionResult.Success(card))
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
