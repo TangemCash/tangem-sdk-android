@@ -3,6 +3,7 @@ package com.tangem.operations.attestation
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tangem.Log
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.services.Result
 import com.tangem.common.services.performRequest
@@ -39,8 +40,12 @@ class OnlineCardVerifier {
 
         return when (val result = performRequest { tangemApi.getCardVerifyAndGetInfo(requestsBody) }) {
             is Result.Success -> {
-                if (result.data.results.isNullOrEmpty()) Result.Failure(Exception("Item is empty"))
-                else Result.Success(result.data.results!![0])
+                val firstResult = result.data.results?.firstOrNull()
+                when {
+                    firstResult == null -> Result.Failure(Exception("Empty response"))
+                    !firstResult.passed -> Result.Failure(TangemSdkError.CardVerificationFailed())
+                    else -> Result.Success(firstResult)
+                }
             }
             is Result.Failure -> result
         }
