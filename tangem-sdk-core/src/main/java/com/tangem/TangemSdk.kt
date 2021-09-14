@@ -800,14 +800,14 @@ class TangemSdk(
                     when (result) {
                         is CompletionResult.Success -> callback(converter.toJson(result.data.responses))
                         is CompletionResult.Failure -> {
-                            linkersList.forEach { it.linkeError(result.error) }
+                            linkersList.forEach { it.linkError(result.error) }
                             callback(linkersList.createResult(converter))
                         }
                     }
                 }
             }
         } catch (ex: TangemSdkError) {
-            linkersList.forEach { it.linkeError(ex) }
+            linkersList.forEach { it.linkError(ex) }
             callback(linkersList.createResult(converter))
         }
     }
