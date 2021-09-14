@@ -54,7 +54,6 @@ class WriteIssuerExtraDataCommand(
             return TangemSdkError.MissingCounter()
         }
 
-        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         if (!verifySignatures(issuerPublicKey!!, card.cardId)) {
             return TangemSdkError.VerificationFailed()
         }
@@ -62,6 +61,9 @@ class WriteIssuerExtraDataCommand(
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
+        val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
+
+        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         Log.command(this)
         writeData(session, callback)
     }

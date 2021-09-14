@@ -106,13 +106,14 @@ class ReadIssuerExtraDataCommand(
         if (card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
-        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
 
         return null
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadIssuerExtraDataResponse>) {
-        Log.command(this)
+        val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
+
+        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         readData(session, callback)
     }
 

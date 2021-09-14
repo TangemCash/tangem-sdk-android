@@ -5,7 +5,6 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.Card
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
@@ -64,13 +63,10 @@ class ReadIssuerDataCommand(
     verifier: IssuerDataVerifier = DefaultIssuerDataVerifier()
 ) : Command<ReadIssuerDataResponse>(), IssuerDataVerifier by verifier {
 
-    override fun performPreCheck(card: Card): TangemSdkError? {
-        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
-
-        return null
-    }
-
     override fun run(session: CardSession, callback: CompletionCallback<ReadIssuerDataResponse>) {
+        val card = session.environment.card ?: throw TangemSdkError.MissingPreflightRead()
+
+        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         super.run(session) { result ->
             when (result) {
                 is CompletionResult.Failure -> callback(result)
