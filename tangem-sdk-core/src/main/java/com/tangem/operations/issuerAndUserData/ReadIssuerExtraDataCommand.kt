@@ -12,6 +12,7 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -106,13 +107,17 @@ class ReadIssuerExtraDataCommand(
         if (card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
-        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
 
         return null
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadIssuerExtraDataResponse>) {
-        Log.command(this)
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
+
+        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         readData(session, callback)
     }
 
