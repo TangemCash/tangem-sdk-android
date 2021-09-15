@@ -44,10 +44,9 @@ class LoggingSessionDelegate : SessionViewDelegate {
         pin?.let { callback.invoke(it) }
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String) -> Unit) {
+    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {
         Log.view { "TAG: Enter new PIN:" }
-        val pin = readLine()
-        pin?.let { callback.invoke(it) }
+        callback.invoke(readLine())
     }
 
     override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {

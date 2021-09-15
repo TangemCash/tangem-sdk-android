@@ -77,7 +77,7 @@ class DefaultSessionViewDelegate(
         readingDialog?.show(SessionViewDelegateState.PinRequested(type, isFirstAttempt, callback))
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String) -> Unit) {
+    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {
         Log.view { "Showing pin change request with type: $type" }
         createAndShowState(SessionViewDelegateState.PinChangeRequested(type, callback), false)
     }
