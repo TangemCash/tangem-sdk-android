@@ -7,8 +7,6 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.extensions.hexToBytes
-import com.tangem.crypto.sign
 import java.util.*
 
 /**
@@ -24,12 +22,12 @@ data class CardConfig(
     internal val count: Int,
     internal val numberFormat: String,
     @Json(name = "PIN")
-    internal val pin: ByteArray,
+    internal val pin: String,
     @Json(name = "PIN2")
-    internal val pin2: ByteArray,
+    internal val pin2: String,
     @Json(name = "PIN3")
-    internal val pin3: ByteArray?,
-    internal val hexCrExKey: String?,
+    internal val pin3: String?,
+    internal val hexCrExKey: ByteArray?,
     @Json(name = "CVC")
     internal val cvc: String,
     @Json(name = "pauseBeforePIN2")
@@ -111,14 +109,10 @@ data class CardConfig(
         val tokenDecimal: Int?,
     ) {
 
-        internal fun createPersonalizationCardData(issuer: Issuer, manufacturer: Manufacturer, cardId: String): CardData {
-            val manufacturerSignature = cardId.hexToBytes().sign(manufacturer.keyPair.privateKey)
-
+        internal fun createPersonalizationCardData(): CardData {
             return CardData(batch,
                     date ?: Date(),
-                    issuer.name,
                     blockchain,
-                    manufacturerSignature,
                     createProductMask(),
                     tokenSymbol,
                     tokenContractAddress,

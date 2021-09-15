@@ -12,10 +12,15 @@ import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
 
 class CardDeserializer {
+
     companion object {
-        internal fun deserialize(decoder: TlvDecoder, cardDataDecoder: TlvDecoder?): Card {
+        internal fun deserialize(
+            decoder: TlvDecoder,
+            cardDataDecoder: TlvDecoder?,
+            allowNotPersonalized: Boolean = false
+        ): Card {
             val status: Card.Status = decoder.decode(TlvTag.Status)
-            assertStatus(status)
+            assertStatus(allowNotPersonalized, status)
             assertActivation(decoder.decode(TlvTag.IsActivated) as Boolean)
             val cardDataDecoder = cardDataDecoder ?: throw TangemSdkError.DeserializeApduFailed()
 
@@ -104,10 +109,10 @@ class CardDeserializer {
             return if (cardDataValue.isNullOrEmpty()) null else TlvDecoder(cardDataValue)
         }
 
-        private fun assertStatus(status: Card.Status) {
-            when (status) {
-                Card.Status.NotPersonalized -> throw TangemSdkError.NotPersonalized()
-                Card.Status.Purged -> throw TangemSdkError.WalletIsPurged()
+        private fun assertStatus(allowNotPersonalized: Boolean, status: Card.Status) {
+            when {
+                status == Card.Status.NotPersonalized && !allowNotPersonalized -> throw TangemSdkError.NotPersonalized()
+                status == Card.Status.Purged -> throw TangemSdkError.WalletIsPurged()
             }
         }
 
