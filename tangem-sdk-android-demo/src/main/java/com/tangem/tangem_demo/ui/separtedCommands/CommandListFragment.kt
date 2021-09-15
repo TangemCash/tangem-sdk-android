@@ -178,18 +178,33 @@ class CommandListFragment : BaseFragment() {
 
     private var jsonRpcSingleCommandTemplate: String = """
     {
-          "method": "SET_ACCESSCODE",
-          "params": {},
-          "jsonrpc": "2.0"
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "scan",
+        "params": {}
     }
     """.trim()
 
     private var jsonRpcListCommandsTemplate: String = """
-    {
-          "method": "SET_PASSCODE",
+    [
+        {
+          "method": "scan",
           "params": {},
+          "id": 1,
           "jsonrpc": "2.0"
-    }
+        },
+        {
+          "method": "create_wallet",
+          "params": {
+            "curve": "Secp256k1"
+          },
+          "jsonrpc": "2.0"
+        },
+        {
+          "method": "scan",
+          "id": 2,
+          "jsonrpc": "2.0"
+        }
+    ]
     """.trim()
-
 }
