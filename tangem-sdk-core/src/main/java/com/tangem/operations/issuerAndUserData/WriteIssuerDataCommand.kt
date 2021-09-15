@@ -1,13 +1,13 @@
 package com.tangem.operations.issuerAndUserData
 
+import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
-import com.tangem.common.core.SessionEnvironment
-import com.tangem.common.core.TangemError
-import com.tangem.common.core.TangemSdkError
+import com.tangem.common.core.*
+import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -43,7 +43,6 @@ class WriteIssuerDataCommand(
             return TangemSdkError.MissingCounter()
         }
 
-        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
         if (!verifySignature(issuerPublicKey!!, card.cardId)) {
             return TangemSdkError.VerificationFailed()
         }
@@ -54,6 +53,16 @@ class WriteIssuerDataCommand(
     private fun verifySignature(issuerPublicKey: ByteArray, cardId: String): Boolean {
         val data = IssuerDataToVerify(cardId, issuerData, issuerDataCounter)
         return verify(issuerPublicKey, issuerDataSignature, data)
+    }
+
+    override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
+
+        issuerPublicKey = issuerPublicKey ?: card.issuer.publicKey
+        super.run(session, callback)
     }
 
     override fun mapError(card: Card?, error: TangemError): TangemError {
