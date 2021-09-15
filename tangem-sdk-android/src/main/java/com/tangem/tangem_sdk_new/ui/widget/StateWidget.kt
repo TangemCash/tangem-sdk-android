@@ -13,6 +13,8 @@ interface StateWidget<T> {
 
 abstract class BaseStateWidget<T>(protected val mainView: View) : StateWidget<T> {
 
+    var onBottomSheetDismiss: (() -> Unit)? = null
+
     override fun isVisible(): Boolean = mainView.visibility == View.VISIBLE
 
     override fun showWidget(show: Boolean, withAnimation: Boolean) {
@@ -20,7 +22,8 @@ abstract class BaseStateWidget<T>(protected val mainView: View) : StateWidget<T>
     }
 
     override fun onBottomSheetDismiss() {
-
+        onBottomSheetDismiss?.invoke()
+        onBottomSheetDismiss = null
     }
 
     protected fun getString(id: Int): String = mainView.context.getString(id)
