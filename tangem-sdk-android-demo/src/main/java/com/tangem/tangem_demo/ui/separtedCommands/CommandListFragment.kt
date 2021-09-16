@@ -207,5 +207,4 @@ class CommandListFragment : BaseFragment() {
         }
     ]
     """.trim()
-
 }

@@ -192,7 +192,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun onSessionStopped(message: Message?) {}
         override fun onError(error: TangemError) {}
         override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {}
-        override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String) -> Unit) {}
+        override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {}
         override fun setConfig(config: Config) {}
         override fun setMessage(message: Message?) {}
         override fun dismiss() {}

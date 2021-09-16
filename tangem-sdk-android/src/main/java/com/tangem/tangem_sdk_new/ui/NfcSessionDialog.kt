@@ -168,8 +168,12 @@ class NfcSessionDialog(
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         headerWidget.onClose = { cancel() }
+        // userCode changes failed if an user dismiss the dialog from any moment
+        pinCodeSetChangeWidget.onBottomSheetDismiss = { state.callback(null) }
         pinCodeSetChangeWidget.onSave = {
             enableBottomSheetAnimation()
+            // disable sending the error if dialog closed after accepting an userCode
+            pinCodeSetChangeWidget.onBottomSheetDismiss = null
             pinCodeSetChangeWidget.onSave = null
 
             setStateAndShow(getEmptyOnReadyEvent(), headerWidget, touchCardWidget, messageWidget)
