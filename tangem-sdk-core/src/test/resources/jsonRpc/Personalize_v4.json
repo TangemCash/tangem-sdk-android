@@ -13,7 +13,7 @@
         "PIN": "000000",
         "PIN2": "000",
         "CVC": "000",
-        "walletsCount": 40,
+        "walletsCount": 10,
         "pauseBeforePIN2": 30000,
         "smartSecurityDelay": true,
         "curveID": "secp256k1",

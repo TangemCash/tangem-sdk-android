@@ -15,17 +15,9 @@ internal class CardData(
      */
     val manufactureDateTime: Date,
     /**
-     * Name of the issuer.
-     */
-    val issuerName: String?,
-    /**
      * Name of the blockchain.
      */
     val blockchainName: String,
-    /**
-     * Signature of CardId with manufacturer’s private key. COS 1.21+
-     */
-    val manufacturerSignature: ByteArray?,
     /**
      * Mask of products enabled on card. COS 2.30+
      */

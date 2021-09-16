@@ -2,13 +2,12 @@ package com.tangem.operations.personalization.entities
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.tangem.common.Mask
 import com.tangem.common.MaskBuilder
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.extensions.hexToBytes
-import com.tangem.crypto.sign
 import java.util.*
 
 /**
@@ -24,12 +23,12 @@ data class CardConfig(
     internal val count: Int,
     internal val numberFormat: String,
     @Json(name = "PIN")
-    internal val pin: ByteArray,
+    internal val pin: String,
     @Json(name = "PIN2")
-    internal val pin2: ByteArray,
+    internal val pin2: String,
     @Json(name = "PIN3")
-    internal val pin3: ByteArray?,
-    internal val hexCrExKey: String?,
+    internal val pin3: String?,
+    internal val hexCrExKey: ByteArray?,
     @Json(name = "CVC")
     internal val cvc: String,
     @Json(name = "pauseBeforePIN2")
@@ -71,6 +70,8 @@ data class CardConfig(
     internal val disableIssuerData: Boolean?,
     internal val disableUserData: Boolean?,
     internal val disableFiles: Boolean?,
+    internal val allowHDWallets: Boolean?,
+    internal val allowBackup: Boolean?,
     internal val createWallet: Int,
     internal val cardData: CardConfigData,
     @Json(name = "NDEF")
@@ -111,14 +112,10 @@ data class CardConfig(
         val tokenDecimal: Int?,
     ) {
 
-        internal fun createPersonalizationCardData(issuer: Issuer, manufacturer: Manufacturer, cardId: String): CardData {
-            val manufacturerSignature = cardId.hexToBytes().sign(manufacturer.keyPair.privateKey)
-
+        internal fun createPersonalizationCardData(): CardData {
             return CardData(batch,
                     date ?: Date(),
-                    issuer.name,
                     blockchain,
-                    manufacturerSignature,
                     createProductMask(),
                     tokenSymbol,
                     tokenContractAddress,
@@ -155,116 +152,43 @@ data class CardConfig(
 internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     val builder = MaskBuilder()
 
-    if (allowSetPIN1) {
-        builder.add(Card.SettingsMask.Code.AllowSetPIN1)
-    }
-    if (allowSetPIN2) {
-        builder.add(Card.SettingsMask.Code.AllowSetPIN2)
-    }
-    if (useCvc) {
-        builder.add(Card.SettingsMask.Code.UseCvc)
-    }
-
     //Now we can personalize only reusable wallets
     builder.add(Card.SettingsMask.Code.IsReusable)
 
-    if (useOneCommandAtTime == true) {
-        builder.add(Card.SettingsMask.Code.UseOneCommandAtTime)
-    }
-    if (useNDEF) {
-        builder.add(Card.SettingsMask.Code.UseNDEF)
-    }
-    if (useDynamicNDEF == true) {
-        builder.add(Card.SettingsMask.Code.UseDynamicNDEF)
-    }
-    if (disablePrecomputedNDEF == true) {
-        builder.add(Card.SettingsMask.Code.DisablePrecomputedNDEF)
-    }
-    if (allowUnencrypted) {
-        builder.add(Card.SettingsMask.Code.AllowUnencrypted)
-    }
-    if (allowFastEncryption) {
-        builder.add(Card.SettingsMask.Code.AllowFastEncryption)
-    }
-    if (prohibitDefaultPIN1) {
-        builder.add(Card.SettingsMask.Code.ProhibitDefaultPIN1)
-    }
-    if (useActivation) {
-        builder.add(Card.SettingsMask.Code.UseActivation)
-    }
-    if (useBlock) {
-        builder.add(Card.SettingsMask.Code.UseBlock)
-    }
-    if (smartSecurityDelay) {
-        builder.add(Card.SettingsMask.Code.SmartSecurityDelay)
-    }
-    if (protectIssuerDataAgainstReplay == true) {
-        builder.add(Card.SettingsMask.Code.ProtectIssuerDataAgainstReplay)
-    }
-    if (prohibitPurgeWallet) {
-        builder.add(Card.SettingsMask.Code.PermanentWallet)
-    }
-    if (allowSelectBlockchain) {
-        builder.add(Card.SettingsMask.Code.AllowSelectBlockchain)
-    }
-    if (skipCheckPIN2CVCIfValidatedByIssuer) {
-        builder.add(Card.SettingsMask.Code.SkipCheckPIN2CVCIfValidatedByIssuer)
-    }
-    if (skipSecurityDelayIfValidatedByIssuer) {
-        builder.add(Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByIssuer)
-    }
-    if (skipSecurityDelayIfValidatedByLinkedTerminal) {
-        builder.add(Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal)
-    }
-    if (restrictOverwriteIssuerDataEx == true) {
-        builder.add(Card.SettingsMask.Code.RestrictOverwriteIssuerExtraData)
-    }
-    if (disableIssuerData == true) {
-        builder.add(Card.SettingsMask.Code.DisableIssuerData)
-    }
-    if (disableUserData == true) {
-        builder.add(Card.SettingsMask.Code.DisableUserData)
-    }
-    if (disableFiles == true) {
-        builder.add(Card.SettingsMask.Code.DisableFiles)
-    }
+    builder.addIf(allowSetPIN1, Card.SettingsMask.Code.AllowSetPIN1)
+    builder.addIf(allowSetPIN2, Card.SettingsMask.Code.AllowSetPIN2)
+    builder.addIf(useCvc, Card.SettingsMask.Code.UseCvc)
+    builder.addIf(useOneCommandAtTime, Card.SettingsMask.Code.UseOneCommandAtTime)
+    builder.addIf(useNDEF, Card.SettingsMask.Code.UseNDEF)
+    builder.addIf(useDynamicNDEF, Card.SettingsMask.Code.UseDynamicNDEF)
+    builder.addIf(disablePrecomputedNDEF, Card.SettingsMask.Code.DisablePrecomputedNDEF)
+    builder.addIf(allowUnencrypted, Card.SettingsMask.Code.AllowUnencrypted)
+    builder.addIf(allowFastEncryption, Card.SettingsMask.Code.AllowFastEncryption)
+    builder.addIf(prohibitDefaultPIN1, Card.SettingsMask.Code.ProhibitDefaultPIN1)
+    builder.addIf(useActivation, Card.SettingsMask.Code.UseActivation)
+    builder.addIf(useBlock, Card.SettingsMask.Code.UseBlock)
+    builder.addIf(smartSecurityDelay, Card.SettingsMask.Code.SmartSecurityDelay)
+    builder.addIf(protectIssuerDataAgainstReplay, Card.SettingsMask.Code.ProtectIssuerDataAgainstReplay)
+    builder.addIf(prohibitPurgeWallet, Card.SettingsMask.Code.PermanentWallet)
+    builder.addIf(allowSelectBlockchain, Card.SettingsMask.Code.AllowSelectBlockchain)
+    builder.addIf(skipCheckPIN2CVCIfValidatedByIssuer, Card.SettingsMask.Code.SkipCheckPIN2CVCIfValidatedByIssuer)
+    builder.addIf(skipSecurityDelayIfValidatedByIssuer, Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByIssuer)
+    builder.addIf(skipSecurityDelayIfValidatedByLinkedTerminal, Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal)
+    builder.addIf(restrictOverwriteIssuerDataEx, Card.SettingsMask.Code.RestrictOverwriteIssuerExtraData)
+    builder.addIf(disableIssuerData, Card.SettingsMask.Code.DisableIssuerData)
+    builder.addIf(disableUserData, Card.SettingsMask.Code.DisableUserData)
+    builder.addIf(disableFiles, Card.SettingsMask.Code.DisableFiles)
+    builder.addIf(allowHDWallets, Card.SettingsMask.Code.AllowHDWallets)
+    builder.addIf(allowBackup, Card.SettingsMask.Code.AllowBackup)
+
     return builder.build()
 }
 
-internal fun CardConfig.createCardId(): String? {
-    if (series == null) return null
-    if (startNumber <= 0 || (series.length != 2 && series.length != 4)) return null
-
-    val Alf = "ABCDEF0123456789"
-    fun checkSeries(series: String): Boolean {
-        val containsList = series.filter { Alf.contains(it) }
-        return containsList.length == series.length
-    }
-    if (!checkSeries(series)) return null
-
-    val tail = if (series.length == 2) String.format("%013d", startNumber) else String.format("%011d", startNumber)
-    var cardId = (series + tail).replace(" ", "")
-    if (cardId.length != 15 || Alf.indexOf(cardId[0]) == -1 || Alf.indexOf(cardId[1]) == -1)
-        return null
-
-    cardId += "0"
-    val length = cardId.length
-    var sum = 0
-    for (i in 0 until length) {
-        // get digits in reverse order
-        var digit: Int
-        val cDigit = cardId[length - i - 1]
-        digit = if (cDigit in '0'..'9') cDigit - '0' else cDigit - 'A'
-
-        // every 2nd number multiply with 2
-        if (i % 2 == 1) digit *= 2
-        sum += if (digit > 9) digit - 9 else digit
-    }
-    val lunh = (10 - sum % 10) % 10
-    return cardId.substring(0, 15) + String.format("%d", lunh)
+private fun MaskBuilder.addIf(condition: Boolean?, maskCode: Mask.Code) {
+    if (condition == true) add(maskCode)
 }
 
-fun createCardId(series: String, startNumber: Long): String? {
+internal fun CardConfig.createCardId(): String? {
     if (series == null) return null
     if (startNumber <= 0 || (series.length != 2 && series.length != 4)) return null
 

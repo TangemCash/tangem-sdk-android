@@ -314,7 +314,9 @@ data class Card internal constructor(
             SkipSecurityDelayIfValidatedByIssuer(0x00020000),
             DisableIssuerData(0x01000000),
             DisableUserData(0x02000000),
-            DisableFiles(0x04000000);
+            DisableFiles(0x04000000),
+            AllowHDWallets(0x00200000),
+            AllowBackup(0x00400000),
         }
     }
 }
