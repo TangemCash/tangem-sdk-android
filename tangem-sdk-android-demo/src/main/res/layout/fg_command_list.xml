@@ -12,6 +12,8 @@
 
         <include layout="@layout/scan_card" />
 
+        <include layout="@layout/personalization_backup" />
+
         <include layout="@layout/attestation" />
 
         <include layout="@layout/hd_wallet" />

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:paddingStart="@dimen/box_padding_horizontal"
+    android:paddingTop="@dimen/box_padding_vertical"
+    android:paddingEnd="@dimen/box_padding_horizontal"
+    android:paddingBottom="@dimen/box_padding_vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/rounded_corner" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?android:windowBackground"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="Backup personalization"
+        android:translationX="10dp"
+        android:translationY="-10dp" />
+
+    <FrameLayout
+        android:id="@+id/contentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btnPersonalizeMaster"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Master" />
+
+            <Button
+                android:id="@+id/btnPersonalizeSlave1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Slave 1" />
+
+            <Button
+                android:id="@+id/btnPersonalizeSlave2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Slave 2" />
+
+            <Button
+                android:id="@+id/btnDepersonalize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Depersonalize" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</FrameLayout>

@@ -16,6 +16,7 @@ import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.tangem_demo.DemoActivity
+import com.tangem.tangem_demo.Personalization
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
@@ -28,6 +29,7 @@ import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.json_rpc.*
+import kotlinx.android.synthetic.main.personalization_backup.*
 import kotlinx.android.synthetic.main.scan_card.*
 import kotlinx.android.synthetic.main.set_pin.*
 import kotlinx.android.synthetic.main.sign.*
@@ -54,6 +56,11 @@ class CommandListFragment : BaseFragment() {
         }
         btnScanCard.setOnClickListener { scanCard() }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
+
+        btnPersonalizeMaster.setOnClickListener { personalize(Personalization.Backup.masterConfig()) }
+        btnPersonalizeSlave1.setOnClickListener { personalize(Personalization.Backup.slave1Config()) }
+        btnPersonalizeSlave2.setOnClickListener { personalize(Personalization.Backup.slave2Config()) }
+        btnDepersonalize.setOnClickListener { depersonalize() }
 
         chipGroupAttest.fitChipsByGroupWidth()
         btnAttest.setOnClickListener {

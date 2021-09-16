@@ -34,10 +34,8 @@ import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
-import com.tangem.tangem_demo.DemoApplication
-import com.tangem.tangem_demo.R
-import com.tangem.tangem_demo.Utils
-import com.tangem.tangem_demo.postUi
+import com.tangem.operations.personalization.entities.CardConfig
+import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
 
 abstract class BaseFragment : Fragment() {
@@ -109,6 +107,16 @@ abstract class BaseFragment : Fragment() {
             needRescanCard = false
             handleResult(it)
         }
+    }
+
+    protected fun personalize(config: CardConfig) {
+        sdk.personalize(config, Personalization.issuer(), Personalization.manufacturer(), Personalization.acquirer()) {
+            handleResult(it)
+        }
+    }
+
+    protected fun depersonalize() {
+        sdk.depersonalize { handleResult(it) }
     }
 
     protected fun loadCardInfo() {
@@ -227,7 +235,7 @@ abstract class BaseFragment : Fragment() {
 
         val issuerData = Utils.randomString(Utils.randomInt(15, 30)).toByteArray()
         val counter = 1
-        val issuerPrivateKey = Utils.issuer().dataKeyPair.privateKey
+        val issuerPrivateKey = Personalization.issuer().dataKeyPair.privateKey
         val signedIssuerData = (cardId.hexToBytes() + issuerData + counter.toByteArray(4)).sign(issuerPrivateKey)
 
         sdk.writeIssuerData(cardId, issuerData, signedIssuerData, counter, initialMessage) { handleResult(it) }
@@ -248,7 +256,7 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-                cardId, issuerData, counter, Utils.issuer().dataKeyPair.privateKey
+                cardId, issuerData, counter, Personalization.issuer().dataKeyPair.privateKey
         )
 
         sdk.writeIssuerExtraData(
@@ -363,7 +371,7 @@ abstract class BaseFragment : Fragment() {
 
     protected fun prepareSignedData(cardId: String): FileDataProtectedBySignature {
         val counter = 1
-        val issuer = Utils.issuer()
+        val issuer = Personalization.issuer()
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
                 cardId, issuerData, counter, issuer.dataKeyPair.privateKey
