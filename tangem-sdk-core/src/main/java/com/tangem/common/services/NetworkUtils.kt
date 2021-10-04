@@ -26,13 +26,13 @@ suspend fun <T> retryIO(
 
 sealed class Result<out T> {
     data class Success<out T>(val data: T) : Result<T>()
-    data class Failure(val error: Throwable?) : Result<Nothing>()
+    data class Failure(val error: Throwable) : Result<Nothing>()
 }
 
 fun Result.Failure.toTangemSdkError(): TangemSdkError {
     return when (this.error) {
         is TangemSdkError -> this.error
-        else -> TangemSdkError.NetworkError("Network error. Cause: ${error?.toString() ?: "none"}")
+        else -> TangemSdkError.ExceptionError(this.error)
     }
 }
 
@@ -42,6 +42,6 @@ suspend fun <T> performRequest(block: suspend () -> T): Result<T> {
         Result.Success(result)
     } catch (ex: Exception) {
         Log.network { "Perform request error: ${ex.localizedMessage}" }
-        Result.Failure(ex)
+        Result.Failure(TangemSdkError.NetworkError("Network error. Cause: ${ex.localizedMessage}"))
     }
 }

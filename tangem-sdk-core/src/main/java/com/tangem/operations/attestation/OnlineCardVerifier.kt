@@ -42,8 +42,9 @@ class OnlineCardVerifier {
             is Result.Success -> {
                 val firstResult = result.data.results?.firstOrNull()
                 when {
-                    firstResult == null -> Result.Failure(Exception("Empty response"))
-                    !firstResult.passed -> Result.Failure(TangemSdkError.CardVerificationFailed())
+                    firstResult == null || !firstResult.passed -> {
+                        Result.Failure(TangemSdkError.CardVerificationFailed())
+                    }
                     else -> Result.Success(firstResult)
                 }
             }
