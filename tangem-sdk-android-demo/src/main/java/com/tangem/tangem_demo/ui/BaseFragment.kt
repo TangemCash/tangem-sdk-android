@@ -16,7 +16,7 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
-import com.tangem.common.core.toTangemSdkError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
@@ -159,7 +159,7 @@ abstract class BaseFragment : Fragment() {
             val childKey = masterKey.derivePublicKey(path)
             handleResult(CompletionResult.Success(childKey))
         } catch (ex: Exception) {
-            handleResult(CompletionResult.Failure<ExtendedPublicKey>(ex.toTangemSdkError()))
+            handleResult(CompletionResult.Failure<ExtendedPublicKey>(TangemSdkError.ExceptionError(ex)))
         }
     }
 

@@ -255,7 +255,3 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
         }
     }
 }
-
-fun Throwable?.toTangemSdkError(): TangemSdkError = TangemSdkError.ExceptionError(this)
-
-

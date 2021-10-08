@@ -80,6 +80,7 @@ data class CardConfig(
      * Number of wallets supported by card, by default - 1
      */
     internal val walletsCount: Int?,
+    internal val isReusable: Boolean?,
 ) {
 
     fun pinSha256(): ByteArray = pin.calculateSha256()
@@ -152,9 +153,8 @@ data class CardConfig(
 internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     val builder = MaskBuilder()
 
-    //Now we can personalize only reusable wallets
-    builder.add(Card.SettingsMask.Code.IsReusable)
-
+    val isReusable = isReusable ?: true
+    builder.addIf(isReusable, Card.SettingsMask.Code.IsReusable)
     builder.addIf(allowSetPIN1, Card.SettingsMask.Code.AllowSetPIN1)
     builder.addIf(allowSetPIN2, Card.SettingsMask.Code.AllowSetPIN2)
     builder.addIf(useCvc, Card.SettingsMask.Code.UseCvc)
@@ -180,6 +180,7 @@ internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     builder.addIf(disableFiles, Card.SettingsMask.Code.DisableFiles)
     builder.addIf(allowHDWallets, Card.SettingsMask.Code.AllowHDWallets)
     builder.addIf(allowBackup, Card.SettingsMask.Code.AllowBackup)
+    builder.addIf(isReusable, Card.SettingsMask.Code.IsReusable)
 
     return builder.build()
 }

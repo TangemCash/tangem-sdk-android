@@ -112,8 +112,12 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
         }
 
         session.viewDelegate.requestUserCodeChange(type) { result ->
-            codes[type] = UserCodeAction.StringValue(result)
-            callback(CompletionResult.Success(Unit))
+            if (result == null) {
+                callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+            } else {
+                codes[type] = UserCodeAction.StringValue(result)
+                callback(CompletionResult.Success(Unit))
+            }
         }
     }
 

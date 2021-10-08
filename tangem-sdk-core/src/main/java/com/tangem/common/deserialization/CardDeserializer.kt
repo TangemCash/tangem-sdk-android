@@ -62,7 +62,7 @@ class CardDeserializer {
             )
             val issuer = Card.Issuer(
                     cardDataDecoder.decode(TlvTag.IssuerName),
-                    decoder.decode(TlvTag.IssuerDataPublicKey),
+                    decoder.decode(TlvTag.IssuerPublicKey),
             )
 
             val terminalStatus = if (decoder.decode(TlvTag.TerminalIsLinked)) {
@@ -128,7 +128,7 @@ class CardDeserializer {
                 decoder.decodeOptional<Int>(TlvTag.PauseBeforePin2)?.let { it * 10 } ?: 0,
                 decoder.decodeOptional(TlvTag.WalletsCount) ?: 1,
                 mask,
-                decoder.decode(TlvTag.SigningMethod),
+                decoder.decodeOptional(TlvTag.SigningMethod),
                 defaultCurve,
         )
     }

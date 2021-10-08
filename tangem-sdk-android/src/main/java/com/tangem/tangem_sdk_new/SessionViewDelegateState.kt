@@ -17,7 +17,11 @@ sealed class SessionViewDelegateState() {
         val callback: (pin: String) -> Unit
     ) : SessionViewDelegateState()
 
-    data class PinChangeRequested(val type: UserCodeType, val callback: (pin: String) -> Unit) : SessionViewDelegateState()
+    data class PinChangeRequested(
+        val type: UserCodeType,
+        val callback: (pin: String?) -> Unit
+    ) : SessionViewDelegateState()
+
     data class WrongCard(val wrongValueType: WrongValueType) : SessionViewDelegateState()
     object TagLost : SessionViewDelegateState()
     object TagConnected : SessionViewDelegateState()

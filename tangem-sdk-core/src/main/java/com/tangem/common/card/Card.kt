@@ -201,7 +201,7 @@ data class Card internal constructor(
         /**
          * Is allowed to remove access code
          */
-        val isRemovingAccessCodeAllowed: Boolean,
+        val isResettingUserCodesAllowed: Boolean,
 
         /**
          * Is LinkedTerminal feature enabled
@@ -263,7 +263,7 @@ data class Card internal constructor(
                 maxWalletsCount,
                 mask.contains(SettingsMask.Code.AllowSetPIN1),
                 mask.contains(SettingsMask.Code.AllowSetPIN2),
-                mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
+                !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
                 mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
                 createEncryptionModes(mask),
                 mask.contains(SettingsMask.Code.PermanentWallet),
