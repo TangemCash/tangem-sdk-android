@@ -151,6 +151,11 @@ class AttestationTask(
             var shouldReturn = false
             var flowIsCompleted = false
 
+            if (attestationCommands.isEmpty()) {
+                callback(CompletionResult.Success(hasWarnings))
+                return@launch
+            }
+
             flow {
                 attestationCommands.forEach { emit(it) }
             }.onCompletion {
