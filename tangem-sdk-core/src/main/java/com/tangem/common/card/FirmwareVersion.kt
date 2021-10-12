@@ -80,6 +80,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         /**
          * Field on card that describes is passcode is default value or not
          */
+        val IsAccessCodeStatusAvailable = FirmwareVersion(4, 33)
+
+        /**
+         * Field on card that describes is passcode is default value or not
+         */
         val IsPasscodeStatusAvailable = FirmwareVersion(4, 1)
 
         /**

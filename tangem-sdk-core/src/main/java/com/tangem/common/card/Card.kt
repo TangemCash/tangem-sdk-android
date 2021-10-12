@@ -58,12 +58,16 @@ data class Card internal constructor(
     val linkedTerminalStatus: LinkedTerminalStatus,
 
     /**
-     * PIN2 (aka Passcode) is set.
-     * Available only for cards with COS v. 4.0 and higher.
+     * Access code (aka PIN1) is set.
+     */
+    val isAccessCodeSet: Boolean,
+
+    /**
+     * COS v. 4.33 and higher - always available
+     * COS v. 1.19 and lower - always unavailable
+     * COS  v > 1.19 &&  v < 4.33 - available only if `isResettingUserCodesAllowed` set to true
      */
     val isPasscodeSet: Boolean?,
-
-        //TODO: isAccessCodeSet
 
     /**
      * Array of ellipctic curves, supported by this card. Only wallets with these curves can be created.
