@@ -2,6 +2,7 @@ package com.tangem.operations.personalization
 
 import com.tangem.Log
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -80,7 +81,9 @@ class PersonalizeCommand(
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): Card {
         val decoder = CardDeserializer.getDecoder(environment, apdu)
         val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
-        return CardDeserializer.deserialize(decoder, cardDataDecoder, true)
+
+        val isAccessCodeSet = config.pin != UserCodeType.AccessCode.defaultValue
+        return CardDeserializer.deserialize(isAccessCodeSet, decoder, cardDataDecoder, true)
     }
 
     private fun serializePersonalizationData(config: CardConfig): ByteArray {
