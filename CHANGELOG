@@ -1,13 +1,335 @@
-*   ac3e295 - (HEAD -> release/3.0.1, tag: develop-25, origin/develop, develop) Merge pull request #27 from tangem/CSK-162_restore_card_immutabillity
+*   093c9b58 - (HEAD -> release/3.2.0, tag: develop-80, origin/develop, develop) Merge pull request #83 from tangem/CSK-232_remove-optional-error-from-result
 |\  
-| *   ad53817 - Merge branch 'develop' into CSK-162_restore_card_immutabillity
+| * 7b108212 - CSK-232 fixed type of the error if verification return empty response
+| * 7f393d6c - CSK-232 removed optionality from the Result.Failure
+|/  
+*   aad1b1e0 - (tag: develop-79) Merge pull request #81 from tangem/CSK-230_personalize-not-reusable-cards
+|\  
+| * f7410a6c - CSK-231 renamed isRemovingAccessCodeAllowed to isResettingUserCodesAllowed
+| * 13feadd6 - CSK-230 return the ability to personalize not reusable cards
+|/  
+*   93977ced - (tag: develop-78) Merge pull request #80 from tangem/CSK-203_fix-personalize
+|\  
+| *   5d4b4fbd - Merge branch 'develop' into CSK-203_fix-personalize
 | |\  
 | |/  
 |/|   
-* |   9cee1b1 - (tag: develop-24) Merge pull request #29 from tangem/CSK-163_rename-upload-files
+* |   4d5b5b26 - (tag: develop-77) Merge pull request #79 from tangem/CSK-229-fix-sending-userCancelled-on-setPin-changePin-command
 |\ \  
-| * | 06022bd - CSK-163 renamed upload files
+| * | 5c9a53d7 - CSK-229 restored the jsonRPC requests in the sdkExample project
+| * | 08dc2fac - CSK-229 send the UserCancelled error if the user dismiss the dialog on SetPin commands
 |/ /  
-| * 349f61f - CSK-162 the Card object has immutable fields
+| * 231a05c5 - CSK-203 update kotlin version
+| * 760b6415 - CSK-203 added AllowHDWallets, AllowBackup settingsMask's
+| * e6e6797f - CSK-203 fixed personalization
 |/  
-* 23a870a - (tag: develop-23) Merge pull request #25 from tangem/master
+*   aeda3533 - (tag: develop-76) Merge pull request #75 from tangem/CSK-224_readme
+|\  
+| *   09a1c637 - Merge branch 'develop' into CSK-224_readme
+| |\  
+| |/  
+|/|   
+* |   c38b0e0c - (tag: develop-75) Merge pull request #76 from tangem/CSK-226_remove-all-business-logic-from-prechecks
+|\ \  
+| * \   a3c78572 - Merge branch 'develop' into CSK-226_remove-all-business-logic-from-prechecks
+| |\ \  
+| |/ /  
+|/| |   
+* | |   ddeae2f9 - (tag: develop-74) Merge pull request #78 from tangem/CSK-228_fix-cards-attestation
+|\ \ \  
+| * \ \   e40a70cf - Merge branch 'develop' into CSK-228_fix-cards-attestation
+| |\ \ \  
+| |/ / /  
+|/| | |   
+* | | |   969605a7 - (tag: develop-73) Merge pull request #73 from tangem/CSK-222_move-wallet-index-calculation-to-serialize
+|\ \ \ \  
+| * \ \ \   0186208d - Merge branch 'develop' into CSK-222_move-wallet-index-calculation-to-serialize
+| |\ \ \ \  
+| |/ / / /  
+|/| | | |   
+| * | | | 7719d41f - CSK-222 fix v3 wallet already created error
+| * | | | 1dcc9221 - CSK-222 added comment
+| * | | | f7d74be2 - CSK-220 added .idea to the git ignore
+| * | | | 0aea23ca - CSK-220 isPermanentWallet is hidden for sdk consumers
+| * | | | 0f736833 - CSK-222 moved wallet index calculation to serialize
+| | * | |   0da98572 - Merge branch 'develop' into CSK-228_fix-cards-attestation
+| | |\ \ \  
+| |_|/ / /  
+|/| | | |   
+| | * | | 9099daba - CSK-228 fixed online attestation for release cards
+| | | * |   43ff0ed4 - Merge branch 'develop' into CSK-226_remove-all-business-logic-from-prechecks
+| | | |\ \  
+| |_|_|/ /  
+|/| | | |   
+* | | | |   7c22ca76 - (tag: develop-72) Merge pull request #77 from tangem/CSK-227_change-returning-type-of-data-for-jsonRPCerror
+|\ \ \ \ \  
+| |_|/ / /  
+|/| | | |   
+| * | | | 0c57fde7 - CSK-227 separated jsonRPC classes
+| * | | | 0d6f74d5 - CSK-227 changed the 'data' structure for the JSONRPCError
+|/ / / /  
+| | * | ee9d2b6c - CSK-226 replaced unhandled exceptions to sending an error to the callback
+| | * | 3e8ceb53 - CSK-226 removed logic from prechecks
+| |/ /  
+|/| |   
+* | |   067635a0 - (tag: develop-71) Merge pull request #74 from tangem/CSK-223_fix-preflightRead
+|\ \ \  
+| |/ /  
+|/| |   
+| * | 13e15e3c - CSK-223 the PreflightReadTask returns the updated card object in FullCardRead, ReadCardOnly modes
+|/ /  
+| * ace07c9a - CSK-224: modify Getting Started in README.md
+|/  
+*   5167972e - (tag: develop-70) Merge pull request #72 from tangem/CSK-219_fix-passcode-input-field
+|\  
+| * ee284e16 - CSK-218 more readable logs
+| * 276c8778 - CSK-219 fixed the passcode view state
+|/  
+*   aaa9c81d - (tag: develop-69) Merge pull request #71 from tangem/CSK-218_fix-changin-accessCode-through-jsonRpc
+|\  
+| * ed8228c7 - CSK-218 fixed changing accessCode through jsonRPC if the code is missed
+|/  
+*   04fc242f - (tag: develop-68) Merge pull request #70 from tangem/CSK-216_enum-adapters
+|\  
+| * 35a98f61 - CSK-216 JSONRPC errors are clearer
+| * f68fe5e3 - CSK-216 updated tests to match new enum adapters
+| * 60531c2f - CSK-216 removed parsing a JSONRPCRequest from the JSONRPCLinker
+| * dab51935 - CSK-216 added enum adapters
+| * 75f77c64 - CSK-216 remove gson dependencies
+|/  
+*   d05de82f - (tag: develop-67) Merge pull request #69 from tangem/CSK-215_fix-crash-when-jsonRpc_id-is-null
+|\  
+| * c6d6c789 - CSK-215 return an appropriate response (single or array) based on incoming data
+| * 46fce89c - CSK-215 prevents a crash if jsonRpc.id specified as null
+|/  
+*   c88cee6e - (tag: develop-66) Merge pull request #68 from tangem/CSK-214_remove-check-cardId-in-jsonRpc
+|\  
+| * 77c9d27f - CSK-214 removed checks for a cardId in jsonRpcHandlers
+|/  
+*   e04d522c - (tag: develop-65) Merge pull request #67 from tangem/CSK-211_launch-array-of-jsonPRC-requests
+|\  
+| * 0299ba3a - CSK-211 added example for the JSONRPC
+| * 9c5e4ebf - CSK-211 added ability to launch array of the JSONRPC's
+| * dd6d5b4c - CSK-211 fixed test for Card json
+| * 1e588dd6 - CSK-211 changed performPreCheck logic for the CreateWalletCommand
+|/  
+*   9e644271 - (tag: develop-64) Merge pull request #66 from tangem/CSK-210_change-type-of-initialMessage-for-jsonRPC
+|\  
+| *   70159fcf - Merge branch 'develop' into CSK-210_change-type-of-initialMessage-for-jsonRPC
+| |\  
+| |/  
+|/|   
+* |   df4e081b - (tag: develop-63) Merge pull request #65 from tangem/CSK-209_fix_set_message
+|\ \  
+| * | 533fa0ad - CSK-209 prevent handling the first nullable nfcTag for viewDelegate because it doesn't make sense and also triggers a race condition between onStartSession and new state tagLost() which handling by UI handler
+|/ /  
+| * 3e4a5b08 - CSK-210 changed incoming type of the initialMessage to String for JSONRPC commands
+|/  
+*   fa28c030 - (tag: develop-62, tag: develop-61, tag: develop-60, tag: develop-59, tag: develop-58) Merge pull request #64 from tangem/CSK-208_update-default-config
+|\  
+| *   5dfded40 - Merge branch 'develop' into CSK-208_update-default-config
+| |\  
+| |/  
+|/|   
+* |   bde472cb - (tag: develop-57) Merge pull request #63 from tangem/CSK-205_remove-redundant-fields-from-json
+|\ \  
+| * \   134cf656 - Merge branch 'develop' into CSK-205_remove-redundant-fields-from-json
+| |\ \  
+| |/ /  
+|/| |   
+* | |   20e0188a - (tag: develop-56) Merge pull request #62 from tangem/CSK-207_error-creating-wallet-v3-with-forbidPurge-true
+|\ \ \  
+| * | | f8e53a10 - CSK-207 removed isPermanent property from the CreateWalletCommand.
+|/ / /  
+| * | e5766cc9 - CSK-205 removed isOverwritingIssuerExtraDataRestricted, defaultSigningMethods, defaultCurve, isIssuerDataProtectedAgainstReplay, isSelectBlockchainAllowed from json
+| * | 7722a705 - CSK-195 removed the 'remainingSignatures' field from json
+| * | 64fafdc9 - CSK-194 removed the 'health' field from json
+|/ /  
+| * de68832a - CSK-208 added sdk cards to the allowedCardTypes
+|/  
+*   f932be39 - (tag: develop-55) Merge pull request #57 from tangem/CSK-202_add-files-commands-to-json-rpc
+|\  
+| *   0ffd9028 - Merge branch 'develop' into CSK-202_add-files-commands-to-json-rpc
+| |\  
+| |/  
+|/|   
+* |   4cbba3ca - (tag: develop-54) Merge pull request #58 from tangem/CSK-200_canonize-secp-signatures
+|\ \  
+| * | c33e67e6 - CSK-200 canonize secp256k1 signatures
+|/ /  
+| * 166260b0 - CSK-202 added JSONRPC handlers for the file commands
+| * ebf4d8de - CSK-202 simplified creation of the JSONRPC handlers
+| * 943d64d3 - CSK-202 renamed ChangeFilesSettingsTask -> ChangeFileSettingsTask
+| * ef4de9e1 - CSK-202 changed junit to junit.jupiter
+| * 1d254b1a - CSK-202 fixed sdk-jvm
+|/  
+*   bc60a727 - (tag: develop-53) Merge pull request #56 from tangem/CSK-196_fix_readWalletList
+|\  
+| *   2275598b - Merge branch 'develop' into CSK-196_fix_readWalletList
+| |\  
+| |/  
+|/|   
+* |   dbfda4f6 - (tag: develop-52) Merge pull request #51 from tangem/CSK-183_hd-wallet_
+|\ \  
+| * \   2fef9675 - Merge branch 'develop' into CSK-183_hd-wallet_
+| |\ \  
+| |/ /  
+|/| |   
+* | |   6ed11acd - (tag: develop-51) Merge pull request #54 from tangem/CSK-199_fix_jsonRpc_creation
+|\ \ \  
+| * | | 0681a6e4 - CSK-199 disabled IssuerExtraData for v4
+| * | | f82f88b5 - CSK-199 show values of encoded\decoded tlv's
+| * | | 940231de - CSK-199 fixed personalization
+| * | | 887dc079 - CSK-199 fixed the PreflightReadHandler and creation a JSONRPCRequest without id
+|/ / /  
+* | |   9882348e - (tag: develop-50) Merge pull request #53 from tangem/CSK-197_show-dialogs-on-multi-platforms
+|\ \ \  
+| * | | e2a5bae4 - CSK-197 refactor viewDelegate
+| * | | d3b3a9be - CSK-197 added an ability to show dialogs on another platforms
+|/ / /  
+| * | 20bd1bc6 - CSK-183 removed the throw annotation from the DerivationPath constructor
+| * | e47220ae - CSK-183 simplified check for "throw"
+| * | ad12f268 - CSK-183 rewrite part of tests with jupiter
+| * |   52446611 - Merge branch 'develop' into CSK-183_hd-wallet_
+| |\ \  
+| |/ /  
+|/| |   
+| * | b52fc534 - CSK-183 fixed name of the cardId field
+| * | 0888b24b - CSK-183 generate default adapters for responses
+| * | 7132ed57 - CSK-183 removed unused class
+| * | 8ab8c3ca - (tag: CSK-183_hd-wallet_-48) CSK-192 added attestation to the exampleApp
+| * | 9d246e3b - CSK-192 simplified creation of the AttestationTask
+| * | 0fdf8bb0 - CSK-192 fixed attestation task (he wallets attestation was completed before all commands were completed)
+| * | 11934639 - CSS-207 refactoring hdWallets. Updated the sdkExample project
+| * | 02331def - CSS-207 added precheck for curve (hdWallet)
+| * | 7a6858b0 - CSS-207 added missed hashCode functions
+| * | 2640809e - CSS-207 supported hdWallet operations in commands
+| * | c0b54ea2 - CSK-187 added de\serialization methods for the DerivationPath
+| * | 2e023624 - CSK-186 implement BIP44 derivation path
+| * | 326c7210 - CSK-185 finished with a publicKey derivation
+| * | d38f0a15 - CSK-185 update kotlin to 1.5.21
+| * | 85d3ec4c - CSK-185 implement CKDPub Key
+| * | a66358a0 - CSK-183 removed unused byteArray conversion
+| | * 6e53b4d3 - CSK-196: fix loading more than 15 wallets in ReadWalletsListCommand
+| |/  
+|/|   
+* |   91628805 - (tag: develop-49) Merge pull request #52 from tangem/CSK-190_disable-verification-at-purge-create-wallet
+|\ \  
+| * | 01fb1631 - CSK-190 prevent NPE
+| * | f04f0fa7 - CSK-190 fixed showing an attestation result after creating\purging wallet's
+|/ /  
+* | 79c39927 - (tag: develop-47) Merge pull request #50 from tangem/CSK-173_sdk-refactoring
+|\| 
+| * 3db6e54b - CSK-173 fixed prechecks for writing issuer and user datas
+| * a52a02f3 - CSK-173 removed TODO's
+| * a20ed681 - CSK-178 moved creation of the nfcSessionDialog to the mainThread
+| * d9710d6c - CSK-178 added tests for jsonRPC
+| * 76b071a4 - CSK-178 fixed restriction logic for SetUserCodeCommand
+| * 8f725dc6 - CSK-173 activated the loadCardInfo method; - fixed save\restore from the TrustedCardsRepo; - fixed and activate the attestationTask; - implemented dialogs for attestation errors; - added ability to load a card info into the exampleApp.
+| * d9ab925a - CSK-173 cardWallets now is public
+| * eb7d0642 - CSK-173 fixed error display when trying to interact with a cardId that differs from expected
+| * 3c65ec02 - CSK-173 added ability to sign hash\hashes into the example app
+| * f60f15a0 - CSK-173 fixed tests
+| * c5119b65 - CSK-173 refactoring of inner classes of the Card
+| * a64c0633 - CSK-173 fixed wallet creation
+| * 106c16ff - CSK-173 great refactoring
+|/  
+*   d472d68f - (tag: develop-46) Merge pull request #49 from tangem/CSK-177_jsonRpc-conversion-for-de-personalize-commands
+|\  
+| * 0ed58bee - CSK-177 prevent launching reader.stopSession from viewDelegate if session is already stopped by itself
+| * c329363e - CSK-177 added jsonRpc convertion for de\personalize commands
+|/  
+*   88defd68 - (tag: develop-45) Merge pull request #48 from tangem/CSK-176_jsonRpc_call_must)include_cardId_initialMessage
+|\  
+| * 6b92a361 - CSK-176 added cardId and initialMessage parameters to the startSessionWithJsonRequest
+|/  
+*   f621ab8f - (tag: develop-43) Merge pull request #46 from tangem/CSK-171_fix_jsonConverter-toMap-conversion
+|\  
+| * dffef5c5 - CSK-171 convert mutableMap to Map
+| * 7f1dfc14 - CSK-171 fixed MoshiJsonConverter.toMap() conversion if JSON contains NULL values
+|/  
+*   db5567f8 - (tag: develop-42) Merge pull request #45 from tangem/CSK-170_сhange-artifacts-scope-type
+|\  
+| * d6993aca - CSK-170 changed scope of the uploading artifacts
+|/  
+* b2ab77c6 - (tag: develop-41) CSK-167 fixed imports
+* 66857074 - CSK-169 exclude the core dependency from the android artifacts
+* b9893384 - CSK-169 finalized with new names for artifacts
+* bee4d5f3 - CSK-169 attached sources to the artifacts
+* 5f53a7b3 - CSK-169 changed neutral-build.yml for supports previous changes
+* 52af5834 - CSK-169 changed publication plugin to maven-publish (added ability to upload artifacts with sources). Changed artifact id's for core, android and jvm projects
+* ac3a4bbc - CSK-168 added ability to change the default instance of the moshi converter
+* 38d293d0 - CSK-167 implement a MoshiJsonConverter
+*   a0b14f9b - (tag: develop-33) Merge pull request #32 from tangem/CSK-161_jsonRpc_implementation
+|\  
+| * 6014e56c - CSK-161 fixed checking preflightReadMode v2
+| * 47da4c4c - CSK-161 fixed checking preflightReadMode
+| *   99a1b1d9 - Merge branch 'CSK-166_change-incoming-types-of-pins-to-string' into CSK-161_jsonRpc_implementation
+| |\  
+| | * 7157b3c8 - CSK-166 changed incoming types of pins to string type
+| |/  
+|/|   
+| *   fd6a3e8f - Merge branch 'develop' into CSK-161_jsonRpc_implementation
+| |\  
+| |/  
+|/|   
+* |   017dd579 - (tag: develop-32) Merge pull request #36 from tangem/CSK-165_add-ability-to-test-initialMessage
+|\ \  
+| * | 6cd06956 - CSK-165 fixed getting summary in EditSummaryPreference if saved text is not present yet
+| * | 4d2ef333 - CSK-165 added ability to test an initialMessage
+|/ /  
+| *   ddb1eb23 - Merge remote-tracking branch 'origin/CSK-161_jsonRpc_implementation' into CSK-161_jsonRpc_implementation
+| |\  
+| | *   b0faad8b - Merge branch 'develop' into CSK-161_jsonRpc_implementation
+| | |\  
+| |_|/  
+|/| |   
+| * |   9e847842 - Merge branch 'develop' into CSK-161_jsonRpc_implementation
+| |\ \  
+| |/ /  
+|/| |   
+* | |   0867f488 - (tag: develop-31) Merge pull request #35 from tangem/CSK-164_fix-showing-initial-message
+|\ \ \  
+| * | | 0d38542c - CSK-164 fixed showing initial message on the viewDelegate
+|/ / /  
+* | | f6a1c77f - (tag: develop-30) Merge pull request #34 from tangem/master
+* | | b8f1c793 - (tag: develop-29) Merge pull request #33 from tangem/master
+* | | c220b4ba - (tag: develop-26) Merge pull request #31 from tangem/master
+ / /  
+* / f706692b - CSK-161 MoshiJsonConverter - fixed toMap conversion with simple string and list
+|/  
+* 52a068ac - CSK-161 the MoshiJsonConverter converts Product, Settings, SigningMethod, WalletSettings masks to stringList and back
+* 28fc1295 - CSK-161 stop session if an user was cancelled a command by dismissing the viewDelegate
+* ff2ee454 - CSK-161 fixed tests
+* 46bb63c1 - CSK-161 added WalletIndex, KotlinJson adapters to the MoshiJsonConverter
+* bff84750 - (tag: CSK-161_jsonRpc_implementation-28, tag: CSK-161_jsonRpc_implementation-27) Merge branch 'develop' into CSK-161_jsonRpc_implementation
+* 9813c6f7 - CSK-161 removed cardTester
+* 401b1635 - CSK-161 fixed import
+* 0dd89288 - CSK-161 refactored interfaces
+* a07cd97f - CSK-161 added ability to launch jsonRpcRequest as runnable
+* a551572f - CSK-161 implement JSONRPC 2.0
+* 838a2411 - CSK-129 card tester artifacts can be upload to the nexus
+* 8a765e50 - (tag: CSK-129_AZ-framework-for-testing-cards-and-sdk-16) CSK-141 reset the VariableService when starts a new test
+* 4f4b74ee - CSK-141 fixed import
+* 77911171 - CSK-141 refactoring
+* e09df96b - CSK-141 added checks of step initialization
+* f0e55789 - CSK-141 test fails if a json runnable adapter is not created
+* 7414a0d9 - CSK-141 simplified steps. Implement asserts launcher.
+* 486f8484 - Merge branch 'develop' into CSK-129_AZ-framework-for-testing-cards-and-sdk
+* 51bd2b2f - CSK-139 - fixed scanTask response conversion
+* 4d5b41b5 - CSK-139 - added simple test for the VariableService
+* 275af283 - CSK-139 - added variable service
+* 89b0d76d - CSK-147 adds the ability to cycle for a test and for a specific step in the test.
+* 31091e43 - CSK-146 - removed unused method from JsonRunnableAdapter
+* ec9e4c85 - CSK-146 - The ResponseConverter is deprecated, use instead the MoshiJsonConverter
+* 6db43400 - CSK-143 - json adapter it is creating by using reflection
+* d113f1fc - CSK-143 - one more simplification
+* d3427206 - CSK-143 - simplified jsonAdapters
+* ae6efb63 - CSK-143 - fixed typo
+* 299c57c9 - CSK-143 - json adapter is a subtype of the CardSessionRunnable
+* a1fdd2e3 - CSK-143 - added JsonAdaptersFactory, JsonRunnableAdapter
+* 64d4edc2 - Merge branch 'master' into CSK-129_AZ-framework-for-testing-cards-and-sdk
+* f50b332d - CSK-130 - created a tester main module - created an empty android module for the tester application
+* 14ffd7b2 - Merge branch 'CSK-133_resolv_conflicts_master_to_dev' into CSK-129_AZ-framework-for-testing-cards-and-sdk
+* fadd3bcf - CSK-130 initial commit
+* 575b323c - Merge remote-tracking branch 'origin/develop' into CSK-133-resolve_conflicts

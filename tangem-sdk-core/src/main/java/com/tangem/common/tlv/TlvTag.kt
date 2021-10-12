@@ -89,6 +89,7 @@ enum class TlvTag(val code: Int) {
     TransactionOutHash(0x50),
     TransactionOutHashSize(0x51),
     TransactionOutRaw(0x52),
+    PinIsDefault(0x5A),
     Pin2IsDefault(0x59),
 
     WalletPublicKey(0x60),
