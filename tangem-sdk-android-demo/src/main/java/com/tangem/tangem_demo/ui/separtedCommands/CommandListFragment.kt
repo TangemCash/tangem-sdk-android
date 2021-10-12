@@ -58,6 +58,7 @@ class CommandListFragment : BaseFragment() {
         chipGroupAttest.fitChipsByGroupWidth()
         btnAttest.setOnClickListener {
             val mode = when (chipGroupAttest.checkedChipId) {
+                R.id.chipAttestOffline -> AttestationTask.Mode.Offline
                 R.id.chipAttestNormal -> AttestationTask.Mode.Normal
                 else -> AttestationTask.Mode.Full
             }
