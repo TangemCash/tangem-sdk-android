@@ -2,6 +2,7 @@ package com.tangem.operations.personalization
 
 import com.tangem.Log
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -80,7 +81,9 @@ class PersonalizeCommand(
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): Card {
         val decoder = CardDeserializer.getDecoder(environment, apdu)
         val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
-        return CardDeserializer.deserialize(decoder, cardDataDecoder, true)
+
+        val isAccessCodeSet = config.pin != UserCodeType.AccessCode.defaultValue
+        return CardDeserializer.deserialize(isAccessCodeSet, decoder, cardDataDecoder, true)
     }
 
     private fun serializePersonalizationData(config: CardConfig): ByteArray {
@@ -104,7 +107,7 @@ class PersonalizeCommand(
         tlvBuilder.append(TlvTag.NewPin2, config.pin2Sha256())
         tlvBuilder.append(TlvTag.NewPin3, config.pin3Sha256())
         tlvBuilder.append(TlvTag.CrExKey, config.hexCrExKey)
-        tlvBuilder.append(TlvTag.IssuerDataPublicKey, issuer.dataKeyPair.publicKey)
+        tlvBuilder.append(TlvTag.IssuerPublicKey, issuer.dataKeyPair.publicKey)
         tlvBuilder.append(TlvTag.IssuerTransactionPublicKey, issuer.transactionKeyPair.publicKey)
         tlvBuilder.append(TlvTag.AcquirerPublicKey, acquirer?.keyPair?.publicKey)
         tlvBuilder.append(TlvTag.CardData, serializeCardData(cardData, cardId))
@@ -112,9 +115,9 @@ class PersonalizeCommand(
         return tlvBuilder.serialize()
     }
 
-    private fun serializeNdef(config: CardConfig): ByteArray? {
-        return if (config.ndefRecords.isNullOrEmpty()) {
-            null
+    private fun serializeNdef(config: CardConfig): ByteArray {
+        return if (config.ndefRecords.isEmpty()) {
+            ByteArray(0)
         } else {
             NdefEncoder(config.ndefRecords, config.useDynamicNDEF == true).encode()
         }

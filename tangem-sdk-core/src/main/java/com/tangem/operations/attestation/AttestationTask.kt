@@ -102,11 +102,16 @@ class AttestationTask(
     }
 
     private fun continueAttestation(session: CardSession, callback: CompletionCallback<Attestation>) {
-        runOnlineAttestation(session.scope, session.environment.card!!)
-
         when (mode) {
-            Mode.Normal -> waitForOnlineAndComplete(session, callback)
-            Mode.Full -> runWalletsAttestation(session, callback)
+            Mode.Offline -> complete(session, callback)
+            Mode.Normal -> {
+                runOnlineAttestation(session.scope, session.environment.card!!)
+                waitForOnlineAndComplete(session, callback)
+            }
+            Mode.Full -> {
+                runOnlineAttestation(session.scope, session.environment.card!!)
+                runWalletsAttestation(session, callback)
+            }
         }
     }
 
@@ -150,6 +155,11 @@ class AttestationTask(
             var hasWarnings = card.wallets.mapNotNull { it.totalSignedHashes }.any { it > maxCounter }
             var shouldReturn = false
             var flowIsCompleted = false
+
+            if (attestationCommands.isEmpty()) {
+                callback(CompletionResult.Success(hasWarnings))
+                return@launch
+            }
 
             flow {
                 attestationCommands.forEach { emit(it) }
@@ -239,6 +249,7 @@ class AttestationTask(
     }
 
     enum class Mode {
+        Offline,
         Normal,
         Full
     }
