@@ -2,6 +2,7 @@ package com.tangem.operations.read
 
 import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -68,7 +69,7 @@ class ReadCommand : Command<ReadResponse>() {
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadResponse {
         val decoder = CardDeserializer.getDecoder(environment, apdu)
         val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
-        val card = CardDeserializer.deserialize(decoder, cardDataDecoder)
+        val card = CardDeserializer.deserialize(environment.isUserCodeSet(UserCodeType.AccessCode), decoder, cardDataDecoder)
         val walletData = cardDataDecoder?.let { WalletDataDeserializer.deserialize(it) }
         return ReadResponse(card, walletData)
     }
