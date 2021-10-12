@@ -115,7 +115,7 @@ class CardDeserializer {
 
         private fun cardIssuer(decoder: TlvDecoder, cardDataDecoder: TlvDecoder): Card.Issuer = Card.Issuer(
                 cardDataDecoder.decode(TlvTag.IssuerName),
-                decoder.decode(TlvTag.IssuerDataPublicKey),
+                decoder.decode(TlvTag.IssuerPublicKey),
         )
 
         private fun terminalStatus(decoder: TlvDecoder): Card.LinkedTerminalStatus =
