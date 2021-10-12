@@ -45,6 +45,14 @@
                 app:singleSelection="true">
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAttestOffline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    style="@style/TapChip"
+                    android:text="Offline" />
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/chipAttestNormal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
