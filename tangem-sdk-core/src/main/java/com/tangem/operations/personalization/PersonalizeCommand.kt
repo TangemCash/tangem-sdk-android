@@ -107,7 +107,7 @@ class PersonalizeCommand(
         tlvBuilder.append(TlvTag.NewPin2, config.pin2Sha256())
         tlvBuilder.append(TlvTag.NewPin3, config.pin3Sha256())
         tlvBuilder.append(TlvTag.CrExKey, config.hexCrExKey)
-        tlvBuilder.append(TlvTag.IssuerDataPublicKey, issuer.dataKeyPair.publicKey)
+        tlvBuilder.append(TlvTag.IssuerPublicKey, issuer.dataKeyPair.publicKey)
         tlvBuilder.append(TlvTag.IssuerTransactionPublicKey, issuer.transactionKeyPair.publicKey)
         tlvBuilder.append(TlvTag.AcquirerPublicKey, acquirer?.keyPair?.publicKey)
         tlvBuilder.append(TlvTag.CardData, serializeCardData(cardData, cardId))
@@ -115,9 +115,9 @@ class PersonalizeCommand(
         return tlvBuilder.serialize()
     }
 
-    private fun serializeNdef(config: CardConfig): ByteArray? {
-        return if (config.ndefRecords.isNullOrEmpty()) {
-            null
+    private fun serializeNdef(config: CardConfig): ByteArray {
+        return if (config.ndefRecords.isEmpty()) {
+            ByteArray(0)
         } else {
             NdefEncoder(config.ndefRecords, config.useDynamicNDEF == true).encode()
         }

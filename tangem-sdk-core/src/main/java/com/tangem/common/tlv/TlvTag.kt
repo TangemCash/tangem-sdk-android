@@ -66,7 +66,7 @@ enum class TlvTag(val code: Int) {
     ManufacturerName(0x20),
     CardIDManufacturerSignature(0x86),
 
-    IssuerDataPublicKey(0x30),
+    IssuerPublicKey(0x30),
     IssuerTransactionPublicKey(0x31),
     IssuerData(0x32),
     IssuerDataSignature(0x33),
