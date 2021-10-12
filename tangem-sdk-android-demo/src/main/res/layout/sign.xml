@@ -36,11 +36,22 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/btnSign"
+                android:id="@+id/btnSignHash"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Sign" />
+                android:text="Sign hash" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="match_parent" />
+
+            <Button
+                android:text="Sign hashes"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnSignHashes"
+                android:layout_weight="1" />
 
         </LinearLayout>
 

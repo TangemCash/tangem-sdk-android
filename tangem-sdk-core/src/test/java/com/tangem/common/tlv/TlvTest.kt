@@ -3,8 +3,7 @@ package com.tangem.common.tlv
 import com.google.common.truth.Truth.assertThat
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
-import org.junit.Test
-
+import org.junit.jupiter.api.Test
 
 class TlvTest {
 

@@ -1,7 +1,7 @@
 package com.tangem.common.extensions
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.*
 
 
@@ -68,6 +68,19 @@ class ByteArrayExtensionsTest {
         val expected = 0
         assertThat(bytes.toInt())
                 .isEqualTo(expected)
+    }
+
+    @Test
+    fun `to long and back`() {
+        fun compare(toCompare: Long) {
+            val left = toCompare.toByteArray().toLong()
+            val right = toCompare.toByteArray().toLong()
+            assert(left == right)
+        }
+
+        compare(100)
+        compare(Long.MIN_VALUE)
+        compare(Long.MAX_VALUE)
     }
 
     @Test

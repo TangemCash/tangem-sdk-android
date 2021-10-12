@@ -1,12 +1,13 @@
 package com.tangem.common.tlv
 
 import com.google.common.truth.Truth.assertThat
-import com.tangem.TangemSdkError
-import com.tangem.commands.common.card.CardStatus
-import com.tangem.commands.common.card.EllipticCurve
-import com.tangem.commands.common.card.masks.*
+import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.SigningMethod
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
-import org.junit.Test
+import com.tangem.operations.personalization.entities.ProductMask
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 
@@ -23,9 +24,8 @@ class TlvDecoderTest {
 
     @Test
     fun `map optional when value is present`() {
-        val settingsMask: SettingsMask? = tlvMapper.decodeOptional(TlvTag.SettingsMask)
-        assertThat(settingsMask)
-                .isNotNull()
+        val mask: Card.SettingsMask? = tlvMapper.decodeOptional(TlvTag.SettingsMask)
+        assertThat(mask).isNotNull()
     }
 
     @Test
@@ -65,27 +65,27 @@ class TlvDecoderTest {
 
     @Test
     fun `map SettingsMask returns correct value`() {
-        val settingsMask: SettingsMask = tlvMapper.decode(TlvTag.SettingsMask)
-        assertThat(settingsMask)
+        val mask: Card.SettingsMask = tlvMapper.decode(TlvTag.SettingsMask)
+        assertThat(mask)
                 .isNotNull()
-        assertThat(settingsMask.rawValue)
+        assertThat(mask.rawValue)
                 .isEqualTo(32289)
-        assertThat(settingsMask.contains(Settings.SkipSecurityDelayIfValidatedByLinkedTerminal))
+        assertThat(mask.contains(Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal))
                 .isFalse()
-        assertThat(settingsMask.contains(Settings.IsReusable))
+        assertThat(mask.contains(Card.SettingsMask.Code.IsReusable))
                 .isTrue()
-        assertThat(settingsMask.contains(Settings.AllowSetPIN2))
+        assertThat(mask.contains(Card.SettingsMask.Code.AllowSetPIN2))
                 .isTrue()
-        assertThat(settingsMask.contains(Settings.UseDynamicNDEF))
+        assertThat(mask.contains(Card.SettingsMask.Code.UseDynamicNDEF))
                 .isTrue()
-        assertThat(settingsMask.contains(Settings.ProhibitPurgeWallet))
+        assertThat(mask.contains(Card.SettingsMask.Code.PermanentWallet))
                 .isFalse()
     }
 
     @Test
     fun `map SigningMethods single value returns correct value`() {
-        val signingMethods: SigningMethodMask = tlvMapper.decode(TlvTag.SigningMethod)
-        assertThat(signingMethods.contains(SigningMethod.SignHash))
+        val signingMethods: SigningMethod = tlvMapper.decode(TlvTag.SigningMethod)
+        assertThat(signingMethods.contains(SigningMethod.Code.SignHash))
                 .isTrue()
     }
 
@@ -93,35 +93,35 @@ class TlvDecoderTest {
     fun `map SigningMethods set of methods returns correct value`() {
         val localMapper = TlvDecoder(Tlv.deserialize("070195".hexToBytes())!!)
 
-        val signingMethods: SigningMethodMask = localMapper.decode(TlvTag.SigningMethod)
-        assertThat(signingMethods.contains(SigningMethod.SignHash))
+        val signingMethods: SigningMethod = localMapper.decode(TlvTag.SigningMethod)
+        assertThat(signingMethods.contains(SigningMethod.Code.SignHash))
                 .isTrue()
-        assertThat(signingMethods.contains(SigningMethod.SignHashSignedByIssuer))
+        assertThat(signingMethods.contains(SigningMethod.Code.SignHashSignedByIssuer))
                 .isTrue()
-        assertThat(signingMethods.contains(SigningMethod.SignHashSignedByIssuerAndUpdateIssuerData))
+        assertThat(signingMethods.contains(SigningMethod.Code.SignHashSignedByIssuerAndUpdateIssuerData))
                 .isTrue()
-        assertThat(signingMethods.contains(SigningMethod.SignRaw))
+        assertThat(signingMethods.contains(SigningMethod.Code.SignRaw))
                 .isFalse()
-        assertThat(signingMethods.contains(SigningMethod.SignRawSignedByIssuer))
+        assertThat(signingMethods.contains(SigningMethod.Code.SignRawSignedByIssuer))
                 .isFalse()
-        assertThat(signingMethods.contains(SigningMethod.SignRawSignedByIssuerAndUpdateIssuerData))
+        assertThat(signingMethods.contains(SigningMethod.Code.SignRawSignedByIssuerAndUpdateIssuerData))
                 .isFalse()
-        assertThat(signingMethods.contains(SigningMethod.SignPos))
+        assertThat(signingMethods.contains(SigningMethod.Code.SignPos))
                 .isFalse()
     }
 
     @Test
     fun `map CardStatus returns correct value`() {
-        val cardStatus: CardStatus = tlvMapper.decode(TlvTag.Status)
+        val cardStatus: Card.Status = tlvMapper.decode(TlvTag.Status)
         assertThat(cardStatus)
-                .isEqualTo(CardStatus.Loaded)
+                .isEqualTo(Card.Status.Loaded)
     }
 
     @Test
     fun `map ProductMask with raw value 5 returns correct value`() {
         val localMapper = TlvDecoder(listOf(Tlv(TlvTag.ProductMask, byteArrayOf(5))))
         val productMask: ProductMask = localMapper.decode(TlvTag.ProductMask)
-        assertThat(productMask.contains(Product.Note) && productMask.contains(Product.IdCard))
+        assertThat(productMask.contains(ProductMask.Code.Note) && productMask.contains(ProductMask.Code.IdCard))
                 .isTrue()
     }
 
@@ -129,7 +129,7 @@ class TlvDecoderTest {
     fun `map ProductMask with raw value 1 returns correct value`() {
         val localMapper = TlvDecoder(listOf(Tlv(TlvTag.ProductMask, byteArrayOf(1))))
         val productMask: ProductMask = localMapper.decode(TlvTag.ProductMask)
-        assertThat(productMask.contains(Product.Note))
+        assertThat(productMask.contains(ProductMask.Code.Note))
                 .isTrue()
     }
 
@@ -180,7 +180,7 @@ class TlvDecoderTest {
 
     @Test
     fun `map UTF8 returns correct value`() {
-        val blockchainId: String = cardDataMapper.decode(TlvTag.BlockchainId)
+        val blockchainId: String = cardDataMapper.decode(TlvTag.BlockchainName)
         assertThat(blockchainId)
                 .isEqualTo("ETH")
     }

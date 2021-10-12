@@ -4,9 +4,9 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.View
+import com.tangem.common.extensions.VoidCallback
 import com.tangem.tangem_sdk_new.nfc.NfcManager
 import com.tangem.tangem_sdk_new.postUI
-import com.tangem.tangem_sdk_new.ui.animation.VoidCallback
 
 /**
  * Created by Anton Zhilenkov on 11/10/2020.

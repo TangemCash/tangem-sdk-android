@@ -11,17 +11,18 @@ import com.tangem.tangem_demo.ui.settings.SettingsFragment
  */
 class DemoApplication : Application() {
 
-    private lateinit var prefManager: SharedPreferences
+    lateinit var shPrefs: SharedPreferences
+        private set
 
     override fun onCreate() {
         super.onCreate()
 
-        prefManager = PreferenceManager.getDefaultSharedPreferences(this)
+        shPrefs = PreferenceManager.getDefaultSharedPreferences(this)
         switchToNighMode(isNightModeActive())
     }
 
     fun isNightModeActive(): Boolean {
-        return prefManager.getBoolean(SettingsFragment.nightMode, false)
+        return shPrefs.getBoolean(SettingsFragment.nightMode, false)
     }
 
     fun switchToNighMode(switch: Boolean) {

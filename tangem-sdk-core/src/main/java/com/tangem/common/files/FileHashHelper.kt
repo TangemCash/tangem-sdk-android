@@ -10,7 +10,8 @@ import com.tangem.crypto.sign
 class FileHashHelper {
     companion object {
         /**
-         * Creates hashes and signatures for [com.tangem.commands.file.FileData.DataProtectedBySignature]
+         * Creates hashes and signatures for [FileDataProtectedBySignature]
+         *
          * @param cardId: CID, Unique Tangem card ID number.
          * @param fileData: File data that will be written on card
          * @param fileCounter: A counter that protects issuer data against replay attack.
@@ -19,10 +20,12 @@ class FileHashHelper {
          * @return [FileHashData] with hashes to sign and signatures if [privateKey] was provided.
          */
         fun prepareHashes(
-                cardId: String, fileData: ByteArray, fileCounter: Int, privateKey: ByteArray? = null
+            cardId: String,
+            fileData: ByteArray,
+            fileCounter: Int,
+            privateKey: ByteArray? = null
         ): FileHashData {
-            val startingHash =
-                    cardId.hexToBytes() + fileCounter.toByteArray(4) + fileData.size.toByteArray(2)
+            val startingHash = cardId.hexToBytes() + fileCounter.toByteArray(4) + fileData.size.toByteArray(2)
             val finalizingHash = cardId.hexToBytes() + fileData + fileCounter.toByteArray(4)
 
             val startingSignature = privateKey?.let { startingHash.sign(it) }

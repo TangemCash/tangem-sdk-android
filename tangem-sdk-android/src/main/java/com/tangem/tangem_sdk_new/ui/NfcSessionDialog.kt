@@ -10,8 +10,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Log
 import com.tangem.Message
-import com.tangem.SessionEnvironment
 import com.tangem.common.Timer
+import com.tangem.common.core.SessionEnvironment
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.hide
@@ -94,21 +94,23 @@ class NfcSessionDialog(
     fun show(state: SessionViewDelegateState) {
         if (ownerActivity == null || ownerActivity?.isFinishing == true) return
 
-        if (!this.isShowing) this.show()
-        when (state) {
-            is SessionViewDelegateState.Ready -> onReady(state)
-            is SessionViewDelegateState.Success -> onSuccess(state)
-            is SessionViewDelegateState.Error -> onError(state)
-            is SessionViewDelegateState.SecurityDelay -> onSecurityDelay(state)
-            is SessionViewDelegateState.Delay -> onDelay(state)
-            is SessionViewDelegateState.PinRequested -> onPinRequested(state)
-            is SessionViewDelegateState.PinChangeRequested -> onPinChangeRequested(state)
-            is SessionViewDelegateState.WrongCard -> onWrongCard(state)
-            SessionViewDelegateState.TagConnected -> onTagConnected(state)
-            SessionViewDelegateState.TagLost -> onTagLost(state)
-            SessionViewDelegateState.HowToTap -> howToTap(state)
+        postUI {
+            if (!this.isShowing) this.show()
+            when (state) {
+                is SessionViewDelegateState.Ready -> onReady(state)
+                is SessionViewDelegateState.Success -> onSuccess(state)
+                is SessionViewDelegateState.Error -> onError(state)
+                is SessionViewDelegateState.SecurityDelay -> onSecurityDelay(state)
+                is SessionViewDelegateState.Delay -> onDelay(state)
+                is SessionViewDelegateState.PinRequested -> onPinRequested(state)
+                is SessionViewDelegateState.PinChangeRequested -> onPinChangeRequested(state)
+                is SessionViewDelegateState.WrongCard -> onWrongCard(state)
+                SessionViewDelegateState.TagConnected -> onTagConnected(state)
+                SessionViewDelegateState.TagLost -> onTagLost(state)
+                SessionViewDelegateState.HowToTap -> howToTap(state)
+            }
+            currentState = state
         }
-        currentState = state
     }
 
     private fun onReady(state: SessionViewDelegateState.Ready) {
@@ -166,8 +168,12 @@ class NfcSessionDialog(
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         headerWidget.onClose = { cancel() }
+        // userCode changes failed if an user dismiss the dialog from any moment
+        pinCodeSetChangeWidget.onBottomSheetDismiss = { state.callback(null) }
         pinCodeSetChangeWidget.onSave = {
             enableBottomSheetAnimation()
+            // disable sending the error if dialog closed after accepting an userCode
+            pinCodeSetChangeWidget.onBottomSheetDismiss = null
             pinCodeSetChangeWidget.onSave = null
 
             setStateAndShow(getEmptyOnReadyEvent(), headerWidget, touchCardWidget, messageWidget)
@@ -180,8 +186,8 @@ class NfcSessionDialog(
 
     private fun onTagLost(state: SessionViewDelegateState) {
         if (currentState is SessionViewDelegateState.Success ||
-            currentState is SessionViewDelegateState.PinRequested ||
-            currentState is SessionViewDelegateState.PinChangeRequested) {
+                currentState is SessionViewDelegateState.PinRequested ||
+                currentState is SessionViewDelegateState.PinChangeRequested) {
             return
         }
         setStateAndShow(state, touchCardWidget, messageWidget)
@@ -195,14 +201,16 @@ class NfcSessionDialog(
         setStateAndShow(state, progressStateWidget, messageWidget)
     }
 
-    private fun onWrongCard(state: SessionViewDelegateState) {
+    private fun onWrongCard(state: SessionViewDelegateState.WrongCard) {
+        Log.view { "Showing wrong card. Type: ${state.wrongValueType}" }
         if (currentState !is SessionViewDelegateState.WrongCard) {
             performHapticFeedback()
             setStateAndShow(state, progressStateWidget, messageWidget)
             progressStateWidget.setState(state)
             messageWidget.setState(state)
             postUI(2000) {
-                setStateAndShow(getEmptyOnReadyEvent(), touchCardWidget, messageWidget)
+                currentState = getEmptyOnReadyEvent()
+                setStateAndShow(currentState!!, touchCardWidget, messageWidget)
             }
         }
     }
@@ -233,6 +241,7 @@ class NfcSessionDialog(
     }
 
     private fun setStateAndShow(state: SessionViewDelegateState, vararg views: StateWidget<SessionViewDelegateState>) {
+        Log.debug { "setStateAndShow: state: $state" }
         handleStateForTrickySecurityDelay(state)
         views.forEach { it.setState(state) }
 
@@ -299,9 +308,11 @@ class NfcSessionDialog(
     }
 
     override fun dismiss() {
-        stateWidgets.forEach { it.onBottomSheetDismiss() }
-        if (ownerActivity == null || ownerActivity?.isFinishing == true) return
+        postUI {
+            stateWidgets.forEach { it.onBottomSheetDismiss() }
+            if (ownerActivity == null || ownerActivity?.isFinishing == true) return@postUI
 
-        super.dismiss()
+            super.dismiss()
+        }
     }
 }

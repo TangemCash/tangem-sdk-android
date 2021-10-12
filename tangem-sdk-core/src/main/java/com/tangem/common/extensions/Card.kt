@@ -1,8 +1,6 @@
 package com.tangem.common.extensions
 
-import com.tangem.commands.common.card.Card
-import com.tangem.commands.common.card.FirmwareType
+import com.tangem.common.card.Card
+import com.tangem.common.card.FirmwareVersion
 
-fun Card.getType(): FirmwareType {
-    return firmwareVersion.type ?: FirmwareType.Sprecial
-}
+fun Card.getType(): FirmwareVersion.FirmwareType = firmwareVersion.type

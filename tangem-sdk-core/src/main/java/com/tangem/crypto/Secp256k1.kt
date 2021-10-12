@@ -5,14 +5,36 @@ import org.spongycastle.asn1.ASN1EncodableVector
 import org.spongycastle.asn1.ASN1Integer
 import org.spongycastle.asn1.DERSequence
 import org.spongycastle.jce.ECNamedCurveTable
+import org.spongycastle.jce.spec.ECParameterSpec
 import org.spongycastle.jce.spec.ECPrivateKeySpec
 import org.spongycastle.jce.spec.ECPublicKeySpec
+import org.spongycastle.math.ec.ECPoint
 import java.math.BigInteger
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.Signature
 
 object Secp256k1 {
+
+    internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
+        val privateKeySpec = ECPrivateKeySpec(BigInteger(1, privateKeyArray), createECSpec())
+        val privateKey = createKeyFactory().generatePrivate(privateKeySpec)
+
+        val signatureInstance = Signature.getInstance("SHA256withECDSA")
+        signatureInstance.initSign(privateKey)
+        signatureInstance.update(data)
+
+        val enc = signatureInstance.sign()
+        checkSignatureForErrors(enc)
+
+        val res = toByte64(enc)
+
+        if (!verify(generatePublicKey(privateKeyArray), data, res)) {
+            throw Exception("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
+        }
+
+        return res
+    }
 
     internal fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray): Boolean {
         val signatureInstance = Signature.getInstance("SHA256withECDSA")
@@ -29,48 +51,72 @@ object Secp256k1 {
         return signatureInstance.verify(sigDer)
     }
 
-    internal fun loadPublicKey(publicKeyArray: ByteArray): PublicKey {
-
-        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
-        val factory = KeyFactory.getInstance("EC", "SC")
-
-        val p1 = spec.curve.decodePoint(publicKeyArray)
-        val keySpec = ECPublicKeySpec(p1, spec)
-
-        return factory.generatePublic(keySpec)
+    internal fun generatePublicKey(privateKeyArray: ByteArray, compressed: Boolean = false): ByteArray {
+        return multiply(privateKeyArray).getEncoded(compressed)
     }
+
+    internal fun loadPublicKey(publicKeyArray: ByteArray): PublicKey {
+        val ecSpec = createECSpec()
+        val p1 = ecSpec.curve.decodePoint(publicKeyArray)
+        val publicKeySpec = ECPublicKeySpec(p1, ecSpec)
+
+        return createKeyFactory().generatePublic(publicKeySpec)
+    }
+
+    internal fun compressPublicKey(key: ByteArray): ByteArray = if (key.size == 65) {
+        val publicKeyPoint = createECSpec().curve.decodePoint(key)
+        publicKeyPoint.getEncoded(true)
+    } else {
+        key
+    }
+
+    internal fun decompressPublicKey(key: ByteArray): ByteArray = if (key.size == 33) {
+        val publicKeyPoint = createECSpec().curve.decodePoint(key)
+        publicKeyPoint.getEncoded(false)
+    } else {
+        key
+    }
+
+    internal fun gMultiplyAndAddPoint(key: ByteArray, encodedPoint: ByteArray): ECPoint {
+        val ecSpec = createECSpec()
+        val multiplied = multiply(key, ecSpec)
+        val decoded = ecSpec.curve.decodePoint(encodedPoint)
+
+        return multiplied.add(decoded)
+    }
+
+    private fun multiply(privateKeyArray: ByteArray, ecSpec: ECParameterSpec? = null): ECPoint {
+        val ecSpec = ecSpec ?: createECSpec()
+
+        return ecSpec.g.multiply(BigInteger(1, privateKeyArray))
+    }
+
+    internal fun normalize(signature: ByteArray): ByteArray {
+        if (signature.size != 64) throw Exception("Invalid signature length")
+        fun isCanonical(s: BigInteger, halfCurveOrder: BigInteger): Boolean = s <= halfCurveOrder
+
+        val s = BigInteger(1, signature.copyOfRange(32, 64))
+        val ecSpec = createECSpec()
+        val halfCurveOrder: BigInteger = ecSpec.n shr 1
+
+        if (!isCanonical(s, halfCurveOrder)) {
+            val canonizedS = ecSpec.n.subtract(s)
+            val baS = canonizedS.toByteArray()
+            System.arraycopy(baS, 0, signature, 32, baS.size)
+        }
+
+        return signature
+    }
+
+    private fun createECSpec(): ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256k1")
+
+    private fun createKeyFactory(): KeyFactory = KeyFactory.getInstance("EC", "SC")
 
     private fun calculateR(signature: ByteArray, size: Int): ASN1Integer =
             ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
 
     private fun calculateS(signature: ByteArray, size: Int): ASN1Integer =
             ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
-
-
-    internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
-
-        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
-        val factory = KeyFactory.getInstance("EC", "SC")
-
-        val keySpecP = ECPrivateKeySpec(BigInteger(1, privateKeyArray), spec)
-
-        val signature = Signature.getInstance("SHA256withECDSA")
-
-        val privateKey = factory.generatePrivate(keySpecP)
-        signature.initSign(privateKey)
-        signature.update(data)
-
-        val enc = signature.sign()
-        checkSignatureForErrors(enc)
-
-        val res = toByte64(enc)
-
-        if (!verify(generatePublicKey(privateKeyArray), data, res)) {
-            throw Exception("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
-        }
-
-        return res
-    }
 
     private fun checkSignatureForErrors(enc: ByteArray) {
         if (enc[0].toInt() != 0x30) throw Exception("bad encoding 1")
@@ -84,7 +130,6 @@ object Secp256k1 {
     }
 
     private fun toByte64(enc: ByteArray): ByteArray {
-
         var rLength = enc[3].toInt()
         var sLength = enc[5 + rLength].toInt()
 
@@ -109,10 +154,5 @@ object Secp256k1 {
         }
 
         return res
-    }
-
-    internal fun generatePublicKey(privateKeyArray: ByteArray): ByteArray {
-        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
-        return spec.g.multiply(BigInteger(1, privateKeyArray)).getEncoded(false)
     }
 }

@@ -1,14 +1,15 @@
 package com.tangem.jvm
 
-import com.tangem.CardReader
 import com.tangem.Log
-import com.tangem.TagType
-import com.tangem.TangemSdkError
 import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.TagType
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
+import com.tangem.common.nfc.CardReader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.launch
@@ -81,7 +82,7 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
     override fun pauseSession() {
     }
 
-    override fun readSlixTag(callback: (result: CompletionResult<ResponseApdu>) -> Unit) {
+    override fun readSlixTag(callback: CompletionCallback<ResponseApdu>) {
     }
 
     override fun resumeSession() {

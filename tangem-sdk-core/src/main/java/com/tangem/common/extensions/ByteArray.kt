@@ -1,7 +1,7 @@
 package com.tangem.common.extensions
 
+import com.tangem.crypto.CryptoUtils
 import org.spongycastle.crypto.digests.RIPEMD160Digest
-import org.spongycastle.jce.ECNamedCurveTable
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.util.*
@@ -11,7 +11,6 @@ import kotlin.experimental.xor
 /**
  * Extension functions for [ByteArray].
  */
-
 fun ByteArray.toHexString(): String = joinToString("") { "%02X".format(it) }
 
 fun ByteArray.toUtf8(): String = String(this).removeSuffix("\u0000")
@@ -22,6 +21,22 @@ fun ByteArray.toInt(): Int {
         2 -> ByteBuffer.wrap(this).short.toInt()
         4 -> ByteBuffer.wrap(this).int
         else -> throw IllegalArgumentException("Length must be 1,2 or 4. Length = " + this.size)
+    }
+}
+
+fun ByteArray.toLong(): Long {
+    return when (size) {
+        4 -> {
+            val mediator = ByteArray(Long.SIZE_BYTES)
+            System.arraycopy(this, 0, mediator, 4, this.size)
+            mediator.toLong()
+        }
+        else -> {
+            val buffer = ByteBuffer.allocate(Long.SIZE_BYTES)
+            buffer.put(this)
+            buffer.flip()
+            buffer.long
+        }
     }
 }
 
@@ -46,15 +61,10 @@ fun ByteArray.calculateRipemd160(): ByteArray {
     return out
 }
 
-fun ByteArray.toCompressedPublicKey(): ByteArray {
-    return if (this.size == 65) {
-        val spec = ECNamedCurveTable.getParameterSpec("secp256k1")
-        val publicKeyPoint = spec.curve.decodePoint(this)
-        publicKeyPoint.getEncoded(true)
-    } else {
-        this
-    }
-}
+fun ByteArray.toCompressedPublicKey(): ByteArray = CryptoUtils.compressPublicKey(this)
+
+fun ByteArray.toDecompressedPublicKey(): ByteArray = CryptoUtils.decompressPublicKey(this)
+
 
 fun ByteArray.calculateCrc16(): ByteArray {
     var chBlock: Byte

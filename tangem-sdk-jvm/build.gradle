@@ -2,12 +2,20 @@ plugins {
     id 'java-library'
     id 'kotlin'
 }
-apply from: '../upload.gradle'
 apply from: '../artifactConfig.gradle'
-
+apply from: '../upload.gradle'
 
 sourceCompatibility = 1.8
 
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+java {
+    withSourcesJar()
+}
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}"
@@ -19,8 +27,3 @@ dependencies {
     implementation "com.squareup.sqldelight:sqlite-driver:1.4.3"
 }
 
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}

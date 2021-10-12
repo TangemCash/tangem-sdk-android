@@ -4,10 +4,15 @@ import android.nfc.Tag
 import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import android.nfc.tech.NfcV
-import com.tangem.*
+import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.TagType
+import com.tangem.common.core.TangemSdkError
+import com.tangem.common.nfc.CardReader
+import com.tangem.common.nfc.ReadingActiveListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
@@ -87,7 +92,7 @@ class NfcReader : CardReader {
             }
         }
 
-    override fun transceiveApdu(apdu: CommandApdu, callback: (response: CompletionResult<ResponseApdu>) -> Unit) {
+    override fun transceiveApdu(apdu: CommandApdu, callback: CompletionCallback<ResponseApdu>) {
         val rawResponse: ByteArray? = try {
             Log.apdu { apdu.toString() }
             transcieveAndLog(apdu.apduData)
@@ -114,8 +119,7 @@ class NfcReader : CardReader {
         val startTime = System.currentTimeMillis()
         val rawResponse = nfcTag?.isoDep?.transceive(data)
         val finishTime = System.currentTimeMillis()
-        Log.command { "Command execution time is: ${finishTime - startTime} ms" }
-        Log.nfc { "Success response from card received" }
+        Log.nfc { "Success response from card received. Execution time is: ${finishTime - startTime} ms" }
         return rawResponse
     }
 
@@ -127,7 +131,7 @@ class NfcReader : CardReader {
         }
     }
 
-    override fun readSlixTag(callback: (result: CompletionResult<ResponseApdu>) -> Unit) {
+    override fun readSlixTag(callback: CompletionCallback<ResponseApdu>) {
         val nfcV = nfcTag?.nfcV
         if (nfcV == null) {
             callback.invoke(CompletionResult.Failure(TangemSdkError.ErrorProcessingCommand()))

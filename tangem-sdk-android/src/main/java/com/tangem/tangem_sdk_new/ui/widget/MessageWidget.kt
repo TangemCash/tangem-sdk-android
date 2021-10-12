@@ -3,9 +3,9 @@ package com.tangem.tangem_sdk_new.ui.widget
 import android.view.View
 import android.widget.TextView
 import com.tangem.Message
-import com.tangem.TangemError
-import com.tangem.TangemSdkError
 import com.tangem.WrongValueType
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.localizedDescription
@@ -19,7 +19,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
     private val tvTaskTitle: TextView = mainView.findViewById(R.id.tvTaskTitle)
     private val tvTaskMessage: TextView = mainView.findViewById(R.id.tvTaskMessage)
 
-    private var outerMessage: Message? = null
+    private var initialMessage: Message? = null
 
     override fun setState(params: SessionViewDelegateState) {
         val message = getMessage(params)
@@ -44,12 +44,12 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setText(tvTaskMessage, formattedErrorMessage)
             }
             is SessionViewDelegateState.SecurityDelay -> {
-                setText(tvTaskTitle, message?.header, R.string.view_delegate_security_delay)
-                setText(tvTaskMessage, message?.body, R.string.view_delegate_security_delay_description)
+                setText(tvTaskTitle, null, R.string.view_delegate_security_delay)
+                setText(tvTaskMessage, null, R.string.view_delegate_security_delay_description)
             }
             is SessionViewDelegateState.Delay -> {
-                setText(tvTaskTitle, message?.header, R.string.view_delegate_delay)
-                setText(tvTaskMessage, message?.body, R.string.view_delegate_delay_description)
+                setText(tvTaskTitle, null, R.string.view_delegate_delay)
+                setText(tvTaskMessage, null, R.string.view_delegate_delay_description)
             }
             is SessionViewDelegateState.PinRequested -> {
             }
@@ -68,7 +68,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
                 }
 
-                setText(tvTaskTitle, message?.header, R.string.common_error)
+                setText(tvTaskTitle, null, R.string.common_error)
                 val bodyMessage = mainView.context.getString(
                     R.string.error_message,
                     getString(R.string.error_wrong_card),
@@ -84,20 +84,18 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
     }
 
     fun setMessage(message: Message?) {
-        outerMessage = message
+        initialMessage = message
     }
 
     private fun getMessage(params: SessionViewDelegateState): Message? {
         return when (params) {
             is SessionViewDelegateState.Ready -> {
-                outerMessage = null
-                params.message
+                params.message ?: initialMessage
             }
             is SessionViewDelegateState.Success -> {
-                outerMessage = null
                 params.message
             }
-            else -> outerMessage
+            else -> initialMessage
         }
     }
 

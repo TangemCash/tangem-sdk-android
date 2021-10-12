@@ -82,29 +82,6 @@
                 android:layout_marginTop="8dp"
                 android:layout_height="wrap_content">
 
-                <androidx.appcompat.widget.SwitchCompat
-                    android:text="Is reusable"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/swIsReusable"
-                    android:checked="true"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintEnd_toStartOf="@+id/swIsProhibitPurgeWallet"
-                    app:layout_constraintHorizontal_chainStyle="spread_inside"
-                    android:layout_marginStart="4dp" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:text="Is prohibit purge wallet"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/swIsProhibitPurgeWallet"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/swIsReusable"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintTop_toTopOf="@+id/swIsReusable" />
-
                 <Button
                     android:id="@+id/btnCreateWalletSecpK1"
                     android:layout_width="0dp"
@@ -114,7 +91,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletEdwards"
-                    app:layout_constraintTop_toBottomOf="@+id/swIsReusable" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <Button
                     android:id="@+id/btnCreateWalletEdwards"
@@ -126,7 +103,7 @@
                     app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletSecpR1"
                     app:layout_constraintStart_toEndOf="@+id/btnCreateWalletSecpK1"
                     app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintTop_toBottomOf="@+id/swIsReusable" />
+                    app:layout_constraintTop_toTopOf="@+id/btnCreateWalletSecpK1" />
 
                 <Button
                     android:id="@+id/btnCreateWalletSecpR1"

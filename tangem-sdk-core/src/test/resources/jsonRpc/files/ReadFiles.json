@@ -1,0 +1,21 @@
+{
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "READ_FILES",
+    "params": {}
+  },
+  "response": {
+    "jsonrpc": "2.0",
+    "result": {
+      "files": [
+        {
+          "fileIndex": 0,
+          "fileData": "00AABBCCDD",
+          "fileSettings": "public"
+        }
+      ]
+    },
+    "id": 1
+  }
+}

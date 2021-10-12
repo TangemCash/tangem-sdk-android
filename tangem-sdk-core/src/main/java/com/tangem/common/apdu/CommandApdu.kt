@@ -1,6 +1,6 @@
 package com.tangem.common.apdu
 
-import com.tangem.EncryptionMode
+import com.tangem.common.card.EncryptionMode
 import com.tangem.common.extensions.calculateCrc16
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.extensions.toHexString
@@ -27,15 +27,7 @@ class CommandApdu(
     private val cla: Int = ISO_CLA
 ) {
 
-    constructor(
-        instruction: Instruction,
-        tlvs: ByteArray
-    ) : this(
-        instruction.code,
-        tlvs,
-        0,
-        0
-    )
+    constructor(instruction: Instruction, tlvs: ByteArray) : this(instruction.code, tlvs, 0, 0)
 
     /**
      * Request converted to a raw data
@@ -73,15 +65,15 @@ class CommandApdu(
         encryptionMode: EncryptionMode,
         encryptionKey: ByteArray?
     ): CommandApdu {
-
-        if (encryptionKey == null || p1 != EncryptionMode.NONE.code) {
+        if (encryptionKey == null || p1 != EncryptionMode.None.byteValue) {
             return this
         }
+
         val crc: ByteArray = tlvs.calculateCrc16()
         val dataToEncrypt = tlvs.size.toByteArray(2) + crc + tlvs
         val encryptedData = dataToEncrypt.encrypt(encryptionKey)
 
-        return CommandApdu(ins, encryptedData, encryptionMode.code, p2, le, cla)
+        return CommandApdu(ins, encryptedData, encryptionMode.byteValue, p2, le, cla)
     }
 
     override fun toString(): String {

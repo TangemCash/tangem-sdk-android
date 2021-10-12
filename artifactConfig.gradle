@@ -1,4 +1,4 @@
 ext.artifactConfig = [
-        group: project.hasProperty('artifactGroup') ? project.getProperty('artifactGroup') : 'com.github.Tangem',
+        group  : 'com.tangem.tangem-sdk-kotlin',
         version: project.hasProperty('artifactVersion') ? project.getProperty('artifactVersion') : '0.0.1'
 ]

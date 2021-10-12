@@ -15,7 +15,7 @@ import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.tangem.commands.PinType
+import com.tangem.common.UserCodeType
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.hideSoftKeyboard
@@ -54,7 +54,7 @@ class PinCodeModificationWidget(
     private val btnSave: Button = mainView.findViewById(R.id.btnSaveCode)
 
     private var isPasswordEnabled = true
-    private var pinType: PinType = PinType.Pin1
+    private var userCodeType: UserCodeType = UserCodeType.AccessCode
 
     private val isChangeCodeMode: Boolean = mode == MODE_CHANGE
 
@@ -86,7 +86,7 @@ class PinCodeModificationWidget(
     override fun setState(params: SessionViewDelegateState) {
         when (params) {
             is SessionViewDelegateState.PinChangeRequested -> {
-                pinType = params.pinType
+                userCodeType = params.type
                 resetPinCodes()
                 modifyUiByMode()
                 postUI(1000) { etPinCode.showSoftKeyboard() }
@@ -100,9 +100,9 @@ class PinCodeModificationWidget(
     }
 
     private fun modifyUiByMode() {
-        val nameOfPin = when (pinType) {
-            PinType.Pin1 -> getString(R.string.pin1)
-            PinType.Pin2 -> getString(R.string.pin2)
+        val nameOfPin = when (userCodeType) {
+            UserCodeType.AccessCode -> getString(R.string.pin1)
+            UserCodeType.Passcode -> getString(R.string.pin2)
         }
         if (isChangeCodeMode) {
             tvScreenTitle.text = getFormattedString(R.string.pin_change_code_format, nameOfPin)

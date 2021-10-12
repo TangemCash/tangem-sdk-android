@@ -9,12 +9,12 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextSwitcher
 import com.skyfishjy.library.RippleBackground
+import com.tangem.common.extensions.VoidCallback
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.*
 import com.tangem.tangem_sdk_new.nfc.NfcLocationProvider
 import com.tangem.tangem_sdk_new.nfc.NfcManager
-import com.tangem.tangem_sdk_new.ui.animation.VoidCallback
 import com.tangem.tangem_sdk_new.ui.widget.BaseSessionDelegateStateWidget
 import com.tangem.tangem_sdk_new.ui.widget.BaseStateWidget
 

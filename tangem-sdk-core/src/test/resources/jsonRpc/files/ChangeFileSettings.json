@@ -1,0 +1,26 @@
+{
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "CHANGE_FILE_SETTINGS",
+    "params": {
+      "changes": [
+        {
+          "fileIndex": 1,
+          "settings": "private"
+        },
+        {
+          "fileIndex": 2,
+          "settings": "public"
+        }
+      ]
+    }
+  },
+  "response": {
+    "jsonrpc": "2.0",
+    "result": {
+      "cardId": "c000111122223333"
+    },
+    "id": 1
+  }
+}

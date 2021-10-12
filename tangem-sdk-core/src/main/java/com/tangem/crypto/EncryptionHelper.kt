@@ -1,6 +1,6 @@
 package com.tangem.crypto
 
-import com.tangem.EncryptionMode
+import com.tangem.common.card.EncryptionMode
 import org.spongycastle.jce.interfaces.ECPublicKey
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -16,9 +16,9 @@ interface EncryptionHelper {
     companion object {
         fun create(encryptionMode: EncryptionMode): EncryptionHelper? {
             return when (encryptionMode) {
-                EncryptionMode.NONE -> null
-                EncryptionMode.FAST -> FastEncryptionHelper()
-                EncryptionMode.STRONG -> StrongEncryptionHelper()
+                EncryptionMode.None -> null
+                EncryptionMode.Fast -> FastEncryptionHelper()
+                EncryptionMode.Strong -> StrongEncryptionHelper()
             }
         }
     }

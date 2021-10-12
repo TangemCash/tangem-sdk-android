@@ -76,6 +76,7 @@
     <string name="error_not_activated">This card has not been activated</string>
     <string name="error_verification_failed">Data verification failed</string>
     <string name="error_card_verification_failed">Card verification failed</string>
+    <string name="error_card_create_wallet">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
     <string name="error_data_size_too_large">Data size exceeds the max limit of 512 bytes</string>
     <string name="error_data_size_too_large_extended">Data size exceeds the max limit of 32 Kbytes</string>
     <string name="error_missing_counter">The data cannot be written to the card because there is no counter</string>

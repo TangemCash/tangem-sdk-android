@@ -62,6 +62,7 @@
     <string name="error_not_activated">Questa carta non è stata attivata</string>
     <string name="error_verification_failed">Non è stata eseguita la verificata</string>
     <string name="error_card_verification_failed">Non è stata eseguita la verifica dei dati</string>
+    <string name="error_card_create_wallet">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
     <string name="error_data_size_too_large">La dimensione dei dati supera il limite massimo di 512 byte </string>
     <string name="error_data_size_too_large_extended">La dimensione dei dati supera il limite massimo di 32 KB </string>
     <string name="error_missing_counter">I dati non possono essere scritti sulla carta perché non c\'è un contatore</string>
