@@ -90,6 +90,11 @@ class ScanTask : CardSessionRunnable<Card> {
                 callback(CompletionResult.Success(session.environment.card!!))
             }
             Attestation.Status.VerifiedOffline -> {
+                if (session.environment.config.attestationMode == AttestationTask.Mode.Offline){
+                    callback(CompletionResult.Success(session.environment.card!!))
+                    return
+                }
+
                 session.viewDelegate.attestationCompletedOffline({
                     callback(CompletionResult.Success(session.environment.card!!))
                 }, {
