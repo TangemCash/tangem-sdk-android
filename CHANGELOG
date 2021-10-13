@@ -1,13 +1,1 @@
-*   c8f79702 - (HEAD -> release/3.2.1, tag: develop-88, origin/develop, develop) Merge pull request #93 from tangem/CSK-240_fix-pinIsDefault-tlv-type
-|\  
-| *   ea5b34d4 - Merge branch 'develop' into CSK-240_fix-pinIsDefault-tlv-type
-| |\  
-| |/  
-|/|   
-* |   64bbea67 - (tag: develop-87) Merge pull request #94 from tangem/CSK-242_fix-retr-attestation-dialog-if-card-was-verified-offline
-|\ \  
-| * | c07cd9c8 - CSK-242 fixed retry attestationDialog if a card was verified offline
-|/ /  
-| * 7da8eb87 - CSK-240 fixed tlvType of the PinIsDefault
-|/  
-* d75fc67d - (tag: develop-86) Merge pull request #92 from tangem/master
+
