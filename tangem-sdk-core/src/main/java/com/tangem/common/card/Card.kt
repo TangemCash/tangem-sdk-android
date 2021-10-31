@@ -219,8 +219,10 @@ data class Card internal constructor(
 
         /**
          * Is allowed to delete wallet. COS before v4
+         * Default value used only for Moshi
          */
-        internal val isPermanentWallet: Boolean,
+        @Transient
+        internal val isPermanentWallet: Boolean = false,
 
         /**
          * Is overwriting issuer extra data restricted
@@ -263,19 +265,20 @@ data class Card internal constructor(
             defaultSigningMethods: SigningMethod? = null,
             defaultCurve: EllipticCurve? = null
         ) : this(
-                securityDelay,
-                maxWalletsCount,
-                mask.contains(SettingsMask.Code.AllowSetPIN1),
-                mask.contains(SettingsMask.Code.AllowSetPIN2),
-                !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
-                mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
-                createEncryptionModes(mask),
-                mask.contains(SettingsMask.Code.PermanentWallet),
-                mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
-                defaultSigningMethods,
-                defaultCurve,
-                mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
-                mask.contains(SettingsMask.Code.AllowSelectBlockchain),
+            securityDelay,
+            maxWalletsCount,
+            mask.contains(SettingsMask.Code.AllowSetPIN1),
+            mask.contains(SettingsMask.Code.AllowSetPIN2),
+            !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
+            mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
+            createEncryptionModes(mask),
+//            mask.contains(SettingsMask.Code.AllowHDWallets),
+            mask.contains(SettingsMask.Code.PermanentWallet),
+            mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
+            defaultSigningMethods,
+            defaultCurve,
+            mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
+            mask.contains(SettingsMask.Code.AllowSelectBlockchain),
         )
 
         companion object {
