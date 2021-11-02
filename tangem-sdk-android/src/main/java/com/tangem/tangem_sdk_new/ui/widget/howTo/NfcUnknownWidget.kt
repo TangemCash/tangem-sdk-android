@@ -11,6 +11,7 @@ import androidx.core.animation.doOnStart
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.extensions.fadeIn
 import com.tangem.tangem_sdk_new.extensions.fadeOut
+import com.tangem.tangem_sdk_new.postUI
 
 /**
  * Created by Anton Zhilenkov on 03/08/2020.
@@ -34,7 +35,9 @@ class NfcUnknownWidget(
         animatorSet.playSequentially(list)
         animatorSet.addListener(
             onStart = { handWithCard.alpha = 1f },
-            onEnd = { if (!isCancelled) onAnimationEnd?.invoke() },
+            onEnd = { if (!isCancelled){
+                postUI(3000) { onAnimationEnd?.invoke() }
+            } },
             onCancel = { handWithCard.fadeOut(1000) }
         )
         animatorSet.startDelay = 1000
