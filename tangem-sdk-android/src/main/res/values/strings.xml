@@ -28,7 +28,7 @@
     <string name="dialog_nfc_enable_title">Enable NFC?</string>
     <string name="dialog_nfc_enable_text">This app needs NFC to be switched on. Hit OK to go to Settings, where you can enable NFC.</string>
     <!-- Label. Long Tap is the operation when we ask the user to connect the card and the phone and hold it for several seconds. -->
-    <string name="view_delegate_security_delay_description">This card has enforced security delay. Please hold the card firmly until the operation is completed.</string>
+    <string name="view_delegate_security_delay_description">To ensure security please hold the card until the operation complete</string>
     <!-- Label. Something is happening. -->
     <string name="view_delegate_delay">Operation is in progress</string>
     <!-- Label. The user has to hold the card near the phone so as not to lose the connection between his phone and his card. -->
