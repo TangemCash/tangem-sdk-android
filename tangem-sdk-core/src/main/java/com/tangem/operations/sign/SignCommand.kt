@@ -112,7 +112,7 @@ internal class SignCommand(
                                     totalSignedHashes = result.data.totalSignedHashes,
                                     remainingSignatures = it.remainingSignatures?.minus(signatures.size)
                             )
-                            session.environment.card?.updateWallet(wallet)
+                            session.environment.card = session.environment.card?.updateWallet(wallet)
                         }
 
                         val finalResponse = SignResponse(
