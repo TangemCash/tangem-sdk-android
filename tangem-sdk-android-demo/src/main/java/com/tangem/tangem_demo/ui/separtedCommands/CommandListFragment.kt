@@ -6,15 +6,21 @@ import android.widget.ArrayAdapter
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
 import com.tangem.Log
+import com.tangem.Message
 import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CardSessionRunnable
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.operations.attestation.AttestationTask
+import com.tangem.operations.pins.SetUserCodeCommand
+import com.tangem.operations.sign.SignHashResponse
 import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
@@ -29,6 +35,7 @@ import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.json_rpc.*
 import kotlinx.android.synthetic.main.scan_card.*
+import kotlinx.android.synthetic.main.set_message.*
 import kotlinx.android.synthetic.main.set_pin.*
 import kotlinx.android.synthetic.main.sign.*
 import kotlinx.android.synthetic.main.user_data.*
@@ -66,9 +73,9 @@ class CommandListFragment : BaseFragment() {
         }
 
         val adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, listOf(
-                "m/0/1",
-                "m/0'/1'/2",
-                "m/44'/0'/0'/1/0"
+            "m/0/1",
+            "m/0'/1'/2",
+            "m/44'/0'/0'/1/0"
         ))
         etDerivePublicKey.setAdapter(adapter)
         etDerivePublicKey.addTextChangedListener { hdPath = if (it!!.isEmpty()) null else it!!.toString() }
@@ -109,6 +116,11 @@ class CommandListFragment : BaseFragment() {
         btnListJsonRpc.setOnClickListener { etJsonRpc.setText(jsonRpcListCommandsTemplate) }
         btnPasteJsonRpc.setOnClickListener { requireContext().getFromClipboard()?.let { etJsonRpc.setText(it) } }
         btnLaunchJsonRpc.setOnClickListener { launchJSONRPC(etJsonRpc.text.toString().trim()) }
+
+        btnCheckSetMessage.setOnClickListener {
+            sdk.startSessionWithRunnable(MultiMessageTask(), card?.cardId, initialMessage) { handleCommandResult(it) }
+        }
+        
         sliderWallet.stepSize = 1f
     }
 
@@ -208,4 +220,33 @@ class CommandListFragment : BaseFragment() {
         }
     ]
     """.trim()
+}
+
+class MultiMessageTask : CardSessionRunnable<SignHashResponse> {
+
+    val message1 = Message("Header - 1", "Body - 1")
+    val message2 = Message("Header - 2", "Body - 2")
+
+    override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
+        session.setMessage(message1)
+        Thread.sleep(2000)
+        session.setMessage(message2)
+        Thread.sleep(2000)
+        SetUserCodeCommand.changeAccessCode("1").run(session) {
+            when (it) {
+                is CompletionResult.Success -> {
+                    session.setMessage(Message("Success", "SignHashCommand"))
+                    Thread.sleep(2000)
+                    callback(CompletionResult.Failure(TangemSdkError.ExceptionError(
+                        Throwable("Test error message")
+                    )))
+                }
+                is CompletionResult.Failure -> {
+                    session.setMessage(Message("Success", "SignHashCommand"))
+                    Thread.sleep(2000)
+                    callback(CompletionResult.Failure(it.error))
+                }
+            }
+        }
+    }
 }

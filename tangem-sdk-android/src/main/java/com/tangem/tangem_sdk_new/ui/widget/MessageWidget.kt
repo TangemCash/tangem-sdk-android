@@ -9,7 +9,6 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.localizedDescription
-import com.tangem.tangem_sdk_new.postUI
 
 /**
  * Created by Anton Zhilenkov on 05/08/2020.
@@ -20,6 +19,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
     private val tvTaskMessage: TextView = mainView.findViewById(R.id.tvTaskMessage)
 
     private var initialMessage: Message? = null
+    private var externalMessage: Message? = null
 
     override fun setState(params: SessionViewDelegateState) {
         val message = getMessage(params)
@@ -33,9 +33,9 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setText(tvTaskMessage, message?.body ?: "")
             }
             is SessionViewDelegateState.Error -> {
-                setText(tvTaskTitle, message?.header, R.string.common_error)
+                setText(tvTaskTitle, null, R.string.common_error)
 
-                val errorMessage = getErrorMessage(params.error)
+                val errorMessage = getErrorString(params.error)
                 val formattedErrorMessage = mainView.context.getString(
                     R.string.error_message,
                     params.error.code.toString(),
@@ -44,12 +44,12 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setText(tvTaskMessage, formattedErrorMessage)
             }
             is SessionViewDelegateState.SecurityDelay -> {
-                setText(tvTaskTitle, null, R.string.view_delegate_security_delay)
-                setText(tvTaskMessage, null, R.string.view_delegate_security_delay_description)
+                setText(tvTaskTitle, message?.header, R.string.view_delegate_security_delay)
+                setText(tvTaskMessage, message?.body, R.string.view_delegate_security_delay_description)
             }
             is SessionViewDelegateState.Delay -> {
-                setText(tvTaskTitle, null, R.string.view_delegate_delay)
-                setText(tvTaskMessage, null, R.string.view_delegate_delay_description)
+                setText(tvTaskTitle, message?.header, R.string.view_delegate_delay)
+                setText(tvTaskMessage, message?.body, R.string.view_delegate_delay_description)
             }
             is SessionViewDelegateState.PinRequested -> {
             }
@@ -65,7 +65,6 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 val description = when (params.wrongValueType) {
                     WrongValueType.CardId -> getString(R.string.error_wrong_card_number)
                     WrongValueType.CardType -> getString(R.string.error_wrong_card_type)
-
                 }
 
                 setText(tvTaskTitle, null, R.string.common_error)
@@ -76,30 +75,30 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 )
 
                 setText(tvTaskMessage, bodyMessage)
-                postUI(2000) {
-                    setState(SessionViewDelegateState.Ready(null, null))
-                }
             }
         }
     }
 
+    fun setInitialMessage(message: Message?) {
+        this.initialMessage = message
+    }
+
     fun setMessage(message: Message?) {
-        initialMessage = message
+        this.externalMessage = message
+        setText(tvTaskTitle, message?.header)
+        setText(tvTaskMessage, message?.body)
     }
 
     private fun getMessage(params: SessionViewDelegateState): Message? {
         return when (params) {
-            is SessionViewDelegateState.Ready -> {
-                params.message ?: initialMessage
-            }
-            is SessionViewDelegateState.Success -> {
-                params.message
-            }
-            else -> initialMessage
+            is SessionViewDelegateState.Ready -> initialMessage
+            is SessionViewDelegateState.TagLost -> initialMessage
+            is SessionViewDelegateState.Success -> params.message
+            else -> externalMessage
         }
     }
 
-    private fun getErrorMessage(error: TangemError): String {
+    private fun getErrorString(error: TangemError): String {
         return if (error is TangemSdkError) {
             error.localizedDescription(mainView.context)
         } else {

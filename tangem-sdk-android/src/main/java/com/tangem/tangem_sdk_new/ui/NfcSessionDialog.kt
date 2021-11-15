@@ -5,6 +5,7 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.UiThread
 import androidx.transition.TransitionManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -83,10 +84,17 @@ class NfcSessionDialog(
         behavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
+    @UiThread
     fun enableHowTo(enable: Boolean) {
         headerWidget.howToIsEnabled = enable
     }
 
+    @UiThread
+    fun setInitialMessage(message: Message?) {
+        messageWidget.setInitialMessage(message)
+    }
+
+    @UiThread
     fun setMessage(message: Message?) {
         messageWidget.setMessage(message)
     }
@@ -167,6 +175,7 @@ class NfcSessionDialog(
         enableBottomSheetAnimation()
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
+        headerWidget.howToIsEnabled = false
         headerWidget.onClose = { cancel() }
         // userCode changes failed if an user dismiss the dialog from any moment
         pinCodeSetChangeWidget.onBottomSheetDismiss = { state.callback(null) }
@@ -294,7 +303,7 @@ class NfcSessionDialog(
     }
 
     private fun getEmptyOnReadyEvent(): SessionViewDelegateState {
-        return SessionViewDelegateState.Ready(headerWidget.cardId, null)
+        return SessionViewDelegateState.Ready(headerWidget.cardId)
     }
 
     private fun enableBottomSheetAnimation() {
