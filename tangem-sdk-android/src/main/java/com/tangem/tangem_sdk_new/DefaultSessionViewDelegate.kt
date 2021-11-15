@@ -34,7 +34,7 @@ class DefaultSessionViewDelegate(
 
     override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
         Log.view { "Session started" }
-        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId), message), enableHowTo)
+        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message)
     }
 
     override fun onSessionStopped(message: Message?) {
@@ -79,7 +79,8 @@ class DefaultSessionViewDelegate(
 
     override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {
         Log.view { "Showing pin change request with type: $type" }
-        createAndShowState(SessionViewDelegateState.PinChangeRequested(type, callback), false)
+        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, callback))
+//        createAndShowState(SessionViewDelegateState.PinChangeRequested(type, callback), false)
     }
 
     override fun dismiss() {
@@ -92,7 +93,7 @@ class DefaultSessionViewDelegate(
 
     override fun setMessage(message: Message?) {
         Log.view { "Set message with header: ${message?.header}, and body: ${message?.body}" }
-        readingDialog?.setMessage(message)
+        postUI { readingDialog?.setMessage(message) }
     }
 
 
@@ -118,7 +119,7 @@ class DefaultSessionViewDelegate(
         postUI {
             if (readingDialog == null) createReadingDialog(activity)
             readingDialog?.enableHowTo(enableHowTo)
-            readingDialog?.setMessage(message)
+            readingDialog?.setInitialMessage(message)
             readingDialog?.show(state)
         }
     }

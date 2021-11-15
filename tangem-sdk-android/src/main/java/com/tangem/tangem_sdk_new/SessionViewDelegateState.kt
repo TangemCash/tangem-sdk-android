@@ -10,7 +10,7 @@ sealed class SessionViewDelegateState() {
     data class Success(val message: Message?) : SessionViewDelegateState()
     data class SecurityDelay(val ms: Int, val totalDurationSeconds: Int) : SessionViewDelegateState()
     data class Delay(val total: Int, val current: Int, val step: Int) : SessionViewDelegateState()
-    data class Ready(val cardId: String?, val message: Message?) : SessionViewDelegateState()
+    data class Ready(val cardId: String?) : SessionViewDelegateState()
     data class PinRequested(
         val type: UserCodeType,
         val isFirstAttempt: Boolean,
