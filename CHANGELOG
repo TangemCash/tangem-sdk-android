@@ -1,13 +1,1 @@
-*   ac3e295 - (HEAD -> release/3.0.1, tag: develop-25, origin/develop, develop) Merge pull request #27 from tangem/CSK-162_restore_card_immutabillity
-|\  
-| *   ad53817 - Merge branch 'develop' into CSK-162_restore_card_immutabillity
-| |\  
-| |/  
-|/|   
-* |   9cee1b1 - (tag: develop-24) Merge pull request #29 from tangem/CSK-163_rename-upload-files
-|\ \  
-| * | 06022bd - CSK-163 renamed upload files
-|/ /  
-| * 349f61f - CSK-162 the Card object has immutable fields
-|/  
-* 23a870a - (tag: develop-23) Merge pull request #25 from tangem/master
+

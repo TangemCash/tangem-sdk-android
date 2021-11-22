@@ -8,6 +8,7 @@ import com.tangem.common.core.*
 import com.tangem.operations.*
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
+import com.tangem.operations.pins.CheckUserCodesCommand
 
 /**
  * Task that allows to read Tangem card and verify its private key.
@@ -17,11 +18,37 @@ import com.tangem.operations.attestation.AttestationTask
 class ScanTask : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
-        if (session.environment.card == null) {
+        val card = session.environment.card
+        if (card == null) {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
         }
-        runAttestation(session, callback)
+
+        // We have to retrieve passcode status information for cards with COS before v4.01 with checkUserCodes
+        // command for backward compatibility.
+        // checkUserCodes command for cards with COS <=1.19 not supported because of persistent SD.
+        // We cannot run checkUserCodes command for cards whose `isResettingUserCodesAllowed` is set to false
+        // because of an error
+        if (card.firmwareVersion < FirmwareVersion.IsPasscodeStatusAvailable
+                && card.firmwareVersion.doubleValue > 1.19
+                && card.settings.isResettingUserCodesAllowed
+        ) {
+            checkUserCodes(session, callback)
+        } else {
+            runAttestation(session, callback)
+        }
+    }
+
+    private fun checkUserCodes(session: CardSession, callback: CompletionCallback<Card>) {
+        CheckUserCodesCommand().run(session) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    session.environment.card = session.environment.card?.copy(isPasscodeSet = result.data.isPasscodeSet)
+                    runAttestation(session, callback)
+                }
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+            }
+        }
     }
 
     private fun runAttestation(session: CardSession, callback: CompletionCallback<Card>) {
@@ -63,6 +90,11 @@ class ScanTask : CardSessionRunnable<Card> {
                 callback(CompletionResult.Success(session.environment.card!!))
             }
             Attestation.Status.VerifiedOffline -> {
+                if (session.environment.config.attestationMode == AttestationTask.Mode.Offline){
+                    callback(CompletionResult.Success(session.environment.card!!))
+                    return
+                }
+
                 session.viewDelegate.attestationCompletedOffline({
                     callback(CompletionResult.Success(session.environment.card!!))
                 }, {

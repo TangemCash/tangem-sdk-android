@@ -34,6 +34,8 @@
 
         <include layout="@layout/json_rpc" />
 
+        <include layout="@layout/set_message" />
+
     </LinearLayout>
 
 </ScrollView>

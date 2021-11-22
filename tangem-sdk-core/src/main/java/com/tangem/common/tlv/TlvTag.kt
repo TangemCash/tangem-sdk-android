@@ -89,6 +89,7 @@ enum class TlvTag(val code: Int) {
     TransactionOutHash(0x50),
     TransactionOutHashSize(0x51),
     TransactionOutRaw(0x52),
+    PinIsDefault(0x5A),
     Pin2IsDefault(0x59),
 
     WalletPublicKey(0x60),
@@ -154,7 +155,7 @@ enum class TlvTag(val code: Int) {
             Offset, Size -> TlvValueType.Uint16
             FileIndex, WalletIndex, WalletsCount, CheckWalletCounter -> TlvValueType.Uint8
             MaxSignatures, UserCounter, UserProtectedCounter, IssuerDataCounter -> TlvValueType.Uint32
-            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize, Pin2IsDefault -> TlvValueType.BoolValue
+            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize, PinIsDefault, Pin2IsDefault -> TlvValueType.BoolValue
             ManufactureDateTime -> TlvValueType.DateTime
             ProductMask -> TlvValueType.ProductMask
             SettingsMask -> TlvValueType.SettingsMask

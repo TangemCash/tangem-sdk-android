@@ -58,12 +58,16 @@ data class Card internal constructor(
     val linkedTerminalStatus: LinkedTerminalStatus,
 
     /**
-     * PIN2 (aka Passcode) is set.
-     * Available only for cards with COS v. 4.0 and higher.
+     * Access code (aka PIN1) is set.
+     */
+    val isAccessCodeSet: Boolean,
+
+    /**
+     * COS v. 4.33 and higher - always available
+     * COS v. 1.19 and lower - always unavailable
+     * COS  v > 1.19 &&  v < 4.33 - available only if `isResettingUserCodesAllowed` set to true
      */
     val isPasscodeSet: Boolean?,
-
-        //TODO: isAccessCodeSet
 
     /**
      * Array of ellipctic curves, supported by this card. Only wallets with these curves can be created.
@@ -215,8 +219,10 @@ data class Card internal constructor(
 
         /**
          * Is allowed to delete wallet. COS before v4
+         * Default value used only for Moshi
          */
-        internal val isPermanentWallet: Boolean,
+        @Transient
+        internal val isPermanentWallet: Boolean = false,
 
         /**
          * Is overwriting issuer extra data restricted
@@ -259,19 +265,20 @@ data class Card internal constructor(
             defaultSigningMethods: SigningMethod? = null,
             defaultCurve: EllipticCurve? = null
         ) : this(
-                securityDelay,
-                maxWalletsCount,
-                mask.contains(SettingsMask.Code.AllowSetPIN1),
-                mask.contains(SettingsMask.Code.AllowSetPIN2),
-                !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
-                mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
-                createEncryptionModes(mask),
-                mask.contains(SettingsMask.Code.PermanentWallet),
-                mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
-                defaultSigningMethods,
-                defaultCurve,
-                mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
-                mask.contains(SettingsMask.Code.AllowSelectBlockchain),
+            securityDelay,
+            maxWalletsCount,
+            mask.contains(SettingsMask.Code.AllowSetPIN1),
+            mask.contains(SettingsMask.Code.AllowSetPIN2),
+            !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
+            mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
+            createEncryptionModes(mask),
+//            mask.contains(SettingsMask.Code.AllowHDWallets),
+            mask.contains(SettingsMask.Code.PermanentWallet),
+            mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
+            defaultSigningMethods,
+            defaultCurve,
+            mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
+            mask.contains(SettingsMask.Code.AllowSelectBlockchain),
         )
 
         companion object {

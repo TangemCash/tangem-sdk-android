@@ -65,11 +65,12 @@ class ReadWalletCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadWalletResponse {
+        val card = environment.card ?: throw TangemSdkError.UnknownError()
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         val wallet = try {
-            WalletDeserializer.deserializeWallet(decoder)
+            WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder)
         } catch (ex: Exception) {
             throw TangemSdkError.WalletNotFound()
         }

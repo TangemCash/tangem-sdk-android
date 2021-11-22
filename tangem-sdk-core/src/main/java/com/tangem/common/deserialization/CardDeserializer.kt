@@ -14,7 +14,17 @@ import com.tangem.common.tlv.TlvTag
 class CardDeserializer {
 
     companion object {
+
+        /**
+         * Card deserializaton helper
+         * @param isAccessCodeSetLegacy: isAccessCodeSet information for cards with COS before 4.33
+         * @param decoder: Common TlvDecoder
+         * @param cardDataDecoder: TlvDecoder for cardData
+         * @throws Deserialization errors
+         * @return Card
+         */
         internal fun deserialize(
+            isAccessCodeSetLegacy: Boolean,
             decoder: TlvDecoder,
             cardDataDecoder: TlvDecoder?,
             allowNotPersonalized: Boolean = false
@@ -26,12 +36,8 @@ class CardDeserializer {
 
             val firmware = FirmwareVersion(decoder.decode(TlvTag.Firmware))
             val cardSettingsMask: Card.SettingsMask = decoder.decode(TlvTag.SettingsMask)
-
-            val isPasscodeSet: Boolean? = if (firmware >= FirmwareVersion.IsPasscodeStatusAvailable) {
-                !(decoder.decode(TlvTag.Pin2IsDefault) as Boolean)
-            } else {
-                null
-            }
+            val isAccessCodeSet: Boolean? = isAccessCodeSet(firmware, decoder)
+            val isPasscodeSet: Boolean? = isPasscodeSet(firmware, decoder)
 
             val defaultCurve: EllipticCurve? = decoder.decodeOptional(TlvTag.CurveId)
             val wallets = mutableListOf<CardWallet>()
@@ -39,7 +45,6 @@ class CardDeserializer {
 
             if (firmware < FirmwareVersion.MultiWalletAvailable && status == Card.Status.Loaded) {
                 val curve = defaultCurve ?: throw TangemSdkError.DecodingFailed("Missing curve id")
-
                 remainingSignatures = decoder.decodeOptional(TlvTag.WalletRemainingSignatures)
                 val walletSettings = CardWallet.Settings(cardSettingsMask.toWalletSettingsMask())
 
@@ -55,29 +60,12 @@ class CardDeserializer {
                 wallets.add(wallet)
             }
 
-            val manufacturer = Card.Manufacturer(
-                    decoder.decode(TlvTag.ManufacturerName),
-                    cardDataDecoder.decode(TlvTag.ManufactureDateTime),
-                    cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
-            )
-            val issuer = Card.Issuer(
-                    cardDataDecoder.decode(TlvTag.IssuerName),
-                    decoder.decode(TlvTag.IssuerPublicKey),
-            )
-
-            val terminalStatus = if (decoder.decode(TlvTag.TerminalIsLinked)) {
-                Card.LinkedTerminalStatus.Current
-            } else {
-                Card.LinkedTerminalStatus.None
-            }
-
+            val manufacturer = cardManufacturer(decoder, cardDataDecoder)
+            val issuer = cardIssuer(decoder, cardDataDecoder)
+            val terminalStatus = terminalStatus(decoder)
             val settings = cardSettings(decoder, cardSettingsMask, defaultCurve)
+            val supportedCurves: List<EllipticCurve> = supportedCurves(firmware, defaultCurve)
 
-            val supportedCurves: List<EllipticCurve> = if (firmware < FirmwareVersion.MultiWalletAvailable) {
-                if (defaultCurve == null) listOf() else listOf(defaultCurve)
-            } else {
-                EllipticCurve.values().toList()
-            }
             return Card(
                     decoder.decode(TlvTag.CardId),
                     cardDataDecoder.decode(TlvTag.BatchId),
@@ -87,6 +75,7 @@ class CardDeserializer {
                     issuer,
                     settings,
                     terminalStatus,
+                    isAccessCodeSet ?: isAccessCodeSetLegacy,
                     isPasscodeSet,
                     supportedCurves,
                     wallets.toList(),
@@ -94,6 +83,47 @@ class CardDeserializer {
                     remainingSignatures = remainingSignatures
             )
         }
+
+        private fun supportedCurves(firmware: FirmwareVersion, defaultCurve: EllipticCurve?): List<EllipticCurve> {
+            return if (firmware < FirmwareVersion.MultiWalletAvailable) {
+                if (defaultCurve == null) listOf() else listOf(defaultCurve)
+            } else {
+                EllipticCurve.values().toList()
+            }
+        }
+
+        private fun isAccessCodeSet(firmware: FirmwareVersion, decoder: TlvDecoder): Boolean? =
+                if (firmware >= FirmwareVersion.IsAccessCodeStatusAvailable) {
+                    !(decoder.decode(TlvTag.PinIsDefault) as Boolean)
+                } else {
+                    null
+                }
+
+        private fun isPasscodeSet(firmware: FirmwareVersion, decoder: TlvDecoder): Boolean? =
+                if (firmware >= FirmwareVersion.IsPasscodeStatusAvailable) {
+                    !(decoder.decode(TlvTag.Pin2IsDefault) as Boolean)
+                } else {
+                    null
+                }
+
+        private fun cardManufacturer(decoder: TlvDecoder, cardDataDecoder: TlvDecoder): Card.Manufacturer =
+                Card.Manufacturer(
+                        decoder.decode(TlvTag.ManufacturerName),
+                        cardDataDecoder.decode(TlvTag.ManufactureDateTime),
+                        cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
+                )
+
+        private fun cardIssuer(decoder: TlvDecoder, cardDataDecoder: TlvDecoder): Card.Issuer = Card.Issuer(
+                cardDataDecoder.decode(TlvTag.IssuerName),
+                decoder.decode(TlvTag.IssuerPublicKey),
+        )
+
+        private fun terminalStatus(decoder: TlvDecoder): Card.LinkedTerminalStatus =
+                if (decoder.decode(TlvTag.TerminalIsLinked)) {
+                    Card.LinkedTerminalStatus.Current
+                } else {
+                    Card.LinkedTerminalStatus.None
+                }
 
         internal fun getDecoder(environment: SessionEnvironment, apdu: ResponseApdu): TlvDecoder {
             val tlv = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()

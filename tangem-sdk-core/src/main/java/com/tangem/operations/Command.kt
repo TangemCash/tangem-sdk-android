@@ -217,7 +217,6 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
             UserCodeType.Passcode -> session.environment.passcode = UserCode(UserCodeType.Passcode, null)
         }
 
-        Log.session { "Request pin of type: $type" }
         session.requestUserCodeIfNeeded(type, isFirstAttempt) { result ->
             when (result) {
                 is CompletionResult.Success -> {

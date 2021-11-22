@@ -91,6 +91,7 @@ abstract class BaseFragment : Fragment() {
 
     protected fun createSdkConfig(): Config = Config().apply {
         linkedTerminal = false
+        allowUntrustedCards = true
         filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
     }
 

@@ -59,6 +59,9 @@ class CardSession(
 
     fun setInitialMessage(message: Message?) {
         initialMessage = message
+    }
+
+    fun setMessage(message: Message?) {
         viewDelegate.setMessage(message)
     }
 

@@ -57,7 +57,7 @@ class HeaderWidget(
                 btnHowTo.show()
                 tvCard.show()
                 if (cardId == null) {
-                    tvCard.text = getString(R.string.view_delegate_header_any_card)
+                    tvCard.text = ""
                 } else {
                     tvCard.text = getString(R.string.view_delegate_header_card)
                     tvCardId.show()
