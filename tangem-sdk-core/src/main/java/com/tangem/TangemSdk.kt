@@ -151,8 +151,8 @@ class TangemSdk(
      * @param cardId: CID, Unique Tangem card ID number.
      * @param walletPublicKey: Seed public key.
      * @param derivationPath: Derivation path
-     * @param initialMessage: A custom description that shows at the beginning of the NFC session. If nil, default
-     *  message will be used
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
+     * message will be used
      * @param callback: is triggered on the completion of the [DeriveWalletPublicKeyTask] and provides response
      * in the form of the [ExtendedPublicKey] if the task was performed successfully or [TangemSdkError] in case
      * of an error.
@@ -174,7 +174,7 @@ class TangemSdk(
      * @param cardId: CID, Unique Tangem card ID number.
      * @param walletPublicKey: Seed public key.
      * @param derivationPaths: Derivation paths
-     * @param initialMessage: A custom description that shows at the beginning of the NFC session. If nil, default
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
      * message will be used
      * @param callback: is triggered on the completion of the [DeriveWalletPublicKeyTask] and provides response
      * in the form of the [ExtendedPublicKeyList] if the task was performed successfully or [TangemSdkError] in case
@@ -468,7 +468,7 @@ class TangemSdk(
      * After deleting files you should additionally perform `readFiles` command to actualize files indexes
      * Warning: This command available for COS 3.29 and higher
      *
-     * @param indices: Indexes of files that should be deleted. If nil - deletes all files from card
+     * @param indices: Indexes of files that should be deleted. If null - deletes all files from card
      * then all files will be deleted.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
