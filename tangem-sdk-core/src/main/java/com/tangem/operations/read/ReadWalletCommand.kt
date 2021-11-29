@@ -35,7 +35,7 @@ class ReadWalletResponse(
  */
 class ReadWalletCommand(
     private val walletPublicKey: ByteArray,
-    private val hdPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null
 ) : Command<ReadWalletResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
@@ -59,7 +59,7 @@ class ReadWalletCommand(
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.InteractionMode, ReadMode.Wallet)
         tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
-        tlvBuilder.append(TlvTag.WalletHDPath, hdPath)
+        tlvBuilder.append(TlvTag.WalletHDPath, derivationPath)
 
         return CommandApdu(Instruction.Read, tlvBuilder.serialize())
     }

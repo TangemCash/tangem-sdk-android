@@ -40,12 +40,12 @@ class SignResponse(
  * Signs transaction hashes using a wallet private key, stored on the card.
  * @property hashes Array of transaction hashes.
  * @property walletPublicKey Public key of the wallet, using for sign.
- * @property hdPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
+ * @property derivationPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
  */
 internal class SignCommand(
     private val hashes: Array<ByteArray>,
     private val walletPublicKey: ByteArray,
-    private val hdPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null
 ) : Command<SignResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
@@ -63,7 +63,7 @@ internal class SignCommand(
     override fun performPreCheck(card: Card): TangemSdkError? {
         val wallet = card.wallet(walletPublicKey) ?: return TangemSdkError.WalletNotFound()
 
-        if (hdPath != null) {
+        if (derivationPath != null) {
             if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
                 return TangemSdkError.NotSupportedFirmwareVersion()
             }
@@ -155,7 +155,7 @@ internal class SignCommand(
             tlvBuilder.append(TlvTag.TerminalTransactionSignature, signedData)
             tlvBuilder.append(TlvTag.TerminalPublicKey, environment.terminalKeys!!.publicKey)
         }
-        tlvBuilder.append(TlvTag.WalletHDPath, hdPath)
+        tlvBuilder.append(TlvTag.WalletHDPath, derivationPath)
 
         return CommandApdu(Instruction.Sign, tlvBuilder.serialize())
     }

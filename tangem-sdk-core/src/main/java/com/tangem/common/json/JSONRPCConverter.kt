@@ -66,6 +66,8 @@ class JSONRPCConverter {
                 register(WriteFilesHandler())
                 register(DeleteFilesHandler())
                 register(ChangeFileSettingsHandler())
+                register(DeriveWalletPublicKeyHandler())
+                register(DeriveWalletPublicKeysHandler())
             }
         }
     }

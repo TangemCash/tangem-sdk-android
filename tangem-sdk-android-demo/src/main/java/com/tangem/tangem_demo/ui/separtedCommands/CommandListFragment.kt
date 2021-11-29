@@ -79,7 +79,7 @@ class CommandListFragment : BaseFragment() {
             "m/44'/0'/0'/1/0"
         ))
         etDerivePublicKey.setAdapter(adapter)
-        etDerivePublicKey.addTextChangedListener { hdPath = if (it!!.isEmpty()) null else it!!.toString() }
+        etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it!!.toString() }
         btnDerivePublicKey.setOnClickListener { derivePublicKey() }
 
         btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }

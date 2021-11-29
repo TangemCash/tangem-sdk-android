@@ -1,4 +1,4 @@
-package com.tangem.operations
+package com.tangem.operations.derivation
 
 import com.tangem.common.CompletionResult
 import com.tangem.common.core.CardSession
@@ -8,20 +8,23 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
+import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.read.ReadWalletCommand
 
 /**
- * Created by Anton Zhilenkov on 06/08/2021.
+ * Derive wallet  public key according to BIP32 (Private parent key → public child key)
+ * @property walletPublicKey seed public key.
+ * @property derivationPath derivation path.
  */
-class DerivePublicKeyCommand(
+class DeriveWalletPublicKeyTask(
     private val walletPublicKey: ByteArray,
-    private val hdPath: DerivationPath,
+    private val derivationPath: DerivationPath,
 ) : CardSessionRunnable<ExtendedPublicKey> {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
 
     override fun run(session: CardSession, callback: CompletionCallback<ExtendedPublicKey>) {
-        val readWallet = ReadWalletCommand(walletPublicKey, hdPath)
+        val readWallet = ReadWalletCommand(walletPublicKey, derivationPath)
         readWallet.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -30,7 +33,7 @@ class DerivePublicKeyCommand(
                         return@run
                     }
 
-                    val childKey = ExtendedPublicKey(result.data.wallet.publicKey, chainCode)
+                    val childKey = ExtendedPublicKey(result.data.wallet.publicKey, chainCode, derivationPath)
                     callback(CompletionResult.Success(childKey))
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
