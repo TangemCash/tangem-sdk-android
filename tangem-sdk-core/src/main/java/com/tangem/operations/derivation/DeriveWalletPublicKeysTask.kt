@@ -8,12 +8,11 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
-import com.tangem.operations.PreflightReadMode
 
 @JsonClass(generateAdapter = true)
 class ExtendedPublicKeyList(
-    val extendedPublicKeys: List<ExtendedPublicKey>
-) : CommandResponse
+    items: Collection<ExtendedPublicKey>
+): ArrayList<ExtendedPublicKey>(items), CommandResponse
 
 /**
  * Derive wallet public keys according to BIP32 (Private parent key → public child key)
@@ -24,8 +23,6 @@ class DeriveWalletPublicKeysTask(
     private val walletPublicKey: ByteArray,
     private val derivationPaths: List<DerivationPath>,
 ) : CardSessionRunnable<ExtendedPublicKeyList> {
-
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
 
     override fun run(session: CardSession, callback: CompletionCallback<ExtendedPublicKeyList>) {
         runDerivation(0, listOf(), session, callback)

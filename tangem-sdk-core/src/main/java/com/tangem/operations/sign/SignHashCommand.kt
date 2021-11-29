@@ -7,7 +7,6 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.CommandResponse
-import com.tangem.operations.PreflightReadMode
 
 /**
  * Response for [SignHashCommand].
@@ -42,17 +41,15 @@ class SignHashCommand(
     private val derivationPath: DerivationPath? = null
 ) : CardSessionRunnable<SignHashResponse> {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
-
     override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
         val signCommand = SignCommand(arrayOf(hash), walletPublicKey, derivationPath)
         signCommand.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     val response = SignHashResponse(
-                            result.data.cardId,
-                            result.data.signatures[0],
-                            result.data.totalSignedHashes
+                        result.data.cardId,
+                        result.data.signatures[0],
+                        result.data.totalSignedHashes
                     )
                     callback(CompletionResult.Success(response))
                 }

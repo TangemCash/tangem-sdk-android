@@ -4,7 +4,6 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.operations.PreflightReadMode
 
 /**
  * Signs transaction hash using a wallet private key, stored on the card.
@@ -17,8 +16,6 @@ class SignHashesCommand(
     private val walletPublicKey: ByteArray,
     private val derivationPath: DerivationPath? = null
 ) : CardSessionRunnable<SignHashesResponse> {
-
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
 
     override fun run(session: CardSession, callback: CompletionCallback<SignHashesResponse>) {
         SignCommand(hashes, walletPublicKey, derivationPath).run(session, callback)

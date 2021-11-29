@@ -8,7 +8,6 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.read.ReadWalletCommand
 
 /**
@@ -21,10 +20,13 @@ class DeriveWalletPublicKeyTask(
     private val derivationPath: DerivationPath,
 ) : CardSessionRunnable<ExtendedPublicKey> {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
-
     override fun run(session: CardSession, callback: CompletionCallback<ExtendedPublicKey>) {
-        val readWallet = ReadWalletCommand(walletPublicKey, derivationPath)
+        val walletIndex = session.environment.card?.wallet(walletPublicKey)?.index.guard {
+            callback(CompletionResult.Failure(TangemSdkError.WalletNotFound()))
+            return
+        }
+
+        val readWallet = ReadWalletCommand(walletIndex, derivationPath)
         readWallet.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
