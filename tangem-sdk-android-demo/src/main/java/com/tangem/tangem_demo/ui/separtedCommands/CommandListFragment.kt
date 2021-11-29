@@ -18,8 +18,9 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
+import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
-import com.tangem.operations.pins.SetUserCodeCommand
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.R
@@ -232,7 +233,7 @@ class MultiMessageTask : CardSessionRunnable<SignHashResponse> {
         Thread.sleep(2000)
         session.setMessage(message2)
         Thread.sleep(2000)
-        SetUserCodeCommand.changeAccessCode("1").run(session) {
+        PreflightReadTask(PreflightReadMode.None).run(session) {
             when (it) {
                 is CompletionResult.Success -> {
                     session.setMessage(Message("Success", "SignHashCommand"))
