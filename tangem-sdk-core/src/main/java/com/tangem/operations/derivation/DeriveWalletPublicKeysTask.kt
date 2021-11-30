@@ -1,6 +1,5 @@
 package com.tangem.operations.derivation
 
-import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
@@ -9,7 +8,6 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
 
-@JsonClass(generateAdapter = true)
 class ExtendedPublicKeyList(
     items: Collection<ExtendedPublicKey>
 ): ArrayList<ExtendedPublicKey>(items), CommandResponse
