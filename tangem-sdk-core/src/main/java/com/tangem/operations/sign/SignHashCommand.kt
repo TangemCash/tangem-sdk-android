@@ -7,7 +7,6 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.CommandResponse
-import com.tangem.operations.PreflightReadMode
 
 /**
  * Response for [SignHashCommand].
@@ -34,25 +33,23 @@ data class SignHashResponse(
  * Signs transaction hash using a wallet private key, stored on the card.
  * @property hash: Transaction hash for sign by card.
  * @property walletPublicKey: Public key of the wallet, using for sign.
- * @property hdPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
+ * @property derivationPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
  */
 class SignHashCommand(
     private val hash: ByteArray,
     private val walletPublicKey: ByteArray,
-    private val hdPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null
 ) : CardSessionRunnable<SignHashResponse> {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
-
     override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
-        val signCommand = SignCommand(arrayOf(hash), walletPublicKey, hdPath)
+        val signCommand = SignCommand(arrayOf(hash), walletPublicKey, derivationPath)
         signCommand.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     val response = SignHashResponse(
-                            result.data.cardId,
-                            result.data.signatures[0],
-                            result.data.totalSignedHashes
+                        result.data.cardId,
+                        result.data.signatures[0],
+                        result.data.totalSignedHashes
                     )
                     callback(CompletionResult.Success(response))
                 }

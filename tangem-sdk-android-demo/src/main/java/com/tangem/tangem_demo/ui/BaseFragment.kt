@@ -16,17 +16,14 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
-import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
-import com.tangem.common.extensions.toCompressedPublicKey
 import com.tangem.common.files.FileDataProtectedByPasscode
 import com.tangem.common.files.FileDataProtectedBySignature
 import com.tangem.common.files.FileHashHelper
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
@@ -48,7 +45,7 @@ abstract class BaseFragment : Fragment() {
     protected val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
 
     protected var card: Card? = null
-    protected var hdPath: String? = null
+    protected var derivationPath: String? = null
     protected var initialMessage: Message? = null
         private set
 
@@ -127,19 +124,11 @@ abstract class BaseFragment : Fragment() {
 
     protected fun derivePublicKey() {
         val card = card.guard {
-            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            showToast("CardId required. Scan your card before proceeding")
             return
         }
-        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
-            showToast("Not supported firmware version")
-            return
-        }
-        val wallet = card.wallets.firstOrNull { it.curve == EllipticCurve.Secp256k1 }.guard {
-            showToast("Wallet with the Secp256k1 curve not found")
-            return
-        }
-        val chainCode = wallet.chainCode.guard {
-            showToast("Wallet chainCode is null. ALERT !!!")
+        val walletPublicKey = selectedWalletPubKey.guard {
+            showToast("Wallet publicKey required. Scan your card before proceeding")
             return
         }
         val path = createDerivationPath().guard {
@@ -147,13 +136,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
 
-        val masterKey = ExtendedPublicKey(wallet.publicKey.toCompressedPublicKey(), chainCode)
-        try {
-            val childKey = masterKey.derivePublicKey(path)
-            handleResult(CompletionResult.Success(childKey))
-        } catch (ex: Exception) {
-            handleResult(CompletionResult.Failure<ExtendedPublicKey>(TangemSdkError.ExceptionError(ex)))
-        }
+        sdk.deriveWalletPublicKey(card.cardId, walletPublicKey, path) { handleResult(it) }
     }
 
     protected fun signHash(hash: ByteArray) {
@@ -166,7 +149,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
         val path = createDerivationPath()
-        if (!hdPath.isNullOrBlank() && path == null) {
+        if (!derivationPath.isNullOrBlank() && path == null) {
             showToast("Failed to parse hd path")
             return
         }
@@ -183,7 +166,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
         val path = createDerivationPath()
-        if (!hdPath.isNullOrBlank() && path == null) {
+        if (!derivationPath.isNullOrBlank() && path == null) {
             showToast("Failed to parse hd path")
             return
         }
@@ -249,13 +232,13 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-                cardId, issuerData, counter, Utils.issuer().dataKeyPair.privateKey
+            cardId, issuerData, counter, Utils.issuer().dataKeyPair.privateKey
         )
 
         sdk.writeIssuerExtraData(
-                cardId, issuerData,
-                signatures.startingSignature!!, signatures.finalizingSignature!!,
-                counter, initialMessage
+            cardId, issuerData,
+            signatures.startingSignature!!, signatures.finalizingSignature!!,
+            counter, initialMessage
         ) { handleResult(it) }
     }
 
@@ -367,18 +350,18 @@ abstract class BaseFragment : Fragment() {
         val issuer = Utils.issuer()
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-                cardId, issuerData, counter, issuer.dataKeyPair.privateKey
+            cardId, issuerData, counter, issuer.dataKeyPair.privateKey
         )
         return FileDataProtectedBySignature(
-                issuerData,
-                signatures.startingSignature!!,
-                signatures.finalizingSignature!!,
-                counter,
+            issuerData,
+            signatures.startingSignature!!,
+            signatures.finalizingSignature!!,
+            counter,
         )
     }
 
     private fun createDerivationPath(): DerivationPath? {
-        val hdPath = hdPath ?: return null
+        val hdPath = derivationPath ?: return null
         if (hdPath.isEmpty() || hdPath.isBlank()) return null
 
         return try {

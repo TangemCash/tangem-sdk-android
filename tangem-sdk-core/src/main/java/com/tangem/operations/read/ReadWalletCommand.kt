@@ -2,7 +2,6 @@ package com.tangem.operations.read
 
 import com.squareup.moshi.JsonClass
 import com.tangem.Log
-import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -34,23 +33,15 @@ class ReadWalletResponse(
  * information about it and perform prechecks
  */
 class ReadWalletCommand(
-    private val walletPublicKey: ByteArray,
-    private val hdPath: DerivationPath? = null
+    private val walletIndex: Int,
+    private val derivationPath: DerivationPath? = null
 ) : Command<ReadWalletResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadWalletResponse>) {
-        Log.debug { "Attempt to read wallet with key: $walletPublicKey" }
-        super.run(session) { result ->
-            when (result) {
-                is CompletionResult.Success -> {
-                    session.environment.card = session.environment.card?.setWallets(listOf(result.data.wallet))
-                    callback(result)
-                }
-                is CompletionResult.Failure -> callback(result)
-            }
-        }
+        Log.debug { "Attempt to read wallet with index: $walletIndex" }
+        super.run(session, callback)
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
@@ -58,8 +49,8 @@ class ReadWalletCommand(
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.InteractionMode, ReadMode.Wallet)
-        tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
-        tlvBuilder.append(TlvTag.WalletHDPath, hdPath)
+        tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
+        tlvBuilder.append(TlvTag.WalletHDPath, derivationPath)
 
         return CommandApdu(Instruction.Read, tlvBuilder.serialize())
     }

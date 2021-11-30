@@ -83,30 +83,30 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
 
         fun getTangemSdkAdapters(): List<Any> {
             return listOf(
-                    TangemSdkAdapter.ByteArrayAdapter(),
-                    TangemSdkAdapter.CardSettingsMaskAdapter(),
-                    TangemSdkAdapter.ProductMaskAdapter(),
-                    TangemSdkAdapter.WalletSettingsMaskAdapter(),
-                    TangemSdkAdapter.DateAdapter(),
-                    TangemSdkAdapter.FirmwareVersionAdapter(),
-                    TangemSdkAdapter.PreflightReadModeAdapter(),
-                    TangemSdkAdapter.DataToWriteAdapter(),
-                    TangemSdkAdapter.EllipticCurveAdapter(),
-                    TangemSdkAdapter.LinkedTerminalStatusAdapter(),
-                    TangemSdkAdapter.CardStatusAdapter(),
-                    TangemSdkAdapter.CardWalletStatusAdapter(),
-                    TangemSdkAdapter.CardSettingsMaskCodeAdapter(),
-                    TangemSdkAdapter.CardWalletSettingsMaskCodeAdapter(),
-                    TangemSdkAdapter.SigningMethodCodeAdapter(),
-                    TangemSdkAdapter.ProductMaskCodeAdapter(),
-                    TangemSdkAdapter.EncryptionModeAdapter(),
-                    TangemSdkAdapter.FirmwareTypeAdapter(),
-                    TangemSdkAdapter.FileDataModeAdapter(),
-                    TangemSdkAdapter.FileSettingsAdapter(),
-                    TangemSdkAdapter.FileWriteSettingsAdapter(),
-                    TangemSdkAdapter.AttestationStatusAdapter(),
-                    TangemSdkAdapter.AttestationModeAdapter(),
-                    TangemSdkAdapter.BIP44ChainAdapter(),
+                TangemSdkAdapter.ByteArrayAdapter(),
+                TangemSdkAdapter.CardSettingsMaskAdapter(),
+                TangemSdkAdapter.ProductMaskAdapter(),
+                TangemSdkAdapter.WalletSettingsMaskAdapter(),
+                TangemSdkAdapter.DateAdapter(),
+                TangemSdkAdapter.FirmwareVersionAdapter(),
+                TangemSdkAdapter.PreflightReadModeAdapter(),
+                TangemSdkAdapter.DataToWriteAdapter(),
+                TangemSdkAdapter.EllipticCurveAdapter(),
+                TangemSdkAdapter.LinkedTerminalStatusAdapter(),
+                TangemSdkAdapter.CardStatusAdapter(),
+                TangemSdkAdapter.CardWalletStatusAdapter(),
+                TangemSdkAdapter.CardSettingsMaskCodeAdapter(),
+                TangemSdkAdapter.CardWalletSettingsMaskCodeAdapter(),
+                TangemSdkAdapter.SigningMethodCodeAdapter(),
+                TangemSdkAdapter.ProductMaskCodeAdapter(),
+                TangemSdkAdapter.EncryptionModeAdapter(),
+                TangemSdkAdapter.FirmwareTypeAdapter(),
+                TangemSdkAdapter.FileDataModeAdapter(),
+                TangemSdkAdapter.FileSettingsAdapter(),
+                TangemSdkAdapter.FileWriteSettingsAdapter(),
+                TangemSdkAdapter.AttestationStatusAdapter(),
+                TangemSdkAdapter.AttestationModeAdapter(),
+                TangemSdkAdapter.BIP44ChainAdapter(),
             )
         }
 
@@ -181,9 +181,8 @@ class TangemSdkAdapter {
         fun toJson(src: PreflightReadMode): String {
             return when (src) {
                 PreflightReadMode.FullCardRead -> "fullCardRead"
-                PreflightReadMode.None -> "none"
                 PreflightReadMode.ReadCardOnly -> "readCardOnly"
-                is PreflightReadMode.ReadWallet -> src.publicKey.toHexString()
+                PreflightReadMode.None -> "none"
             }
         }
 
@@ -191,12 +190,9 @@ class TangemSdkAdapter {
         fun fromJson(json: String): PreflightReadMode {
             return when (json) {
                 "fullCardRead" -> PreflightReadMode.FullCardRead
-                "none" -> PreflightReadMode.None
                 "readCardOnly" -> PreflightReadMode.ReadCardOnly
-                else -> {
-                    if (json.length == 64) PreflightReadMode.ReadWallet(json.hexToBytes())
-                    else throw java.lang.IllegalArgumentException()
-                }
+                "none" -> PreflightReadMode.None
+                else -> throw java.lang.IllegalArgumentException()
             }
         }
     }
