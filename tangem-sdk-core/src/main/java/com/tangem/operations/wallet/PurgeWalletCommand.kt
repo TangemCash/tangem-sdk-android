@@ -15,7 +15,6 @@ import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.Command
-import com.tangem.operations.PreflightReadMode
 
 /**
  * This command deletes all wallet data and its private and public keys
@@ -24,8 +23,6 @@ import com.tangem.operations.PreflightReadMode
 class PurgeWalletCommand(
     private val walletPublicKey: ByteArray
 ) : Command<SuccessResponse>() {
-
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
 
     override fun requiresPasscode(): Boolean = true
 
@@ -40,13 +37,14 @@ class PurgeWalletCommand(
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.CardError()))
+            return
+        }
+
         super.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    val card = session.environment.card.guard {
-                        callback(CompletionResult.Failure(TangemSdkError.CardError()))
-                        return@run
-                    }
                     session.environment.card = card.removeWallet(walletPublicKey)
                     callback(CompletionResult.Success(result.data))
                 }
@@ -56,11 +54,13 @@ class PurgeWalletCommand(
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
+
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
+        tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
 
         return CommandApdu(Instruction.PurgeWallet, tlvBuilder.serialize())
     }

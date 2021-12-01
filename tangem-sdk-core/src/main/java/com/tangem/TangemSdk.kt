@@ -10,6 +10,7 @@ import com.tangem.common.files.FileHashData
 import com.tangem.common.files.FileHashHelper
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
@@ -19,6 +20,9 @@ import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.*
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
+import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
+import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
+import com.tangem.operations.derivation.ExtendedPublicKeyList
 import com.tangem.operations.files.*
 import com.tangem.operations.issuerAndUserData.*
 import com.tangem.operations.personalization.DepersonalizeCommand
@@ -88,7 +92,7 @@ class TangemSdk(
      * @param hash: Transaction hash for sign by card.
      * @param walletPublicKey: Public key of wallet that should sign hash.
      * @param cardId: CID, Unique Tangem card ID number
-     * @param hdPath: Derivation path of the wallet. Optional
+     * @param derivationPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * default message will be used
      * @param callback: is triggered on the completion of the [SignCommand] and provides response
@@ -99,11 +103,11 @@ class TangemSdk(
         hash: ByteArray,
         walletPublicKey: ByteArray,
         cardId: String,
-        hdPath: DerivationPath? = null,
+        derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignHashResponse>
     ) {
-        val command = SignHashCommand(hash, walletPublicKey, hdPath)
+        val command = SignHashCommand(hash, walletPublicKey, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -122,7 +126,7 @@ class TangemSdk(
      * @param hashes: Array of transaction hashes. It can be from one or up to ten hashes of the same length.
      * @param walletPublicKey: Public key of the wallet that should sign hashes.
      * @param cardId: CID, Unique Tangem card ID number
-     * @param hdPath: Derivation path of the wallet. Optional
+     * @param derivationPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
      * @param callback: is triggered on the completion of the [SignCommand] and provides response
@@ -133,11 +137,57 @@ class TangemSdk(
         hashes: Array<ByteArray>,
         walletPublicKey: ByteArray,
         cardId: String,
-        hdPath: DerivationPath? = null,
+        derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignResponse>
     ) {
-        val command = SignCommand(hashes, walletPublicKey, hdPath)
+        val command = SignCommand(hashes, walletPublicKey, derivationPath)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
+
+    /**
+     * Derive public key according to BIP32 (Private parent key → public child key)
+     *
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param walletPublicKey: Seed public key.
+     * @param derivationPath: Derivation path
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
+     * message will be used
+     * @param callback: is triggered on the completion of the [DeriveWalletPublicKeyTask] and provides response
+     * in the form of the [ExtendedPublicKey] if the task was performed successfully or [TangemSdkError] in case
+     * of an error.
+     */
+    fun deriveWalletPublicKey(
+        cardId: String,
+        walletPublicKey: ByteArray,
+        derivationPath: DerivationPath,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<ExtendedPublicKey>
+    ) {
+        val command = DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
+
+    /**
+     * Derive multiple wallet public keys according to BIP32 (Private parent key → public child key)
+     *
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param walletPublicKey: Seed public key.
+     * @param derivationPaths: Derivation paths
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
+     * message will be used
+     * @param callback: is triggered on the completion of the [DeriveWalletPublicKeyTask] and provides response
+     * in the form of the [ExtendedPublicKeyList] if the task was performed successfully or [TangemSdkError] in case
+     * of an error.
+     */
+    fun deriveWalletPublicKeys(
+        cardId: String,
+        walletPublicKey: ByteArray,
+        derivationPaths: List<DerivationPath>,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<ExtendedPublicKeyList>
+    ) {
+        val command = DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -418,7 +468,7 @@ class TangemSdk(
      * After deleting files you should additionally perform `readFiles` command to actualize files indexes
      * Warning: This command available for COS 3.29 and higher
      *
-     * @param indices: Indexes of files that should be deleted. If nil - deletes all files from card
+     * @param indices: Indexes of files that should be deleted. If null - deletes all files from card
      * then all files will be deleted.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
@@ -508,10 +558,10 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteIssuerDataCommand(
-                issuerData,
-                issuerDataSignature,
-                issuerDataCounter,
-                config.issuerPublicKey
+            issuerData,
+            issuerDataSignature,
+            issuerDataCounter,
+            config.issuerPublicKey
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
@@ -578,10 +628,10 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteIssuerExtraDataCommand(
-                issuerData,
-                startingSignature, finalizingSignature,
-                issuerDataCounter,
-                config.issuerPublicKey
+            issuerData,
+            startingSignature, finalizingSignature,
+            issuerDataCounter,
+            config.issuerPublicKey
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
@@ -686,8 +736,8 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteUserDataCommand(
-                userProtectedData = userProtectedData,
-                userProtectedCounter = userProtectedCounter
+            userProtectedData = userProtectedData,
+            userProtectedCounter = userProtectedCounter
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }

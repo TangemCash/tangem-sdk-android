@@ -182,9 +182,8 @@ class TangemSdkAdapter {
         fun toJson(src: PreflightReadMode): String {
             return when (src) {
                 PreflightReadMode.FullCardRead -> "fullCardRead"
-                PreflightReadMode.None -> "none"
                 PreflightReadMode.ReadCardOnly -> "readCardOnly"
-                is PreflightReadMode.ReadWallet -> src.publicKey.toHexString()
+                PreflightReadMode.None -> "none"
             }
         }
 
@@ -192,12 +191,9 @@ class TangemSdkAdapter {
         fun fromJson(json: String): PreflightReadMode {
             return when (json) {
                 "fullCardRead" -> PreflightReadMode.FullCardRead
-                "none" -> PreflightReadMode.None
                 "readCardOnly" -> PreflightReadMode.ReadCardOnly
-                else -> {
-                    if (json.length == 64) PreflightReadMode.ReadWallet(json.hexToBytes())
-                    else throw java.lang.IllegalArgumentException()
-                }
+                "none" -> PreflightReadMode.None
+                else -> throw java.lang.IllegalArgumentException()
             }
         }
     }

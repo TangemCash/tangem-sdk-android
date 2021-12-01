@@ -3,6 +3,8 @@ package com.tangem.common.card
 import com.squareup.moshi.JsonClass
 import com.tangem.common.BaseMask
 import com.tangem.common.Mask
+import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.read.ReadCommand
@@ -440,6 +442,13 @@ data class CardWallet(
      */
     val hasBackup: Boolean,
 ) {
+
+    val extendedPublicKey: ExtendedPublicKey? by lazy {
+        val chainCode = chainCode ?: return@lazy null
+
+        return@lazy ExtendedPublicKey(publicKey, chainCode, DerivationPath())
+    }
+
     /**
      * Status of the wallet.
      */
