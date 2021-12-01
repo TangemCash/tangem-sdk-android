@@ -73,11 +73,11 @@ class Personalization {
 
     class Backup {
         companion object {
-            fun masterConfig(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonMaster)!!
-            fun slave1Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonSlave1)!!
-            fun slave2Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonSlave2)!!
+            fun primaryCardConfig(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonPrimary)!!
+            fun backup1Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup1)!!
+            fun backup2Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup2)!!
 
-            private val configJsonMaster =
+            private val configJsonPrimary =
                     """
     {
        "releaseVersion": true,
@@ -117,7 +117,7 @@ class Personalization {
        "NDEF": [],
        "cardData": {
            "date": "2021-03-15",
-           "batch": "CB79",
+           "batch": "AC01",
            "blockchain": "ANY",
            "product_note": true,
            "product_tag": false,
@@ -129,7 +129,7 @@ class Personalization {
        "createWallet": 0
     }
     """
-            private val configJsonSlave1 =
+            private val configJsonBackup1 =
                     """
     {
        "releaseVersion": true,
@@ -164,25 +164,24 @@ class Personalization {
        "disableIssuerData": true,
        "disableUserData": false,
        "disableFiles": false,
-       "allowHDWallets": false,
+       "allowHDWallets": true,
        "allowBackup": true,
        "NDEF": [],
        "cardData": {
            "date": "2021-03-15",
-           "batch": "CB79",
+           "batch": "AC01",
            "blockchain": "ANY",
            "product_note": true,
            "product_tag": false,
            "product_id_card": false,
            "product_id_issuer": false,
-           "product_authentication": false,
            "product_twin": false
        },
        "createWallet": 0
     }
     """
 
-            private val configJsonSlave2 =
+            private val configJsonBackup2 =
                     """
     {
        "releaseVersion": true,
@@ -222,7 +221,7 @@ class Personalization {
        "NDEF": [],
        "cardData": {
            "date": "2021-03-15",
-           "batch": "CB79",
+           "batch": "AC01",
            "blockchain": "ANY",
            "product_note": true,
            "product_tag": false,

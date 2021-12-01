@@ -22,6 +22,8 @@
 
         <include layout="@layout/wallet" />
 
+        <include layout="@layout/backup" />
+
         <include layout="@layout/issuer_data" />
 
         <include layout="@layout/issuer_ex_data" />

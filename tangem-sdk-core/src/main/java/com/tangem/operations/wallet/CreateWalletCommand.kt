@@ -137,13 +137,14 @@ class CreateWalletCommand(
         val decoder = TlvDecoder(tlvData)
         val index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex!!
         val wallet = CardWallet(
-                decoder.decode(TlvTag.WalletPublicKey),
-                decoder.decodeOptional(TlvTag.WalletHDChain),
-                curve,
-                CardWallet.Settings(card.settings.isPermanentWallet),
-                0,
-                card.remainingSignatures,
-                index
+            publicKey = decoder.decode(TlvTag.WalletPublicKey),
+            chainCode = decoder.decodeOptional(TlvTag.WalletHDChain),
+            curve = curve,
+            settings = CardWallet.Settings(card.settings.isPermanentWallet),
+            totalSignedHashes = 0,
+            remainingSignatures = card.remainingSignatures,
+            index = index,
+            hasBackup = false
         )
         return CreateWalletResponse(decoder.decode(TlvTag.CardId), wallet)
     }

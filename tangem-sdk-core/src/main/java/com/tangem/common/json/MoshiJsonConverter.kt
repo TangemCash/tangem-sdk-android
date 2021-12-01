@@ -107,6 +107,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                     TangemSdkAdapter.AttestationStatusAdapter(),
                     TangemSdkAdapter.AttestationModeAdapter(),
                     TangemSdkAdapter.BIP44ChainAdapter(),
+                    TangemSdkAdapter.BackupStatusAdapter(),
             )
         }
 
@@ -341,6 +342,15 @@ class TangemSdkAdapter {
 
         @FromJson
         fun fromJson(json: String): Card.Status = EnumConverter.toEnum(json)
+    }
+
+    class BackupStatusAdapter {
+        @ToJson
+        fun toJson(src: Card.BackupStatus): String = EnumConverter.toJson(src.toRawStatus())
+
+        @FromJson
+        fun fromJson(json: String): Card.BackupStatus =
+            Card.BackupStatus.from(EnumConverter.toEnum<Card.BackupRawStatus>(json)) ?: Card.BackupStatus.NoBackup
     }
 
     class CardWalletStatusAdapter {

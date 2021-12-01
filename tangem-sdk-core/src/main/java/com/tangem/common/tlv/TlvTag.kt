@@ -21,7 +21,8 @@ enum class TlvValueType {
     InteractionMode,
     FileDataMode,
     FileSettings,
-    DerivationPath
+    DerivationPath,
+    BackupStatus
 }
 
 /**
@@ -89,6 +90,7 @@ enum class TlvTag(val code: Int) {
     TransactionOutHash(0x50),
     TransactionOutHashSize(0x51),
     TransactionOutRaw(0x52),
+    Certificate(0x55),
     PinIsDefault(0x5A),
     Pin2IsDefault(0x59),
 
@@ -140,6 +142,13 @@ enum class TlvTag(val code: Int) {
 
     FileName(0x70),
     FileData(0x71),
+
+    BackupStatus(0xD0),
+    BackupCount(0xD1),
+    PrimaryCardLinkingKey(0xD2),
+    BackupCardLinkingKey(0xD3),
+    BackupCardLink(0xD4),
+    BackupAttestSignature(0xD5)
     ;
 
     /**
@@ -153,9 +162,10 @@ enum class TlvTag(val code: Int) {
             CurveId -> TlvValueType.EllipticCurve
             PauseBeforePin2, WalletRemainingSignatures, WalletSignedHashes, Health, TokenDecimal,
             Offset, Size -> TlvValueType.Uint16
-            FileIndex, WalletIndex, WalletsCount, CheckWalletCounter -> TlvValueType.Uint8
+            FileIndex, WalletIndex, WalletsCount, CheckWalletCounter, BackupCount -> TlvValueType.Uint8
             MaxSignatures, UserCounter, UserProtectedCounter, IssuerDataCounter -> TlvValueType.Uint32
-            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize, PinIsDefault, Pin2IsDefault -> TlvValueType.BoolValue
+            IsActivated, TerminalIsLinked, CreateWalletAtPersonalize,
+            PinIsDefault, Pin2IsDefault -> TlvValueType.BoolValue
             ManufactureDateTime -> TlvValueType.DateTime
             ProductMask -> TlvValueType.ProductMask
             SettingsMask -> TlvValueType.SettingsMask
@@ -165,6 +175,7 @@ enum class TlvTag(val code: Int) {
             WriteFileMode -> TlvValueType.FileDataMode
             FileSettings -> TlvValueType.FileSettings
             WalletHDPath -> TlvValueType.DerivationPath
+            BackupStatus -> TlvValueType.BackupStatus
             else -> TlvValueType.ByteArray
         }
     }

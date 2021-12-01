@@ -28,6 +28,9 @@ enum class StatusWord(val code: Int) {
     FileNotFound(0x6A82),
     WalletNotFound(0x6A88),
 
+    InvalidAccessCode(0x6AF1),
+    InvalidPasscode(0x6AF2),
+
     Unknown(0x0000);
 
     companion object {
@@ -49,6 +52,8 @@ fun StatusWord.toTangemSdkError(): TangemSdkError? {
         StatusWord.NeedEncryption -> TangemSdkError.NeedEncryption()
         StatusWord.FileNotFound -> TangemSdkError.FileNotFound()
         StatusWord.WalletNotFound -> TangemSdkError.WalletNotFound()
+        StatusWord.InvalidAccessCode -> TangemSdkError.AccessCodeRequired()
+        StatusWord.InvalidPasscode -> TangemSdkError.PasscodeRequired()
         else -> null
     }
 }

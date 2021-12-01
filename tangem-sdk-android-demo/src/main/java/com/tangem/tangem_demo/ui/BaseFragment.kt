@@ -178,7 +178,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hash, publicKey, cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hash, publicKey, cardId, null, initialMessage) { handleResult(it) }
     }
 
     protected fun signHashes(hashes: Array<ByteArray>) {

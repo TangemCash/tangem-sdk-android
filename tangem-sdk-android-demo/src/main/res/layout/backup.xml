@@ -19,7 +19,7 @@
         android:background="?android:windowBackground"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="Backup personalization"
+        android:text="Backup"
         android:translationX="10dp"
         android:translationY="-10dp" />
 
@@ -36,28 +36,10 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/btnPersonalizePrimary"
+                android:id="@+id/btnStartBackup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Primary" />
-
-            <Button
-                android:id="@+id/btnPersonalizeBackup1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Backup 1" />
-
-            <Button
-                android:id="@+id/btnPersonalizeBackup2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Backup 2" />
-
-            <Button
-                android:id="@+id/btnDepersonalize"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Depersonalize" />
+                android:text="Backup" />
 
         </LinearLayout>
 
