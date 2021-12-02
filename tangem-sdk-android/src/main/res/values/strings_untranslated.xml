@@ -16,7 +16,7 @@
     <string name="error_wallet_error" translatable="false">Wallet error</string>
     <string name="error_wallet_index_not_correct" translatable="false">Wallet index not correct</string>
     <string name="error_wallet_cannot_be_created" translatable="false">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
-    <string name="error_hd_wallet_disabled" translatable="false">HDWalletDisabled</string>
+    <string name="error_hd_wallet_disabled" translatable="false">HDWallet disabled</string>
     <string name="error_file_settings_unsupported" translatable="false">File settings unsupported</string>
     <string name="error_files_disabled" translatable="false">Files disabled</string>
     <string name="error_files_is_empty" translatable="false">Files is empty</string>

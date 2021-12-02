@@ -284,7 +284,7 @@ data class Card internal constructor(
             !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
             mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
             createEncryptionModes(mask),
-            mask.contains(SettingsMask.Code.DisableFiles),
+            !mask.contains(SettingsMask.Code.DisableFiles),
             mask.contains(SettingsMask.Code.AllowHDWallets),
             mask.contains(SettingsMask.Code.PermanentWallet),
             mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
