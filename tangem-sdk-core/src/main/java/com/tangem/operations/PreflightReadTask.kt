@@ -48,9 +48,11 @@ class PreflightReadTask(
         ReadCommand().run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    if (cardId != null && cardId.toUpperCase() != result.data.card.cardId) {
-                        callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
-                        return@run
+                    if (session.environment.config.handleErrors) {
+                        if (cardId != null && !cardId.equals(result.data.card.cardId, true)) {
+                            callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
+                            return@run
+                        }
                     }
                     if (!session.environment.config.filter.isCardAllowed(result.data.card)) {
                         callback(CompletionResult.Failure(TangemSdkError.WrongCardType()))

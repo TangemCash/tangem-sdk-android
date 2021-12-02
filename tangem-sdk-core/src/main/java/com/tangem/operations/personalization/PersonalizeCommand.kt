@@ -34,6 +34,8 @@ import com.tangem.operations.personalization.entities.*
  * @property manufacturer Tangem Card Manufacturer.
  * @property acquirer Acquirer is a trusted third-party company that operates proprietary
  * (non-EMV) POS terminal infrastructure and transaction processing back-end.
+ *
+ * Warning: Command available only for cards with COS 3.34 and higher. Legacy devices not supported.
  */
 class PersonalizeCommand(
     private val config: CardConfig,

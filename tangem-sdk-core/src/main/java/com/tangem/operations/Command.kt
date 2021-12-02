@@ -80,35 +80,37 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
         transceiveApdu(apdu, session) { result ->
             when (result) {
                 is CompletionResult.Failure -> {
+                    val environment = session.environment
                     if (result.error is TangemSdkError.ExtendedLengthNotSupported) {
-                        if (session.environment.terminalKeys != null) {
-                            session.environment.terminalKeys = null
+                        if (environment.terminalKeys != null) {
+                            environment.terminalKeys = null
                             transceiveInternal(session, callback)
                             return@transceiveApdu
                         }
                     }
-                    if (session.environment.config.handleErrors) {
-                        val mappedError = mapError(session.environment.card, result.error)
-                        if (mappedError is TangemSdkError.AccessCodeRequired) {
-                            requestPin(UserCodeType.AccessCode, session, callback)
-                        } else if (mappedError is TangemSdkError.InvalidParams) {
+
+                    val error = when {
+                        environment.config.handleErrors -> mapError(environment.card, result.error)
+                        else -> result.error
+                    }
+                    when (error) {
+                        is TangemSdkError.AccessCodeRequired -> requestPin(UserCodeType.AccessCode, session, callback)
+                        is TangemSdkError.PasscodeRequired -> requestPin(UserCodeType.Passcode, session, callback)
+                        is TangemSdkError.InvalidParams -> {
                             if (requiresPasscode()) {
                                 //Addition check for COS v4 and newer to prevent false-positive pin2 request
-                                val isPasscodeSet = session.environment.card?.isPasscodeSet == false
-                                if (isPasscodeSet && !session.environment.isUserCodeSet(UserCodeType.Passcode)) {
-                                    callback(CompletionResult.Failure(mappedError))
+                                val isPasscodeSet = environment.card?.isPasscodeSet == false
+                                if (isPasscodeSet && !environment.isUserCodeSet(UserCodeType.Passcode)) {
+                                    callback(CompletionResult.Failure(error))
                                 } else {
                                     requestPin(UserCodeType.Passcode, session, callback)
                                 }
                             } else {
-                                callback(CompletionResult.Failure(mappedError))
+                                callback(CompletionResult.Failure(error))
                             }
-                        } else {
-                            callback(CompletionResult.Failure(mappedError))
                         }
-                        return@transceiveApdu
+                        else -> callback(CompletionResult.Failure(error))
                     }
-                    callback(CompletionResult.Failure(result.error))
                 }
                 is CompletionResult.Success -> {
                     try {
@@ -142,8 +144,8 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                             val remainingTime = deserializeSecurityDelay(session.environment, responseApdu)
                             if (remainingTime != null) {
                                 session.viewDelegate.onSecurityDelay(
-                                        remainingTime,
-                                        session.environment.card?.settings?.securityDelay ?: 0
+                                    remainingTime,
+                                    session.environment.card?.settings?.securityDelay ?: 0
                                 )
                             }
                             transceiveApdu(apdu, session, callback)

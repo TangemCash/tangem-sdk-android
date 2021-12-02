@@ -220,6 +220,16 @@ data class Card internal constructor(
         val supportedEncryptionModes: List<EncryptionMode>,
 
         /**
+         * Is allowed to write files
+         */
+        val isFilesAllowed: Boolean,
+
+        /**
+         * Is allowed to use hd wallet
+         */
+        val isHDWalletAllowed: Boolean,
+
+        /**
          * Is allowed to delete wallet. COS before v4
          * Default value used only for Moshi
          */
@@ -274,7 +284,8 @@ data class Card internal constructor(
             !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
             mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
             createEncryptionModes(mask),
-//            mask.contains(SettingsMask.Code.AllowHDWallets),
+            !mask.contains(SettingsMask.Code.DisableFiles),
+            mask.contains(SettingsMask.Code.AllowHDWallets),
             mask.contains(SettingsMask.Code.PermanentWallet),
             mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
             defaultSigningMethods,
