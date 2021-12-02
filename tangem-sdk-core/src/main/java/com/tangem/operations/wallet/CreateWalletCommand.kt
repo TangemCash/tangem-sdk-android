@@ -172,13 +172,14 @@ class CreateWalletCommand(
         isPermanentWallet: Boolean
     ): CardWallet {
         return CardWallet(
-            decoder.decode(TlvTag.WalletPublicKey),
-            null,
-            curve,
-            CardWallet.Settings(isPermanentWallet),
-            0,
-            remainingSignatures,
-            index
+            publicKey = decoder.decode(TlvTag.WalletPublicKey),
+            chainCode = null,
+            curve = curve,
+            settings = CardWallet.Settings(isPermanentWallet),
+            totalSignedHashes = 0,
+            remainingSignatures = remainingSignatures,
+            index = index,
+            hasBackup = false
         )
     }
 }

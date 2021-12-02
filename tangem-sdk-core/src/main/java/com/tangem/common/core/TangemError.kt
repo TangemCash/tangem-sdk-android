@@ -208,19 +208,6 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class ResetPinNoCardsToReset : TangemSdkError(41300)
     class ResetPinWrongCard : TangemSdkError(41301)
 
-    //General Errors
-    class NotPersonalized : TangemSdkError(40001)
-    class NotActivated : TangemSdkError(40002)
-    class WalletIsPurged : TangemSdkError(40003)
-    class PasscodeRequired : TangemSdkError(40004)
-
-    /**
-     * This error is returned when a [Task] checks unsuccessfully either
-     * a card's ability to sign with its private key, or the validity of issuer data.
-     */
-    class VerificationFailed : TangemSdkError(40005)
-    class DataSizeTooLarge : TangemSdkError(40006)
-
     class HDWalletDisabled : TangemSdkError(42003)
 
 
