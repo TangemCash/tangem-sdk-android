@@ -9,8 +9,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.EncodingFailedTypeMismatch, is TangemSdkError.EncodingFailed,
         is TangemSdkError.DecodingFailedMissingTag, is TangemSdkError.DecodingFailedTypeMismatch,
         is TangemSdkError.DecodingFailed, is TangemSdkError.CryptoUtilsError, is TangemSdkError.NetworkError,
-        is TangemSdkError.ExceptionError,
-        -> null
+        is TangemSdkError.ExceptionError, is TangemSdkError.HDWalletDisabled, is TangemSdkError.FileSettingsUnsupported,
+        is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty -> null
 
         is TangemSdkError.TagLost -> R.string.error_tag_lost
         is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_operation
@@ -91,6 +91,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.ResetPinNoCardsToReset -> null
         is TangemSdkError.ResetPinWrongCard -> null
         is TangemSdkError.TooMuchBackupCards -> null
+        is TangemSdkError.WrongInteractionMode -> R.string.error_wrong_interaction_mode
     }
 
     return if (resId != null) {

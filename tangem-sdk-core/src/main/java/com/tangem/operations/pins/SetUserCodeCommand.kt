@@ -68,12 +68,18 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
 
     private fun runCommand(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
         //Restrict default codes except reset command
-        if (shouldRestrictDefaultCodes && (!isCodeAllowed(UserCodeType.AccessCode)
-                        || !isCodeAllowed(UserCodeType.Passcode))) {
-            callback(CompletionResult.Failure(TangemSdkError.PasscodeCannotBeChanged()))
-        } else {
-            super.run(session, callback)
+        if (shouldRestrictDefaultCodes) {
+            if (!isCodeAllowed(UserCodeType.AccessCode)) {
+                callback(CompletionResult.Failure(TangemSdkError.AccessCodeCannotBeChanged()))
+                return
+            }
+            if (!isCodeAllowed(UserCodeType.Passcode)) {
+                callback(CompletionResult.Failure(TangemSdkError.PasscodeCannotBeChanged()))
+                return
+            }
         }
+
+        super.run(session, callback)
     }
 
     private fun isCodeAllowed(type: UserCodeType): Boolean {

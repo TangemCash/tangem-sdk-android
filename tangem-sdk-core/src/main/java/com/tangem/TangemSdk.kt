@@ -192,11 +192,11 @@ class TangemSdk(
     }
 
     /**
-     * This method launches a [CreateWalletCommand] on a new thread.
+     * This method launches a [CreateWalletTask] on a new thread.
      *
      * This command will create a new wallet on the card having ‘Empty’ state.
      * A key pair WalletPublicKey / WalletPrivateKey is generated and securely stored in the card.
-     * App will need to obtain Wallet_PublicKey from the response of [CreateWalletCommand] or [ReadCommand]
+     * App will need to obtain Wallet_PublicKey from the response of [CreateWalletTask] or [ReadCommand]
      * and then transform it into an address of corresponding blockchain wallet  according to a specific
      * blockchain algorithm.
      * WalletPrivateKey is never revealed by the card and will be used by [SignCommand] and [AttestWalletKeyCommand].
@@ -216,7 +216,7 @@ class TangemSdk(
         initialMessage: Message? = null,
         callback: CompletionCallback<CreateWalletResponse>
     ) {
-        startSessionWithRunnable(CreateWalletCommand(curve), cardId, initialMessage, callback)
+        startSessionWithRunnable(CreateWalletTask(curve), cardId, initialMessage, callback)
     }
 
     /**

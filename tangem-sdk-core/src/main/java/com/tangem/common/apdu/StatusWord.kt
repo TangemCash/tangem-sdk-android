@@ -27,6 +27,8 @@ enum class StatusWord(val code: Int) {
 
     FileNotFound(0x6A82),
     WalletNotFound(0x6A88),
+    InvalidAccessCode(0x6AF1),
+    InvalidPasscode(0x6AF2),
 
     InvalidAccessCode(0x6AF1),
     InvalidPasscode(0x6AF2),

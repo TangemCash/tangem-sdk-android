@@ -16,6 +16,7 @@
     <string name="error_wallet_error" translatable="false">Wallet error</string>
     <string name="error_wallet_index_not_correct" translatable="false">Wallet index not correct</string>
     <string name="error_wallet_cannot_be_created" translatable="false">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
+    <string name="error_wrong_interaction_mode" translatable="false">Unsupported interaction mode</string>
 
     <string name="dialog_attestation_did_failed_title" translatable="false">@string/error_card_verification_failed</string>
     <string name="dialog_attestation_did_failed_message" translatable="false">This card may be production sample or counterfeit. You can continue at your own risk</string>

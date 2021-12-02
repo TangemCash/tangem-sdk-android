@@ -155,7 +155,7 @@ data class Card internal constructor(
         /**
          * Signature of CardId with manufacturer’s private key. COS 1.21+
          */
-        val signature: ByteArray?,
+        val signature: ByteArray?
     )
 
     data class Issuer(
@@ -167,7 +167,7 @@ data class Card internal constructor(
         /**
          * Public key that is used by the card issuer to sign IssuerData field.
          */
-        val publicKey: ByteArray,
+        val publicKey: ByteArray
     )
 
     enum class LinkedTerminalStatus {
@@ -270,10 +270,7 @@ data class Card internal constructor(
         val isLinkedTerminalEnabled: Boolean,
 
         /**
-         */
-        val isHDWalletAllowed: Boolean,
-
-        /**
+         * Is backup feature available
          */
         val isBackupAllowed: Boolean,
 
@@ -281,6 +278,16 @@ data class Card internal constructor(
          * All  encryption modes supported by the card
          */
         val supportedEncryptionModes: List<EncryptionMode>,
+
+        /**
+         * Is allowed to write files
+         */
+        val isFilesAllowed: Boolean,
+
+        /**
+         * Is allowed to use hd wallet
+         */
+        val isHDWalletAllowed: Boolean,
 
         /**
          * Is allowed to delete wallet. COS before v4
@@ -328,7 +335,7 @@ data class Card internal constructor(
             maxWalletsCount: Int,
             mask: SettingsMask,
             defaultSigningMethods: SigningMethod? = null,
-            defaultCurve: EllipticCurve? = null,
+            defaultCurve: EllipticCurve? = null
         ) : this(
             securityDelay = securityDelay,
             maxWalletsCount = maxWalletsCount,
@@ -345,7 +352,8 @@ data class Card internal constructor(
             defaultCurve = defaultCurve,
             isIssuerDataProtectedAgainstReplay = mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
             isSelectBlockchainAllowed = mask.contains(SettingsMask.Code.AllowSelectBlockchain),
-        )
+            isFilesAllowed = !mask.contains(SettingsMask.Code.DisableFiles),
+            )
 
         fun updated(mask: Card.SettingsMask): Settings {
             return Settings(
@@ -496,10 +504,10 @@ data class CardWallet(
         /**
          * If true, erasing the wallet will be prohibited
          */
-        val isPermanent: Boolean,
+        val isPermanent: Boolean
     ) {
         internal constructor(
-            mask: SettingsMask,
+            mask: SettingsMask
         ) : this(mask.contains(SettingsMask.Code.IsPermanent))
     }
 

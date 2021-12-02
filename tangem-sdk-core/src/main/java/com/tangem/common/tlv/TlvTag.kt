@@ -140,8 +140,11 @@ enum class TlvTag(val code: Int) {
     FileIndex(0x26),
     FileSettings(0x27),
 
-    FileName(0x70),
+    FileTypeName(0x70),
     FileData(0x71),
+    FileSignature(0x73),
+    FileCounter(0x74),
+    FileOwnerIndex(0x75),
 
     BackupStatus(0xD0),
     BackupCount(0xD1),
@@ -158,11 +161,11 @@ enum class TlvTag(val code: Int) {
         return when (this) {
             CardId, BatchId -> TlvValueType.HexString
             ManufacturerName, Firmware, IssuerName, BlockchainName, TokenSymbol, TokenName, TokenContractAddress,
-            FileName -> TlvValueType.Utf8String
+            FileTypeName -> TlvValueType.Utf8String
             CurveId -> TlvValueType.EllipticCurve
             PauseBeforePin2, WalletRemainingSignatures, WalletSignedHashes, Health, TokenDecimal,
             Offset, Size -> TlvValueType.Uint16
-            FileIndex, WalletIndex, WalletsCount, CheckWalletCounter, BackupCount -> TlvValueType.Uint8
+            FileIndex, WalletIndex, WalletsCount, CheckWalletCounter, FileCounter, BackupCount -> TlvValueType.Uint8
             MaxSignatures, UserCounter, UserProtectedCounter, IssuerDataCounter -> TlvValueType.Uint32
             IsActivated, TerminalIsLinked, CreateWalletAtPersonalize,
             PinIsDefault, Pin2IsDefault -> TlvValueType.BoolValue

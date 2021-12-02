@@ -8,6 +8,7 @@ import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.*
 import com.tangem.common.core.*
+import com.tangem.common.deserialization.WalletDeserializer
 import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
@@ -16,7 +17,7 @@ import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
 
 /**
- * Response from the Tangem card after `CreateWalletCommand`.
+ * Response from the Tangem card after [CreateWalletCommand].
  */
 @JsonClass(generateAdapter = true)
 class CreateWalletResponse(
@@ -45,8 +46,10 @@ class CreateWalletCommand(
     private val curve: EllipticCurve
 ) : Command<CreateWalletResponse>() {
 
+    var walletIndex: Int = 0
+        private set
+
     private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
-    private var walletIndex: Int? = null
 
     override fun requiresPasscode(): Boolean = true
 
@@ -135,18 +138,48 @@ class CreateWalletCommand(
         val card = environment.card ?: throw TangemSdkError.UnknownError()
 
         val decoder = TlvDecoder(tlvData)
-        val index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex!!
-        val wallet = CardWallet(
-            publicKey = decoder.decode(TlvTag.WalletPublicKey),
-            chainCode = decoder.decodeOptional(TlvTag.WalletHDChain),
-            curve = curve,
-            settings = CardWallet.Settings(card.settings.isPermanentWallet),
-            totalSignedHashes = 0,
-            remainingSignatures = card.remainingSignatures,
-            index = index,
-            hasBackup = false
-        )
+        val wallet = when {
+            card.firmwareVersion >= FirmwareVersion.CreateWalletResponseAvailable -> {
+                //Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
+                WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder).guard {
+                    throw TangemSdkError.WalletCannotBeCreated()
+                }
+            }
+            card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable -> {
+                //We don't have a wallet response so we use to create it ourselves
+                makeWalletLegacy(
+                    decoder,
+                    decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex,
+                    null,  //deprecated
+                    false,  //We don't have a wallet response so we use to create it ourselves
+                )
+            }
+            else -> makeWalletLegacy(
+                decoder,
+                0,
+                card.remainingSignatures,
+                card.settings.isPermanentWallet
+            )
+        }
+
         return CreateWalletResponse(decoder.decode(TlvTag.CardId), wallet)
+    }
+
+    private fun makeWalletLegacy(
+        decoder: TlvDecoder,
+        index: Int,
+        remainingSignatures: Int?,
+        isPermanentWallet: Boolean
+    ): CardWallet {
+        return CardWallet(
+            decoder.decode(TlvTag.WalletPublicKey),
+            null,
+            curve,
+            CardWallet.Settings(isPermanentWallet),
+            0,
+            remainingSignatures,
+            index
+        )
     }
 }
 

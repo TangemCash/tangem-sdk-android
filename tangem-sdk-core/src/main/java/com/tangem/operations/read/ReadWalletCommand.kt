@@ -5,11 +5,10 @@ import com.tangem.Log
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
-import com.tangem.common.core.CardSession
-import com.tangem.common.core.CompletionCallback
-import com.tangem.common.core.SessionEnvironment
-import com.tangem.common.core.TangemSdkError
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.core.*
 import com.tangem.common.deserialization.WalletDeserializer
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
@@ -38,6 +37,17 @@ class ReadWalletCommand(
 ) : Command<ReadWalletResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
+
+    override fun performPreCheck(card: Card): TangemError? {
+        if (card.firmwareVersion < FirmwareVersion.MultiWalletAvailable) {
+            return TangemSdkError.NotSupportedFirmwareVersion()
+        }
+        if (derivationPath != null && !card.settings.isHDWalletAllowed) {
+            return TangemSdkError.HDWalletDisabled()
+        }
+
+        return null
+    }
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadWalletResponse>) {
         Log.debug { "Attempt to read wallet with index: $walletIndex" }

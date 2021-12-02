@@ -68,7 +68,7 @@ class AttestWalletKeyCommand(
                     if (verifyResult == true) {
                         callback(CompletionResult.Success(checkWalletResponse))
                     } else {
-                        callback(CompletionResult.Failure(TangemSdkError.VerificationFailed()))
+                        callback(CompletionResult.Failure(TangemSdkError.CardVerificationFailed()))
                     }
                 }
                 is CompletionResult.Failure -> callback(result)
