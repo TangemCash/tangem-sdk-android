@@ -28,7 +28,7 @@ internal class WalletDeserializer(
     }
 
     internal fun deserializeWallet(decoder: TlvDecoder): CardWallet? {
-        val status: CardWallet.Status? = decoder.decodeOptional(TlvTag.Status)
+        val status: CardWallet.Status? = decoder.decode(TlvTag.Status)
         return if (status == CardWallet.Status.Loaded || status == CardWallet.Status.Backuped) {
             deserialize(decoder, status)
         } else {

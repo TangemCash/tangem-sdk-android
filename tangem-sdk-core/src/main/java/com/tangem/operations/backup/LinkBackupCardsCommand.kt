@@ -34,7 +34,7 @@ class LinkBackupCardsResponse(
 /**
  */
 class LinkBackupCardsCommand(
-    private val backupCards: List<LinkableBackupCard>,
+    private val backupCards: List<BackupCard>,
     private val accessCode: ByteArray,
     private val passcode: ByteArray,
 ) : Command<LinkBackupCardsResponse>() {
@@ -103,7 +103,7 @@ class LinkBackupCardsCommand(
                 TlvBuilder().apply {
                     append(TlvTag.FileIndex, index)
                     append(TlvTag.BackupCardLinkingKey, card.linkingKey)
-                    append(TlvTag.Certificate, card.certificate)
+                    append(TlvTag.Certificate, card.generateCertificate())
                     append(TlvTag.CardSignature, card.attestSignature)
                 }.serialize()
             }

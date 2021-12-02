@@ -10,7 +10,7 @@ import com.tangem.common.extensions.guard
 import com.tangem.operations.read.ReadWalletsListCommand
 
 class FinalizeBackupCardTask(
-    private val primaryCard: LinkablePrimaryCard,
+    private val primaryCard: PrimaryCard,
     private val backupCards: List<BackupCard>,
     private val backupData: List<EncryptedBackupData>,
     private val attestSignature: ByteArray,

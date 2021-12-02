@@ -87,6 +87,11 @@ data class Card internal constructor(
     val attestation: Attestation = Attestation.empty,
 
     /**
+     * Issuer's signature for backup process
+     */
+    val issuerSignature: ByteArray? = null,
+
+    /**
      *  Any non-zero value indicates that the card experiences some hardware problems.
      *  User should withdraw the value to other blockchain wallet as soon as possible.
      *  Non-zero Health tag will also appear in responses of all other commands.
@@ -150,7 +155,7 @@ data class Card internal constructor(
         /**
          * Signature of CardId with manufacturer’s private key. COS 1.21+
          */
-        val signature: ByteArray?
+        val signature: ByteArray?,
     )
 
     data class Issuer(
@@ -162,7 +167,7 @@ data class Card internal constructor(
         /**
          * Public key that is used by the card issuer to sign IssuerData field.
          */
-        val publicKey: ByteArray
+        val publicKey: ByteArray,
     )
 
     enum class LinkedTerminalStatus {
@@ -323,7 +328,7 @@ data class Card internal constructor(
             maxWalletsCount: Int,
             mask: SettingsMask,
             defaultSigningMethods: SigningMethod? = null,
-            defaultCurve: EllipticCurve? = null
+            defaultCurve: EllipticCurve? = null,
         ) : this(
             securityDelay = securityDelay,
             maxWalletsCount = maxWalletsCount,
@@ -480,8 +485,9 @@ data class CardWallet(
         BackupedAndPurged(0x83);
 
         companion object {
+            private val values = values()
             fun byCode(code: Int): Status? {
-                return values().find { it.code == code }
+                return values.find { it.code.toByte() == code.toByte() }
             }
         }
     }
@@ -490,10 +496,10 @@ data class CardWallet(
         /**
          * If true, erasing the wallet will be prohibited
          */
-        val isPermanent: Boolean
+        val isPermanent: Boolean,
     ) {
         internal constructor(
-            mask: SettingsMask
+            mask: SettingsMask,
         ) : this(mask.contains(SettingsMask.Code.IsPermanent))
     }
 

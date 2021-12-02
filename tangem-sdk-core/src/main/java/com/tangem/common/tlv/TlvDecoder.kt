@@ -139,16 +139,17 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             }
             TlvValueType.Status -> {
                 try {
-                    when (T::class) {
-                        Card.Status::class ->
-                            Card.Status.byCode(tlvValue.toInt()) as T
-                        CardWallet.Status::class ->
-                            CardWallet.Status.byCode(tlvValue.toInt()) as T
-                        else -> throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
-                    }
+                    typeCheck<T, Card.Status>(tag)
+                    Card.Status.byCode(tlvValue.toInt()) as T
                 } catch (exception: Exception) {
-                    logException(tag, tlvValue.toInt().toString(), exception)
-                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                    Log.warning { "Status is not Card.Status type. Trying to check CardWallet.Status" }
+                    try {
+                        typeCheck<T, CardWallet.Status>(tag)
+                        CardWallet.Status.byCode(tlvValue.toInt()) as T
+                    } catch (ex: Exception) {
+                        logException(tag, tlvValue.toInt().toString(), exception)
+                        throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                    }
                 }
             }
             TlvValueType.BackupStatus -> {

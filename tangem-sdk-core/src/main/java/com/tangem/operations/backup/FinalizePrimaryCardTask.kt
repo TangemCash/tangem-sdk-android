@@ -11,7 +11,7 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 
 class FinalizePrimaryCardTask(
-    private val backupCards: List<LinkableBackupCard>,
+    private val backupCards: List<BackupCard>,
     private val accessCode: ByteArray,
     private val passcode: ByteArray,
     private val attestSignature: ByteArray?, //We already have attestSignature

@@ -156,7 +156,7 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class BackupCardRequired : TangemSdkError(41207)
     class NoBackupDataForCard : TangemSdkError(41208)
     class BackupFailedEmptyWallets : TangemSdkError(41209)
-    class BackupFailedNotEmptyWallets : TangemSdkError(4121)
+    class BackupFailedNotEmptyWallets : TangemSdkError(41210)
     class CertificateSignatureRequired : TangemSdkError(41211)
     class AccessCodeOrPasscodeRequired : TangemSdkError(41212)
     class NoActiveBackup : TangemSdkError(41220)

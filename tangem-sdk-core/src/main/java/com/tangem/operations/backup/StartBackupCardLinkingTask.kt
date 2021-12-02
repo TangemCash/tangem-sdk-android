@@ -6,13 +6,14 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
+import com.tangem.operations.attestation.AttestationTask
 
 class StartBackupCardLinkingTask(
     private val primaryCard: PrimaryCard,
     private val addedBackupCards: List<String>,
 ) : CardSessionRunnable<BackupCard> {
 
-    private var command: StartBackupCardLinkingCommand? = null
+    private var attestationTask: AttestationTask? = null
 
     override fun run(session: CardSession, callback: CompletionCallback<BackupCard>) {
         val card = session.environment.card.guard {
@@ -53,7 +54,40 @@ class StartBackupCardLinkingTask(
             return
         }
 
-        command = StartBackupCardLinkingCommand(primaryCard.linkingKey)
-        command?.run(session, callback)
+        StartBackupCardLinkingCommand(primaryCard.linkingKey)
+            .run(session) { result ->
+                when (result) {
+                    is CompletionResult.Success -> {
+                        runAttestation(result.data, session, callback)
+                    }
+                    is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+                }
+            }
+    }
+
+    private fun runAttestation(
+        rawCard: RawBackupCard,
+        session: CardSession, callback: CompletionCallback<BackupCard>,
+    ) {
+        attestationTask = AttestationTask(
+            mode = AttestationTask.Mode.Full,
+            secureStorage = session.environment.secureStorage
+        )
+        attestationTask?.run(session) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    val signature = session.environment.card?.issuerSignature.guard {
+                        callback(CompletionResult.Failure(TangemSdkError.CertificateSignatureRequired()))
+                        return@run
+                    }
+                    val backupCard = BackupCard(rawCard, issuerSignature = signature)
+                    callback(CompletionResult.Success(backupCard))
+                }
+                is CompletionResult.Failure -> {
+                    callback(CompletionResult.Failure(result.error))
+                }
+            }
+
+        }
     }
 }

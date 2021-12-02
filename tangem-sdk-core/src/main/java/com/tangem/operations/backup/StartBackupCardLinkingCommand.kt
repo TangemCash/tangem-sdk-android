@@ -16,7 +16,7 @@ import com.tangem.operations.Command
  */
 class StartBackupCardLinkingCommand(
     private val primaryCardLinkingKey: ByteArray,
-) : Command<BackupCard>() {
+) : Command<RawBackupCard>() {
 
     override fun requiresPasscode(): Boolean = false
 
@@ -45,12 +45,12 @@ class StartBackupCardLinkingCommand(
     override fun deserialize(
         environment: SessionEnvironment,
         apdu: ResponseApdu,
-    ): BackupCard {
+    ): RawBackupCard {
         val tlvData = apdu.getTlvData(environment.encryptionKey)
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
-        return BackupCard(
+        return RawBackupCard(
             cardId = decoder.decode(TlvTag.CardId),
             cardPublicKey = environment.card?.cardPublicKey ?: throw TangemSdkError.UnknownError(),
             linkingKey = decoder.decode(TlvTag.BackupCardLinkingKey),

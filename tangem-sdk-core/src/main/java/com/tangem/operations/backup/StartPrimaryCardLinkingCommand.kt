@@ -14,7 +14,7 @@ import com.tangem.operations.Command
 
 /**
  */
-class StartPrimaryCardLinkingCommand : Command<PrimaryCard>() {
+class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
 
     override fun requiresPasscode(): Boolean = false
 
@@ -42,7 +42,7 @@ class StartPrimaryCardLinkingCommand : Command<PrimaryCard>() {
     override fun deserialize(
         environment: SessionEnvironment,
         apdu: ResponseApdu,
-    ): PrimaryCard {
+    ): RawPrimaryCard {
         val tlvData = apdu.getTlvData(environment.encryptionKey)
             ?: throw TangemSdkError.DeserializeApduFailed()
 
@@ -52,7 +52,7 @@ class StartPrimaryCardLinkingCommand : Command<PrimaryCard>() {
 
         val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
-        return PrimaryCard(
+        return RawPrimaryCard(
             cardId = decoder.decode(TlvTag.CardId),
             cardPublicKey = cardPublicKey,
             linkingKey = decoder.decode(TlvTag.PrimaryCardLinkingKey),

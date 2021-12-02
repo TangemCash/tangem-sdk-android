@@ -17,9 +17,9 @@ class Utils {
         fun randomString(length: Int): String {
             val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
             val randomString = (1..length)
-                    .map { randomInt(0, charPool.size) }
-                    .map(charPool::get)
-                    .joinToString("");
+                .map { randomInt(0, charPool.size) }
+                .map(charPool::get)
+                .joinToString("")
             return randomString
         }
     }
@@ -32,7 +32,7 @@ class Personalization {
         fun acquirer(): Acquirer = MoshiJsonConverter.INSTANCE.fromJson(acquirerJson)!!
 
         private val manufacturerJson =
-                """
+            """
     {
         "keyPair": {
             "privateKey": "1b48cfd24bbb5b394771ed81f2bacf57479e4735eb1405083927372d40da9e92",
@@ -43,7 +43,7 @@ class Personalization {
     """
 
         private val issuerJson =
-                """
+            """
     {
         "dataKeyPair": {
             "privateKey": "11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92",
@@ -59,7 +59,7 @@ class Personalization {
     """
 
         private val acquirerJson =
-                """
+            """
     {
         "keyPair": {
             "privateKey": "21222324252627284771ED81F2BACF57479E4735EB1405083927372D40DA9E92",
@@ -73,64 +73,69 @@ class Personalization {
 
     class Backup {
         companion object {
-            fun primaryCardConfig(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonPrimary)!!
-            fun backup1Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup1)!!
-            fun backup2Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup2)!!
+            fun primaryCardConfig(): CardConfig =
+                MoshiJsonConverter.INSTANCE.fromJson(configJsonPrimary)!!
+
+            fun backup1Config(): CardConfig =
+                MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup1)!!
+
+            fun backup2Config(): CardConfig =
+                MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup2)!!
 
             private val configJsonPrimary =
-                    """
-    {
-       "releaseVersion": true,
-       "issuerName": "TANGEM AG",
-       "series": "CB",
-       "startNumber": 7900000000000,
-       "count": 2500,
-       "numberFormat": "",
-       "PIN": "000000",
-       "PIN2": "000",
-       "CVC": "000",
-       "walletsCount": 6,
-       "pauseBeforePIN2": 5000,
-       "smartSecurityDelay": true,
-       "curveID": "secp256k1",
-       "SigningMethod": 0,
-       "isReusable": false,
-       "allowSwapPIN": false,
-       "allowSwapPIN2": true,
-       "useActivation": false,
-       "useCVC": false,
-       "useNDEF": true,
-       "useBlock": false,
-       "allowSelectBlockchain": true,
-       "forbidPurgeWallet": false,
-       "protocolAllowUnencrypted": true,
-       "protocolAllowStaticEncryption": true,
-       "forbidDefaultPIN": false,
-       "skipSecurityDelayIfValidatedByIssuer": false,
-       "skipCheckPIN2andCVCIfValidatedByIssuer": false,
-       "skipSecurityDelayIfValidatedByLinkedTerminal": true,
-       "disableIssuerData": true,
-       "disableUserData": false,
-       "disableFiles": false,
-       "allowHDWallets": true,
-       "allowBackup": true,
-       "NDEF": [],
-       "cardData": {
-           "date": "2021-03-15",
-           "batch": "AC01",
-           "blockchain": "ANY",
-           "product_note": true,
-           "product_tag": false,
-           "product_id_card": false,
-           "product_id_issuer": false,
-           "product_authentication": false,
-           "product_twin": false
-       },
-       "createWallet": 0
+                """
+     {
+        "releaseVersion": true,
+        "issuerName": "TANGEM AG",
+        "series": "CB",
+        "startNumber": 7900000000000,
+        "count": 2500,
+        "numberFormat": "",
+        "PIN": "000000",
+        "PIN2": "000",
+        "CVC": "000",
+        "walletsCount": 20,
+        "pauseBeforePIN2": 5000,
+        "smartSecurityDelay": true,
+        "curveID": "secp256k1",
+        "SigningMethod": 0,
+        "isReusable": false,
+        "allowSwapPIN": false,
+        "allowSwapPIN2": true,
+        "useActivation": false,
+        "useCVC": false,
+        "useNDEF": true,
+        "useBlock": false,
+        "allowSelectBlockchain": true,
+        "forbidPurgeWallet": false,
+        "protocolAllowUnencrypted": true,
+        "protocolAllowStaticEncryption": true,
+        "forbidDefaultPIN": false,
+        "skipSecurityDelayIfValidatedByIssuer": false,
+        "skipCheckPIN2andCVCIfValidatedByIssuer": false,
+        "skipSecurityDelayIfValidatedByLinkedTerminal": true,
+        "disableIssuerData": true,
+        "disableUserData": false,
+        "disableFiles": false,
+        "allowHDWallets": true,
+        "allowBackup": true,
+        "NDEF": [],
+        "cardData": {
+            "date": "2021-03-15",
+            "batch": "AC01",
+            "blockchain": "ANY",
+            "product_note": true,
+            "product_tag": false,
+            "product_id_card": false,
+            "product_id_issuer": false,
+            "product_authentication": false,
+            "product_twin": false
+        },
+        "createWallet": 0
     }
     """
             private val configJsonBackup1 =
-                    """
+                """
     {
        "releaseVersion": true,
        "issuerName": "TANGEM AG",
@@ -182,12 +187,12 @@ class Personalization {
     """
 
             private val configJsonBackup2 =
-                    """
+                """
     {
        "releaseVersion": true,
        "issuerName": "TANGEM AG",
        "series": "CB",
-       "startNumber": 7900000000002,
+       "startNumber": 7900000000003,
        "count": 2500,
        "numberFormat": "",
        "PIN": "000000",
@@ -227,7 +232,6 @@ class Personalization {
            "product_tag": false,
            "product_id_card": false,
            "product_id_issuer": false,
-           "product_authentication": false,
            "product_twin": false
        },
        "createWallet": 0
