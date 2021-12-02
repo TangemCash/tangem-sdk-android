@@ -111,6 +111,10 @@ class TlvEncoder {
                     (value as CardWallet.Status).code.toByteArray()
                 }
             }
+            TlvValueType.BackupStatus -> {
+                typeCheck<T, Card.BackupRawStatus>(tag)
+                (value as Card.BackupRawStatus).code.toByteArray()
+            }
             TlvValueType.SigningMethod -> {
                 typeCheck<T, SigningMethod>(tag)
                 byteArrayOf((value as SigningMethod).rawValue.toByte())

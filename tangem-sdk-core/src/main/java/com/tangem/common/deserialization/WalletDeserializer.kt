@@ -28,26 +28,33 @@ internal class WalletDeserializer(
     }
 
     internal fun deserializeWallet(decoder: TlvDecoder): CardWallet? {
-        val status: CardWallet.Status = decoder.decode(TlvTag.Status)
-        return if (status != CardWallet.Status.Loaded) null else deserialize(decoder)
+        val status: CardWallet.Status? = decoder.decode(TlvTag.Status)
+        return if (status == CardWallet.Status.Loaded || status == CardWallet.Status.Backuped) {
+            deserialize(decoder, status)
+        } else {
+            null
+        }
     }
 
-    private fun deserialize(decoder: TlvDecoder): CardWallet {
+    private fun deserialize(decoder: TlvDecoder, status: CardWallet.Status): CardWallet {
         val walletSettingsMask: CardWallet.SettingsMask? = decoder.decodeOptional(TlvTag.SettingsMask)
-        val settings = when {
-            walletSettingsMask != null -> CardWallet.Settings(walletSettingsMask)
+
+        val settings = if (walletSettingsMask != null) {
+            CardWallet.Settings(walletSettingsMask)
+        } else {
             //Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
-            else -> CardWallet.Settings(isDefaultPermanentWallet)
+            CardWallet.Settings(isDefaultPermanentWallet)
         }
 
         return CardWallet(
-            decoder.decode(TlvTag.WalletPublicKey),
-            decoder.decodeOptional(TlvTag.WalletHDChain),
-            decoder.decode(TlvTag.CurveId),
-            settings,
-            decoder.decode(TlvTag.WalletSignedHashes),
-            null,
-            decoder.decode(TlvTag.WalletIndex)
+            publicKey = decoder.decode(TlvTag.WalletPublicKey),
+            chainCode = decoder.decodeOptional(TlvTag.WalletHDChain),
+            curve = decoder.decode(TlvTag.CurveId),
+            settings = settings,
+            totalSignedHashes = decoder.decode(TlvTag.WalletSignedHashes),
+            remainingSignatures = null,
+            index = decoder.decode(TlvTag.WalletIndex),
+            hasBackup = status == CardWallet.Status.Backuped
         )
     }
 }

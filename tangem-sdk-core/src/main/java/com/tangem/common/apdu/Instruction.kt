@@ -24,7 +24,17 @@ enum class Instruction(var code: Int) {
     ReadUserData(0xE1),
     Depersonalize(0xE3),
     WriteFileData(0xD0),
-    ReadFileData(0xD1);
+    ReadFileData(0xD1),
+    StartPrimaryCardLinking(0xE8),
+    StartBackupCardLinking(0xE9),
+    LinkBackupCards(0xEA),
+    ReadBackupData(0xEB),
+    LinkPrimaryCard(0xEC),
+    WriteBackupData(0xED),
+    ManageFileOwners(0xD2),
+    Authorize(0xD3),
+    BackupReset(0xEE),
+    ;
 
     companion object {
         private val values = values()

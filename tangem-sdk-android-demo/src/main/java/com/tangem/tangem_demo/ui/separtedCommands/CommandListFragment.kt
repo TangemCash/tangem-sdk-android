@@ -1,5 +1,6 @@
 package com.tangem.tangem_demo.ui.separtedCommands
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -23,18 +24,22 @@ import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.tangem_demo.DemoActivity
+import com.tangem.tangem_demo.Personalization
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
+import com.tangem.tangem_demo.ui.backup.BackupActivity
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.tangem_demo.ui.extension.getFromClipboard
 import com.tangem.tangem_sdk_new.extensions.createLogger
 import com.tangem.tangem_sdk_new.extensions.init
 import kotlinx.android.synthetic.main.attestation.*
+import kotlinx.android.synthetic.main.backup.*
 import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.json_rpc.*
+import kotlinx.android.synthetic.main.personalization_backup.*
 import kotlinx.android.synthetic.main.scan_card.*
 import kotlinx.android.synthetic.main.set_message.*
 import kotlinx.android.synthetic.main.set_pin.*
@@ -62,6 +67,16 @@ class CommandListFragment : BaseFragment() {
         }
         btnScanCard.setOnClickListener { scanCard() }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
+
+        btnPersonalizePrimary.setOnClickListener { personalize(Personalization.Backup.primaryCardConfig()) }
+        btnPersonalizeBackup1.setOnClickListener { personalize(Personalization.Backup.backup1Config()) }
+        btnPersonalizeBackup2.setOnClickListener { personalize(Personalization.Backup.backup2Config()) }
+        btnDepersonalize.setOnClickListener { depersonalize() }
+
+        btnStartBackup.setOnClickListener {
+            val intent = Intent(requireContext(), BackupActivity::class.java)
+            startActivity(intent)
+        }
 
         chipGroupAttest.fitChipsByGroupWidth()
         btnAttest.setOnClickListener {

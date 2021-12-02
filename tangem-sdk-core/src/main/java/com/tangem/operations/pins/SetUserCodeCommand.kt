@@ -7,6 +7,7 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.apdu.StatusWord
+import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
@@ -86,13 +87,25 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val accessCodeValue = codes[UserCodeType.AccessCode]?.value ?: environment.accessCode.value
+        val passcodeValue = codes[UserCodeType.Passcode]?.value ?: environment.passcode.value
+        if (accessCodeValue == null || passcodeValue == null) {
+            throw TangemSdkError.SerializeCommandError()
+        }
+
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.NewPin, codes[UserCodeType.AccessCode]?.value ?: environment.accessCode.value)
-        tlvBuilder.append(TlvTag.NewPin2, codes[UserCodeType.Passcode]?.value ?: environment.passcode.value)
+        tlvBuilder.append(TlvTag.NewPin, accessCodeValue)
+        tlvBuilder.append(TlvTag.NewPin2, passcodeValue)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
+
+        val firmwareVersion = environment.card?.firmwareVersion
+        if (firmwareVersion != null && firmwareVersion >= FirmwareVersion.BackupAvailable) {
+            val hash = (accessCodeValue + passcodeValue).calculateSha256()
+            tlvBuilder.append(TlvTag.CodeHash, hash)
+        }
 
         return CommandApdu(Instruction.SetPin, tlvBuilder.serialize())
     }

@@ -756,7 +756,7 @@ class TangemSdk(
      * If null, default message will be used.
      * @param callback: Standard [TangemSdk] callback.
      */
-    fun <T : CommandResponse> startSessionWithRunnable(
+    fun <T> startSessionWithRunnable(
         runnable: CardSessionRunnable<T>,
         cardId: String? = null,
         initialMessage: Message? = null,

@@ -83,30 +83,31 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
 
         fun getTangemSdkAdapters(): List<Any> {
             return listOf(
-                TangemSdkAdapter.ByteArrayAdapter(),
-                TangemSdkAdapter.CardSettingsMaskAdapter(),
-                TangemSdkAdapter.ProductMaskAdapter(),
-                TangemSdkAdapter.WalletSettingsMaskAdapter(),
-                TangemSdkAdapter.DateAdapter(),
-                TangemSdkAdapter.FirmwareVersionAdapter(),
-                TangemSdkAdapter.PreflightReadModeAdapter(),
-                TangemSdkAdapter.DataToWriteAdapter(),
-                TangemSdkAdapter.EllipticCurveAdapter(),
-                TangemSdkAdapter.LinkedTerminalStatusAdapter(),
-                TangemSdkAdapter.CardStatusAdapter(),
-                TangemSdkAdapter.CardWalletStatusAdapter(),
-                TangemSdkAdapter.CardSettingsMaskCodeAdapter(),
-                TangemSdkAdapter.CardWalletSettingsMaskCodeAdapter(),
-                TangemSdkAdapter.SigningMethodCodeAdapter(),
-                TangemSdkAdapter.ProductMaskCodeAdapter(),
-                TangemSdkAdapter.EncryptionModeAdapter(),
-                TangemSdkAdapter.FirmwareTypeAdapter(),
-                TangemSdkAdapter.FileDataModeAdapter(),
-                TangemSdkAdapter.FileSettingsAdapter(),
-                TangemSdkAdapter.FileWriteSettingsAdapter(),
-                TangemSdkAdapter.AttestationStatusAdapter(),
-                TangemSdkAdapter.AttestationModeAdapter(),
-                TangemSdkAdapter.BIP44ChainAdapter(),
+                    TangemSdkAdapter.ByteArrayAdapter(),
+                    TangemSdkAdapter.CardSettingsMaskAdapter(),
+                    TangemSdkAdapter.ProductMaskAdapter(),
+                    TangemSdkAdapter.WalletSettingsMaskAdapter(),
+                    TangemSdkAdapter.DateAdapter(),
+                    TangemSdkAdapter.FirmwareVersionAdapter(),
+                    TangemSdkAdapter.PreflightReadModeAdapter(),
+                    TangemSdkAdapter.DataToWriteAdapter(),
+                    TangemSdkAdapter.EllipticCurveAdapter(),
+                    TangemSdkAdapter.LinkedTerminalStatusAdapter(),
+                    TangemSdkAdapter.CardStatusAdapter(),
+                    TangemSdkAdapter.CardWalletStatusAdapter(),
+                    TangemSdkAdapter.CardSettingsMaskCodeAdapter(),
+                    TangemSdkAdapter.CardWalletSettingsMaskCodeAdapter(),
+                    TangemSdkAdapter.SigningMethodCodeAdapter(),
+                    TangemSdkAdapter.ProductMaskCodeAdapter(),
+                    TangemSdkAdapter.EncryptionModeAdapter(),
+                    TangemSdkAdapter.FirmwareTypeAdapter(),
+                    TangemSdkAdapter.FileDataModeAdapter(),
+                    TangemSdkAdapter.FileSettingsAdapter(),
+                    TangemSdkAdapter.FileWriteSettingsAdapter(),
+                    TangemSdkAdapter.AttestationStatusAdapter(),
+                    TangemSdkAdapter.AttestationModeAdapter(),
+                    TangemSdkAdapter.BIP44ChainAdapter(),
+                    TangemSdkAdapter.BackupStatusAdapter(),
             )
         }
 
@@ -337,6 +338,15 @@ class TangemSdkAdapter {
 
         @FromJson
         fun fromJson(json: String): Card.Status = EnumConverter.toEnum(json)
+    }
+
+    class BackupStatusAdapter {
+        @ToJson
+        fun toJson(src: Card.BackupStatus): String = EnumConverter.toJson(src.toRawStatus())
+
+        @FromJson
+        fun fromJson(json: String): Card.BackupStatus =
+            Card.BackupStatus.from(EnumConverter.toEnum<Card.BackupRawStatus>(json)) ?: Card.BackupStatus.NoBackup
     }
 
     class CardWalletStatusAdapter {

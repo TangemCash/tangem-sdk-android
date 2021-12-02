@@ -49,13 +49,14 @@ class CardDeserializer {
                 val walletSettings = CardWallet.Settings(cardSettingsMask.toWalletSettingsMask())
 
                 val wallet = CardWallet(
-                        decoder.decode(TlvTag.WalletPublicKey),
-                        null,
-                        curve,
-                        walletSettings,
-                        decoder.decodeOptional(TlvTag.WalletSignedHashes),
-                        remainingSignatures,
-                        0
+                    publicKey = decoder.decode(TlvTag.WalletPublicKey),
+                    chainCode = null,
+                    curve = curve,
+                    settings = walletSettings,
+                    totalSignedHashes = decoder.decodeOptional(TlvTag.WalletSignedHashes),
+                    remainingSignatures = remainingSignatures,
+                    index = 0,
+                    hasBackup = false,
                 )
                 wallets.add(wallet)
             }
@@ -66,21 +67,36 @@ class CardDeserializer {
             val settings = cardSettings(decoder, cardSettingsMask, defaultCurve)
             val supportedCurves: List<EllipticCurve> = supportedCurves(firmware, defaultCurve)
 
+            val backupRawStatus: Card.BackupRawStatus? = decoder.decodeOptional(TlvTag.BackupStatus)
+            val backupCardsCount: Int? = decoder.decodeOptional(TlvTag.BackupCount)
+            val backupStatus = backupRawStatus?.let { Card.BackupStatus.from(it, backupCardsCount) }
+
             return Card(
-                    decoder.decode(TlvTag.CardId),
-                    cardDataDecoder.decode(TlvTag.BatchId),
-                    decoder.decode(TlvTag.CardPublicKey),
-                    firmware,
-                    manufacturer,
-                    issuer,
-                    settings,
-                    terminalStatus,
-                    isAccessCodeSet ?: isAccessCodeSetLegacy,
-                    isPasscodeSet,
-                    supportedCurves,
-                    wallets.toList(),
-                    health = decoder.decodeOptional(TlvTag.Health),
-                    remainingSignatures = remainingSignatures
+                cardId = decoder.decode(TlvTag.CardId),
+                batchId = cardDataDecoder.decode(TlvTag.BatchId),
+                cardPublicKey = decoder.decode(TlvTag.CardPublicKey),
+                firmwareVersion = firmware,
+                manufacturer = manufacturer,
+                issuer = issuer,
+                settings = settings,
+                linkedTerminalStatus = terminalStatus,
+                isAccessCodeSet = isAccessCodeSet ?: isAccessCodeSetLegacy,
+                isPasscodeSet = isPasscodeSet,
+                supportedCurves = supportedCurves,
+                wallets = wallets.toList(),
+                health = decoder.decodeOptional(TlvTag.Health),
+                remainingSignatures = remainingSignatures,
+                backupStatus = backupStatus
+            )
+        }
+
+        private fun getManufacturer(
+            decoder: TlvDecoder, cardDataDecoder: TlvDecoder,
+        ): Card.Manufacturer {
+            return Card.Manufacturer(
+                decoder.decode(TlvTag.ManufacturerName),
+                cardDataDecoder.decode(TlvTag.ManufactureDateTime),
+                cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
             )
         }
 
@@ -126,12 +142,16 @@ class CardDeserializer {
                 }
 
         internal fun getDecoder(environment: SessionEnvironment, apdu: ResponseApdu): TlvDecoder {
-            val tlv = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+            val tlv = apdu.getTlvData(environment.encryptionKey)
+                ?: throw TangemSdkError.DeserializeApduFailed()
 
             return TlvDecoder(tlv)
         }
 
-        internal fun getCardDataDecoder(environment: SessionEnvironment, tlvData: List<Tlv>): TlvDecoder? {
+        internal fun getCardDataDecoder(
+            environment: SessionEnvironment,
+            tlvData: List<Tlv>,
+        ): TlvDecoder? {
             val cardDataValue = tlvData.find { it.tag == TlvTag.CardData }?.let {
                 Tlv.deserialize(it.value)
             }

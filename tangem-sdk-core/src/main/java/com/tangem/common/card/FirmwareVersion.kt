@@ -101,6 +101,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          * Field on card that describes is accessCode is default value or not
          */
         val IsAccessCodeStatusAvailable = FirmwareVersion(4, 33)
+
+        /**
+         * Backup
+         */
+        val BackupAvailable = FirmwareVersion(4, 43)
     }
 
     enum class FirmwareType(val rawValue: String?) {

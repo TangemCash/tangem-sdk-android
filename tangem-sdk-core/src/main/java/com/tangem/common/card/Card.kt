@@ -87,6 +87,11 @@ data class Card internal constructor(
     val attestation: Attestation = Attestation.empty,
 
     /**
+     * Issuer's signature for backup process
+     */
+    val issuerSignature: ByteArray? = null,
+
+    /**
      *  Any non-zero value indicates that the card experiences some hardware problems.
      *  User should withdraw the value to other blockchain wallet as soon as possible.
      *  Non-zero Health tag will also appear in responses of all other commands.
@@ -100,6 +105,8 @@ data class Card internal constructor(
      */
     @Transient
     internal var remainingSignatures: Int? = null,
+
+    val backupStatus: BackupStatus? = null,
 ) : CommandResponse {
 
     fun setWallets(newWallets: List<CardWallet>): Card {
@@ -107,7 +114,8 @@ data class Card internal constructor(
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun wallet(publicKey: ByteArray): CardWallet? = wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
+    fun wallet(publicKey: ByteArray): CardWallet? =
+        wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
 
     fun addWallet(wallet: CardWallet): Card {
         val sortedWallets = wallets.toMutableList().apply {
@@ -183,7 +191,54 @@ data class Card internal constructor(
         }
     }
 
-    class Settings internal constructor(
+    sealed class BackupStatus {
+        object NoBackup : BackupStatus()
+        data class CardLinked(val cardCount: Int) : BackupStatus()
+        data class Active(val cardCount: Int) : BackupStatus()
+
+        val isActive: Boolean
+            get() = this is Active
+
+        fun toRawStatus(): BackupRawStatus {
+            return when (this) {
+                NoBackup -> BackupRawStatus.NoBackup
+                is CardLinked -> BackupRawStatus.CardLinked
+                is Active -> BackupRawStatus.Active
+            }
+        }
+
+        //TODO: add backupStatusCodable
+
+        companion object {
+            fun from(rawStatus: BackupRawStatus, cardsCount: Int? = null): BackupStatus? {
+                return when (rawStatus) {
+                    BackupRawStatus.NoBackup -> BackupStatus.NoBackup
+                    BackupRawStatus.CardLinked -> cardsCount?.let {
+                        BackupStatus.CardLinked(cardsCount)
+                    }
+                    BackupRawStatus.Active -> cardsCount?.let {
+                        BackupStatus.Active(cardsCount)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Status of backup
+     */
+    enum class BackupRawStatus(val code: Int) {
+        NoBackup(0),
+        CardLinked(1),
+        Active(2);
+
+        companion object {
+            private val values = values()
+            fun byCode(code: Int): BackupRawStatus? = values.find { it.code == code }
+        }
+    }
+
+    data class Settings internal constructor(
         /**
          * Delay in milliseconds before executing a command that affects any sensitive data or wallets on the card
          */
@@ -213,6 +268,11 @@ data class Card internal constructor(
          * Is LinkedTerminal feature enabled
          */
         val isLinkedTerminalEnabled: Boolean,
+
+        /**
+         * Is backup feature available
+         */
+        val isBackupAllowed: Boolean,
 
         /**
          * All  encryption modes supported by the card
@@ -277,22 +337,33 @@ data class Card internal constructor(
             defaultSigningMethods: SigningMethod? = null,
             defaultCurve: EllipticCurve? = null
         ) : this(
-            securityDelay,
-            maxWalletsCount,
-            mask.contains(SettingsMask.Code.AllowSetPIN1),
-            mask.contains(SettingsMask.Code.AllowSetPIN2),
-            !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
-            mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
-            createEncryptionModes(mask),
-            !mask.contains(SettingsMask.Code.DisableFiles),
-            mask.contains(SettingsMask.Code.AllowHDWallets),
-            mask.contains(SettingsMask.Code.PermanentWallet),
-            mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
-            defaultSigningMethods,
-            defaultCurve,
-            mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
-            mask.contains(SettingsMask.Code.AllowSelectBlockchain),
-        )
+            securityDelay = securityDelay,
+            maxWalletsCount = maxWalletsCount,
+            isSettingAccessCodeAllowed = mask.contains(SettingsMask.Code.AllowSetPIN1),
+            isSettingPasscodeAllowed = mask.contains(SettingsMask.Code.AllowSetPIN2),
+            isResettingUserCodesAllowed = mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
+            isLinkedTerminalEnabled = mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
+            isHDWalletAllowed = mask.contains(SettingsMask.Code.AllowHDWallets),
+            isBackupAllowed = mask.contains(SettingsMask.Code.AllowBackup),
+            supportedEncryptionModes = createEncryptionModes(mask),
+            isPermanentWallet = mask.contains(SettingsMask.Code.PermanentWallet),
+            isOverwritingIssuerExtraDataRestricted = mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
+            defaultSigningMethods = defaultSigningMethods,
+            defaultCurve = defaultCurve,
+            isIssuerDataProtectedAgainstReplay = mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
+            isSelectBlockchainAllowed = mask.contains(SettingsMask.Code.AllowSelectBlockchain),
+            isFilesAllowed = !mask.contains(SettingsMask.Code.DisableFiles),
+            )
+
+        fun updated(mask: Card.SettingsMask): Settings {
+            return Settings(
+                securityDelay = this.securityDelay,
+                maxWalletsCount = this.maxWalletsCount,
+                mask = mask,
+                defaultSigningMethods = this.defaultSigningMethods,
+                defaultCurve = this.defaultCurve
+            )
+        }
 
         companion object {
             private fun createEncryptionModes(mask: SettingsMask): List<EncryptionMode> {
@@ -377,7 +448,12 @@ data class CardWallet(
     /**
      *  Index of the wallet in the card storage
      */
-    val index: Int
+    val index: Int,
+
+    /**
+     *  Shows whether this wallet has a backup
+     */
+    val hasBackup: Boolean,
 ) {
 
     val extendedPublicKey: ExtendedPublicKey? by lazy {
@@ -403,11 +479,23 @@ data class CardWallet(
         /**
          * Wallet was purged and can't be recreated or used for signing
          */
-        Purged(3);
+        Purged(3),
+
+
+        /**
+         * Wallet created and can be used for signing, backup data read
+         */
+        Backuped(0x82),
+
+        /**
+         *Wallet was purged and can't be recreated or used for signing, but backup data read and wallet can be usable on backup card
+         */
+        BackupedAndPurged(0x83);
 
         companion object {
+            private val values = values()
             fun byCode(code: Int): Status? {
-                return values().find { it.code == code }
+                return values.find { it.code.toByte() == code.toByte() }
             }
         }
     }

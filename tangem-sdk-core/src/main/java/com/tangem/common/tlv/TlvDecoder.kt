@@ -13,6 +13,7 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
+import com.tangem.operations.resetcode.AuthorizeMode
 import java.util.*
 
 /**
@@ -53,17 +54,17 @@ class TlvDecoder(val tlvList: List<Tlv>) {
      */
     inline fun <reified T> decode(tag: TlvTag, logError: Boolean = true): T {
         val tlv = tlvList.find { it.tag == tag }
-                ?: if (tag.valueType() == TlvValueType.BoolValue && T::class == Boolean::class) {
-                    Tlv(tag, "00".toByteArray()).sendToLog(false)
-                    return false as T
+            ?: if (tag.valueType() == TlvValueType.BoolValue && T::class == Boolean::class) {
+                Tlv(tag, "00".toByteArray()).sendToLog(false)
+                return false as T
+            } else {
+                if (logError) {
+                    Log.error { "TLV $tag not found" }
                 } else {
-                    if (logError) {
-                        Log.error { "TLV $tag not found" }
-                    } else {
-                        Log.warning { "TLV $tag not found, but it is not required" }
-                    }
-                    throw TangemSdkError.DecodingFailedMissingTag("TLV $tag not found")
+                    Log.warning { "TLV $tag not found, but it is not required" }
                 }
+                throw TangemSdkError.DecodingFailedMissingTag("TLV $tag not found")
+            }
 
         val decodedValue: T = decodeTlv(tlv)
         tlv.sendToLog(decodedValue)
@@ -151,6 +152,15 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     }
                 }
             }
+            TlvValueType.BackupStatus -> {
+                try {
+                    typeCheck<T, Card.BackupRawStatus>(tag)
+                    Card.BackupRawStatus.byCode(tlvValue.toInt()) as T
+                } catch (exception: Exception) {
+                    logException(tag, tlvValue.toInt().toString(), exception)
+                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                }
+            }
             TlvValueType.SigningMethod -> {
                 typeCheck<T, SigningMethod>(tag)
                 try {
@@ -162,17 +172,18 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             }
             TlvValueType.InteractionMode -> {
                 try {
-                    typeCheck<T, IssuerExtraDataMode>(tag)
-                    IssuerExtraDataMode.byCode(tlvValue.toInt().toByte()) as T
-                } catch (ex: Exception) {
-                    Log.warning { "InteractionMode is not IssuerDataMode type. Trying to check ReadMode" }
-                    try {
-                        typeCheck<T, ReadMode>(tag)
-                        ReadMode.byRawValue(tlvValue.toInt()) as T
-                    } catch (ex: Exception) {
-                        logException(tag, tlvValue.toInt().toString(), ex)
-                        throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                    when (T::class) {
+                        IssuerExtraDataMode::class ->
+                            IssuerExtraDataMode.byCode(tlvValue.toInt().toByte()) as T
+                        ReadMode::class ->
+                            ReadMode.byRawValue(tlvValue.toInt()) as T
+                        AuthorizeMode::class ->
+                            AuthorizeMode.byRawValue(tlvValue.toInt()) as T
+                        else -> throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                     }
+                } catch (ex: Exception) {
+                    logException(tag, tlvValue.toInt().toString(), ex)
+                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                 }
             }
             TlvValueType.FileDataMode -> {
@@ -206,7 +217,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
     }
 
     fun provideDecodingFailedMessage(tag: TlvTag): String =
-            "Decoding failed. Failed to convert $tag to ${tag.valueType()}"
+        "Decoding failed. Failed to convert $tag to ${tag.valueType()}"
 
     fun logException(tag: TlvTag, value: String, exception: Exception) {
         Log.error { "Unknown ${tag.name} with value of: $value, \n${exception.message}" }
@@ -215,10 +226,14 @@ class TlvDecoder(val tlvList: List<Tlv>) {
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
         if (T::class != ExpectedT::class) {
             val error = TangemSdkError.DecodingFailedTypeMismatch(
-                    "Decoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+                "Decoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
             )
             Log.error { error.customMessage }
             throw error
         }
+    }
+
+    inline fun <reified T, reified ExpectedT> typeCheckWithoutError(tag: TlvTag): Boolean {
+        return T::class == ExpectedT::class
     }
 }
