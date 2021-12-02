@@ -67,6 +67,11 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.WalletError -> R.string.error_wallet_error
         is TangemSdkError.UnsupportedWalletConfig -> R.string.error_wallet_index_not_correct
         is TangemSdkError.WalletCannotBeCreated -> R.string.error_wallet_cannot_be_created
+        is TangemSdkError.HDWalletDisabled -> R.string.error_hd_wallet_disabled
+        is TangemSdkError.FileSettingsUnsupported -> R.string.error_file_settings_unsupported
+        is TangemSdkError.FilesDisabled -> R.string.error_files_disabled
+        is TangemSdkError.FilesIsEmpty -> R.string.error_files_is_empty
+        is TangemSdkError.WrongInteractionMode -> R.string.error_wrong_interaction_mode
     }
 
     return if (resId != null) {

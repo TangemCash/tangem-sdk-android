@@ -9,6 +9,7 @@
   "settings": {
     "isSettingPasscodeAllowed": true,
     "maxWalletsCount": 36,
+    "isOverwritingIssuerExtraDataRestricted": false,
     "isResettingUserCodesAllowed": true,
     "isLinkedTerminalEnabled": true,
     "securityDelay": 3000,
@@ -17,7 +18,12 @@
       "strong",
       "fast",
       "none"
-    ]
+    ],
+    "isPermanentWallet": true,
+    "isSelectBlockchainAllowed": true,
+    "isIssuerDataProtectedAgainstReplay": true,
+    "isHDWalletAllowed": true,
+    "isFilesAllowed": true
   },
   "issuer": {
     "name": "TANGEM AG",
@@ -72,6 +78,6 @@
       "index": 2
     }
   ],
-  "isPasscodeSet" : true,
-  "isAccessCodeSet" : true
+  "isPasscodeSet": true,
+  "isAccessCodeSet": true
 }

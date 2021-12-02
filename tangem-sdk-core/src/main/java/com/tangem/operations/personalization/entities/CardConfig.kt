@@ -114,13 +114,14 @@ data class CardConfig(
     ) {
 
         internal fun createPersonalizationCardData(): CardData {
-            return CardData(batch,
-                    date ?: Date(),
-                    blockchain,
-                    createProductMask(),
-                    tokenSymbol,
-                    tokenContractAddress,
-                    tokenDecimal
+            return CardData(
+                batch,
+                date ?: Date(),
+                blockchain,
+                createProductMask(),
+                tokenSymbol,
+                tokenContractAddress,
+                tokenDecimal
             )
         }
 

@@ -21,8 +21,8 @@ import com.tangem.operations.sign.SignCommand
 import com.tangem.operations.sign.SignHashCommand
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignResponse
-import com.tangem.operations.wallet.CreateWalletCommand
 import com.tangem.operations.wallet.CreateWalletResponse
+import com.tangem.operations.wallet.CreateWalletTask
 import com.tangem.operations.wallet.PurgeWalletCommand
 
 /**
@@ -66,7 +66,7 @@ class CreateWalletHandler : JSONRPCHandler<CreateWalletResponse> {
     override val method: String = "CREATE_WALLET"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<CreateWalletResponse> {
-        return make<CreateWalletCommand>(params)
+        return make<CreateWalletTask>(params)
     }
 }
 
