@@ -9,10 +9,10 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.hdWallet.HDWalletError
 import com.tangem.common.hdWallet.bip.BIP44
+import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -168,5 +168,21 @@ class HDWalletTests {
         val derivationPath = DerivationPath("m/44'/0'/0'/1")
         val extendedPath = derivationPath.extendedPath(DerivationNode.NonHardened(0))
         assertEquals(extendedPath.rawPath, "m/44'/0'/0'/1/0")
+    }
+
+    @Test
+    fun jsonDerivationNode() {
+        val converter = MoshiJsonConverter.INSTANCE
+        val derivationPath = DerivationPath("m/44'/0'/0'/1")
+        var json = converter.toJson(derivationPath)
+        val resultDerivationPath = converter.fromJson<DerivationPath>(json)
+        assertNotNull(resultDerivationPath)
+        assertEquals(derivationPath, resultDerivationPath)
+
+        val node = derivationPath.nodes[0]
+        json = converter.toJson(node)
+        val resultNode = converter.fromJson<DerivationNode>(json)
+        assertNotNull(resultNode)
+        assertEquals(node, resultNode)
     }
 }

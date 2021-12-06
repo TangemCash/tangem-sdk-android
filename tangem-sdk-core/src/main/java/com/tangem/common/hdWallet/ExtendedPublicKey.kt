@@ -59,10 +59,12 @@ class ExtendedPublicKey(
 
         return compressedPublicKey.contentEquals(other.compressedPublicKey)
                 && chainCode.contentEquals(other.chainCode)
+                && derivationPath == other.derivationPath
     }
 
     override fun hashCode(): Int = calculateHashCode(
-            compressedPublicKey.contentHashCode(),
-            chainCode.contentHashCode()
+        compressedPublicKey.contentHashCode(),
+        chainCode.contentHashCode(),
+        derivationPath.hashCode()
     )
 }
