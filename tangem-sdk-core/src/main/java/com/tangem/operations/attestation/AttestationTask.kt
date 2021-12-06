@@ -8,13 +8,11 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
-import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.services.Result
 import com.tangem.common.services.TrustedCardsRepo
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
-import com.tangem.crypto.sign
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
@@ -216,13 +214,6 @@ class AttestationTask(
                             currentAttestationStatus = currentAttestationStatus.copy(
                                     cardKeyAttestation = Attestation.Status.Failed
                             )
-                        }
-                        if (session.environment.card?.firmwareVersion?.type == FirmwareVersion.FirmwareType.Sdk)  {
-                            //TODO: remove or not?
-                            val issuerPrivateKey = "11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92".hexToBytes()
-                            val signature = session.environment.card!!.cardPublicKey.sign(issuerPrivateKey)
-                            session.environment.card =
-                                session.environment.card?.copy(issuerSignature = signature)
                         }
                         processAttestationReport(session, callback)
                     }
