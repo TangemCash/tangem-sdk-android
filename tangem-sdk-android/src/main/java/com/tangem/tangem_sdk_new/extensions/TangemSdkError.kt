@@ -92,6 +92,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.ResetPinWrongCard -> null
         is TangemSdkError.TooMuchBackupCards -> null
         is TangemSdkError.WrongInteractionMode -> R.string.error_wrong_interaction_mode
+        is TangemSdkError.IssuerSignatureLoadingFailed -> null
     }
 
     return if (resId != null) {

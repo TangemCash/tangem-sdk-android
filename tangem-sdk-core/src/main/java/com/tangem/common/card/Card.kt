@@ -87,11 +87,6 @@ data class Card internal constructor(
     val attestation: Attestation = Attestation.empty,
 
     /**
-     * Issuer's signature for backup process
-     */
-    val issuerSignature: ByteArray? = null,
-
-    /**
      *  Any non-zero value indicates that the card experiences some hardware problems.
      *  User should withdraw the value to other blockchain wallet as soon as possible.
      *  Non-zero Health tag will also appear in responses of all other commands.
