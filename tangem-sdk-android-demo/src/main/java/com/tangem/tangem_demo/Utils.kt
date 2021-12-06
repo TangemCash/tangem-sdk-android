@@ -87,7 +87,7 @@ class Personalization {
      {
         "releaseVersion": true,
         "issuerName": "TANGEM AG",
-        "series": "CB",
+        "series": "AC",
         "startNumber": 7900000000000,
         "count": 2500,
         "numberFormat": "",
@@ -139,7 +139,7 @@ class Personalization {
     {
        "releaseVersion": true,
        "issuerName": "TANGEM AG",
-       "series": "CB",
+       "series": "AC",
        "startNumber": 7900000000001,
        "count": 2500,
        "numberFormat": "",
@@ -191,7 +191,7 @@ class Personalization {
     {
        "releaseVersion": true,
        "issuerName": "TANGEM AG",
-       "series": "CB",
+       "series": "AC",
        "startNumber": 7900000000003,
        "count": 2500,
        "numberFormat": "",
