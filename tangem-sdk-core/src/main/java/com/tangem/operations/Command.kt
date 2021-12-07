@@ -221,10 +221,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
 
         session.requestUserCodeIfNeeded(type, isFirstAttempt) { result ->
             when (result) {
-                is CompletionResult.Success -> {
-                    session.resume()
-                    transceiveInternal(session, callback)
-                }
+                is CompletionResult.Success -> session.resume { transceiveInternal(session, callback) }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }

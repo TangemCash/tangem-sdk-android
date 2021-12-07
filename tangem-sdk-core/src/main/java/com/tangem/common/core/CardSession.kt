@@ -8,6 +8,7 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.core.*
+import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
@@ -144,6 +145,8 @@ class CardSession(
                             viewDelegate.onTagLost()
                         } else {
                             viewDelegate.onTagConnected()
+                            onTagConnectedAfterResume?.invoke()
+                            onTagConnectedAfterResume = null
                         }
                     }
         }
@@ -297,7 +300,10 @@ class CardSession(
         reader.pauseSession()
     }
 
-    fun resume() {
+    private var onTagConnectedAfterResume: VoidCallback? = null
+
+    fun resume(onTagConnected: VoidCallback? = null) {
+        onTagConnectedAfterResume = onTagConnected
         reader.resumeSession()
     }
 
