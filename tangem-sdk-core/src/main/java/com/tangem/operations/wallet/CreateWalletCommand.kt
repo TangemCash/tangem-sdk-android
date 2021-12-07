@@ -42,7 +42,7 @@ class CreateWalletResponse(
  *
  *  @property curve: Elliptic curve of the wallet
  */
-class CreateWalletCommand(
+internal class CreateWalletCommand(
     private val curve: EllipticCurve
 ) : Command<CreateWalletResponse>() {
 
