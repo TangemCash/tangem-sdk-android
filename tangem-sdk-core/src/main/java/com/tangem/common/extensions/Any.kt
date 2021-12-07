@@ -12,6 +12,8 @@ inline fun <reified T> Any.cast(): T = this::javaClass as T
 inline fun <reified T> Any?.castOrNull(): T? = if (this == null) null else this::javaClass as T
 
 fun calculateHashCode(vararg hashCodes: Int, factor: Int = 31): Int {
+    if (hashCodes.isEmpty()) return 0
+
     return if (hashCodes.size == 1) {
         factor * hashCodes[0]
     } else {
