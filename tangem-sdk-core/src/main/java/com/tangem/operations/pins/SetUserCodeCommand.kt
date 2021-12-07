@@ -54,10 +54,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
 
             prepare(session) { result ->
                 when (result) {
-                    is CompletionResult.Success -> {
-                        session.resume()
-                        runCommand(session, callback)
-                    }
+                    is CompletionResult.Success -> session.resume { runCommand(session, callback) }
                     is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 }
             }
