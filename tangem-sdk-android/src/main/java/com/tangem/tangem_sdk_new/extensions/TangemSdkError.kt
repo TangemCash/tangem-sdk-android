@@ -69,15 +69,15 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.UnsupportedWalletConfig -> R.string.error_wallet_index_not_correct
         is TangemSdkError.WalletCannotBeCreated -> R.string.error_wallet_cannot_be_created
         is TangemSdkError.AccessCodeOrPasscodeRequired -> null
-        is TangemSdkError.BackupCardAlreadyAdded -> null
+        is TangemSdkError.BackupCardAlreadyAdded -> R.string.error_backup_card_already_added
         is TangemSdkError.BackupCardRequired -> null
         is TangemSdkError.BackupFailedCardNotLinked -> null
         is TangemSdkError.BackupFailedEmptyWallets -> null
-        is TangemSdkError.BackupFailedHDWalletSettings -> null
+        is TangemSdkError.BackupFailedHDWalletSettings -> R.string.error_cannot_be_used_as_backup_card
         is TangemSdkError.BackupFailedNotEmptyWallets -> null
-        is TangemSdkError.BackupFailedNotEnoughCurves -> null
-        is TangemSdkError.BackupFailedNotEnoughWallets -> null
-        is TangemSdkError.BackupFailedWrongIssuer -> null
+        is TangemSdkError.BackupFailedNotEnoughCurves -> R.string.error_cannot_be_used_as_backup_card
+        is TangemSdkError.BackupFailedNotEnoughWallets -> R.string.error_cannot_be_used_as_backup_card
+        is TangemSdkError.BackupFailedWrongIssuer -> R.string.error_cannot_be_used_as_backup_card
         is TangemSdkError.BackupNotAllowed -> null
         is TangemSdkError.BackupServiceInvalidState -> null
         is TangemSdkError.CertificateSignatureRequired -> null
