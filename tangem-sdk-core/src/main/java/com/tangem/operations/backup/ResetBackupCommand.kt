@@ -40,7 +40,7 @@ class ResetBackupCommand : Command<ResetBackupResponse>() {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
             return TangemSdkError.BackupFailedFirmware()
         }
-        if (card.backupStatus !is Card.BackupStatus.Active) {
+        if (card.backupStatus?.isActive != true) {
             return TangemSdkError.NoActiveBackup()
         }
         if (card.wallets.any { it.hasBackup }) {
