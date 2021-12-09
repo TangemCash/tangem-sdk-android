@@ -43,7 +43,7 @@ class LinkBackupCardsCommand(
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
-            return TangemSdkError.NotSupportedFirmwareVersion()
+            return TangemSdkError.BackupFailedFirmware()
         }
         if (!card.settings.isBackupAllowed) {
             return TangemSdkError.BackupNotAllowed()

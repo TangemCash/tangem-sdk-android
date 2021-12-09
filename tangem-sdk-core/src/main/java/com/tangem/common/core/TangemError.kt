@@ -205,6 +205,7 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class BackupFailedNotEnoughCurves : TangemSdkError(41227)
     class BackupFailedNotEnoughWallets : TangemSdkError(41228)
     class IssuerSignatureLoadingFailed: TangemSdkError(41229)
+    class BackupFailedFirmware: TangemSdkError(41229)
 
     class ResetPinNoCardsToReset : TangemSdkError(41300)
     class ResetPinWrongCard : TangemSdkError(41301)
