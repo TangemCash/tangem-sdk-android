@@ -70,16 +70,17 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.WalletCannotBeCreated -> R.string.error_wallet_cannot_be_created
         is TangemSdkError.AccessCodeOrPasscodeRequired -> null
         is TangemSdkError.BackupCardAlreadyAdded -> R.string.error_backup_card_already_added
-        is TangemSdkError.BackupCardRequired -> null
+        is TangemSdkError.BackupCardRequired -> R.string.error_backup_card_already_added
         is TangemSdkError.BackupFailedCardNotLinked -> null
-        is TangemSdkError.BackupFailedEmptyWallets -> null
-        is TangemSdkError.BackupFailedHDWalletSettings -> R.string.error_cannot_be_used_as_backup_card
-        is TangemSdkError.BackupFailedNotEmptyWallets -> null
-        is TangemSdkError.BackupFailedNotEnoughCurves -> R.string.error_cannot_be_used_as_backup_card
-        is TangemSdkError.BackupFailedNotEnoughWallets -> R.string.error_cannot_be_used_as_backup_card
-        is TangemSdkError.BackupFailedWrongIssuer -> R.string.error_cannot_be_used_as_backup_card
-        is TangemSdkError.BackupNotAllowed -> null
+        is TangemSdkError.BackupFailedEmptyWallets -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedHDWalletSettings -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedNotEmptyWallets -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedNotEnoughCurves -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedNotEnoughWallets -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedWrongIssuer -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupNotAllowed -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupServiceInvalidState -> null
+        is TangemSdkError.BackupFailedFirmware -> R.string.error_backup_wrong_card
         is TangemSdkError.CertificateSignatureRequired -> null
         is TangemSdkError.EmptyBackupCards -> null
         is TangemSdkError.MissingPrimaryAttestSignature -> null
