@@ -266,7 +266,7 @@ abstract class BaseFragment : Fragment() {
         sdk.writeUserProtectedData(userProtectedData, counter, card?.cardId, initialMessage) { handleResult(it) }
     }
 
-    protected fun setPin1() {
+    protected fun setAccessCode() {
         val cardId = card?.cardId.guard {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
@@ -274,12 +274,20 @@ abstract class BaseFragment : Fragment() {
         sdk.setAccessCode(null, cardId, initialMessage) { handleResult(it) }
     }
 
-    protected fun setPin2() {
+    protected fun setPasscode() {
         val cardId = card?.cardId.guard {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
         sdk.setPasscode(null, cardId, initialMessage) { handleResult(it) }
+    }
+
+    protected fun resetUserCodes() {
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
+        sdk.resetUserCodes(cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun readFiles(readPrivateFiles: Boolean) {

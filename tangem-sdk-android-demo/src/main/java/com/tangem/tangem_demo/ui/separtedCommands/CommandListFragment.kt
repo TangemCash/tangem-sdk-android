@@ -115,8 +115,9 @@ class CommandListFragment : BaseFragment() {
         btnWriteUserData.setOnClickListener { writeUserData() }
         btnWriteUserProtectedData.setOnClickListener { writeUserProtectedData() }
 
-        btnSetPin1.setOnClickListener { setPin1() }
-        btnSetPin2.setOnClickListener { setPin2() }
+        btnSetAccessCode.setOnClickListener { setAccessCode() }
+        btnSetPasscode.setOnClickListener { setPasscode() }
+        btnResetUserCodes.setOnClickListener { resetUserCodes() }
 
         btnReadAllFiles.setOnClickListener { readFiles(true) }
         btnReadPublicFiles.setOnClickListener { readFiles(false) }
