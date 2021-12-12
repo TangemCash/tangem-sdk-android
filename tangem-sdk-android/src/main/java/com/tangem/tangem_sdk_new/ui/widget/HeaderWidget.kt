@@ -54,6 +54,7 @@ class HeaderWidget(
             is SessionViewDelegateState.Ready -> {
                 cardId = params.cardId
                 imvClose.hide()
+                btnHowTo.isEnabled = true
                 btnHowTo.show()
                 tvCard.show()
                 if (cardId == null) {
@@ -72,6 +73,8 @@ class HeaderWidget(
                 btnHowTo.hide()
                 imvClose.show(isFullScreenMode)
             }
+            is SessionViewDelegateState.TagConnected -> btnHowTo.isEnabled = false
+            is SessionViewDelegateState.TagLost -> btnHowTo.isEnabled = true
             else -> {
                 imvClose.hide()
                 btnHowTo.show()
