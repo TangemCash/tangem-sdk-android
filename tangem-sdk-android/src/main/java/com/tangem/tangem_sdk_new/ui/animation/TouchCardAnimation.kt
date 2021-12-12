@@ -64,7 +64,8 @@ class TouchCardAnimation(
 
     private fun translateToNfcLocation(tappedView: View, inView: View, nfcLocation: NfcLocation) {
         val yCardCenter = tappedView.height * getYCenterOfCardRelativeToSelf()
-        tappedView.translationX = calculateRelativePosition(nfcLocation.x, inView.width)
+        val xPositionFactor = if (nfcLocation.isOnTheBack()) -1 else 1
+        tappedView.translationX = calculateRelativePosition(nfcLocation.x, inView.width) * xPositionFactor
         tappedView.translationY = calculateRelativePosition(nfcLocation.y, inView.height) + yCardCenter
     }
 
