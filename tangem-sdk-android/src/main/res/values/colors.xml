@@ -3,26 +3,38 @@
 
     <color name="sdk_primary">#0029FF</color>
     <color name="sdk_on_primary">#FFFFFF</color>
-    <color name="sdk_secondary">#0029FF</color>
-    <color name="sdk_on_secondary">#FFFFFF</color>
-    <color name="sdk_window_background">#FFFFFF</color>
+    <color name="sdk_secondary">@color/sdk_primary</color>
+    <color name="sdk_on_secondary">@color/sdk_on_primary</color>
+    <color name="sdk_background">#FFFFFF</color>
+    <color name="sdk_on_background">#000000</color>
+    <color name="sdk_surface">#F7F2F2</color>
+    <color name="sdk_on_surface">#000000</color>
+    <color name="sdk_error">#C4291C</color>
+    <color name="sdk_on_error">#1C1C1E</color>
+
+    <color name="sdk_text">#1C1C1E</color>
+
     <color name="sdk_header_background">#F2F2F7</color>
+    <color name="sdk_header_card_text">@color/sdk_text</color>
+    <color name="sdk_header_card_id_text">@color/sdk_text</color>
+
+    <color name="sdk_message_header">@color/sdk_text</color>
+    <color name="sdk_message_body">#2C2C2E</color>
+
     <color name="sdk_how_to_background">#F2F2F7</color>
+    <color name="sdk_how_to_text">@color/sdk_text</color>
 
-    <color name="sdk_text_primary">#2C2C2E</color>
-    <color name="sdk_text_secondary">#1C1C1E</color>
-    <color name="sdk_text_error">#C4291C</color>
-
-    <color name="sdk_progress_bar_primary">#0029FF</color>
-    <color name="sdk_progress_bar_secondary">#3BD4D5DC</color>
-    <color name="sdk_progress_bar_success">#0029FF</color>
-    <color name="sdk_progress_bar_error">#C4291C</color>
+    <color name="sdk_progress_bar_primary">@color/sdk_primary</color>
+    <color name="sdk_progress_bar_secondary">#66E5E8FF</color>
+    <color name="sdk_progress_bar_success">@color/sdk_primary</color>
+    <color name="sdk_progress_bar_error">@color/sdk_error</color>
     <color name="sdk_progress_bar_warning">#EFC313</color>
+
     <color name="sdk_ripple_background">#2c5ac4</color>
 
     <color name="sdk_drawable_card">#ffffff</color>
     <color name="sdk_drawable_icon">#000000</color>
-    <color name="sdk_drawable_icon_blue">#0029FF</color>
+    <color name="sdk_drawable_icon_blue">@color/sdk_primary</color>
 
     <color name="sdk_drawable_fill">#ffffff</color>
     <color name="sdk_drawable_stroke">#1B1C20</color>

@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="sdk_primary">#42A5F5</color>
+    <color name="sdk_primary">#00aaff</color>
     <color name="sdk_on_primary">#121212</color>
-    <color name="sdk_window_background">#1C1C1E</color>
-    <color name="sdk_header_background">#2B2B2D</color>
-    <color name="sdk_how_to_background">#1C1C1E</color>
+    <color name="sdk_secondary">@color/sdk_primary</color>
+    <color name="sdk_on_secondary">@color/sdk_on_primary</color>
+    <color name="sdk_background">#1C1C1E</color>
+    <color name="sdk_on_background">#ffffff</color>
+    <color name="sdk_surface">#1C1C1E</color>
+    <color name="sdk_on_surface">#ffffff</color>
+    <color name="sdk_error">#C4291C</color>
+    <color name="sdk_on_error">#ffffff</color>
 
-    <color name="sdk_text_primary">#ffffff</color>
-    <color name="sdk_text_secondary">#ffffff</color>
+    <color name="sdk_text">#ffffff</color>
+
+    <color name="sdk_header_background">#2B2B2D</color>
+    <color name="sdk_header_card_text">@color/sdk_text</color>
+    <color name="sdk_header_card_id_text">@color/sdk_text</color>
+
+    <color name="sdk_message_header">@color/sdk_text</color>
+    <color name="sdk_message_body">#E4E4E4</color>
+
+    <color name="sdk_how_to_background">#1C1C1E</color>
+    <color name="sdk_how_to_text">@color/sdk_text</color>
 
     <color name="sdk_progress_bar_primary">#ffffff</color>
     <color name="sdk_progress_bar_success">#ffffff</color>
-    <color name="sdk_progress_bar_secondary">#7C7C7C</color>
+    <color name="sdk_progress_bar_secondary">#B37C7C7C</color>
 
     <color name="sdk_drawable_card">#C7C7CC</color>
     <color name="sdk_drawable_icon">#ffffff</color>
