@@ -73,8 +73,9 @@ class HeaderWidget(
                 btnHowTo.hide()
                 imvClose.show(isFullScreenMode)
             }
-            is SessionViewDelegateState.TagConnected -> btnHowTo.isEnabled = false
             is SessionViewDelegateState.TagLost -> btnHowTo.isEnabled = true
+            is SessionViewDelegateState.TagConnected, is SessionViewDelegateState.Error,
+            is SessionViewDelegateState.WrongCard -> btnHowTo.isEnabled = false
             else -> {
                 imvClose.hide()
                 btnHowTo.show()
