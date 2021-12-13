@@ -7,15 +7,34 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
+import com.tangem.Log
+import com.tangem.SessionViewDelegate
+import com.tangem.TangemSdk
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.core.Config
+import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_demo.ui.separtedCommands.CommandListFragment
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
+import com.tangem.tangem_demo.ui.viewDelegate.ViewDelegateFragment
+import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
+import com.tangem.tangem_sdk_new.extensions.createLogger
+import com.tangem.tangem_sdk_new.extensions.initNfcManager
+import com.tangem.tangem_sdk_new.storage.create
 import kotlinx.android.synthetic.main.activity_demo.*
 
 class DemoActivity : AppCompatActivity() {
 
+
+    val logger = TangemSdk.createLogger()
+    lateinit var sdk: TangemSdk
+        private set
+    lateinit var viewDelegate: SessionViewDelegate
+        private set
+
     private val pageChangeListeners = mutableListOf<(Int) -> Unit>()
     private val fragmentPages = listOf(
         CommandListFragment::class.java,
+        ViewDelegateFragment::class.java,
         SettingsFragment::class.java
     )
 
@@ -23,7 +42,9 @@ class DemoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
 
-        viewPager.adapter = ViewPagerAdapter(fragmentPages,this)
+        Log.addLogger(logger)
+        sdk = initSdk()
+        viewPager.adapter = ViewPagerAdapter(fragmentPages, this)
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 pageChangeListeners.forEach { it.invoke(position) }
@@ -41,6 +62,27 @@ class DemoActivity : AppCompatActivity() {
 
     fun enableSwipe(enable: Boolean) {
         viewPager.isUserInputEnabled = enable
+    }
+
+    private fun initSdk(): TangemSdk {
+        val config = Config().apply {
+            linkedTerminal = false
+            allowUntrustedCards = true
+            filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
+        }
+        val nfcManager = TangemSdk.initNfcManager(this)
+
+        val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader)
+        viewDelegate.sdkConfig = config
+        viewDelegate.activity = this
+        this.viewDelegate = viewDelegate
+
+        return TangemSdk(
+            nfcManager.reader,
+            viewDelegate,
+            SecureStorage.create(this),
+            config,
+        )
     }
 
     class ViewPagerAdapter(

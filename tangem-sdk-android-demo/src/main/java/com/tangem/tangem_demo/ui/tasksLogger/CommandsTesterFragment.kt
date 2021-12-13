@@ -16,14 +16,11 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
-import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.CommandSpinnerAdapter
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.RvConsoleAdapter
-import com.tangem.tangem_sdk_new.extensions.initNfcManager
 import com.tangem.tangem_sdk_new.nfc.NfcManager
-import com.tangem.tangem_sdk_new.storage.create
 import kotlinx.android.synthetic.main.fg_commands_tester.*
 
 /**
@@ -35,19 +32,6 @@ class SdkTaskSpinnerFragment : BaseFragment() {
 
     private lateinit var nfcManager: NfcManager
     private var commandState = ActiveCommandState()
-
-    override fun initSdk(): TangemSdk {
-        val viewDelegate = EmptyViewDelegate()
-        val activity = requireActivity()
-        nfcManager = TangemSdk.initNfcManager(activity)
-
-        return TangemSdk(
-                nfcManager.reader,
-                viewDelegate,
-                SecureStorage.create(activity),
-                createSdkConfig(),
-        )
-    }
 
     override fun getLayoutId(): Int = R.layout.fg_commands_tester
 
