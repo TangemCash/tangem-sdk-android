@@ -184,7 +184,6 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
                 progressBar.isCountDownActive = false
                 hideViews(tvProgressValue)
                 showViews(progressBar, doneView)
-                setProgress(progressBar.progressMax)
             }
         }
         if (isCountDownFinished(seconds)) return
@@ -199,12 +198,9 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
         if (seconds == 0f) {
             progressBar.isCountDownActive = false
             hideViews(tvProgressValue)
-            showViews(progressBar, doneView)
-            setProgress(progressBar.progressMax)
         } else if (!progressBar.isCountDownActive) {
             progressBar.isCountDownActive = true
             progressBar.progressMax = seconds
-            setProgress(0f, false)
         }
         setProgress(progressBar.progressMax - seconds)
         tvProgressValue.text = seconds.toInt().toString()
