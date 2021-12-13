@@ -356,7 +356,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun prepareHashesToSign(count: Int): Array<ByteArray> {
-        val listOfData = MutableList(count) { Utils.randomString(20) }
+        val listOfData = MutableList(count) { Utils.randomString(32) }
         val listOfHashes = listOfData.map { it.toByteArray() }
         return listOfHashes.toTypedArray()
     }

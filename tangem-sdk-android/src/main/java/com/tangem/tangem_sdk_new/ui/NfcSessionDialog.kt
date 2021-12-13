@@ -85,7 +85,7 @@ class NfcSessionDialog(
     }
 
     @UiThread
-    fun enableHowTo(enable: Boolean) {
+    fun showHowTo(enable: Boolean) {
         headerWidget.howToIsEnabled = enable
     }
 
@@ -126,13 +126,13 @@ class NfcSessionDialog(
     }
 
     private fun onSuccess(state: SessionViewDelegateState.Success) {
-        setStateAndShow(state, progressStateWidget, messageWidget)
+        setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
         performHapticFeedback()
         postUI(1000) { cancel() }
     }
 
     private fun onError(state: SessionViewDelegateState.Error) {
-        setStateAndShow(state, progressStateWidget, messageWidget)
+        setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
         performHapticFeedback()
     }
 
@@ -141,12 +141,12 @@ class NfcSessionDialog(
             activateTrickySecurityDelay(state.totalDurationSeconds.toLong())
             return
         }
-        setStateAndShow(state, progressStateWidget, messageWidget)
+        setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
         performHapticFeedback()
     }
 
     private fun onDelay(state: SessionViewDelegateState.Delay) {
-        setStateAndShow(state, progressStateWidget, messageWidget)
+        setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
         performHapticFeedback()
     }
 
@@ -199,7 +199,7 @@ class NfcSessionDialog(
                 currentState is SessionViewDelegateState.PinChangeRequested) {
             return
         }
-        setStateAndShow(state, touchCardWidget, messageWidget)
+        setStateAndShow(state, headerWidget, touchCardWidget, messageWidget)
     }
 
     private fun onTagConnected(state: SessionViewDelegateState) {
@@ -207,19 +207,19 @@ class NfcSessionDialog(
             return
         }
 
-        setStateAndShow(state, progressStateWidget, messageWidget)
+        setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
     }
 
     private fun onWrongCard(state: SessionViewDelegateState.WrongCard) {
         Log.view { "Showing wrong card. Type: ${state.wrongValueType}" }
         if (currentState !is SessionViewDelegateState.WrongCard) {
             performHapticFeedback()
-            setStateAndShow(state, progressStateWidget, messageWidget)
+            setStateAndShow(state,headerWidget,  progressStateWidget, messageWidget)
             progressStateWidget.setState(state)
             messageWidget.setState(state)
             postUI(2000) {
                 currentState = getEmptyOnReadyEvent()
-                setStateAndShow(currentState!!, touchCardWidget, messageWidget)
+                setStateAndShow(currentState!!, headerWidget, touchCardWidget, messageWidget)
             }
         }
     }
