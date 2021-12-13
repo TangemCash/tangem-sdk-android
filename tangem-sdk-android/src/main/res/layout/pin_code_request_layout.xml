@@ -44,13 +44,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="46dp"
-        android:layout_marginTop="19dp"
+        android:layout_marginTop="@dimen/button_continue_margin_top"
         android:layout_marginEnd="46dp"
         android:insetTop="0dp"
         android:insetBottom="0dp"
         android:text="@string/common_continue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/flLayout" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
