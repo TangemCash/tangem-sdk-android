@@ -118,7 +118,7 @@ class DefaultSessionViewDelegate(
     private fun createAndShowState(state: SessionViewDelegateState, enableHowTo: Boolean, message: Message? = null) {
         postUI {
             if (readingDialog == null) createReadingDialog(activity)
-            readingDialog?.enableHowTo(enableHowTo)
+            readingDialog?.showHowTo(enableHowTo)
             readingDialog?.setInitialMessage(message)
             readingDialog?.show(state)
         }
