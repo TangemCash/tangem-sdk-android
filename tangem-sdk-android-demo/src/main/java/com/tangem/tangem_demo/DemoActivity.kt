@@ -39,11 +39,11 @@ class DemoActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        sdk = initSdk()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
 
         Log.addLogger(logger)
-        sdk = initSdk()
         viewPager.adapter = ViewPagerAdapter(fragmentPages, this)
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
