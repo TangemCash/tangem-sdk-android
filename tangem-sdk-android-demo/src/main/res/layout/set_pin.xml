@@ -19,7 +19,7 @@
         android:background="?android:windowBackground"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="Use codes"
+        android:text="User codes"
         android:translationX="10dp"
         android:translationY="-10dp" />
 
