@@ -7,6 +7,7 @@
     <dimen name="tap_in_buttons_container_padding_top_bottom">32dp</dimen>
     <dimen name="tap_in_layout_hand_margin_top">64dp</dimen>
     <dimen name="layout_hand_padding_top">45dp</dimen>
+    <dimen name="button_continue_margin_top">104dp</dimen>
 
     <dimen name="progress_bar_state_width">185dp</dimen>
     <dimen name="progress_bar_state_inset">8dp</dimen>

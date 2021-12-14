@@ -6,9 +6,7 @@ import android.view.View
 import android.widget.ArrayAdapter
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
-import com.tangem.Log
 import com.tangem.Message
-import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
@@ -23,15 +21,12 @@ import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.sign.SignHashResponse
-import com.tangem.tangem_demo.DemoActivity
 import com.tangem.tangem_demo.Personalization
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.backup.BackupActivity
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.tangem_demo.ui.extension.getFromClipboard
-import com.tangem.tangem_sdk_new.extensions.createLogger
-import com.tangem.tangem_sdk_new.extensions.init
 import kotlinx.android.synthetic.main.attestation.*
 import kotlinx.android.synthetic.main.backup.*
 import kotlinx.android.synthetic.main.file_data.*
@@ -52,19 +47,11 @@ import kotlinx.android.synthetic.main.wallet.*
  */
 class CommandListFragment : BaseFragment() {
 
-    private val logger = TangemSdk.createLogger()
-
-    override fun initSdk(): TangemSdk = TangemSdk.init(this.requireActivity(), createSdkConfig())
-
     override fun getLayoutId(): Int = R.layout.fg_command_list
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (requireActivity() as? DemoActivity)?.listenPageChanges {
-            if (it == 0) Log.addLogger(logger)
-            else Log.removeLogger(logger)
-        }
         btnScanCard.setOnClickListener { scanCard() }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
 
@@ -115,8 +102,9 @@ class CommandListFragment : BaseFragment() {
         btnWriteUserData.setOnClickListener { writeUserData() }
         btnWriteUserProtectedData.setOnClickListener { writeUserProtectedData() }
 
-        btnSetPin1.setOnClickListener { setPin1() }
-        btnSetPin2.setOnClickListener { setPin2() }
+        btnSetAccessCode.setOnClickListener { setAccessCode() }
+        btnSetPasscode.setOnClickListener { setPasscode() }
+        btnResetUserCodes.setOnClickListener { resetUserCodes() }
 
         btnReadAllFiles.setOnClickListener { readFiles(true) }
         btnReadPublicFiles.setOnClickListener { readFiles(false) }
@@ -136,7 +124,7 @@ class CommandListFragment : BaseFragment() {
         btnCheckSetMessage.setOnClickListener {
             sdk.startSessionWithRunnable(MultiMessageTask(), card?.cardId, initialMessage) { handleCommandResult(it) }
         }
-        
+
         sliderWallet.stepSize = 1f
     }
 

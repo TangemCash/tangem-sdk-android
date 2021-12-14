@@ -48,19 +48,22 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
                     UserCodeType.Passcode -> getString(R.string.pin2)
                 }
                 tilPinCode.hint = code
-                val error = when (params.type) {
-                    UserCodeType.AccessCode -> TangemSdkError.WrongAccessCode().localizedDescription(mainView.context)
-                    UserCodeType.Passcode -> TangemSdkError.WrongPasscode().localizedDescription(mainView.context)
+                tilPinCode.error = if (params.isFirstAttempt) {
+                    null
+                } else {
+                    when (params.type) {
+                        UserCodeType.AccessCode -> TangemSdkError.WrongAccessCode()
+                        UserCodeType.Passcode -> TangemSdkError.WrongPasscode()
+                    }.localizedDescription(mainView.context)
                 }
-                if (!params.isFirstAttempt) tilPinCode.error = error
+
                 etPinCode.setText("")
                 postUI(1000) { etPinCode.showSoftKeyboard() }
+
                 btnContinue.setOnClickListener {
                     val pin = etPinCode.text.toString()
                     if (pin.isEmpty()) {
-                        tilPinCode.error = mainView.context.getString(
-                                R.string.pin_enter, code
-                        )
+                        tilPinCode.error = mainView.context.getString(R.string.pin_enter, code)
                     } else {
                         tilPinCode.error = null
                         tilPinCode.isErrorEnabled = false

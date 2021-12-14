@@ -214,10 +214,8 @@ class NfcSessionDialog(
         Log.view { "Showing wrong card. Type: ${state.wrongValueType}" }
         if (currentState !is SessionViewDelegateState.WrongCard) {
             performHapticFeedback()
-            setStateAndShow(state,headerWidget,  progressStateWidget, messageWidget)
-            progressStateWidget.setState(state)
-            messageWidget.setState(state)
-            postUI(2000) {
+            setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
+            postUI(4000) {
                 currentState = getEmptyOnReadyEvent()
                 setStateAndShow(currentState!!, headerWidget, touchCardWidget, messageWidget)
             }

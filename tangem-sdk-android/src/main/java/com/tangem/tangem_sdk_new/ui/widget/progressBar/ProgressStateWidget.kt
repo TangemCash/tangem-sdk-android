@@ -172,7 +172,8 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
             !isCountDownInActiveState() && seconds == 0 -> {
                 // handle the single tick of starting count down SD
                 setProgress(progressBar.progressMax)
-                showViews(progressBar, doneView)
+                showViews(progressBar)
+                showAndAnimateDrawable(doneView)
                 return
             }
             !isCountDownInActiveState() -> {
@@ -183,8 +184,8 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
             isCountDownFinished(seconds) -> {
                 progressBar.isCountDownActive = false
                 hideViews(tvProgressValue)
-                showViews(progressBar, doneView)
-                setProgress(progressBar.progressMax)
+                showViews(progressBar)
+                showAndAnimateDrawable(doneView)
             }
         }
         if (isCountDownFinished(seconds)) return
@@ -199,12 +200,9 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
         if (seconds == 0f) {
             progressBar.isCountDownActive = false
             hideViews(tvProgressValue)
-            showViews(progressBar, doneView)
-            setProgress(progressBar.progressMax)
         } else if (!progressBar.isCountDownActive) {
             progressBar.isCountDownActive = true
             progressBar.progressMax = seconds
-            setProgress(0f, false)
         }
         setProgress(progressBar.progressMax - seconds)
         tvProgressValue.text = seconds.toInt().toString()

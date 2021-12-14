@@ -11,11 +11,10 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Message
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.card.FirmwareVersion
-import com.tangem.common.core.Config
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
@@ -37,11 +36,12 @@ import com.tangem.tangem_demo.ui.settings.SettingsFragment
 
 abstract class BaseFragment : Fragment() {
 
-    protected var bshDlg: BottomSheetDialog? = null
-    protected lateinit var shPrefs: SharedPreferences
-    protected lateinit var sdk: TangemSdk
     protected val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
+    protected val sdk: TangemSdk by lazy { (requireActivity() as DemoActivity).sdk }
+    protected val logger: TangemSdkLogger by lazy { (requireActivity() as DemoActivity).logger }
 
+    protected lateinit var shPrefs: SharedPreferences
+    protected var bshDlg: BottomSheetDialog? = null
     protected var card: Card? = null
     protected var derivationPath: String? = null
     protected var initialMessage: Message? = null
@@ -62,7 +62,6 @@ abstract class BaseFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shPrefs = (requireContext().applicationContext as DemoApplication).shPrefs
-        sdk = initSdk()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -84,12 +83,6 @@ abstract class BaseFragment : Fragment() {
         if (header == null && body == null) return
 
         initialMessage = Message(header, body)
-    }
-
-    protected fun createSdkConfig(): Config = Config().apply {
-        linkedTerminal = false
-        allowUntrustedCards = true
-        filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
     }
 
     protected fun launchJSONRPC(json: String) {
@@ -240,7 +233,7 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-                cardId, issuerData, counter, Personalization.issuer().dataKeyPair.privateKey
+            cardId, issuerData, counter, Personalization.issuer().dataKeyPair.privateKey
         )
 
         sdk.writeIssuerExtraData(
@@ -266,7 +259,7 @@ abstract class BaseFragment : Fragment() {
         sdk.writeUserProtectedData(userProtectedData, counter, card?.cardId, initialMessage) { handleResult(it) }
     }
 
-    protected fun setPin1() {
+    protected fun setAccessCode() {
         val cardId = card?.cardId.guard {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
@@ -274,12 +267,20 @@ abstract class BaseFragment : Fragment() {
         sdk.setAccessCode(null, cardId, initialMessage) { handleResult(it) }
     }
 
-    protected fun setPin2() {
+    protected fun setPasscode() {
         val cardId = card?.cardId.guard {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
         sdk.setPasscode(null, cardId, initialMessage) { handleResult(it) }
+    }
+
+    protected fun resetUserCodes() {
+        val cardId = card?.cardId.guard {
+            showToast("CardId & walletPublicKey required. Scan your card before proceeding")
+            return
+        }
+        sdk.resetUserCodes(cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun readFiles(readPrivateFiles: Boolean) {
@@ -380,7 +381,6 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected abstract fun getLayoutId(): Int
-    protected abstract fun initSdk(): TangemSdk
     abstract fun handleCommandResult(result: CompletionResult<*>)
     abstract fun onCardChanged(card: Card?)
 }

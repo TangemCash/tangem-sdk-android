@@ -31,7 +31,6 @@
             android:gravity="bottom"
             app:boxBackgroundColor="@android:color/transparent"
             app:errorIconDrawable="@null"
-            app:errorTextColor="@color/sdk_text_error"
             app:passwordToggleEnabled="true">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -51,7 +50,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             app:boxBackgroundColor="@android:color/transparent"
-            app:errorTextColor="@color/sdk_text_error"
             tools:hint="@string/pin_change_new_code_format">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -71,7 +69,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             app:boxBackgroundColor="@android:color/transparent"
-            app:errorTextColor="@color/sdk_text_error"
             tools:hint="@string/pin_set_code_confirm_format">
 
             <com.google.android.material.textfield.TextInputEditText
