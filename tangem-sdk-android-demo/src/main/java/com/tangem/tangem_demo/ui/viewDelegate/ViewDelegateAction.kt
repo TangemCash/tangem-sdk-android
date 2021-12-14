@@ -132,15 +132,14 @@ class SecurityDelay : BaseDelegateAction() {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(2000)
         withMainContext { delegate.onTagConnected() }
-        delay(1000)
 
         val totalDurationMs = slider.value.toInt()
         val securityDelayCounts = totalDurationMs / 1000
         var currentMs = totalDurationMs / 10
         repeat(securityDelayCounts) {
+            delay(1000)
             currentMs -= 100
             withMainContext { delegate.onSecurityDelay(currentMs, totalDurationMs) }
-            delay(1000)
         }
 
         withMainContext { delegate.onSessionStopped(null) }
@@ -295,7 +294,7 @@ class RequestPasscode : BaseDelegateAction() {
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, false) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
     }
