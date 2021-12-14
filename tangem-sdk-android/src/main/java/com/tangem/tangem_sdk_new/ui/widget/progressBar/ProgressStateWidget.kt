@@ -172,7 +172,8 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
             !isCountDownInActiveState() && seconds == 0 -> {
                 // handle the single tick of starting count down SD
                 setProgress(progressBar.progressMax)
-                showViews(progressBar, doneView)
+                showViews(progressBar)
+                showAndAnimateDrawable(doneView)
                 return
             }
             !isCountDownInActiveState() -> {
@@ -183,7 +184,8 @@ class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
             isCountDownFinished(seconds) -> {
                 progressBar.isCountDownActive = false
                 hideViews(tvProgressValue)
-                showViews(progressBar, doneView)
+                showViews(progressBar)
+                showAndAnimateDrawable(doneView)
             }
         }
         if (isCountDownFinished(seconds)) return
