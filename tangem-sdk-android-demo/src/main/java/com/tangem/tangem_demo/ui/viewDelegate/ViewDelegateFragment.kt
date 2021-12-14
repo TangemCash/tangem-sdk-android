@@ -52,12 +52,19 @@ class ViewDelegateFragment : BaseFragment() {
     private fun initActionsList() {
         val actionsList = mutableListOf<ViewDelegateAction>(
             TagConnectTagLostError(),
-            SecurityDelay(7),
-            SecurityDelayPinFails(689),
+            SecurityDelay(),
+            SecurityDelayPinFails(),
             WrongCard(),
+            OnError(),
+            RequestAccessCode(),
+            RequestPasscode(),
+            RequestUserCode(),
         )
 
-        actionsList.forEach { it.init(actions_container, delegate, scope) }
+        actionsList.forEach {
+            it.inflateViews(actions_container)
+            it.init(delegate, scope)
+        }
     }
 
     override fun handleCommandResult(result: CompletionResult<*>) {
