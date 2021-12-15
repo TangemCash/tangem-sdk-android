@@ -15,6 +15,7 @@ import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
@@ -57,8 +58,6 @@ abstract class BaseFragment : Fragment() {
             return card.wallets[selectedIndexOfWallet].publicKey
         }
 
-    private var needRescanCard = true
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shPrefs = (requireContext().applicationContext as DemoApplication).shPrefs
@@ -94,10 +93,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun scanCard() {
-        sdk.scanCard(initialMessage) {
-            needRescanCard = false
-            handleResult(it)
-        }
+        sdk.scanCard(initialMessage) { handleResult(it) }
     }
 
     protected fun personalize(config: CardConfig) {
@@ -179,10 +175,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        sdk.createWallet(curve, cardId, initialMessage) {
-            needRescanCard = it is CompletionResult.Success
-            handleResult(it)
-        }
+        sdk.createWallet(curve, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
     }
 
     protected fun purgeWallet() {
@@ -194,10 +187,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.purgeWallet(publicKey, cardId, initialMessage) {
-            needRescanCard = it is CompletionResult.Success
-            handleResult(it)
-        }
+        sdk.purgeWallet(publicKey, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
     }
 
     protected fun readIssuerData() {
@@ -310,26 +300,35 @@ abstract class BaseFragment : Fragment() {
         sdk.changeFileSettings(listOf(change), card?.cardId, initialMessage) { handleResult(it) }
     }
 
-    private fun handleResult(result: CompletionResult<*>) {
-        setCard(result)
-        postUi { handleCommandResult(result) }
+    private fun handleResult(result: CompletionResult<*>, rescan: Boolean = false) {
+        when (result) {
+            is CompletionResult.Success -> postUi() { setCard(result, rescan) { handleCommandResult(result) } }
+            is CompletionResult.Failure -> handleCommandResult(result)
+        }
     }
 
-    private fun setCard(completionResult: CompletionResult<*>) {
-        if (completionResult is CompletionResult.Success) {
-            when {
-                needRescanCard -> {
+    private fun setCard(
+        result: CompletionResult<*>,
+        rescan: Boolean = false,
+        delay: Long = 1500,
+        callback: VoidCallback
+    ) {
+        when {
+            rescan -> {
+                showToast("Need rescan the card after Create/Purge wallet")
+                post(delay) {
                     val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
                     sdk.startSessionWithRunnable(command) {
-                        needRescanCard = false
-                        setCard(it)
+                        postUi() { setCard(it, false, callback = callback) }
                     }
                 }
-                completionResult.data is Card -> {
-                    card = completionResult.data as Card
-                    onCardChanged(card)
-                }
             }
+            result is CompletionResult.Success && result.data is Card -> {
+                card = result.data as Card
+                onCardChanged(card)
+                post(delay) { callback() }
+            }
+            else -> post(delay) { callback() }
         }
     }
 
@@ -345,7 +344,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun showToast(message: String) {
-        activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
+        postUi() { activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() } }
     }
 
     protected fun prepareHashesToSign(count: Int): Array<ByteArray> {
