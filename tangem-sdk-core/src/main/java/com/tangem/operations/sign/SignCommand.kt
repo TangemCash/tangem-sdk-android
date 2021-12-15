@@ -64,7 +64,7 @@ internal class SignCommand(
             if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
                 return TangemSdkError.NotSupportedFirmwareVersion()
             }
-            if (wallet.curve != EllipticCurve.Secp256k1) {
+            if (wallet.curve == EllipticCurve.Secp256r1) {
                 return TangemSdkError.UnsupportedCurve()
             }
             if (!card.settings.isHDWalletAllowed) {
