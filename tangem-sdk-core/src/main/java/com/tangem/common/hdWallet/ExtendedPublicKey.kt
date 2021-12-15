@@ -25,6 +25,9 @@ class ExtendedPublicKey(
      */
     @Throws(HDWalletError::class)
     fun derivePublicKey(node: DerivationNode): ExtendedPublicKey {
+        if (compressedPublicKey.size != 33) { //secp256k1 only
+            throw HDWalletError.UnsupportedCurve
+        }
         val index = node.index
 
         //We can derive only non-hardened keys
@@ -43,7 +46,8 @@ class ExtendedPublicKey(
 
     /**
      * This function performs CKDpub((Kpar, cpar), i) → (Ki, ci) to compute a child extended public key from the
-     * parent extended public key. It is only defined for non-hardened child keys.
+     * parent extended public key.
+     * It is only defined for non-hardened child keys. `secp256k1` only
      */
     @Throws(HDWalletError::class)
     fun derivePublicKey(derivationPath: DerivationPath): ExtendedPublicKey {

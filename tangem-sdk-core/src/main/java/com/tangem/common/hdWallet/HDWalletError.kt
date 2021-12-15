@@ -8,6 +8,7 @@ sealed class HDWalletError : Exception() {
     object DerivationFailed : HDWalletError()
     object WrongPath : HDWalletError()
     object WrongIndex : HDWalletError()
+    object UnsupportedCurve : HDWalletError()
 
     override fun toString(): String = this::class.java.simpleName
 }
