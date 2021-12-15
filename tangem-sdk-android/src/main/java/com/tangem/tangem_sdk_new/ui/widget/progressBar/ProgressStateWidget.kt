@@ -4,11 +4,14 @@ import android.graphics.drawable.Animatable
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
+import androidx.annotation.ColorRes
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.hide
+import com.tangem.tangem_sdk_new.extensions.parseColor
 import com.tangem.tangem_sdk_new.extensions.show
+import com.tangem.tangem_sdk_new.postUI
 import com.tangem.tangem_sdk_new.ui.widget.BaseSessionDelegateStateWidget
 
 /**
@@ -17,205 +20,178 @@ import com.tangem.tangem_sdk_new.ui.widget.BaseSessionDelegateStateWidget
 
 class ProgressbarStateWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
+    private val progressIndicator: CircularProgressIndicator = mainView.findViewById(R.id.progressBar)
+    private val tvProgressValue: TextView = mainView.findViewById(R.id.tvProgressValue)
+    private val doneView: ImageView = mainView.findViewById(R.id.imvSuccess)
+    private val exclamationView: ImageView = mainView.findViewById(R.id.imvExclamation)
+
+    private var isSdCountDownActive: Boolean = false
+
     init {
-        NoneState(mainView)
+        hideViews(tvProgressValue, progressIndicator, doneView, exclamationView)
+        progressIndicator.applyProgressColor(R.color.sdk_progress_bar_primary)
     }
+
+    private var prevState: SessionViewDelegateState? = null
 
     override fun setState(params: SessionViewDelegateState) {
-        val viewState = when (params) {
-            is SessionViewDelegateState.SecurityDelay -> SecurityDelayState(mainView)
-            is SessionViewDelegateState.Delay -> DelayState(mainView)
-            is SessionViewDelegateState.Success -> SuccessState(mainView)
-            is SessionViewDelegateState.Error -> ErrorState(mainView)
-            is SessionViewDelegateState.WrongCard -> ErrorState(mainView)
-            is SessionViewDelegateState.PinRequested -> WarningState(mainView)
-            is SessionViewDelegateState.TagConnected -> IndeterminateProgressState(mainView)
-            else -> NoneState(mainView)
+        when (params) {
+            is SessionViewDelegateState.TagConnected -> handleTagConnected()
+            is SessionViewDelegateState.Success -> handleSuccessState()
+            is SessionViewDelegateState.WrongCard -> handleErrorState()
+            is SessionViewDelegateState.Error -> handleErrorState()
+            is SessionViewDelegateState.SecurityDelay -> handleSecurityDelayState(params)
+            is SessionViewDelegateState.Delay -> handleDelayState(params)
+            is SessionViewDelegateState.PinRequested -> handleWarningState() // it's never used
+            else -> handleNoneState()
         }
-        viewState.setState(params)
+        prevState = params
     }
 
-    override fun onBottomSheetDismiss() {
-        NoneState(mainView)
-    }
-}
-
-abstract class BaseProgressState(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
-    protected val progressBar: SdkProgressBar = mainView.findViewById(R.id.progressBar)
-    protected val tvProgressValue: TextView = mainView.findViewById(R.id.tvProgressValue)
-
-    protected val doneView: ImageView = mainView.findViewById(R.id.imvSuccess)
-    protected val exclamationView: ImageView = mainView.findViewById(R.id.imvExclamation)
-
-
-    init {
-        hideViews(tvProgressValue, progressBar, doneView, exclamationView)
+    private fun handleTagConnected() {
+        hideViews(progressIndicator, tvProgressValue, doneView, exclamationView)
+        progressIndicator.isIndeterminate = true
+        progressIndicator.applyProgressColor(R.color.sdk_progress_bar_primary)
+        showViews(progressIndicator)
     }
 
-    protected fun setMaxProgress() {
-        setProgress(progressBar.progressMax)
+    private fun handleSuccessState() {
+        upadteWidgetIntonation(R.color.sdk_progress_bar_success, doneView, exclamationView)
     }
 
-    protected fun setProgress(progress: Float, withAnimation: Boolean = true) {
-        if (progressBar.isIndeterminate) progressBar.isIndeterminate = false
-
-        if (withAnimation) progressBar.setProgressWithAnimation(progress)
-        else progressBar.progress = progress
+    private fun handleWarningState() {
+        upadteWidgetIntonation(R.color.sdk_progress_bar_warning, exclamationView, doneView)
     }
 
-    protected fun changeProgressColor(color: Int, withAnimation: Boolean = true) {
-        val parsedColor = ContextCompat.getColor(progressBar.context, color)
-
-        if (withAnimation) progressBar.setProgressBarColorWithAnimation(parsedColor)
-        else progressBar.progressBarColor = parsedColor
-
+    private fun handleErrorState() {
+        val delay = if (prevState is SessionViewDelegateState.TagConnected) 500L else 0L
+        postUI(delay) {
+            upadteWidgetIntonation(R.color.sdk_progress_bar_error, exclamationView, doneView)
+        }
     }
 
-    protected fun changeExclamationColor(color: Int) {
-        exclamationView.drawable.setTint(ContextCompat.getColor(progressBar.context, color))
+    private fun upadteWidgetIntonation(@ColorRes color: Int, toShow: ImageView, toHide: ImageView) {
+        hideViews(tvProgressValue, progressIndicator, toHide)
+
+        progressIndicator.applyProgressColor(color)
+        exclamationView.drawable.setTint(exclamationView.parseColor(color))
+
+        setMaxProgress()
+        showViews(progressIndicator)
+        showAndAnimateDrawable(toShow)
     }
 
-    protected fun showViews(vararg views: View) {
+    private fun handleSecurityDelayState(params: SessionViewDelegateState.SecurityDelay) {
+        val delay = params as? SessionViewDelegateState.SecurityDelay ?: return
+
+        fun standardSD(delay: SessionViewDelegateState.SecurityDelay) {
+            val seconds = delay.ms.div(100)
+            if (seconds == 0) {
+                isSdCountDownActive = false
+                progressIndicator.disableTrackColor()
+                hideViews(tvProgressValue)
+            } else if (!isSdCountDownActive) {
+                isSdCountDownActive = true
+                setProgress(0, false)
+                progressIndicator.applyTrackColor()
+                progressIndicator.max = seconds
+            }
+
+            setProgress(progressIndicator.max - seconds)
+            tvProgressValue.text = seconds.toString()
+        }
+
+        fun userCodesFailsSD(delay: SessionViewDelegateState.SecurityDelay) {
+            fun isSingleTick(seconds: Int): Boolean = !isSdCountDownActive && seconds == 0
+            fun isCountDownFinished(seconds: Int): Boolean = isSdCountDownActive && seconds == 0
+
+            val seconds = delay.ms.div(100)
+            when {
+                isSingleTick(seconds) -> {
+                    setProgress(progressIndicator.max)
+                    showAndAnimateDrawable(doneView)
+                    return
+                }
+                !isSdCountDownActive -> {
+                    isSdCountDownActive = true
+                    setProgress(0, false)
+                    progressIndicator.applyTrackColor()
+                    progressIndicator.max = seconds
+                }
+                isCountDownFinished(seconds) -> {
+                    isSdCountDownActive = false
+                    progressIndicator.disableTrackColor()
+                    hideViews(tvProgressValue)
+                    showAndAnimateDrawable(doneView)
+                }
+            }
+            if (isCountDownFinished(seconds)) return
+
+            val progress = progressIndicator.max - seconds
+            setProgress(progress)
+            tvProgressValue.text = delay.ms.div(100).toString()
+        }
+
+        hideViews(doneView, exclamationView)
+        showViews(progressIndicator, tvProgressValue)
+
+        if (delay.totalDurationSeconds != 0) {
+            standardSD(delay)
+        } else {
+            userCodesFailsSD(delay)
+        }
+    }
+
+    private fun handleDelayState(params: SessionViewDelegateState.Delay) {
+        hideViews(progressIndicator, tvProgressValue, doneView, exclamationView)
+        progressIndicator.isIndeterminate = true
+        progressIndicator.applyProgressColor(R.color.sdk_progress_bar_primary)
+        showViews(progressIndicator)
+    }
+
+    private fun handleNoneState() {
+        hideViews(progressIndicator, tvProgressValue, doneView, exclamationView)
+        setProgress(0, false)
+        progressIndicator.applyProgressColor(R.color.sdk_progress_bar_primary)
+    }
+
+    private fun setMaxProgress() {
+        val max = progressIndicator.max
+        val current = progressIndicator.progress
+        val nearOfMax = ((max * 0.8).toInt()..max).contains(current)
+        setProgress(progressIndicator.max, nearOfMax)
+    }
+
+    private fun setProgress(progress: Int, withAnimation: Boolean = true) {
+        progressIndicator.setProgressCompat(progress, withAnimation)
+    }
+
+    private fun showViews(vararg views: View) {
         views.forEach { it.show() }
     }
 
-    protected fun hideViews(vararg views: View) {
+    private fun hideViews(vararg views: View) {
         views.forEach { it.hide() }
     }
 
-    protected fun showAndAnimateDrawable(view: ImageView) {
+    private fun showAndAnimateDrawable(view: ImageView) {
         view.show()
         (view.drawable as? Animatable)?.start()
     }
-}
 
-class NoneState(mainView: View) : BaseProgressState(mainView) {
-    override fun setState(params: SessionViewDelegateState) {
-        hideViews(progressBar, tvProgressValue, doneView, exclamationView)
-
-        changeProgressColor(R.color.sdk_progress_bar_secondary, false)
-        setProgress(0f, false)
+    override fun onBottomSheetDismiss() {
+        handleNoneState()
     }
 }
 
-class SuccessState(mainView: View) : BaseProgressState(mainView) {
-    override fun setState(params: SessionViewDelegateState) {
-        hideViews(tvProgressValue, progressBar, exclamationView)
-        showViews(progressBar)
-
-        changeProgressColor(R.color.sdk_progress_bar_success)
-        setMaxProgress()
-        showAndAnimateDrawable(doneView)
-    }
+private fun CircularProgressIndicator.applyProgressColor(@ColorRes color: Int) {
+    setIndicatorColor(parseColor(color))
 }
 
-
-class ErrorState(mainView: View) : BaseProgressState(mainView) {
-    override fun setState(params: SessionViewDelegateState) {
-        hideViews(tvProgressValue, doneView)
-        showViews(progressBar)
-
-        val color = R.color.sdk_progress_bar_error
-        changeProgressColor(color)
-        setMaxProgress()
-        changeExclamationColor(color)
-        showAndAnimateDrawable(exclamationView)
-    }
+private fun CircularProgressIndicator.applyTrackColor() {
+    trackColor = parseColor(R.color.sdk_progress_bar_secondary)
 }
 
-class WarningState(mainView: View) : BaseProgressState(mainView) {
-    override fun setState(params: SessionViewDelegateState) {
-        hideViews(tvProgressValue, doneView)
-        showViews(progressBar)
-
-        val color = R.color.sdk_progress_bar_warning
-        changeProgressColor(color)
-        setMaxProgress()
-        changeExclamationColor(color)
-        showAndAnimateDrawable(exclamationView)
-    }
-}
-
-class IndeterminateProgressState(mainView: View) : BaseProgressState(mainView) {
-    override fun setState(params: SessionViewDelegateState) {
-        changeProgressColor(R.color.sdk_progress_bar_primary, false)
-
-        hideViews(tvProgressValue, doneView, exclamationView)
-        showViews(progressBar)
-
-        progressBar.isIndeterminate = true
-    }
-}
-
-class SecurityDelayState(mainView: View) : BaseProgressState(mainView) {
-
-    override fun setState(params: SessionViewDelegateState) {
-        val delay = params as? SessionViewDelegateState.SecurityDelay ?: return
-
-        changeProgressColor(R.color.sdk_progress_bar_primary, false)
-        hideViews(doneView, exclamationView)
-        showViews(progressBar, tvProgressValue)
-
-        if (delay.totalDurationSeconds == 0) {
-            pin1FailsSd(delay)
-        } else {
-            otherSd(delay)
-        }
-    }
-
-    private fun pin1FailsSd(delay: SessionViewDelegateState.SecurityDelay) {
-        fun isCountDownInActiveState(): Boolean = progressBar.isCountDownActive
-        fun isCountDownFinished(seconds: Int): Boolean = isCountDownInActiveState() && seconds == 0
-
-        val seconds = delay.ms.div(100)
-        when {
-            !isCountDownInActiveState() && seconds == 0 -> {
-                // handle the single tick of starting count down SD
-                setProgress(progressBar.progressMax)
-                showViews(progressBar)
-                showAndAnimateDrawable(doneView)
-                return
-            }
-            !isCountDownInActiveState() -> {
-                setProgress(0f, false)
-                progressBar.isCountDownActive = true
-                progressBar.progressMax = seconds.toFloat()
-            }
-            isCountDownFinished(seconds) -> {
-                progressBar.isCountDownActive = false
-                hideViews(tvProgressValue)
-                showViews(progressBar)
-                showAndAnimateDrawable(doneView)
-            }
-        }
-        if (isCountDownFinished(seconds)) return
-
-        val progress = progressBar.progressMax - seconds
-        setProgress(progress)
-        tvProgressValue.text = delay.ms.div(100).toString()
-    }
-
-    private fun otherSd(delay: SessionViewDelegateState.SecurityDelay) {
-        val seconds = delay.ms.div(100).toFloat()
-        if (seconds == 0f) {
-            progressBar.isCountDownActive = false
-            hideViews(tvProgressValue)
-        } else if (!progressBar.isCountDownActive) {
-            progressBar.isCountDownActive = true
-            progressBar.progressMax = seconds
-        }
-        setProgress(progressBar.progressMax - seconds)
-        tvProgressValue.text = seconds.toInt().toString()
-    }
-}
-
-class DelayState(mainView: View) : BaseProgressState(mainView) {
-    override fun setState(params: SessionViewDelegateState) {
-        changeProgressColor(R.color.sdk_progress_bar_primary, false)
-
-        hideViews(tvProgressValue, doneView, exclamationView)
-        showViews(progressBar)
-
-        progressBar.isIndeterminate = true
-    }
+private fun CircularProgressIndicator.disableTrackColor() {
+    trackColor = parseColor(android.R.color.transparent)
 }

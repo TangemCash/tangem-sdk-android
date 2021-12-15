@@ -25,8 +25,8 @@
     <color name="sdk_how_to_text">@color/sdk_text</color>
 
     <color name="sdk_progress_bar_primary">#ffffff</color>
+    <color name="sdk_progress_bar_secondary">#33515151</color>
     <color name="sdk_progress_bar_success">#ffffff</color>
-    <color name="sdk_progress_bar_secondary">#B37C7C7C</color>
 
     <color name="sdk_drawable_card">#C7C7CC</color>
     <color name="sdk_drawable_icon">#ffffff</color>
