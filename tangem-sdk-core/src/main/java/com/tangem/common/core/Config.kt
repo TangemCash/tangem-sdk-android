@@ -39,7 +39,7 @@ class Config(
     /**
      * Full CID will be displayed, if null
      */
-    var cardIdDisplayedNumbersCount: Int? = null,
+    var cardIdDisplayFormat: CardIdDisplayFormat = CardIdDisplayFormat.Full,
 
     /**
      * ScanTask or scanCard method in TangemSdk class will use this mode to attest the card

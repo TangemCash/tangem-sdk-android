@@ -6,7 +6,9 @@ import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
 import com.tangem.WrongValueType
+import com.tangem.common.CardIdFormatter
 import com.tangem.common.UserCodeType
+import com.tangem.common.core.CardIdDisplayFormat
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
@@ -140,9 +142,9 @@ class DefaultSessionViewDelegate(
 
     private fun formatCardId(cardId: String?): String? {
         val cardId = cardId ?: return null
-        val displayedNumbersCount = sdkConfig?.cardIdDisplayedNumbersCount ?: cardId.length
-        val converter = cardId.dropLast(1).takeLast(displayedNumbersCount)
-
-        return converter.chunked(4).joinToString(" ")
+        val formatter = CardIdFormatter(
+            sdkConfig?.cardIdDisplayFormat ?: CardIdDisplayFormat.Full
+        )
+        return formatter.getFormattedCardId(cardId)
     }
 }
