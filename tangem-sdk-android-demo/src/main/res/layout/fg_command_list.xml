@@ -12,6 +12,8 @@
 
         <include layout="@layout/scan_card" />
 
+        <include layout="@layout/personalization_backup" />
+
         <include layout="@layout/attestation" />
 
         <include layout="@layout/hd_wallet" />
@@ -19,6 +21,8 @@
         <include layout="@layout/sign" />
 
         <include layout="@layout/wallet" />
+
+        <include layout="@layout/backup" />
 
         <include layout="@layout/issuer_data" />
 
@@ -31,6 +35,8 @@
         <include layout="@layout/file_data" />
 
         <include layout="@layout/json_rpc" />
+
+        <include layout="@layout/set_message" />
 
     </LinearLayout>
 

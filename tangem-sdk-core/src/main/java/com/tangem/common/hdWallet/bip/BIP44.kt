@@ -19,27 +19,17 @@ class BIP44(
      */
     fun buildPath(): DerivationPath {
         val nodes = listOf(
-                DerivationNode.Hardened(purpose),
-                DerivationNode.Hardened(coinType),
-                DerivationNode.Hardened(account),
-                DerivationNode.NotHardened(change.index),
-                DerivationNode.NotHardened(addressIndex),
+            DerivationNode.Hardened(purpose),
+            DerivationNode.Hardened(coinType),
+            DerivationNode.Hardened(account),
+            DerivationNode.NonHardened(change.index),
+            DerivationNode.NonHardened(addressIndex),
         )
         return DerivationPath(nodes)
     }
 
     companion object {
         const val purpose: Long = 44
-
-        /**
-         * Build path m/44/coinType
-         * @param coinType: UInt32 index of the coin
-         * @return DerivationPath m/44/coinType
-         */
-        fun buildPath(coinType: Long): DerivationPath {
-            val nodes = listOf(DerivationNode.NotHardened(purpose), DerivationNode.NotHardened(coinType))
-            return DerivationPath(nodes)
-        }
     }
 
     enum class Chain(val index: Long) {

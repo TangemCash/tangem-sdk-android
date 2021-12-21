@@ -2,13 +2,12 @@ package com.tangem.common.core
 
 import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
-import com.tangem.operations.CommandResponse
 import com.tangem.operations.PreflightReadMode
 
 /**
  * Basic interface for running tasks and [com.tangem.operations.Command] in a [CardSession]
  */
-interface CardSessionRunnable<T : CommandResponse> {
+interface CardSessionRunnable<T> {
     /**
      * Mode for preflight read. Change this property only if you understand what to do
      */

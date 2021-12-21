@@ -93,6 +93,39 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class FileNotFound : TangemSdkError(30007)
     class WalletNotFound : TangemSdkError(30008)
 
+    //General Errors
+    class NotPersonalized : TangemSdkError(40001)
+    class NotActivated : TangemSdkError(40002)
+    class WalletIsPurged : TangemSdkError(40003)
+    class PasscodeRequired : TangemSdkError(40004)
+
+    /**
+     * This error is returned when a [Task] checks unsuccessfully either
+     * a card's ability to sign with its private key, or the validity of issuer data.
+     */
+    class VerificationFailed : TangemSdkError(40005)
+    class DataSizeTooLarge : TangemSdkError(40006)
+
+    /**
+     * This error is returned when [ReadIssuerDataTask] or [ReadIssuerExtraDataTask] expects a counter
+     * (when the card's requires it), but the counter is missing.
+     */
+    class MissingCounter : TangemSdkError(40007)
+    class OverwritingDataIsProhibited : TangemSdkError(40008)
+    class DataCannotBeWritten : TangemSdkError(40009)
+    class MissingIssuerPubicKey : TangemSdkError(40010)
+    class CardVerificationFailed : TangemSdkError(40011)
+
+    /**
+     * User entered wrong Access Code
+     */
+    class WrongAccessCode : TangemSdkError(40012)
+
+    /**
+     * User entered wrong Passcode
+     */
+    class WrongPasscode : TangemSdkError(40013)
+
     //Personalization Errors
     class AlreadyPersonalized : TangemSdkError(40101)
 
@@ -145,38 +178,39 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     //Write Extra Issuer Data Errors
     class ExtendedDataSizeTooLarge : TangemSdkError(41101)
 
-    //General Errors
-    class NotPersonalized : TangemSdkError(40001)
-    class NotActivated : TangemSdkError(40002)
-    class WalletIsPurged : TangemSdkError(40003)
-    class PasscodeRequired : TangemSdkError(40004)
+    class FileSettingsUnsupported : TangemSdkError(42000)
+    class FilesIsEmpty : TangemSdkError(42001)
+    class FilesDisabled : TangemSdkError(42002)
 
-    /**
-     * This error is returned when a [Task] checks unsuccessfully either
-     * a card's ability to sign with its private key, or the validity of issuer data.
-     */
-    class VerificationFailed : TangemSdkError(40005)
-    class DataSizeTooLarge : TangemSdkError(40006)
+    // Backup errors
+    class BackupFailedCardNotLinked : TangemSdkError(41201)
+    class BackupNotAllowed : TangemSdkError(41202)
+    class BackupCardAlreadyAdded : TangemSdkError(41203)
+    class MissingPrimaryCard : TangemSdkError(41204)
+    class MissingPrimaryAttestSignature : TangemSdkError(41205)
+    class TooMuchBackupCards : TangemSdkError(41206)
+    class BackupCardRequired : TangemSdkError(41207)
+    class NoBackupDataForCard : TangemSdkError(41208)
+    class BackupFailedEmptyWallets : TangemSdkError(41209)
+    class BackupFailedNotEmptyWallets : TangemSdkError(41210)
+    class CertificateSignatureRequired : TangemSdkError(41211)
+    class AccessCodeOrPasscodeRequired : TangemSdkError(41212)
+    class NoActiveBackup : TangemSdkError(41220)
+    class ResetBackupFailedHasBackupedWallets : TangemSdkError(41221)
+    class BackupServiceInvalidState : TangemSdkError(4122)
+    class NoBackupCardForIndex : TangemSdkError(41223)
+    class EmptyBackupCards : TangemSdkError(41224)
+    class BackupFailedWrongIssuer : TangemSdkError(41225)
+    class BackupFailedHDWalletSettings : TangemSdkError(41226)
+    class BackupFailedNotEnoughCurves : TangemSdkError(41227)
+    class BackupFailedNotEnoughWallets : TangemSdkError(41228)
+    class IssuerSignatureLoadingFailed: TangemSdkError(41229)
+    class BackupFailedFirmware: TangemSdkError(41229)
 
-    /**
-     * This error is returned when [ReadIssuerDataTask] or [ReadIssuerExtraDataTask] expects a counter
-     * (when the card's requires it), but the counter is missing.
-     */
-    class MissingCounter : TangemSdkError(40007)
-    class OverwritingDataIsProhibited : TangemSdkError(40008)
-    class DataCannotBeWritten : TangemSdkError(40009)
-    class MissingIssuerPubicKey : TangemSdkError(40010)
-    class CardVerificationFailed : TangemSdkError(40011)
+    class ResetPinNoCardsToReset : TangemSdkError(41300)
+    class ResetPinWrongCard : TangemSdkError(41301)
 
-    /**
-     * User entered wrong Access Code
-     */
-    class WrongAccessCode : TangemSdkError(40012)
-
-    /**
-     * User entered wrong Passcode
-     */
-    class WrongPasscode : TangemSdkError(40013)
+    class HDWalletDisabled : TangemSdkError(42003)
 
 
     //SDK Errors
@@ -232,11 +266,13 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
 
 //    class FailedToGenerateRandomSequence : TangemSdkError(50010)
 
-    class CryptoUtilsError : TangemSdkError(50011)
+    class CryptoUtilsError(override var customMessage: String) : TangemSdkError(50011)
 
 //    class Underlying : TangemSdkError(50012)
 
     class NetworkError(override var customMessage: String) : TangemSdkError(50013)
+
+    class WrongInteractionMode : TangemSdkError(50027)
 
     /**
      * Get error according to the pin type

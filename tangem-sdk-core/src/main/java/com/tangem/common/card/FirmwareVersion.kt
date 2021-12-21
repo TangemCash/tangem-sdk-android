@@ -73,6 +73,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         val Max = FirmwareVersion(Int.MAX_VALUE, 0)
 
         /**
+         * Read-write files
+         */
+        val FilesAvailable = FirmwareVersion(3, 29)
+
+        /**
          * Multi-wallet
          */
         val MultiWalletAvailable = FirmwareVersion(4, 0)
@@ -80,22 +85,27 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         /**
          * Field on card that describes is passcode is default value or not
          */
-        val IsAccessCodeStatusAvailable = FirmwareVersion(4, 33)
-
-        /**
-         * Field on card that describes is passcode is default value or not
-         */
         val IsPasscodeStatusAvailable = FirmwareVersion(4, 1)
 
         /**
-         * Read-write files
+         * Is create wallet command answers with the whole wallet
          */
-        val FilesAvailable = FirmwareVersion(3, 29)
+        val CreateWalletResponseAvailable = FirmwareVersion(4, 25)
 
         /**
          * HD Wallet
          */
         val HDWalletAvailable = FirmwareVersion(4, 28)
+
+        /**
+         * Field on card that describes is accessCode is default value or not
+         */
+        val IsAccessCodeStatusAvailable = FirmwareVersion(4, 33)
+
+        /**
+         * Backup
+         */
+        val BackupAvailable = FirmwareVersion(4, 43)
     }
 
     enum class FirmwareType(val rawValue: String?) {

@@ -22,7 +22,6 @@ import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
-import com.tangem.operations.PreflightReadMode
 
 /**
  * @property cardId CID, Unique Tangem card ID number
@@ -40,15 +39,13 @@ class SignResponse(
  * Signs transaction hashes using a wallet private key, stored on the card.
  * @property hashes Array of transaction hashes.
  * @property walletPublicKey Public key of the wallet, using for sign.
- * @property hdPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
+ * @property derivationPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
  */
 internal class SignCommand(
     private val hashes: Array<ByteArray>,
     private val walletPublicKey: ByteArray,
-    private val hdPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null
 ) : Command<SignResponse>() {
-
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
 
     override fun requiresPasscode(): Boolean = true
 
@@ -63,12 +60,15 @@ internal class SignCommand(
     override fun performPreCheck(card: Card): TangemSdkError? {
         val wallet = card.wallet(walletPublicKey) ?: return TangemSdkError.WalletNotFound()
 
-        if (hdPath != null) {
+        if (derivationPath != null) {
             if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
                 return TangemSdkError.NotSupportedFirmwareVersion()
             }
-            if (wallet.curve != EllipticCurve.Secp256k1) {
+            if (wallet.curve == EllipticCurve.Secp256r1) {
                 return TangemSdkError.UnsupportedCurve()
+            }
+            if (!card.settings.isHDWalletAllowed) {
+                return TangemSdkError.HDWalletDisabled()
             }
         }
 
@@ -109,16 +109,16 @@ internal class SignCommand(
                     if (signatures.size == hashes.size) {
                         session.environment.card?.wallet(walletPublicKey)?.let {
                             val wallet = it.copy(
-                                    totalSignedHashes = result.data.totalSignedHashes,
-                                    remainingSignatures = it.remainingSignatures?.minus(signatures.size)
+                                totalSignedHashes = result.data.totalSignedHashes,
+                                remainingSignatures = it.remainingSignatures?.minus(signatures.size)
                             )
-                            session.environment.card?.updateWallet(wallet)
+                            session.environment.card = session.environment.card?.updateWallet(wallet)
                         }
 
                         val finalResponse = SignResponse(
-                                result.data.cardId,
-                                processSignatures(session.environment, signatures.toList()),
-                                result.data.totalSignedHashes)
+                            result.data.cardId,
+                            processSignatures(session.environment, signatures.toList()),
+                            result.data.totalSignedHashes)
                         callback(CompletionResult.Success(finalResponse))
                     } else {
                         sign(session, callback)
@@ -137,6 +137,8 @@ internal class SignCommand(
      * TerminalPrivateKey (this key should be generated and security stored by the application).
      */
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
+
         val dataToSign = hashesChunked[currentChunkNumber].reduce { arr1, arr2 -> arr1 + arr2 }
 
         val tlvBuilder = TlvBuilder()
@@ -147,7 +149,7 @@ internal class SignCommand(
         tlvBuilder.append(TlvTag.TransactionOutHash, dataToSign)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
         // Wallet index works only on COS v. 4.0 and higher. For previous version index will be ignored
-        tlvBuilder.append(TlvTag.WalletPublicKey, walletPublicKey)
+        tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
 
         val isLinkedTerminalSupported = environment.card?.settings?.isLinkedTerminalEnabled == true
         if (environment.terminalKeys != null && isLinkedTerminalSupported) {
@@ -155,7 +157,7 @@ internal class SignCommand(
             tlvBuilder.append(TlvTag.TerminalTransactionSignature, signedData)
             tlvBuilder.append(TlvTag.TerminalPublicKey, environment.terminalKeys!!.publicKey)
         }
-        tlvBuilder.append(TlvTag.WalletHDPath, hdPath)
+        tlvBuilder.append(TlvTag.WalletHDPath, derivationPath)
 
         return CommandApdu(Instruction.Sign, tlvBuilder.serialize())
     }
@@ -168,9 +170,9 @@ internal class SignCommand(
         val splittedSignatures = splitSignedSignature(signature, getChunk().count())
 
         return SignResponse(
-                decoder.decode(TlvTag.CardId),
-                splittedSignatures,
-                decoder.decodeOptional(TlvTag.WalletSignedHashes)
+            decoder.decode(TlvTag.CardId),
+            splittedSignatures,
+            decoder.decodeOptional(TlvTag.WalletSignedHashes)
         )
     }
 

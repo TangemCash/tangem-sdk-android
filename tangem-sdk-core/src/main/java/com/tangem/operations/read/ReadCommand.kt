@@ -48,6 +48,7 @@ class ReadCommand : Command<ReadResponse>() {
         if (error is TangemSdkError.InvalidParams) {
             return TangemSdkError.AccessCodeRequired()
         }
+
         return error
     }
 
@@ -69,8 +70,11 @@ class ReadCommand : Command<ReadResponse>() {
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadResponse {
         val decoder = CardDeserializer.getDecoder(environment, apdu)
         val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
-        val card = CardDeserializer.deserialize(environment.isUserCodeSet(UserCodeType.AccessCode), decoder, cardDataDecoder)
+
+        val isAccessCodeSetLegacy = environment.isUserCodeSet(UserCodeType.AccessCode)
+        val card = CardDeserializer.deserialize(isAccessCodeSetLegacy, decoder, cardDataDecoder)
         val walletData = cardDataDecoder?.let { WalletDataDeserializer.deserialize(it) }
+
         return ReadResponse(card, walletData)
     }
 }

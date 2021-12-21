@@ -19,7 +19,7 @@
         android:background="?android:windowBackground"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="Pin codes"
+        android:text="User codes"
         android:translationX="10dp"
         android:translationY="-10dp" />
 
@@ -41,24 +41,31 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/btnSetPin1"
+                    android:id="@+id/btnSetAccessCode"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Set pin 1" />
+                    android:text="Set access" />
 
                 <View
                     android:layout_width="10dp"
                     android:layout_height="1dp" />
 
                 <Button
-                    android:id="@+id/btnSetPin2"
+                    android:id="@+id/btnSetPasscode"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Set pin 2" />
+                    android:text="Set passcode" />
 
             </LinearLayout>
+
+            <Button
+                android:id="@+id/btnResetUserCodes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Reset all" />
+
         </LinearLayout>
     </FrameLayout>
 

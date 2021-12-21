@@ -6,7 +6,9 @@ import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
 import com.tangem.WrongValueType
+import com.tangem.common.CardIdFormatter
 import com.tangem.common.UserCodeType
+import com.tangem.common.core.CardIdDisplayFormat
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
@@ -34,7 +36,7 @@ class DefaultSessionViewDelegate(
 
     override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
         Log.view { "Session started" }
-        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId), message), enableHowTo)
+        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message)
     }
 
     override fun onSessionStopped(message: Message?) {
@@ -79,7 +81,8 @@ class DefaultSessionViewDelegate(
 
     override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {
         Log.view { "Showing pin change request with type: $type" }
-        createAndShowState(SessionViewDelegateState.PinChangeRequested(type, callback), false)
+        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, callback))
+//        createAndShowState(SessionViewDelegateState.PinChangeRequested(type, callback), false)
     }
 
     override fun dismiss() {
@@ -92,7 +95,7 @@ class DefaultSessionViewDelegate(
 
     override fun setMessage(message: Message?) {
         Log.view { "Set message with header: ${message?.header}, and body: ${message?.body}" }
-        readingDialog?.setMessage(message)
+        postUI { readingDialog?.setMessage(message) }
     }
 
 
@@ -117,8 +120,8 @@ class DefaultSessionViewDelegate(
     private fun createAndShowState(state: SessionViewDelegateState, enableHowTo: Boolean, message: Message? = null) {
         postUI {
             if (readingDialog == null) createReadingDialog(activity)
-            readingDialog?.enableHowTo(enableHowTo)
-            readingDialog?.setMessage(message)
+            readingDialog?.showHowTo(enableHowTo)
+            readingDialog?.setInitialMessage(message)
             readingDialog?.show(state)
         }
     }
@@ -139,9 +142,9 @@ class DefaultSessionViewDelegate(
 
     private fun formatCardId(cardId: String?): String? {
         val cardId = cardId ?: return null
-        val displayedNumbersCount = sdkConfig?.cardIdDisplayedNumbersCount ?: cardId.length
-        val converter = cardId.dropLast(1).takeLast(displayedNumbersCount)
-
-        return converter.chunked(4).joinToString(" ")
+        val formatter = CardIdFormatter(
+            sdkConfig?.cardIdDisplayFormat ?: CardIdDisplayFormat.Full
+        )
+        return formatter.getFormattedCardId(cardId)
     }
 }

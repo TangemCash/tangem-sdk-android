@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
         android:text="@string/view_delegate_header_card"
-        android:textColor="@color/sdk_text_primary"
+        android:textColor="@color/sdk_header_card_text"
         android:textSize="15sp"
         android:visibility="gone"
         tools:visibility="visible" />
@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
         android:textAllCaps="true"
-        android:textColor="@color/sdk_text_primary"
+        android:textColor="@color/sdk_header_card_id_text"
         android:textSize="15sp"
         android:visibility="gone"
         tools:text="cb22000000027374"

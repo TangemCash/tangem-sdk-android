@@ -14,7 +14,6 @@ import com.tangem.common.tlv.TlvTag
 import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
-import com.tangem.operations.PreflightReadMode
 
 /**
  * Deserialized response from the Tangem card after `AttestWalletKeyCommand`.
@@ -54,8 +53,6 @@ class AttestWalletKeyCommand(
     var challenge: ByteArray? = null,
 ) : Command<AttestWalletKeyResponse>() {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadWallet(walletPublicKey)
-
     override fun run(session: CardSession, callback: CompletionCallback<AttestWalletKeyResponse>) {
         challenge = challenge ?: CryptoUtils.generateRandomBytes(16)
 
@@ -71,7 +68,7 @@ class AttestWalletKeyCommand(
                     if (verifyResult == true) {
                         callback(CompletionResult.Success(checkWalletResponse))
                     } else {
-                        callback(CompletionResult.Failure(TangemSdkError.VerificationFailed()))
+                        callback(CompletionResult.Failure(TangemSdkError.CardVerificationFailed()))
                     }
                 }
                 is CompletionResult.Failure -> callback(result)
@@ -80,11 +77,14 @@ class AttestWalletKeyCommand(
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
+
         val builder = TlvBuilder()
         builder.append(TlvTag.Pin, environment.accessCode.value)
         builder.append(TlvTag.CardId, environment.card?.cardId)
         builder.append(TlvTag.Challenge, challenge)
-        builder.append(TlvTag.WalletPublicKey, walletPublicKey)
+        builder.append(TlvTag.WalletIndex, walletIndex)
+
         return CommandApdu(Instruction.AttestWalletKey, builder.serialize())
     }
 
@@ -92,11 +92,11 @@ class AttestWalletKeyCommand(
         val tlv = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
         val decoder = TlvDecoder(tlv)
         return AttestWalletKeyResponse(
-                decoder.decode(TlvTag.CardId),
-                decoder.decode(TlvTag.Salt),
-                decoder.decode(TlvTag.WalletSignature),
-                challenge!!,
-                decoder.decode(TlvTag.CheckWalletCounter),
+            decoder.decode(TlvTag.CardId),
+            decoder.decode(TlvTag.Salt),
+            decoder.decode(TlvTag.WalletSignature),
+            challenge!!,
+            decoder.decode(TlvTag.CheckWalletCounter),
         )
     }
 

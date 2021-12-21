@@ -12,10 +12,10 @@ class DerivationPath {
     val rawPath: String
     val nodes: List<DerivationNode>
 
-    constructor(rawPath: String, path: List<DerivationNode>) {
-        this.rawPath = rawPath
-        this.nodes = path
-    }
+    /**
+     * Init with master node
+     */
+    constructor() : this(listOf())
 
     /**
      * Parse derivation path.
@@ -26,13 +26,12 @@ class DerivationPath {
 
     constructor(path: List<DerivationNode>) : this(createRawPath(path), path)
 
+    constructor(rawPath: String, path: List<DerivationNode>) {
+        this.rawPath = rawPath
+        this.nodes = path
+    }
 
-    /**
-     * Convert path to non-hardened nodes only
-     * We can use non-hardened derivation only without tapping the Tangem card.
-     * @return Non-hardened path according BIP32
-     */
-    fun toNonHardened(): DerivationPath = DerivationPath(nodes.map { it.toNonHardened() })
+    fun extendedPath(node: DerivationNode): DerivationPath = DerivationPath(nodes + listOf(node))
 
     override fun equals(other: Any?): Boolean {
         val other = other as? DerivationPath ?: return false
@@ -44,8 +43,8 @@ class DerivationPath {
     }
 
     override fun hashCode(): Int = calculateHashCode(
-            rawPath.hashCode(),
-            calculateHashCode(*nodes.map { it.hashCode() }.toIntArray())
+        rawPath.hashCode(),
+        calculateHashCode(*nodes.map { it.hashCode() }.toIntArray())
     )
 
     companion object {
@@ -75,14 +74,18 @@ class DerivationPath {
                         .remove(BIP32.hardenedSymbol, BIP32.alternativeHardenedSymbol)
                 val index = cleanedPathItem.toLongOrNull() ?: throw HDWalletError.WrongPath
 
-                if (isHardened) DerivationNode.Hardened(index) else DerivationNode.NotHardened(index)
+                if (isHardened) DerivationNode.Hardened(index) else DerivationNode.NonHardened(index)
             }
             return derivationPath
         }
 
-        private fun createRawPath(path: List<DerivationNode>): String {
-            val description = path.joinToString(BIP32.separatorSymbol) { it.pathDescription }
-            return "${BIP32.masterKeySymbol}${BIP32.separatorSymbol}$description"
+        private fun createRawPath(nodes: List<DerivationNode>): String {
+            var path = BIP32.masterKeySymbol
+
+            val nodesPath = nodes.joinToString(BIP32.separatorSymbol) { it.pathDescription }
+            if (nodesPath.isNotEmpty()) path += "${BIP32.separatorSymbol}$nodesPath"
+
+            return path
         }
     }
 }

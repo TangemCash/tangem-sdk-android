@@ -5,11 +5,10 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
-import com.tangem.common.core.CardSession
-import com.tangem.common.core.CompletionCallback
-import com.tangem.common.core.SessionEnvironment
-import com.tangem.common.core.TangemSdkError
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.core.*
 import com.tangem.common.deserialization.WalletDeserializer
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
@@ -29,10 +28,18 @@ class ReadWalletsListResponse(
  */
 class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
 
-    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
-
     private val loadedWallets = mutableListOf<CardWallet>()
     private var receivedWalletsCount: Int = 0
+
+    override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
+
+    override fun performPreCheck(card: Card): TangemError? {
+        if (card.firmwareVersion < FirmwareVersion.MultiWalletAvailable) {
+            return TangemSdkError.NotSupportedFirmwareVersion()
+        }
+
+        return null
+    }
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadWalletsListResponse>) {
 
@@ -71,10 +78,12 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadWalletsListResponse {
+        val card = environment.card ?: throw TangemSdkError.UnknownError()
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
-        val deserializedData = WalletDeserializer.deserializeWallets(decoder)
+        val deserializedData = WalletDeserializer(card.settings.isPermanentWallet)
+            .deserializeWallets(decoder)
         receivedWalletsCount += deserializedData.second
 
         return ReadWalletsListResponse(decoder.decode(TlvTag.CardId), deserializedData.first)

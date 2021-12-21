@@ -61,6 +61,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:minHeight="@dimen/bottom_sheet_bottom_container_height"
+                android:clipToPadding="false"
+                android:clipChildren="false"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp">
 

@@ -5,7 +5,12 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.annotation.LayoutRes
+import androidx.core.widget.addTextChangedListener
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 /**
  * Created by Anton Zhilenkov on 24/12/2020.
@@ -30,4 +35,9 @@ fun String.splitCamelCase(): String {
         "(?<=[^A-Z])(?=[A-Z])",
         "(?<=[A-Za-z])(?=[^A-Za-z])"
     ).toRegex(), " ")
+}
+
+fun EditText.asFlow(): Flow<String> = callbackFlow {
+    val watcher = addTextChangedListener { editable -> offer(editable?.toString() ?: "") }
+    awaitClose { removeTextChangedListener(watcher) }
 }

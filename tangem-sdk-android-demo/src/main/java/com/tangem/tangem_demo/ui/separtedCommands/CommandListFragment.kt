@@ -1,34 +1,42 @@
 package com.tangem.tangem_demo.ui.separtedCommands
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
-import com.tangem.Log
-import com.tangem.TangemSdk
+import com.tangem.Message
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CardSessionRunnable
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
+import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
-import com.tangem.tangem_demo.DemoActivity
+import com.tangem.operations.sign.SignHashResponse
+import com.tangem.tangem_demo.Personalization
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.ui.BaseFragment
+import com.tangem.tangem_demo.ui.backup.BackupActivity
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.tangem_demo.ui.extension.getFromClipboard
-import com.tangem.tangem_sdk_new.extensions.createLogger
-import com.tangem.tangem_sdk_new.extensions.init
 import kotlinx.android.synthetic.main.attestation.*
+import kotlinx.android.synthetic.main.backup.*
 import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.json_rpc.*
+import kotlinx.android.synthetic.main.personalization_backup.*
 import kotlinx.android.synthetic.main.scan_card.*
+import kotlinx.android.synthetic.main.set_message.*
 import kotlinx.android.synthetic.main.set_pin.*
 import kotlinx.android.synthetic.main.sign.*
 import kotlinx.android.synthetic.main.user_data.*
@@ -39,21 +47,23 @@ import kotlinx.android.synthetic.main.wallet.*
  */
 class CommandListFragment : BaseFragment() {
 
-    private val logger = TangemSdk.createLogger()
-
-    override fun initSdk(): TangemSdk = TangemSdk.init(this.requireActivity(), createSdkConfig())
-
     override fun getLayoutId(): Int = R.layout.fg_command_list
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (requireActivity() as? DemoActivity)?.listenPageChanges {
-            if (it == 0) Log.addLogger(logger)
-            else Log.removeLogger(logger)
-        }
         btnScanCard.setOnClickListener { scanCard() }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
+
+        btnPersonalizePrimary.setOnClickListener { personalize(Personalization.Backup.primaryCardConfig()) }
+        btnPersonalizeBackup1.setOnClickListener { personalize(Personalization.Backup.backup1Config()) }
+        btnPersonalizeBackup2.setOnClickListener { personalize(Personalization.Backup.backup2Config()) }
+        btnDepersonalize.setOnClickListener { depersonalize() }
+
+        btnStartBackup.setOnClickListener {
+            val intent = Intent(requireContext(), BackupActivity::class.java)
+            startActivity(intent)
+        }
 
         chipGroupAttest.fitChipsByGroupWidth()
         btnAttest.setOnClickListener {
@@ -66,12 +76,12 @@ class CommandListFragment : BaseFragment() {
         }
 
         val adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, listOf(
-                "m/0/1",
-                "m/0'/1'/2",
-                "m/44'/0'/0'/1/0"
+            "m/0/1",
+            "m/0'/1'/2",
+            "m/44'/0'/0'/1/0"
         ))
         etDerivePublicKey.setAdapter(adapter)
-        etDerivePublicKey.addTextChangedListener { hdPath = if (it!!.isEmpty()) null else it!!.toString() }
+        etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it!!.toString() }
         btnDerivePublicKey.setOnClickListener { derivePublicKey() }
 
         btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }
@@ -92,8 +102,9 @@ class CommandListFragment : BaseFragment() {
         btnWriteUserData.setOnClickListener { writeUserData() }
         btnWriteUserProtectedData.setOnClickListener { writeUserProtectedData() }
 
-        btnSetPin1.setOnClickListener { setPin1() }
-        btnSetPin2.setOnClickListener { setPin2() }
+        btnSetAccessCode.setOnClickListener { setAccessCode() }
+        btnSetPasscode.setOnClickListener { setPasscode() }
+        btnResetUserCodes.setOnClickListener { resetUserCodes() }
 
         btnReadAllFiles.setOnClickListener { readFiles(true) }
         btnReadPublicFiles.setOnClickListener { readFiles(false) }
@@ -109,6 +120,11 @@ class CommandListFragment : BaseFragment() {
         btnListJsonRpc.setOnClickListener { etJsonRpc.setText(jsonRpcListCommandsTemplate) }
         btnPasteJsonRpc.setOnClickListener { requireContext().getFromClipboard()?.let { etJsonRpc.setText(it) } }
         btnLaunchJsonRpc.setOnClickListener { launchJSONRPC(etJsonRpc.text.toString().trim()) }
+
+        btnCheckSetMessage.setOnClickListener {
+            sdk.startSessionWithRunnable(MultiMessageTask(), card?.cardId, initialMessage) { handleCommandResult(it) }
+        }
+
         sliderWallet.stepSize = 1f
     }
 
@@ -208,4 +224,33 @@ class CommandListFragment : BaseFragment() {
         }
     ]
     """.trim()
+}
+
+class MultiMessageTask : CardSessionRunnable<SignHashResponse> {
+
+    val message1 = Message("Header - 1", "Body - 1")
+    val message2 = Message("Header - 2", "Body - 2")
+
+    override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
+        session.setMessage(message1)
+        Thread.sleep(2000)
+        session.setMessage(message2)
+        Thread.sleep(2000)
+        PreflightReadTask(PreflightReadMode.None).run(session) {
+            when (it) {
+                is CompletionResult.Success -> {
+                    session.setMessage(Message("Success", "SignHashCommand"))
+                    Thread.sleep(2000)
+                    callback(CompletionResult.Failure(TangemSdkError.ExceptionError(
+                        Throwable("Test error message")
+                    )))
+                }
+                is CompletionResult.Failure -> {
+                    session.setMessage(Message("Success", "SignHashCommand"))
+                    Thread.sleep(2000)
+                    callback(CompletionResult.Failure(it.error))
+                }
+            }
+        }
+    }
 }

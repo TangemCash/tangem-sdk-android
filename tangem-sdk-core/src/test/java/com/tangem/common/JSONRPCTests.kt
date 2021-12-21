@@ -120,7 +120,9 @@ class JSONRPCTests {
                 CardWallet.Settings(true),
                 10,
                 100,
-                1)
+                1,
+                false
+        )
         val response = CreateWalletResponse("c000111122223333", wallet)
         testMethod("CreateWallet", response)
     }

@@ -8,6 +8,8 @@ import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.files.*
+import com.tangem.common.hdWallet.DerivationNode
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.bip.BIP44
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
@@ -107,6 +109,9 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                     TangemSdkAdapter.AttestationStatusAdapter(),
                     TangemSdkAdapter.AttestationModeAdapter(),
                     TangemSdkAdapter.BIP44ChainAdapter(),
+                    TangemSdkAdapter.BackupStatusAdapter(),
+                    TangemSdkAdapter.DerivationPathAdapter(),
+                    TangemSdkAdapter.DerivationNodeAdapter(),
             )
         }
 
@@ -181,9 +186,8 @@ class TangemSdkAdapter {
         fun toJson(src: PreflightReadMode): String {
             return when (src) {
                 PreflightReadMode.FullCardRead -> "fullCardRead"
-                PreflightReadMode.None -> "none"
                 PreflightReadMode.ReadCardOnly -> "readCardOnly"
-                is PreflightReadMode.ReadWallet -> src.publicKey.toHexString()
+                PreflightReadMode.None -> "none"
             }
         }
 
@@ -191,12 +195,9 @@ class TangemSdkAdapter {
         fun fromJson(json: String): PreflightReadMode {
             return when (json) {
                 "fullCardRead" -> PreflightReadMode.FullCardRead
-                "none" -> PreflightReadMode.None
                 "readCardOnly" -> PreflightReadMode.ReadCardOnly
-                else -> {
-                    if (json.length == 64) PreflightReadMode.ReadWallet(json.hexToBytes())
-                    else throw java.lang.IllegalArgumentException()
-                }
+                "none" -> PreflightReadMode.None
+                else -> throw java.lang.IllegalArgumentException()
             }
         }
     }
@@ -319,6 +320,68 @@ class TangemSdkAdapter {
         }
     }
 
+    class DerivationPathAdapter {
+        @ToJson
+        fun toJson(src: DerivationPath): String {
+            val map = mapOf(
+                "rawPath" to src.rawPath,
+                "nodes" to src.nodes.map { it.index }
+            )
+            return MoshiJsonConverter.default().toJson(map)
+        }
+
+        @FromJson
+        fun fromJson(json: String): DerivationPath {
+            val map = MoshiJsonConverter.default().toMap(json)
+            val rawPath = map["rawPath"] as String
+            val nodeIndexes = map["nodes"] as List<Number>
+            val nodes = nodeIndexes.map { DerivationNode.fromIndex(it.toLong()) }
+            return DerivationPath(rawPath, nodes)
+        }
+    }
+
+    class DerivationNodeAdapter {
+        @ToJson
+        fun toJson(src: DerivationNode): String {
+            return when (src) {
+                is DerivationNode.Hardened -> HardenedNodeAdapter().toJson(src)
+                is DerivationNode.NonHardened -> NonHardenedNodeAdapter().toJson(src)
+            }
+        }
+
+        @FromJson
+        fun fromJson(map: MutableMap<String, Any>): DerivationNode {
+            val index = map["index"] as Number
+            return DerivationNode.fromIndex(index.toLong())
+        }
+
+        class HardenedNodeAdapter {
+            @ToJson
+            fun toJson(src: DerivationNode.Hardened): String {
+                return MoshiJsonConverter.default().toJson(src)
+            }
+
+            @FromJson
+            fun fromJson(map: MutableMap<String, Any>): DerivationNode.Hardened {
+                val converter = MoshiJsonConverter.default()
+                return converter.fromJson(converter.toJson(map))!!
+            }
+        }
+
+        class NonHardenedNodeAdapter {
+            @ToJson
+            fun toJson(src: DerivationNode.NonHardened): String {
+                return MoshiJsonConverter.default().toJson(src)
+            }
+
+            @FromJson
+            fun fromJson(map: MutableMap<String, Any>): DerivationNode.NonHardened {
+                val converter = MoshiJsonConverter.default()
+                return converter.fromJson(converter.toJson(map))!!
+            }
+        }
+    }
+
     class EllipticCurveAdapter {
         @ToJson
         fun toJson(src: EllipticCurve): String = EnumConverter.toJson(src)
@@ -341,6 +404,15 @@ class TangemSdkAdapter {
 
         @FromJson
         fun fromJson(json: String): Card.Status = EnumConverter.toEnum(json)
+    }
+
+    class BackupStatusAdapter {
+        @ToJson
+        fun toJson(src: Card.BackupStatus): String = EnumConverter.toJson(src.toRawStatus())
+
+        @FromJson
+        fun fromJson(json: String): Card.BackupStatus =
+                Card.BackupStatus.from(EnumConverter.toEnum<Card.BackupRawStatus>(json)) ?: Card.BackupStatus.NoBackup
     }
 
     class CardWalletStatusAdapter {

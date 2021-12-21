@@ -35,16 +35,12 @@ class AttestationTask(
      */
     var shouldKeepSessionOpened = false
 
-    /**
-     * Attest wallet count or sign command count greater this value is looks suspicious.
-     */
-    private val maxCounter = 100000
     private val trustedCardsRepo = TrustedCardsRepo(secureStorage, MoshiJsonConverter.INSTANCE)
     private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
     private var currentAttestationStatus: Attestation = Attestation.empty
 
-    private var onlineAttestationChannel = ConflatedBroadcastChannel<CompletionResult<Unit>>()
+    private var onlineAttestationChannel = ConflatedBroadcastChannel<CompletionResult<CardVerifyAndGetInfo.Response.Item>>()
     private var onlineAttestationSubscription: ReceiveChannel<CompletionResult<*>>? = null
 
     override fun run(session: CardSession, callback: CompletionCallback<Attestation>) {
@@ -53,20 +49,6 @@ class AttestationTask(
             return
         }
         attestCard(session, callback)
-    }
-
-    fun retryOnline(session: CardSession, callback: CompletionCallback<Attestation>) {
-        onlineAttestationSubscription = null
-        onlineAttestationChannel.cancel()
-        onlineAttestationChannel = ConflatedBroadcastChannel()
-
-        val card = session.environment.card.guard {
-            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
-            return
-        }
-
-        runOnlineAttestation(session.scope, card)
-        waitForOnlineAndComplete(session, callback)
     }
 
     private fun attestCard(session: CardSession, callback: CompletionCallback<Attestation>) {
@@ -152,7 +134,7 @@ class AttestationTask(
             val attestationCommands = walletsKeys.map { AttestWalletKeyCommand(it) }
 
             //check for hacking attempts with signs
-            var hasWarnings = card.wallets.mapNotNull { it.totalSignedHashes }.any { it > maxCounter }
+            var hasWarnings = card.wallets.mapNotNull { it.totalSignedHashes }.any { it > MAX_COUNTER }
             var shouldReturn = false
             var flowIsCompleted = false
 
@@ -172,7 +154,7 @@ class AttestationTask(
                     when (result) {
                         is CompletionResult.Success -> {
                             //check for hacking attempts with attestWallet
-                            if (result.data.counter != null && result.data.counter > maxCounter) {
+                            if (result.data.counter != null && result.data.counter > MAX_COUNTER) {
                                 hasWarnings = true
                             }
                             if (flowIsCompleted) callback(CompletionResult.Success(hasWarnings))
@@ -201,7 +183,7 @@ class AttestationTask(
             }
 
             when (val result = onlineCardVerifier.getCardInfo(card.cardId, card.cardPublicKey)) {
-                is Result.Success -> onlineAttestationChannel.send(CompletionResult.Success(Unit))
+                is Result.Success -> onlineAttestationChannel.send(CompletionResult.Success(result.data))
                 is Result.Failure -> onlineAttestationChannel.send(CompletionResult.Failure(result.toTangemSdkError()))
             }
         }
@@ -224,7 +206,7 @@ class AttestationTask(
                                 cardKeyAttestation = Attestation.Status.Verified
                         )
                         trustedCardsRepo.append(session.environment.card!!.cardPublicKey, currentAttestationStatus)
-                        complete(session, callback)
+                        processAttestationReport(session, callback)
                     }
                     is CompletionResult.Failure -> {
                         //We interest only in cardVerificationFailed error, ignore network errors
@@ -233,8 +215,74 @@ class AttestationTask(
                                     cardKeyAttestation = Attestation.Status.Failed
                             )
                         }
-                        complete(session, callback)
+                        processAttestationReport(session, callback)
                     }
+                }
+            }
+        }
+    }
+
+    private fun retryOnline(session: CardSession, callback: CompletionCallback<Attestation>) {
+        onlineAttestationSubscription = null
+        onlineAttestationChannel.cancel()
+        onlineAttestationChannel = ConflatedBroadcastChannel()
+
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
+
+        runOnlineAttestation(session.scope, card)
+        waitForOnlineAndComplete(session, callback)
+    }
+
+    private fun processAttestationReport(
+        session: CardSession,
+        callback: CompletionCallback<Attestation>
+    ) {
+        when (currentAttestationStatus.status) {
+            Attestation.Status.Failed, Attestation.Status.Skipped -> {
+                val isDevelopmentCard = session.environment.card!!.firmwareVersion.type ==
+                        FirmwareVersion.FirmwareType.Sdk
+
+                //Possible production sample or development card
+                if (isDevelopmentCard || session.environment.config.allowUntrustedCards) {
+                    session.viewDelegate.attestationDidFail(isDevelopmentCard, {
+                        complete(session, callback)
+                    }) {
+                        callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+                    }
+                } else {
+                    callback(CompletionResult.Failure(TangemSdkError.CardVerificationFailed()))
+                }
+            }
+            Attestation.Status.Verified -> {
+                complete(session, callback)
+            }
+            Attestation.Status.VerifiedOffline -> {
+                if (session.environment.config.attestationMode == Mode.Offline){
+                    complete(session, callback)
+                    return
+                }
+
+                session.viewDelegate.attestationCompletedOffline({
+                    complete(session, callback)
+                }, {
+                    callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+                }, {
+                    retryOnline(session) { result ->
+                        when (result) {
+                            is CompletionResult.Success -> {
+                                processAttestationReport(session, callback)
+                            }
+                            is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+                        }
+                    }
+                })
+            }
+            Attestation.Status.Warning -> {
+                session.viewDelegate.attestationCompletedWithWarnings {
+                    complete(session, callback)
                 }
             }
         }
@@ -252,5 +300,12 @@ class AttestationTask(
         Offline,
         Normal,
         Full
+    }
+
+    companion object {
+        /**
+         * Attest wallet count or sign command count greater this value is looks suspicious.
+         */
+        private const val MAX_COUNTER = 100000
     }
 }
