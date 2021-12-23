@@ -17,3 +17,11 @@ fun <T> List<T>.print(delimiter: String = ", ", wrap: Boolean = true): String {
 operator fun List<CardWallet>.get(publicKey: ByteArray): CardWallet? {
     return this.find { it.publicKey.contentEquals(publicKey) }
 }
+
+fun <T> List<T>.plusIfNotContains(element: T): List<T> {
+    return if (contains(element)) {
+        this
+    } else {
+        this + element
+    }
+}

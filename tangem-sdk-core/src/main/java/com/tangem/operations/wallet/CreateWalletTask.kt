@@ -9,18 +9,21 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
+import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.read.ReadWalletsListCommand
 
 class CreateWalletTask(
-    private val curve: EllipticCurve
+        private val curve: EllipticCurve,
 ) : CardSessionRunnable<CreateWalletResponse> {
+
+    private var derivationTask: DeriveWalletPublicKeysTask? = null
 
     override fun run(session: CardSession, callback: CompletionCallback<CreateWalletResponse>) {
         val command = CreateWalletCommand(curve)
         command.run(session) { result ->
             when (result) {
-                is CompletionResult.Success -> callback(CompletionResult.Success(result.data))
+                is CompletionResult.Success -> deriveKeysIfNeeded(result.data, session, callback)
                 is CompletionResult.Failure -> {
                     //Wallet already created but we didn't get the proper response from the card. Rescan and retrieve the wallet
                     if (result.error is TangemSdkError.InvalidState) {
@@ -35,9 +38,9 @@ class CreateWalletTask(
     }
 
     private fun scanAndRetrieveCreatedWallet(
-        index: Int,
-        session: CardSession,
-        callback: CompletionCallback<CreateWalletResponse>
+            index: Int,
+            session: CardSession,
+            callback: CompletionCallback<CreateWalletResponse>
     ) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
@@ -73,7 +76,42 @@ class CreateWalletTask(
             Log.debug { "Wallet not found after rescan." }
             callback(CompletionResult.Failure(TangemSdkError.UnknownError()))
         } else {
-            callback(CompletionResult.Success(CreateWalletResponse(card.cardId, createdWallet)))
+            val response = CreateWalletResponse(card.cardId, createdWallet)
+            deriveKeysIfNeeded(response, session, callback)
+        }
+    }
+
+    private fun deriveKeysIfNeeded(
+            response: CreateWalletResponse,
+            session: CardSession,
+            callback: CompletionCallback<CreateWalletResponse>
+    ) {
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
+
+        val paths = session.environment.config.defaultDerivationPaths[response.wallet.curve]
+
+        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable
+                || !card.settings.isHDWalletAllowed || paths.isNullOrEmpty()
+        ) {
+            callback(CompletionResult.Success(response))
+            return
+        }
+
+        derivationTask = DeriveWalletPublicKeysTask(
+                walletPublicKey = response.wallet.publicKey, derivationPaths = paths
+        )
+        derivationTask!!.run(session) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    val updatedWallet = response.wallet.copy(derivedKeys = result.data)
+                    val updatedResponse = CreateWalletResponse(card.cardId, updatedWallet)
+                    callback(CompletionResult.Success(updatedResponse))
+                }
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+            }
         }
     }
 }

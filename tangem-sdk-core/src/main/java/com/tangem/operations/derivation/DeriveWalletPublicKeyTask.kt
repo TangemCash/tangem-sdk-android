@@ -5,7 +5,9 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.get
 import com.tangem.common.extensions.guard
+import com.tangem.common.extensions.plusIfNotContains
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.read.ReadWalletCommand
@@ -36,7 +38,17 @@ class DeriveWalletPublicKeyTask(
                         return@run
                     }
 
-                    val childKey = ExtendedPublicKey(result.data.wallet.publicKey, chainCode, derivationPath)
+                    val childKey = ExtendedPublicKey(
+                        compressedPublicKey = result.data.wallet.publicKey,
+                        chainCode = chainCode,
+                        derivationPath = derivationPath
+                    )
+                    val wallet = session.environment.card?.wallets?.get(walletPublicKey)
+                    if (wallet != null) {
+                        session.environment.card = session.environment.card?.updateWallet(
+                            wallet.copy(derivedKeys = wallet.derivedKeys.plusIfNotContains(childKey))
+                        )
+                    }
                     callback(CompletionResult.Success(childKey))
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))

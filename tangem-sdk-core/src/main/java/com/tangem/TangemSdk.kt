@@ -175,12 +175,12 @@ class TangemSdk(
      *
      * @param cardId: CID, Unique Tangem card ID number.
      * @param walletPublicKey: Seed public key.
-     * @param derivationPaths: Derivation paths
+     * @param derivationPaths: Derivation paths. Repeated items will be ignored.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
      * message will be used
      * @param callback: is triggered on the completion of the [DeriveWalletPublicKeyTask] and provides response
      * in the form of the [ExtendedPublicKeyList] if the task was performed successfully or [TangemSdkError] in case
-     * of an error.
+     * of an error. All derived keys are unique and will be returned in arbitrary order.
      */
     fun deriveWalletPublicKeys(
         cardId: String,

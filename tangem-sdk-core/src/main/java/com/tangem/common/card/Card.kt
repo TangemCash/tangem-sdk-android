@@ -451,6 +451,11 @@ data class CardWallet(
      */
     val hasBackup: Boolean,
 
+    /**
+     * Derived keys according to [com.tangem.common.core.Config.defaultDerivationPaths]
+     */
+    val derivedKeys: List<ExtendedPublicKey> = emptyList(),
+
     val extendedPublicKey: ExtendedPublicKey? = initExtendedPublicKey(publicKey, chainCode)
 ) {
 

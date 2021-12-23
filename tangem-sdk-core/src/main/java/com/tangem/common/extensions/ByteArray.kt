@@ -82,3 +82,13 @@ fun ByteArray.calculateCrc16(): ByteArray {
 
     return byteArrayOf((wCRC and 0xFF).toByte(), (wCRC and 0xFFFF shr 8).toByte())
 }
+
+data class ByteArrayKey(val bytes: ByteArray) {
+    override fun equals(other: Any?): Boolean {
+        return this === other || other is ByteArrayKey && this.bytes.contentEquals(other.bytes)
+    }
+
+    override fun hashCode(): Int = bytes.contentHashCode()
+}
+
+fun ByteArray.toMapKey(): ByteArrayKey = ByteArrayKey(this)

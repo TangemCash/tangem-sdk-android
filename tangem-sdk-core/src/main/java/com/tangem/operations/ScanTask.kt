@@ -6,8 +6,10 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.*
 import com.tangem.common.extensions.guard
+import com.tangem.common.extensions.toMapKey
 import com.tangem.operations.*
 import com.tangem.operations.attestation.AttestationTask
+import com.tangem.operations.derivation.DeriveMultipleWalletPublicKeysTask
 import com.tangem.operations.pins.CheckUserCodesCommand
 
 /**
@@ -18,8 +20,7 @@ import com.tangem.operations.pins.CheckUserCodesCommand
 class ScanTask : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
-        val card = session.environment.card
-        if (card == null) {
+        val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
         }
@@ -30,12 +31,12 @@ class ScanTask : CardSessionRunnable<Card> {
         // We cannot run checkUserCodes command for cards whose `isResettingUserCodesAllowed` is set to false
         // because of an error
         if (card.firmwareVersion < FirmwareVersion.IsPasscodeStatusAvailable
-                && card.firmwareVersion.doubleValue > 1.19
-                && card.settings.isResettingUserCodesAllowed
+            && card.firmwareVersion.doubleValue > 1.19
+            && card.settings.isResettingUserCodesAllowed
         ) {
             checkUserCodes(session, callback)
         } else {
-            runAttestation(session, callback)
+            deriveKeysIfNeeded(session, callback)
         }
     }
 
@@ -43,7 +44,43 @@ class ScanTask : CardSessionRunnable<Card> {
         CheckUserCodesCommand().run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    session.environment.card = session.environment.card?.copy(isPasscodeSet = result.data.isPasscodeSet)
+                    session.environment.card =
+                        session.environment.card?.copy(isPasscodeSet = result.data.isPasscodeSet)
+                    runAttestation(session, callback)
+                }
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+            }
+        }
+    }
+
+    private fun deriveKeysIfNeeded(session: CardSession, callback: CompletionCallback<Card>) {
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
+
+        val defaultPaths = session.environment.config.defaultDerivationPaths
+
+        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable
+            || !card.settings.isHDWalletAllowed || defaultPaths.isEmpty()
+        ) {
+            runAttestation(session, callback)
+            return
+        }
+
+        val derivations = card.wallets.mapNotNull { wallet ->
+            val paths = defaultPaths[wallet.curve]
+            if (!paths.isNullOrEmpty()) wallet.publicKey.toMapKey() to paths else null
+        }.toMap()
+
+        if (derivations.isEmpty()) {
+            runAttestation(session, callback)
+            return
+        }
+
+        DeriveMultipleWalletPublicKeysTask(derivations).run(session) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
                     runAttestation(session, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
