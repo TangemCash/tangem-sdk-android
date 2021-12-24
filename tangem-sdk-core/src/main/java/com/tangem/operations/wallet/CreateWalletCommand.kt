@@ -146,24 +146,29 @@ internal class CreateWalletCommand(
         val wallet = when {
             card.firmwareVersion >= FirmwareVersion.CreateWalletResponseAvailable -> {
                 //Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
-                WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder).guard {
+                WalletDeserializer(
+                    isDefaultPermanentWallet = card.settings.isPermanentWallet,
+                    secp256k1KeyFormat = environment.config.secp256k1KeyFormat
+                ).deserializeWallet(decoder).guard {
                     throw TangemSdkError.WalletCannotBeCreated()
                 }
             }
             card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable -> {
                 //We don't have a wallet response so we use to create it ourselves
                 makeWalletLegacy(
-                    decoder,
-                    decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex,
-                    null,  //deprecated
-                    false,  //We don't have a wallet response so we use to create it ourselves
+                    decoder = decoder,
+                    index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex,
+                    remainingSignatures = null,  //deprecated
+                    isPermanentWallet = false,  //We don't have a wallet response so we use to create it ourselves
+                    secp256k1KeyFormat = environment.config.secp256k1KeyFormat
                 )
             }
             else -> makeWalletLegacy(
-                decoder,
-                0,
-                card.remainingSignatures,
-                card.settings.isPermanentWallet
+                decoder = decoder,
+                index = 0,
+                remainingSignatures = card.remainingSignatures,
+                isPermanentWallet = card.settings.isPermanentWallet,
+                secp256k1KeyFormat = environment.config.secp256k1KeyFormat
             )
         }
 
@@ -174,10 +179,17 @@ internal class CreateWalletCommand(
         decoder: TlvDecoder,
         index: Int,
         remainingSignatures: Int?,
-        isPermanentWallet: Boolean
+        isPermanentWallet: Boolean,
+        secp256k1KeyFormat: Secp256k1KeyFormat,
     ): CardWallet {
+        val walletPublicKey: ByteArray = decoder.decode(TlvTag.WalletPublicKey)
+        val key = if (curve == EllipticCurve.Secp256k1) {
+            secp256k1KeyFormat.format(walletPublicKey)
+        } else {
+            walletPublicKey
+        }
         return CardWallet(
-            publicKey = decoder.decode(TlvTag.WalletPublicKey),
+            publicKey = key,
             chainCode = null,
             curve = curve,
             settings = CardWallet.Settings(isPermanentWallet),

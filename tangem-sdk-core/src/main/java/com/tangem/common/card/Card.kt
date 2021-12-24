@@ -3,7 +3,6 @@ package com.tangem.common.card
 import com.squareup.moshi.JsonClass
 import com.tangem.common.BaseMask
 import com.tangem.common.Mask
-import com.tangem.common.card.CardWallet.Status.Companion.initExtendedPublicKey
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
@@ -408,8 +407,7 @@ data class Card internal constructor(
     }
 }
 
-@JvmInline
-value class WalletIndex(val value: Int)
+data class WalletIndex(val value: Int)
 
 data class CardWallet(
     /**
@@ -458,9 +456,7 @@ data class CardWallet(
      * Derived keys according to [com.tangem.common.core.Config.defaultDerivationPaths]
      */
     val derivedKeys: List<ExtendedPublicKey> = emptyList(),
-
-    val extendedPublicKey: ExtendedPublicKey? = initExtendedPublicKey(publicKey, chainCode)
-) {
+    ) {
 
     /**
      * Status of the wallet.

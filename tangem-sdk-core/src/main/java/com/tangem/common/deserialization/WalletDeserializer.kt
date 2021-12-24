@@ -1,6 +1,8 @@
 package com.tangem.common.deserialization
 
 import com.tangem.common.card.CardWallet
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.Secp256k1KeyFormat
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder
@@ -12,7 +14,8 @@ import com.tangem.common.tlv.TlvTag
  * so we should take them from the card's settings
  */
 internal class WalletDeserializer(
-    private val isDefaultPermanentWallet: Boolean
+    private val isDefaultPermanentWallet: Boolean,
+    private val secp256k1KeyFormat: Secp256k1KeyFormat
 ) {
 
     internal fun deserializeWallets(decoder: TlvDecoder): DeserializedWallets {
@@ -37,7 +40,8 @@ internal class WalletDeserializer(
     }
 
     private fun deserialize(decoder: TlvDecoder, status: CardWallet.Status): CardWallet {
-        val walletSettingsMask: CardWallet.SettingsMask? = decoder.decodeOptional(TlvTag.SettingsMask)
+        val walletSettingsMask: CardWallet.SettingsMask? =
+            decoder.decodeOptional(TlvTag.SettingsMask)
 
         val settings = if (walletSettingsMask != null) {
             CardWallet.Settings(walletSettingsMask)
@@ -46,10 +50,18 @@ internal class WalletDeserializer(
             CardWallet.Settings(isDefaultPermanentWallet)
         }
 
+        val walletPublicKey: ByteArray = decoder.decode(TlvTag.WalletPublicKey)
+        val curve: EllipticCurve = decoder.decode(TlvTag.CurveId)
+        val key = if (curve == EllipticCurve.Secp256k1) {
+            secp256k1KeyFormat.format(walletPublicKey)
+        } else {
+            walletPublicKey
+        }
+
         return CardWallet(
-            publicKey = decoder.decode(TlvTag.WalletPublicKey),
+            publicKey = key,
             chainCode = decoder.decodeOptional(TlvTag.WalletHDChain),
-            curve = decoder.decode(TlvTag.CurveId),
+            curve = curve,
             settings = settings,
             totalSignedHashes = decoder.decode(TlvTag.WalletSignedHashes),
             remainingSignatures = null,

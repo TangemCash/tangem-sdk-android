@@ -85,7 +85,8 @@ class PersonalizeCommand(
         val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
 
         val isAccessCodeSet = config.pin != UserCodeType.AccessCode.defaultValue
-        return CardDeserializer.deserialize(isAccessCodeSet, decoder, cardDataDecoder, true)
+        return CardDeserializer(environment.config.secp256k1KeyFormat)
+            .deserialize(isAccessCodeSet, decoder, cardDataDecoder, true)
     }
 
     private fun serializePersonalizationData(config: CardConfig): ByteArray {

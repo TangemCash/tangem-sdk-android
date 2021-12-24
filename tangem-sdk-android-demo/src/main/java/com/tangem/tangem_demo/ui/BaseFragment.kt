@@ -55,7 +55,7 @@ abstract class BaseFragment : Fragment() {
             val card = card ?: return null
             if (card.wallets.isEmpty() || selectedIndexOfWallet >= card.wallets.size) return null
 
-            return card.wallets[selectedIndexOfWallet].publicKey
+            return card.wallet(WalletIndex(selectedIndexOfWallet))?.publicKey
         }
 
     private var needRescanCard = true

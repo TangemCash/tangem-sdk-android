@@ -72,7 +72,10 @@ class ReadWalletCommand(
 
         val decoder = TlvDecoder(tlvData)
         val wallet = try {
-            WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder)
+            WalletDeserializer(
+                isDefaultPermanentWallet = card.settings.isPermanentWallet,
+                secp256k1KeyFormat = environment.config.secp256k1KeyFormat
+            ).deserializeWallet(decoder)
         } catch (ex: Exception) {
             throw TangemSdkError.WalletNotFound()
         }

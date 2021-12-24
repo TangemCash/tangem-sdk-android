@@ -82,7 +82,10 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
-        val deserializedData = WalletDeserializer(card.settings.isPermanentWallet)
+        val deserializedData = WalletDeserializer(
+            isDefaultPermanentWallet = card.settings.isPermanentWallet,
+            secp256k1KeyFormat = environment.config.secp256k1KeyFormat
+        )
             .deserializeWallets(decoder)
         receivedWalletsCount += deserializedData.second
 
