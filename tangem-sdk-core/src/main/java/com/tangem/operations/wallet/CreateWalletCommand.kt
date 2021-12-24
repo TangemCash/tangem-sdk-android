@@ -98,19 +98,7 @@ internal class CreateWalletCommand(
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
-        // We need to execute this wallet index calculation stuff only after precheck.
-        // Run fires only before precheck. And precheck will not fire if error handling disabled
-        val maxIndex = card.settings.maxWalletsCount
-        val occupiedIndexes = card.wallets.map { it.index }
-        val allIndexes = 0 until maxIndex
-
-        walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
-            if (maxIndex == 1) {
-                throw TangemSdkError.AlreadyCreated()
-            } else {
-                throw TangemSdkError.MaxNumberOfWalletsCreated()
-            }
-        }
+        walletIndex = calculateWalletIndex(card)
 
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
@@ -131,6 +119,23 @@ internal class CreateWalletCommand(
         }
 
         return CommandApdu(Instruction.CreateWallet, tlvBuilder.serialize())
+    }
+
+    @Throws(TangemSdkError::class)
+    private fun calculateWalletIndex(card: Card): Int {
+        // We need to execute this wallet index calculation stuff only after precheck.
+        // Run fires only before precheck. And precheck will not fire if error handling disabled
+        val maxIndex = card.settings.maxWalletsCount
+        val occupiedIndexes = card.wallets.map { it.index.value }
+        val allIndexes = 0 until maxIndex
+
+        return allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
+            if (maxIndex == 1) {
+                throw TangemSdkError.AlreadyCreated()
+            } else {
+                throw TangemSdkError.MaxNumberOfWalletsCreated()
+            }
+        }
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): CreateWalletResponse {
@@ -178,7 +183,7 @@ internal class CreateWalletCommand(
             settings = CardWallet.Settings(isPermanentWallet),
             totalSignedHashes = 0,
             remainingSignatures = remainingSignatures,
-            index = index,
+            index = WalletIndex(index),
             hasBackup = false
         )
     }

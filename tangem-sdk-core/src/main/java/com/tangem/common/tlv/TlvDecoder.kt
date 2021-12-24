@@ -213,6 +213,20 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                 }
             }
+            TlvValueType.WalletIndex -> {
+                try {
+                    typeCheck<T, WalletIndex>(tag)
+                    WalletIndex(tlvValue.toInt()) as T
+                } catch (exception: Exception) {
+                    try {
+                        typeCheck<T, Int>(tag)
+                        tlvValue.toInt() as T
+                    } catch (ex: Exception) {
+                        logException(tag, tlvValue.toHexString(), exception)
+                        throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                    }
+                }
+            }
         }
     }
 

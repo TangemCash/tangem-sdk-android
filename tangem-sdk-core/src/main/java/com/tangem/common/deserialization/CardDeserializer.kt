@@ -1,10 +1,7 @@
 package com.tangem.common.deserialization
 
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.Card
-import com.tangem.common.card.CardWallet
-import com.tangem.common.card.EllipticCurve
-import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.card.*
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.tlv.Tlv
@@ -55,7 +52,7 @@ class CardDeserializer {
                     settings = walletSettings,
                     totalSignedHashes = decoder.decodeOptional(TlvTag.WalletSignedHashes),
                     remainingSignatures = remainingSignatures,
-                    index = 0,
+                    index = WalletIndex(0),
                     hasBackup = false,
                 )
                 wallets.add(wallet)

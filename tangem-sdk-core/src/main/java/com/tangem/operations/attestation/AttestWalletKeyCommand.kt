@@ -5,7 +5,7 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.*
 import com.tangem.common.core.*
 import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
@@ -45,13 +45,21 @@ class AttestWalletKeyResponse(
 /**
  * This command proves that the wallet private key from the card corresponds to the wallet public key.
  * Standard challenge/response scheme is used.
- * @property publicKey: Public key of the wallet to check
+ * @property walletIndex: Index key of the wallet to check
  * @property challenge: Optional challenge. If null, it will be created automatically and returned in command response
  */
 class AttestWalletKeyCommand(
-    val walletPublicKey: ByteArray,
+    val walletIndex: WalletIndex,
     var challenge: ByteArray? = null,
 ) : Command<AttestWalletKeyResponse>() {
+
+    override fun performPreCheck(card: Card): TangemSdkError? {
+        if (card.wallet(walletIndex) == null) {
+            return TangemSdkError.WalletNotFound()
+        }
+
+        return null
+    }
 
     override fun run(session: CardSession, callback: CompletionCallback<AttestWalletKeyResponse>) {
         challenge = challenge ?: CryptoUtils.generateRandomBytes(16)
@@ -60,11 +68,11 @@ class AttestWalletKeyCommand(
             when (result) {
                 is CompletionResult.Success -> {
                     val checkWalletResponse = result.data
-                    val curve = session.environment.card?.wallet(walletPublicKey)?.curve.guard {
+                    val wallet = session.environment.card?.wallet(walletIndex).guard {
                         callback(CompletionResult.Failure(TangemSdkError.CardError()))
                         return@run
                     }
-                    val verifyResult = verify(checkWalletResponse, curve)
+                    val verifyResult = verify(checkWalletResponse, wallet)
                     if (verifyResult == true) {
                         callback(CompletionResult.Success(checkWalletResponse))
                     } else {
@@ -77,8 +85,6 @@ class AttestWalletKeyCommand(
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
-        val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
-
         val builder = TlvBuilder()
         builder.append(TlvTag.Pin, environment.accessCode.value)
         builder.append(TlvTag.CardId, environment.card?.cardId)
@@ -88,8 +94,13 @@ class AttestWalletKeyCommand(
         return CommandApdu(Instruction.AttestWalletKey, builder.serialize())
     }
 
-    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): AttestWalletKeyResponse {
-        val tlv = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+    override fun deserialize(
+        environment: SessionEnvironment,
+        apdu: ResponseApdu
+    ): AttestWalletKeyResponse {
+        val tlv = apdu.getTlvData(environment.encryptionKey)
+            ?: throw TangemSdkError.DeserializeApduFailed()
+
         val decoder = TlvDecoder(tlv)
         return AttestWalletKeyResponse(
             decoder.decode(TlvTag.CardId),
@@ -100,10 +111,15 @@ class AttestWalletKeyCommand(
         )
     }
 
-    private fun verify(response: AttestWalletKeyResponse, curve: EllipticCurve): Boolean? {
+    private fun verify(response: AttestWalletKeyResponse, wallet: CardWallet): Boolean? {
         val signature = response.walletSignature ?: return null
         val salt = response.salt ?: return null
 
-        return CryptoUtils.verify(walletPublicKey, challenge!! + salt, signature, curve)
+        return CryptoUtils.verify(
+            publicKey = wallet.publicKey,
+            message = challenge!! + salt,
+            signature = signature,
+            curve = wallet.curve
+        )
     }
 }

@@ -1,6 +1,7 @@
 package com.tangem.operations.derivation
 
 import com.tangem.common.CompletionResult
+import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
@@ -15,11 +16,11 @@ class ExtendedPublicKeyList(
 /**
  * Derive wallet public keys according to BIP32 (Private parent key → public child key)
  * Warning: Only `secp256k1` and `ed25519` (BIP32-Ed25519 scheme) curves supported
- * @property walletPublicKey seed public key.
+ * @property walletIndex: Index of the wallet.
  * @property derivationPaths multiple derivation paths. Repeated items will be ignored.
  */
 class DeriveWalletPublicKeysTask(
-    private val walletPublicKey: ByteArray,
+    private val walletIndex: WalletIndex,
     derivationPaths: List<DerivationPath>,
 ) : CardSessionRunnable<ExtendedPublicKeyList> {
 
@@ -40,7 +41,7 @@ class DeriveWalletPublicKeysTask(
             return
         }
 
-        val task = DeriveWalletPublicKeyTask(walletPublicKey, derivationPaths[index])
+        val task = DeriveWalletPublicKeyTask(walletIndex, derivationPaths[index])
         task.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {

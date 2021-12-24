@@ -4,6 +4,7 @@ import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
@@ -71,7 +72,7 @@ class CreateWalletTask(
             return
         }
 
-        val createdWallet = card.wallets.firstOrNull { it.index == index }
+        val createdWallet = card.wallet(WalletIndex(index))
         if (createdWallet == null) {
             Log.debug { "Wallet not found after rescan." }
             callback(CompletionResult.Failure(TangemSdkError.UnknownError()))
@@ -101,7 +102,7 @@ class CreateWalletTask(
         }
 
         derivationTask = DeriveWalletPublicKeysTask(
-                walletPublicKey = response.wallet.publicKey, derivationPaths = paths
+                walletIndex = response.wallet.index, derivationPaths = paths
         )
         derivationTask!!.run(session) { result ->
             when (result) {

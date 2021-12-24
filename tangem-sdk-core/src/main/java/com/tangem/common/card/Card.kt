@@ -106,23 +106,23 @@ data class Card internal constructor(
 ) : CommandResponse {
 
     fun setWallets(newWallets: List<CardWallet>): Card {
-        val sortedWallets = newWallets.toMutableList().apply { sortBy { it.index } }
+        val sortedWallets = newWallets.toMutableList().apply { sortBy { it.index.value } }
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun wallet(publicKey: ByteArray): CardWallet? =
-        wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
+    fun wallet(walletIndex: WalletIndex): CardWallet? =
+        wallets.firstOrNull { it.index == walletIndex }
 
     fun addWallet(wallet: CardWallet): Card {
         val sortedWallets = wallets.toMutableList().apply {
             add(wallet)
-            sortBy { it.index }
+            sortBy { it.index.value }
         }
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun removeWallet(publicKey: ByteArray): Card {
-        val wallet = wallet(publicKey) ?: return this
+    fun removeWallet(walletIndex: WalletIndex): Card {
+        val wallet = wallet(walletIndex) ?: return this
         return setWallets(wallets.toMutableList().apply { remove(wallet) })
     }
 
@@ -408,6 +408,9 @@ data class Card internal constructor(
     }
 }
 
+@JvmInline
+value class WalletIndex(val value: Int)
+
 data class CardWallet(
     /**
      *  Wallet's public key.
@@ -444,7 +447,7 @@ data class CardWallet(
     /**
      *  Index of the wallet in the card storage
      */
-    val index: Int,
+    val index: WalletIndex,
 
     /**
      *  Shows whether this wallet has a backup

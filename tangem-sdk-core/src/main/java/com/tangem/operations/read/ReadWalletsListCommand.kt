@@ -57,7 +57,7 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
                         return@transceive
                     }
 
-                    loadedWallets.sortBy { it.index }
+                    loadedWallets.sortBy { it.index.value }
                     session.environment.card = session.environment.card?.setWallets(loadedWallets)
                     callback(CompletionResult.Success(ReadWalletsListResponse(result.data.cardId, loadedWallets)))
                 }

@@ -4,6 +4,7 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.*
 import com.tangem.common.files.DataToWrite
 import com.tangem.common.files.FileHashData
@@ -90,7 +91,7 @@ class TangemSdk(
      * It is for `SessionViewDelegate` to notify users of security delay.
      *
      * @param hash: Transaction hash for sign by card.
-     * @param walletPublicKey: Public key of wallet that should sign hash.
+     * @param walletIndex: Index of wallet that should sign hash.
      * @param cardId: CID, Unique Tangem card ID number
      * @param derivationPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
@@ -101,13 +102,13 @@ class TangemSdk(
      */
     fun sign(
         hash: ByteArray,
-        walletPublicKey: ByteArray,
+        walletIndex: WalletIndex,
         cardId: String,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignHashResponse>
     ) {
-        val command = SignHashCommand(hash, walletPublicKey, derivationPath)
+        val command = SignHashCommand(hash, walletIndex, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -124,7 +125,7 @@ class TangemSdk(
      * It is for [SessionViewDelegate] to notify users of security delay.
      *
      * @param hashes: Array of transaction hashes. It can be from one or up to ten hashes of the same length.
-     * @param walletPublicKey: Public key of the wallet that should sign hashes.
+     * @param walletIndex: Index key of the wallet that should sign hashes.
      * @param cardId: CID, Unique Tangem card ID number
      * @param derivationPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
@@ -135,13 +136,13 @@ class TangemSdk(
      */
     fun sign(
         hashes: Array<ByteArray>,
-        walletPublicKey: ByteArray,
+        walletIndex: WalletIndex,
         cardId: String,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignResponse>
     ) {
-        val command = SignCommand(hashes, walletPublicKey, derivationPath)
+        val command = SignCommand(hashes, walletIndex, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -150,7 +151,7 @@ class TangemSdk(
      * Warning: Only `secp256k1` and `ed25519` (BIP32-Ed25519 scheme) curves supported
      *
      * @param cardId: CID, Unique Tangem card ID number.
-     * @param walletPublicKey: Seed public key.
+     * @param walletIndex: Index key.
      * @param derivationPath: Derivation path
      * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
      * message will be used
@@ -160,12 +161,12 @@ class TangemSdk(
      */
     fun deriveWalletPublicKey(
         cardId: String,
-        walletPublicKey: ByteArray,
+        walletIndex: WalletIndex,
         derivationPath: DerivationPath,
         initialMessage: Message? = null,
         callback: CompletionCallback<ExtendedPublicKey>
     ) {
-        val command = DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
+        val command = DeriveWalletPublicKeyTask(walletIndex, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -174,7 +175,7 @@ class TangemSdk(
      * Warning: Only `secp256k1` and `ed25519` (BIP32-Ed25519 scheme) curves supported
      *
      * @param cardId: CID, Unique Tangem card ID number.
-     * @param walletPublicKey: Seed public key.
+     * @param walletIndex: Index key.
      * @param derivationPaths: Derivation paths. Repeated items will be ignored.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
      * message will be used
@@ -184,12 +185,12 @@ class TangemSdk(
      */
     fun deriveWalletPublicKeys(
         cardId: String,
-        walletPublicKey: ByteArray,
+        walletIndex: WalletIndex,
         derivationPaths: List<DerivationPath>,
         initialMessage: Message? = null,
         callback: CompletionCallback<ExtendedPublicKeyList>
     ) {
-        val command = DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
+        val command = DeriveWalletPublicKeysTask(walletIndex, derivationPaths)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -226,7 +227,7 @@ class TangemSdk(
      *
      * This command deletes all wallet data. If IsReusable flag is enabled during personalization.
      *
-     * @param walletPublicKey: Public key of wallet that should be purged.
+     * @param walletIndex: Index key of wallet that should be purged.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
@@ -235,12 +236,12 @@ class TangemSdk(
      * or [TangemSdkError] in case of an error.
      */
     fun purgeWallet(
-        walletPublicKey: ByteArray,
+        walletIndex: WalletIndex,
         cardId: String,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
-        startSessionWithRunnable(PurgeWalletCommand(walletPublicKey), cardId, initialMessage, callback)
+        startSessionWithRunnable(PurgeWalletCommand(walletIndex), cardId, initialMessage, callback)
     }
 
     /**

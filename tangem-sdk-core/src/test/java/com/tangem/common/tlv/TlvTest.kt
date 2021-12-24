@@ -1,6 +1,7 @@
 package com.tangem.common.tlv
 
 import com.google.common.truth.Truth.assertThat
+import com.tangem.common.card.WalletIndex
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import org.junit.jupiter.api.Test
@@ -10,81 +11,93 @@ class TlvTest {
     @Test
     fun `TLVs to bytes, only PIN`() {
         val tlvs = listOf(
-                Tlv(TlvTag.Pin, "000000".calculateSha256())
+            Tlv(TlvTag.Pin, "000000".calculateSha256())
         )
-        val expected = byteArrayOf(16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115,
-                -10, -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124,
-                -123, -55, -94, 3)
+        val expected = byteArrayOf(
+            16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115,
+            -10, -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124,
+            -123, -55, -94, 3
+        )
 
         assertThat(tlvs.serialize())
-                .isEqualTo(expected)
+            .isEqualTo(expected)
     }
 
     @Test
     fun `TLVs to bytes, check wallet`() {
         val tlvs = listOf(
-                Tlv(TlvTag.Pin, "000000".calculateSha256()),
-                Tlv(TlvTag.CardId, "cb22000000027374".hexToBytes()),
-                Tlv(TlvTag.Challenge, byteArrayOf(-82, -78, -31, 34, 66, -19, -86, -1, 26, 8, 100, -126, -74, 20, -28, 83))
+            Tlv(TlvTag.Pin, "000000".calculateSha256()),
+            Tlv(TlvTag.CardId, "cb22000000027374".hexToBytes()),
+            Tlv(
+                TlvTag.Challenge,
+                byteArrayOf(-82, -78, -31, 34, 66, -19, -86, -1, 26, 8, 100, -126, -74, 20, -28, 83)
+            )
         )
 
-        val expected = byteArrayOf(16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115, -10,
-                -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124, -123,
-                -55, -94, 3, 1, 8, -53, 34, 0, 0, 0, 2, 115, 116, 22, 16, -82, -78, -31, 34, 66, -19,
-                -86, -1, 26, 8, 100, -126, -74, 20, -28, 83)
+        val expected = byteArrayOf(
+            16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115, -10,
+            -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124, -123,
+            -55, -94, 3, 1, 8, -53, 34, 0, 0, 0, 2, 115, 116, 22, 16, -82, -78, -31, 34, 66, -19,
+            -86, -1, 26, 8, 100, -126, -74, 20, -28, 83
+        )
 
         assertThat(tlvs.serialize())
-                .isEqualTo(expected)
+            .isEqualTo(expected)
     }
 
     @Test
     fun `Bytes to Tlvs, only PIN`() {
-        val bytes = byteArrayOf(16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115,
-                -10, -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124,
-                -123, -55, -94, 3)
+        val bytes = byteArrayOf(
+            16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115,
+            -10, -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124,
+            -123, -55, -94, 3
+        )
 
         val tlvs = Tlv.deserialize(bytes)
 
         assertThat(tlvs)
-                .isNotNull()
+            .isNotNull()
         assertThat(tlvs)
-                .isNotEmpty()
+            .isNotEmpty()
 
         val pin = tlvs!!.find { it.tag == TlvTag.Pin }?.value
         val pinExpected = "000000".calculateSha256()
 
         assertThat(pin)
-                .isEqualTo(pinExpected)
+            .isEqualTo(pinExpected)
     }
 
     @Test
     fun `Bytes to TLVs, check wallet TLVs`() {
-        val bytes = byteArrayOf(16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115, -10,
-                -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124, -123,
-                -55, -94, 3, 1, 8, -53, 34, 0, 0, 0, 2, 115, 116, 22, 16, -82, -78, -31, 34, 66, -19,
-                -86, -1, 26, 8, 100, -126, -74, 20, -28, 83)
+        val bytes = byteArrayOf(
+            16, 32, -111, -76, -47, 66, -126, 63, 125, 32, -59, -16, -115, -10,
+            -111, 34, -34, 67, -13, 95, 5, 122, -104, -115, -106, 25, -10, -45, 19, -124, -123,
+            -55, -94, 3, 1, 8, -53, 34, 0, 0, 0, 2, 115, 116, 22, 16, -82, -78, -31, 34, 66, -19,
+            -86, -1, 26, 8, 100, -126, -74, 20, -28, 83
+        )
 
         val tlvs = Tlv.deserialize(bytes)
 
         assertThat(tlvs)
-                .isNotNull()
+            .isNotNull()
         assertThat(tlvs)
-                .isNotEmpty()
+            .isNotEmpty()
 
         val pin = tlvs!!.find { it.tag == TlvTag.Pin }?.value
         val pinExpected = "000000".calculateSha256()
         assertThat(pin)
-                .isEqualTo(pinExpected)
+            .isEqualTo(pinExpected)
 
         val cardId = tlvs.find { it.tag == TlvTag.CardId }?.value
         val cardIdExpected = "cb22000000027374".hexToBytes()
         assertThat(cardId)
-                .isEqualTo(cardIdExpected)
+            .isEqualTo(cardIdExpected)
 
         val challenge = tlvs.find { it.tag == TlvTag.Challenge }?.value
-        val challengeExpected = byteArrayOf(-82, -78, -31, 34, 66, -19, -86, -1, 26, 8, 100, -126, -74, 20, -28, 83)
+        val challengeExpected =
+            byteArrayOf(-82, -78, -31, 34, 66, -19, -86, -1, 26, 8, 100, -126, -74, 20, -28, 83)
         assertThat(challenge)
-                .isEqualTo(challengeExpected)
+            .isEqualTo(challengeExpected)
     }
 
     @Test
@@ -92,19 +105,64 @@ class TlvTest {
         val bytes = byteArrayOf(0)
         val tlvs = Tlv.deserialize(bytes)
         assertThat(tlvs)
-                .isNull()
+            .isNull()
 
         val bytes1 = byteArrayOf(0, 0, 0, 0, 0, 0, 0)
         val tlvs1 = Tlv.deserialize(bytes1)
         assertThat(tlvs1)
-                .isNull()
+            .isNull()
     }
 
     @Test
     fun `parse Slix tag response`() {
-        val response = "03ff010f91010b550474616e67656d2e636f6d140f11616e64726f69642e636f6d3a706b67636f6d2e74616e67656d2e77616c6c65745411c974616e67656d2e636f6d3a77616c6c657490000c618102ffff8a0102820407e40109830b54414e47454d2053444b008403584c4d86400e71c1f060387029688254320b90abeae471bcafbbe8ea3880903bdb8d1cc389d032b982e1ffd7ef49e66f1780123b763dd2f3a9a9494eb0fad4ae8cf306672c60207c967a51077c14fc49d867f23b8d0eaf60cad479a56587e894571b7fb33690176140345fbe53f5be0ec871e91c317cde2bd0396d47e4b945c138c153b0271f636a73cf531df1bc54ac4fcdbce42f81b40d58e0265d34e28121a4c50fdfe329a97f6000fe000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        val response =
+            "03ff010f91010b550474616e67656d2e636f6d140f11616e64726f69642e636f6d3a706b67636f6d2e74616e67656d2e77616c6c65745411c974616e67656d2e636f6d3a77616c6c657490000c618102ffff8a0102820407e40109830b54414e47454d2053444b008403584c4d86400e71c1f060387029688254320b90abeae471bcafbbe8ea3880903bdb8d1cc389d032b982e1ffd7ef49e66f1780123b763dd2f3a9a9494eb0fad4ae8cf306672c60207c967a51077c14fc49d867f23b8d0eaf60cad479a56587e894571b7fb33690176140345fbe53f5be0ec871e91c317cde2bd0396d47e4b945c138c153b0271f636a73cf531df1bc54ac4fcdbce42f81b40d58e0265d34e28121a4c50fdfe329a97f6000fe000000000000000000000000000000000000000000000000000000000000000000000000000000"
         val tlvs = Tlv.deserialize(response.hexToBytes(), true)
         assertThat(tlvs)
-                .isNotEmpty()
+            .isNotEmpty()
+    }
+
+    @Test
+    fun `WalletIndex to bytes`() {
+        val builder = TlvBuilder()
+        builder.append(
+            TlvTag.WalletIndex, WalletIndex(1)
+        )
+        val expected = "650101".hexToBytes()
+
+        assertThat(builder.serialize())
+            .isEqualTo(expected)
+    }
+
+    @Test
+    fun `WalletIndex as Int to bytes`() {
+        val builder = TlvBuilder()
+        builder.append(
+            TlvTag.WalletIndex, 1
+        )
+        val expected = "650101".hexToBytes()
+
+        assertThat(builder.serialize())
+            .isEqualTo(expected)
+    }
+
+    @Test
+    fun `Bytes to WalletIndex`() {
+        val bytes = "650101".hexToBytes()
+        val tlvs = Tlv.deserialize(bytes)!!
+        val walletIndex = TlvDecoder(tlvs).decode<WalletIndex>(TlvTag.WalletIndex)
+
+        assertThat(walletIndex)
+            .isEqualTo(WalletIndex(1))
+    }
+
+    @Test
+    fun `Bytes to WalletIndex as Int`() {
+        val bytes = "650101".hexToBytes()
+        val tlvs = Tlv.deserialize(bytes)!!
+        val walletIndex = TlvDecoder(tlvs).decode<Int>(TlvTag.WalletIndex)
+
+        assertThat(walletIndex)
+            .isEqualTo(1)
     }
 }

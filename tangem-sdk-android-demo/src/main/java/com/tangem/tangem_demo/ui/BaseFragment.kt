@@ -15,6 +15,7 @@ import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.WalletIndex
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
@@ -137,7 +138,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
 
-        sdk.deriveWalletPublicKey(card.cardId, walletPublicKey, path) { handleResult(it) }
+        sdk.deriveWalletPublicKey(card.cardId, WalletIndex(selectedIndexOfWallet), path) { handleResult(it) }
     }
 
     protected fun signHash(hash: ByteArray) {
@@ -154,7 +155,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hash, publicKey, cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hash, WalletIndex(selectedIndexOfWallet), cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun signHashes(hashes: Array<ByteArray>) {
@@ -171,7 +172,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hashes, publicKey, cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hashes, WalletIndex(selectedIndexOfWallet), cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun createWallet(curve: EllipticCurve) {
@@ -194,7 +195,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.purgeWallet(publicKey, cardId, initialMessage) {
+        sdk.purgeWallet(WalletIndex(selectedIndexOfWallet), cardId, initialMessage) {
             needRescanCard = it is CompletionResult.Success
             handleResult(it)
         }

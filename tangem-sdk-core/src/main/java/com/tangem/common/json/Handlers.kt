@@ -2,6 +2,7 @@ package com.tangem.common.json
 
 import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
+import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.hdWallet.DerivationPath
@@ -83,7 +84,7 @@ class SignHashHandler : JSONRPCHandler<SignHashResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignHashResponse> {
         val hash = (params["hash"] as String).hexToBytes()
-        val publicKey = (params["walletPublicKey"] as String).hexToBytes()
+        val walletIndex = (params["walletIndex"] as WalletIndex)
         val derivationPath: DerivationPath? = (params["derivationPath"] as? String)?.let {
             try {
                 DerivationPath(it)
@@ -93,7 +94,7 @@ class SignHashHandler : JSONRPCHandler<SignHashResponse> {
             }
         }
 
-        return SignHashCommand(hash, publicKey, derivationPath)
+        return SignHashCommand(hash, walletIndex, derivationPath)
     }
 }
 
@@ -102,7 +103,7 @@ class SignHashesHandler : JSONRPCHandler<SignResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignResponse> {
         val hashes = (params["hashes"] as List<String>).map { it.hexToBytes() }
-        val publicKey = (params["walletPublicKey"] as String).hexToBytes()
+        val walletIndex = (params["walletIndex"] as WalletIndex)
         val derivationPath: DerivationPath? = (params["derivationPath"] as? String)?.let {
             try {
                 DerivationPath(it)
@@ -112,7 +113,7 @@ class SignHashesHandler : JSONRPCHandler<SignResponse> {
             }
         }
 
-        return SignCommand(hashes.toTypedArray(), publicKey, derivationPath)
+        return SignCommand(hashes.toTypedArray(), walletIndex, derivationPath)
     }
 }
 
@@ -120,11 +121,11 @@ class DeriveWalletPublicKeyHandler : JSONRPCHandler<ExtendedPublicKey> {
     override val method: String = "DERIVE_WALLET_PUBLIC_KEY"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKey> {
-        val walletPublicKey: ByteArray = (params["walletPublicKey"] as String).hexToBytes()
+        val walletIndex = (params["walletIndex"] as WalletIndex)
         val rawDerivationPath: String = params["derivationPath"] as String
         val derivationPath = DerivationPath(rawDerivationPath)
 
-        return DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
+        return DeriveWalletPublicKeyTask(walletIndex, derivationPath)
     }
 }
 
@@ -132,11 +133,11 @@ class DeriveWalletPublicKeysHandler : JSONRPCHandler<ExtendedPublicKeyList> {
     override val method: String = "DERIVE_WALLET_PUBLIC_KEYS"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKeyList> {
-        val walletPublicKey: ByteArray = (params["walletPublicKey"] as String).hexToBytes()
+        val walletIndex = (params["walletIndex"] as WalletIndex)
         val rawDerivationPaths: List<String> = params["derivationPaths"] as List<String>
         val derivationPaths: List<DerivationPath> = rawDerivationPaths.map { DerivationPath(it) }
 
-        return DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
+        return DeriveWalletPublicKeysTask(walletIndex, derivationPaths)
     }
 }
 

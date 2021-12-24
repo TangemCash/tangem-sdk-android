@@ -1,10 +1,7 @@
 package com.tangem.common.tlv
 
 import com.tangem.Log
-import com.tangem.common.card.Card
-import com.tangem.common.card.CardWallet
-import com.tangem.common.card.EllipticCurve
-import com.tangem.common.card.SigningMethod
+import com.tangem.common.card.*
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
@@ -140,6 +137,15 @@ class TlvEncoder {
             TlvValueType.DerivationPath -> {
                 typeCheck<T, DerivationPath>(tag)
                 return (value as DerivationPath).nodes.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
+            }
+            TlvValueType.WalletIndex -> {
+                try {
+                    typeCheck<T, WalletIndex>(tag)
+                    (value as WalletIndex).value.toByteArray(1)
+                } catch (ex: Exception) {
+                    typeCheck<T, Int>(tag)
+                    (value as Int).toByteArray(1)
+                }
             }
         }
     }

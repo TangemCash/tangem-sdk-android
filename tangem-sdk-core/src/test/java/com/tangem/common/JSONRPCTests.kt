@@ -4,6 +4,7 @@ import com.tangem.Message
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.WalletIndex
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.files.File
 import com.tangem.common.files.FileSettings
@@ -120,7 +121,7 @@ class JSONRPCTests {
                 CardWallet.Settings(true),
                 10,
                 100,
-                1,
+                WalletIndex(1),
                 false
         )
         val response = CreateWalletResponse("c000111122223333", wallet)
@@ -196,7 +197,7 @@ class JSONRPCTests {
             jsonRpcConverter.convert(request)
         }
 
-        val jsonResponse: JSONRPCResponse? = jsonMap["response"]?.let { converter.toJson(it)?.let { converter.fromJson(it) } }
+        val jsonResponse: JSONRPCResponse? = jsonMap["response"]?.let { converter.toJson(it).let { converter.fromJson(it) } }
         val result: CompletionResult<CommandResponse>? = response?.let { CompletionResult.Success(it) }
         if (jsonResponse != null && result != null) {
             val jsonResponseMap = converter.toMap(jsonResponse)
@@ -210,7 +211,7 @@ class JSONRPCTests {
     }
 
     private fun readJson(fileName: String): String {
-        val workingDir: Path = Paths.get("src/test/resources/jsonRpc", "$fileName.json")!!
+        val workingDir: Path = Paths.get("src/test/resources/jsonRpc", "$fileName.json")
         return String(Files.readAllBytes(workingDir))
     }
 

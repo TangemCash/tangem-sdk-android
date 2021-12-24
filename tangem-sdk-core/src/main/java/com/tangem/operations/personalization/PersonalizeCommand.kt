@@ -93,7 +93,14 @@ class PersonalizeCommand(
 
         val cardData = config.cardData.createPersonalizationCardData()
         val createWallet = config.createWallet != 0
+        val tlvBuilder =  prepareTlvBuilder(cardId, config, createWallet)
+        tlvBuilder.append(TlvTag.CardData, serializeCardData(cardData, cardId))
+        return tlvBuilder.serialize()
+    }
 
+    private fun prepareTlvBuilder(
+        cardId: String, config: CardConfig, createWallet: Boolean
+    ): TlvBuilder {
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.CardId, cardId)
         tlvBuilder.append(TlvTag.CurveId, config.curveID)
@@ -112,9 +119,8 @@ class PersonalizeCommand(
         tlvBuilder.append(TlvTag.IssuerPublicKey, issuer.dataKeyPair.publicKey)
         tlvBuilder.append(TlvTag.IssuerTransactionPublicKey, issuer.transactionKeyPair.publicKey)
         tlvBuilder.append(TlvTag.AcquirerPublicKey, acquirer?.keyPair?.publicKey)
-        tlvBuilder.append(TlvTag.CardData, serializeCardData(cardData, cardId))
 
-        return tlvBuilder.serialize()
+        return tlvBuilder
     }
 
     private fun serializeNdef(config: CardConfig): ByteArray {
