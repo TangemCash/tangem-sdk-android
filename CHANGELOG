@@ -1,1 +1,5 @@
-
+*   6999591f - (HEAD -> release/3.4.1, tag: develop-117, origin/develop, develop) Merge pull request #128 from tangem/CSK-279_fix-parsing-isResettingUserCodesAllowed
+|\  
+| * c7be4af6 - CSK-279 fixed parsing of the isResettingUserCodesAllowed field
+|/  
+* b4f555e8 - (tag: develop-116) Merge pull request #126 from tangem/master

@@ -337,7 +337,7 @@ data class Card internal constructor(
             maxWalletsCount = maxWalletsCount,
             isSettingAccessCodeAllowed = mask.contains(SettingsMask.Code.AllowSetPIN1),
             isSettingPasscodeAllowed = mask.contains(SettingsMask.Code.AllowSetPIN2),
-            isResettingUserCodesAllowed = mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
+            isResettingUserCodesAllowed = !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
             isLinkedTerminalEnabled = mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
             isHDWalletAllowed = mask.contains(SettingsMask.Code.AllowHDWallets),
             isBackupAllowed = mask.contains(SettingsMask.Code.AllowBackup),

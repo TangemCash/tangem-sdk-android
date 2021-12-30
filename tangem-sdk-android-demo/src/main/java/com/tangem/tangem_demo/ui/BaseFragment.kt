@@ -32,7 +32,9 @@ import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
 import com.tangem.tangem_demo.*
+import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
+import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
 
 abstract class BaseFragment : Fragment() {
 
@@ -341,6 +343,7 @@ abstract class BaseFragment : Fragment() {
         val tv = dlg.findViewById<TextView>(R.id.tvResponse) ?: return
 
         tv.text = message
+        dlg.btnCopyResponse.setOnClickListener { tv.context.copyToClipboard(message) }
         dlg.show()
     }
 
