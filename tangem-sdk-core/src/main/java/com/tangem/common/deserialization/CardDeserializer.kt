@@ -109,37 +109,37 @@ class CardDeserializer {
         }
 
         private fun isAccessCodeSet(firmware: FirmwareVersion, decoder: TlvDecoder): Boolean? =
-                if (firmware >= FirmwareVersion.IsAccessCodeStatusAvailable) {
-                    !(decoder.decode(TlvTag.PinIsDefault) as Boolean)
-                } else {
-                    null
-                }
+            if (firmware >= FirmwareVersion.IsAccessCodeStatusAvailable) {
+                !(decoder.decode(TlvTag.PinIsDefault) as Boolean)
+            } else {
+                null
+            }
 
         private fun isPasscodeSet(firmware: FirmwareVersion, decoder: TlvDecoder): Boolean? =
-                if (firmware >= FirmwareVersion.IsPasscodeStatusAvailable) {
-                    !(decoder.decode(TlvTag.Pin2IsDefault) as Boolean)
-                } else {
-                    null
-                }
+            if (firmware >= FirmwareVersion.IsPasscodeStatusAvailable) {
+                !(decoder.decode(TlvTag.Pin2IsDefault) as Boolean)
+            } else {
+                null
+            }
 
         private fun cardManufacturer(decoder: TlvDecoder, cardDataDecoder: TlvDecoder): Card.Manufacturer =
-                Card.Manufacturer(
-                        decoder.decode(TlvTag.ManufacturerName),
-                        cardDataDecoder.decode(TlvTag.ManufactureDateTime),
-                        cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
-                )
+            Card.Manufacturer(
+                decoder.decode(TlvTag.ManufacturerName),
+                cardDataDecoder.decode(TlvTag.ManufactureDateTime),
+                cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
+            )
 
         private fun cardIssuer(decoder: TlvDecoder, cardDataDecoder: TlvDecoder): Card.Issuer = Card.Issuer(
-                cardDataDecoder.decode(TlvTag.IssuerName),
-                decoder.decode(TlvTag.IssuerPublicKey),
+            cardDataDecoder.decode(TlvTag.IssuerName),
+            decoder.decode(TlvTag.IssuerPublicKey),
         )
 
         private fun terminalStatus(decoder: TlvDecoder): Card.LinkedTerminalStatus =
-                if (decoder.decode(TlvTag.TerminalIsLinked)) {
-                    Card.LinkedTerminalStatus.Current
-                } else {
-                    Card.LinkedTerminalStatus.None
-                }
+            if (decoder.decode(TlvTag.TerminalIsLinked)) {
+                Card.LinkedTerminalStatus.Current
+            } else {
+                Card.LinkedTerminalStatus.None
+            }
 
         internal fun getDecoder(environment: SessionEnvironment, apdu: ResponseApdu): TlvDecoder {
             val tlv = apdu.getTlvData(environment.encryptionKey)
@@ -175,11 +175,11 @@ class CardDeserializer {
             mask: Card.SettingsMask,
             defaultCurve: EllipticCurve?
         ): Card.Settings = Card.Settings(
-                decoder.decodeOptional<Int>(TlvTag.PauseBeforePin2)?.let { it * 10 } ?: 0,
-                decoder.decodeOptional(TlvTag.WalletsCount) ?: 1,
-                mask,
-                decoder.decodeOptional(TlvTag.SigningMethod),
-                defaultCurve,
+            decoder.decodeOptional<Int>(TlvTag.PauseBeforePin2)?.let { it * 10 } ?: 0,
+            decoder.decodeOptional(TlvTag.WalletsCount) ?: 1,
+            mask,
+            decoder.decodeOptional(TlvTag.SigningMethod),
+            defaultCurve,
         )
     }
 }

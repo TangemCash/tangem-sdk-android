@@ -8,41 +8,45 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
 
-class ExtendedPublicKeyList(
-    items: Collection<ExtendedPublicKey>
-): ArrayList<ExtendedPublicKey>(items), CommandResponse
+class ExtendedPublicKeysMap(
+    map: Map<DerivationPath, ExtendedPublicKey>
+) : HashMap<DerivationPath, ExtendedPublicKey>(map), CommandResponse
 
 /**
  * Derive wallet public keys according to BIP32 (Private parent key → public child key)
  * Warning: Only `secp256k1` and `ed25519` (BIP32-Ed25519 scheme) curves supported
  * @property walletPublicKey seed public key.
- * @property derivationPaths multiple derivation paths.
+ * @property derivationPaths multiple derivation paths. Repeated items will be ignored.
  */
 class DeriveWalletPublicKeysTask(
     private val walletPublicKey: ByteArray,
-    private val derivationPaths: List<DerivationPath>,
-) : CardSessionRunnable<ExtendedPublicKeyList> {
+    derivationPaths: List<DerivationPath>,
+) : CardSessionRunnable<ExtendedPublicKeysMap> {
 
-    override fun run(session: CardSession, callback: CompletionCallback<ExtendedPublicKeyList>) {
-        runDerivation(0, listOf(), session, callback)
+    private val derivationPaths = derivationPaths.distinct()
+
+    override fun run(session: CardSession, callback: CompletionCallback<ExtendedPublicKeysMap>) {
+        runDerivation(0, emptyMap(), session, callback)
     }
 
     private fun runDerivation(
         index: Int,
-        keys: List<ExtendedPublicKey>,
+        keys: Map<DerivationPath, ExtendedPublicKey>,
         session: CardSession,
-        callback: CompletionCallback<ExtendedPublicKeyList>
+        callback: CompletionCallback<ExtendedPublicKeysMap>
     ) {
         if (index >= derivationPaths.size) {
-            callback(CompletionResult.Success(ExtendedPublicKeyList(keys)))
+            callback(CompletionResult.Success(ExtendedPublicKeysMap(keys)))
             return
         }
-
-        val task = DeriveWalletPublicKeyTask(walletPublicKey, derivationPaths[index])
+        val path = derivationPaths[index]
+        val task = DeriveWalletPublicKeyTask(walletPublicKey, path)
         task.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    runDerivation(index + 1, keys + listOf(result.data), session, callback)
+                    val updatedKeys = keys.toMutableMap()
+                    updatedKeys[path] = result.data
+                    runDerivation(index + 1, updatedKeys, session, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }

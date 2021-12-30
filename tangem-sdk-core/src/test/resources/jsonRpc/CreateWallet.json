@@ -19,7 +19,9 @@
         },
         "totalSignedHashes": 10,
         "remainingSignatures": 100,
-        "index": 1
+        "index": 1,
+        "hasBackup" : false,
+        "derivedKeys" : []
       }
     },
     "id": 1

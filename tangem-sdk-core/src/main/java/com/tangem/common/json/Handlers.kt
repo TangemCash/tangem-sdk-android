@@ -11,7 +11,7 @@ import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
-import com.tangem.operations.derivation.ExtendedPublicKeyList
+import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.*
 import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
@@ -128,10 +128,10 @@ class DeriveWalletPublicKeyHandler : JSONRPCHandler<ExtendedPublicKey> {
     }
 }
 
-class DeriveWalletPublicKeysHandler : JSONRPCHandler<ExtendedPublicKeyList> {
+class DeriveWalletPublicKeysHandler : JSONRPCHandler<ExtendedPublicKeysMap> {
     override val method: String = "DERIVE_WALLET_PUBLIC_KEYS"
 
-    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKeyList> {
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKeysMap> {
         val walletPublicKey: ByteArray = (params["walletPublicKey"] as String).hexToBytes()
         val rawDerivationPaths: List<String> = params["derivationPaths"] as List<String>
         val derivationPaths: List<DerivationPath> = rawDerivationPaths.map { DerivationPath(it) }

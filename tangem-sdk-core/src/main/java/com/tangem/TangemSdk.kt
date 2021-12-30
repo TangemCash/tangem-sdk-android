@@ -22,7 +22,7 @@ import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
-import com.tangem.operations.derivation.ExtendedPublicKeyList
+import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.*
 import com.tangem.operations.issuerAndUserData.*
 import com.tangem.operations.personalization.DepersonalizeCommand
@@ -175,19 +175,19 @@ class TangemSdk(
      *
      * @param cardId: CID, Unique Tangem card ID number.
      * @param walletPublicKey: Seed public key.
-     * @param derivationPaths: Derivation paths
+     * @param derivationPaths: Derivation paths. Repeated items will be ignored.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
      * message will be used
      * @param callback: is triggered on the completion of the [DeriveWalletPublicKeyTask] and provides response
      * in the form of the [ExtendedPublicKeyList] if the task was performed successfully or [TangemSdkError] in case
-     * of an error.
+     * of an error. All derived keys are unique and will be returned in arbitrary order.
      */
     fun deriveWalletPublicKeys(
         cardId: String,
         walletPublicKey: ByteArray,
         derivationPaths: List<DerivationPath>,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ExtendedPublicKeyList>
+        callback: CompletionCallback<ExtendedPublicKeysMap>
     ) {
         val command = DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
         startSessionWithRunnable(command, cardId, initialMessage, callback)

@@ -152,7 +152,7 @@ class TlvEncoder {
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
         if (T::class != ExpectedT::class) {
             val error = TangemSdkError.EncodingFailedTypeMismatch(
-                    "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+                "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
             )
             Log.error { error.customMessage }
             throw error
