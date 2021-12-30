@@ -77,6 +77,6 @@ class ReadWalletCommand(
         }
 
         Log.debug { "Read wallet: $wallet" }
-        return ReadWalletResponse(decoder.decode(TlvTag.CardId), wallet!!)
+        return ReadWalletResponse(decoder.decode(TlvTag.CardId), wallet)
     }
 }

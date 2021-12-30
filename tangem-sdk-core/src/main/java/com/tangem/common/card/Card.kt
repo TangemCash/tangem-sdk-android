@@ -349,7 +349,7 @@ data class Card internal constructor(
             isIssuerDataProtectedAgainstReplay = mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
             isSelectBlockchainAllowed = mask.contains(SettingsMask.Code.AllowSelectBlockchain),
             isFilesAllowed = !mask.contains(SettingsMask.Code.DisableFiles),
-            )
+        )
 
         fun updated(mask: Card.SettingsMask): Settings {
             return Settings(
@@ -410,7 +410,9 @@ data class Card internal constructor(
 
 data class CardWallet(
     /**
-     *  Wallet's public key.
+     * Wallet's public key.
+     * For [EllipticCurve.Secp256k1], the key can be compressed or uncompressed.
+     * Use [com.tangem.crypto.Secp256k1Key] for any conversions.
      */
     val publicKey: ByteArray,
 
@@ -450,6 +452,11 @@ data class CardWallet(
      *  Shows whether this wallet has a backup
      */
     val hasBackup: Boolean,
+
+    /**
+     * Derived keys according to [com.tangem.common.core.Config.defaultDerivationPaths]
+     */
+    val derivedKeys: Map<DerivationPath, ExtendedPublicKey> = emptyMap(),
 
     val extendedPublicKey: ExtendedPublicKey? = initExtendedPublicKey(publicKey, chainCode)
 ) {
@@ -493,7 +500,7 @@ data class CardWallet(
             fun initExtendedPublicKey(publicKey: ByteArray, chainCode: ByteArray?): ExtendedPublicKey? {
                 val chainCode = chainCode ?: return null
 
-                return ExtendedPublicKey(publicKey, chainCode, DerivationPath())
+                return ExtendedPublicKey(publicKey, chainCode)
             }
         }
     }

@@ -15,6 +15,7 @@ import com.tangem.common.tlv.TlvTag
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.*
 
 class HDWalletTests {
 
@@ -39,12 +40,11 @@ class HDWalletTests {
         val masterKey = ExtendedPublicKey(
             "0339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2".hexToBytes(),
             "873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508".hexToBytes(),
-            DerivationPath()
         )
 
         val derived = masterKey.derivePublicKey(DerivationNode.NonHardened(1))
-        val key = derived.compressedPublicKey.toHexString().toLowerCase()
-        val chainCode = derived.chainCode.toHexString().toLowerCase()
+        val key = derived.publicKey.toHexString().lowercase(Locale.getDefault())
+        val chainCode = derived.chainCode.toHexString().lowercase(Locale.getDefault())
         assertEquals(key, "037c2098fd2235660734667ff8821dbbe0e6592d43cfd86b5dde9ea7c839b93a50")
         assertEquals(chainCode, "8dd96414ff4d5b4750be3af7fecce207173f86d6b5f58f9366297180de8e109b")
     }
@@ -54,12 +54,11 @@ class HDWalletTests {
         val masterKey = ExtendedPublicKey(
             "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
             "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes(),
-            DerivationPath()
         )
 
         val derived = masterKey.derivePublicKey(DerivationNode.NonHardened(0))
-        val key = derived.compressedPublicKey.toHexString().toLowerCase()
-        val chainCode = derived.chainCode.toHexString().toLowerCase()
+        val key = derived.publicKey.toHexString().lowercase(Locale.getDefault())
+        val chainCode = derived.chainCode.toHexString().lowercase(Locale.getDefault())
         assertEquals(key, "02fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea")
         assertEquals(chainCode, "f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c")
     }
@@ -125,12 +124,11 @@ class HDWalletTests {
         val masterKey = ExtendedPublicKey(
             "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
             "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes(),
-            DerivationPath()
         )
 
         val childKey = masterKey.derivePublicKey(path)
-        val code = childKey.chainCode.toHexString().toLowerCase()
-        val key = childKey.compressedPublicKey.toHexString().toLowerCase()
+        val code = childKey.chainCode.toHexString().lowercase(Locale.getDefault())
+        val key = childKey.publicKey.toHexString().lowercase(Locale.getDefault())
         assertEquals(code, "f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c")
         assertEquals(key, "02fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea")
     }
@@ -142,12 +140,11 @@ class HDWalletTests {
         val masterKey = ExtendedPublicKey(
             "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
             "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes(),
-            DerivationPath()
         )
 
         val childKey = masterKey.derivePublicKey(path)
-        val code = childKey.chainCode.toHexString().toLowerCase()
-        val key = childKey.compressedPublicKey.toHexString().toLowerCase()
+        val code = childKey.chainCode.toHexString().lowercase(Locale.getDefault())
+        val key = childKey.publicKey.toHexString().lowercase(Locale.getDefault())
         assertEquals(code, "8d5e25bfe038e4ef37e2c5ec963b7a7c7a745b4319bff873fc40f1a52c7d6fd1")
         assertEquals(key, "02d27a781fd1b3ec5ba5017ca55b9b900fde598459a0204597b37e6c66a0e35c98")
     }
@@ -158,7 +155,6 @@ class HDWalletTests {
         val masterKey = ExtendedPublicKey(
             "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),
             "60499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689".hexToBytes(),
-            DerivationPath()
         )
         assertThrows<HDWalletError.HardenedNotSupported> { masterKey.derivePublicKey(path) }
     }

@@ -34,7 +34,7 @@ data class CardConfig(
     @Json(name = "pauseBeforePIN2")
     internal val pauseBeforePin2: Int,
     internal val smartSecurityDelay: Boolean,
-    internal val curveID: EllipticCurve,
+    internal val curveID: EllipticCurve?,
     @Json(name = "SigningMethod")
     internal val signingMethod: SigningMethod,
     @Json(name = "MaxSignatures")
@@ -92,7 +92,7 @@ data class CardConfig(
     class CardConfigData(
         val date: Date?,
         val batch: String,
-        val blockchain: String,
+        val blockchain: String?,
         @Json(name = "product_note")
         val productNote: Boolean?,
         @Json(name = "product_tag")
@@ -117,7 +117,7 @@ data class CardConfig(
             return CardData(
                 batch,
                 date ?: Date(),
-                blockchain,
+                blockchain ?: "",
                 createProductMask(),
                 tokenSymbol,
                 tokenContractAddress,
