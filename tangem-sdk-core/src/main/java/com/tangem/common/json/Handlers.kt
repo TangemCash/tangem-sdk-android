@@ -2,7 +2,6 @@ package com.tangem.common.json
 
 import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.hdWallet.DerivationPath
@@ -12,7 +11,7 @@ import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
-import com.tangem.operations.derivation.ExtendedPublicKeyList
+import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.*
 import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
@@ -84,7 +83,7 @@ class SignHashHandler : JSONRPCHandler<SignHashResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignHashResponse> {
         val hash = (params["hash"] as String).hexToBytes()
-        val walletIndex = (params["walletIndex"] as WalletIndex)
+        val publicKey = (params["walletPublicKey"] as String).hexToBytes()
         val derivationPath: DerivationPath? = (params["derivationPath"] as? String)?.let {
             try {
                 DerivationPath(it)
@@ -94,7 +93,7 @@ class SignHashHandler : JSONRPCHandler<SignHashResponse> {
             }
         }
 
-        return SignHashCommand(hash, walletIndex, derivationPath)
+        return SignHashCommand(hash, publicKey, derivationPath)
     }
 }
 
@@ -103,7 +102,7 @@ class SignHashesHandler : JSONRPCHandler<SignResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SignResponse> {
         val hashes = (params["hashes"] as List<String>).map { it.hexToBytes() }
-        val walletIndex = (params["walletIndex"] as WalletIndex)
+        val publicKey = (params["walletPublicKey"] as String).hexToBytes()
         val derivationPath: DerivationPath? = (params["derivationPath"] as? String)?.let {
             try {
                 DerivationPath(it)
@@ -113,7 +112,7 @@ class SignHashesHandler : JSONRPCHandler<SignResponse> {
             }
         }
 
-        return SignCommand(hashes.toTypedArray(), walletIndex, derivationPath)
+        return SignCommand(hashes.toTypedArray(), publicKey, derivationPath)
     }
 }
 
@@ -121,23 +120,23 @@ class DeriveWalletPublicKeyHandler : JSONRPCHandler<ExtendedPublicKey> {
     override val method: String = "DERIVE_WALLET_PUBLIC_KEY"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKey> {
-        val walletIndex = (params["walletIndex"] as WalletIndex)
+        val walletPublicKey: ByteArray = (params["walletPublicKey"] as String).hexToBytes()
         val rawDerivationPath: String = params["derivationPath"] as String
         val derivationPath = DerivationPath(rawDerivationPath)
 
-        return DeriveWalletPublicKeyTask(walletIndex, derivationPath)
+        return DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
     }
 }
 
-class DeriveWalletPublicKeysHandler : JSONRPCHandler<ExtendedPublicKeyList> {
+class DeriveWalletPublicKeysHandler : JSONRPCHandler<ExtendedPublicKeysMap> {
     override val method: String = "DERIVE_WALLET_PUBLIC_KEYS"
 
-    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKeyList> {
-        val walletIndex = (params["walletIndex"] as WalletIndex)
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKeysMap> {
+        val walletPublicKey: ByteArray = (params["walletPublicKey"] as String).hexToBytes()
         val rawDerivationPaths: List<String> = params["derivationPaths"] as List<String>
         val derivationPaths: List<DerivationPath> = rawDerivationPaths.map { DerivationPath(it) }
 
-        return DeriveWalletPublicKeysTask(walletIndex, derivationPaths)
+        return DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
     }
 }
 

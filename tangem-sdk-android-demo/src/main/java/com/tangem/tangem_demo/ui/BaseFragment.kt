@@ -15,7 +15,6 @@ import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
@@ -55,7 +54,7 @@ abstract class BaseFragment : Fragment() {
             val card = card ?: return null
             if (card.wallets.isEmpty() || selectedIndexOfWallet >= card.wallets.size) return null
 
-            return card.wallet(WalletIndex(selectedIndexOfWallet))?.publicKey
+            return card.wallets[selectedIndexOfWallet].publicKey
         }
 
     private var needRescanCard = true
@@ -138,7 +137,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
 
-        sdk.deriveWalletPublicKey(card.cardId, WalletIndex(selectedIndexOfWallet), path) { handleResult(it) }
+        sdk.deriveWalletPublicKey(card.cardId, walletPublicKey, path) { handleResult(it) }
     }
 
     protected fun signHash(hash: ByteArray) {
@@ -155,7 +154,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hash, WalletIndex(selectedIndexOfWallet), cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hash, publicKey, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun signHashes(hashes: Array<ByteArray>) {
@@ -172,7 +171,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hashes, WalletIndex(selectedIndexOfWallet), cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hashes, publicKey, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun createWallet(curve: EllipticCurve) {
@@ -195,7 +194,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.purgeWallet(WalletIndex(selectedIndexOfWallet), cardId, initialMessage) {
+        sdk.purgeWallet(publicKey, cardId, initialMessage) {
             needRescanCard = it is CompletionResult.Success
             handleResult(it)
         }

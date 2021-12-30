@@ -57,7 +57,7 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
                         return@transceive
                     }
 
-                    loadedWallets.sortBy { it.index.value }
+                    loadedWallets.sortBy { it.index }
                     session.environment.card = session.environment.card?.setWallets(loadedWallets)
                     callback(CompletionResult.Success(ReadWalletsListResponse(result.data.cardId, loadedWallets)))
                 }
@@ -82,10 +82,7 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
-        val deserializedData = WalletDeserializer(
-            isDefaultPermanentWallet = card.settings.isPermanentWallet,
-            secp256k1KeyFormat = environment.config.secp256k1KeyFormat
-        )
+        val deserializedData = WalletDeserializer(card.settings.isPermanentWallet)
             .deserializeWallets(decoder)
         receivedWalletsCount += deserializedData.second
 

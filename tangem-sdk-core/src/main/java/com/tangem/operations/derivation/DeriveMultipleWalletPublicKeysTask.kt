@@ -1,29 +1,29 @@
 package com.tangem.operations.derivation
 
 import com.tangem.common.CompletionResult
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
+import com.tangem.common.extensions.ByteArrayKey
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.CommandResponse
 
 class DerivationTaskResponse(
-    val entries: Map<WalletIndex, ExtendedPublicKeyList>
+    val entries: Map<ByteArrayKey, ExtendedPublicKeysMap>
 ): CommandResponse
 
 class DeriveMultipleWalletPublicKeysTask(
-    private val derivations: Map<WalletIndex, List<DerivationPath>>
+    private val derivations: Map<ByteArrayKey, List<DerivationPath>>
 ) : CardSessionRunnable<DerivationTaskResponse> {
 
-    val response: MutableMap<WalletIndex, ExtendedPublicKeyList> = mutableMapOf()
+    val response: MutableMap<ByteArrayKey, ExtendedPublicKeysMap> = mutableMapOf()
 
     override fun run(session: CardSession, callback: CompletionCallback<DerivationTaskResponse>) {
         derive(keys = derivations.keys.toList(), index = 0, session = session, callback = callback)
     }
 
     private fun derive(
-        keys: List<WalletIndex>,
+        keys: List<ByteArrayKey>,
         index: Int,
         session: CardSession,
         callback: CompletionCallback<DerivationTaskResponse>
@@ -35,7 +35,7 @@ class DeriveMultipleWalletPublicKeysTask(
 
         val key = keys[index]
         val paths = derivations[key]!!
-        DeriveWalletPublicKeysTask(key, paths).run(session) { result ->
+        DeriveWalletPublicKeysTask(key.bytes, paths).run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     response[key] = result.data

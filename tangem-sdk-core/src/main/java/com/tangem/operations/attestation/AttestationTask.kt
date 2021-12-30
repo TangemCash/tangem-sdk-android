@@ -63,7 +63,7 @@ class AttestationTask(
                     } else {
                         //Continue attestation
                         currentAttestationStatus = currentAttestationStatus.copy(
-                                cardKeyAttestation = Attestation.Status.VerifiedOffline
+                            cardKeyAttestation = Attestation.Status.VerifiedOffline
                         )
                         continueAttestation(session, callback)
                     }
@@ -72,7 +72,7 @@ class AttestationTask(
                     //Card attestation failed. Update status and continue attestation
                     if (result.error is TangemSdkError.CardVerificationFailed) {
                         currentAttestationStatus = currentAttestationStatus.copy(
-                                cardKeyAttestation = Attestation.Status.Failed
+                            cardKeyAttestation = Attestation.Status.Failed
                         )
                         continueAttestation(session, callback)
                     } else {
@@ -111,7 +111,7 @@ class AttestationTask(
                     //Wallets attestation failed. Update status and continue attestation
                     if (result.error is TangemSdkError.CardVerificationFailed) {
                         currentAttestationStatus = currentAttestationStatus.copy(
-                                walletKeysAttestation = Attestation.Status.Failed
+                            walletKeysAttestation = Attestation.Status.Failed
                         )
                         runExtraAttestation(session, callback)
                     } else {
@@ -130,9 +130,10 @@ class AttestationTask(
     private fun attestWallets(session: CardSession, callback: CompletionCallback<Boolean>) {
         session.scope.launch {
             val card = session.environment.card!!
-            val attestationCommands = card.wallets.map { AttestWalletKeyCommand(it.index) }
+            val walletsKeys = card.wallets.map { it.publicKey }
+            val attestationCommands = walletsKeys.map { AttestWalletKeyCommand(it) }
 
-            //check for hacking attempts with signs /
+            //check for hacking attempts with signs
             var hasWarnings = card.wallets.mapNotNull { it.totalSignedHashes }.any { it > MAX_COUNTER }
             var shouldReturn = false
             var flowIsCompleted = false
@@ -202,7 +203,7 @@ class AttestationTask(
                     is CompletionResult.Success -> {
                         //We assume, that card verified, because we skip online attestation for dev cards and cards that failed keys attestation
                         currentAttestationStatus = currentAttestationStatus.copy(
-                                cardKeyAttestation = Attestation.Status.Verified
+                            cardKeyAttestation = Attestation.Status.Verified
                         )
                         trustedCardsRepo.append(session.environment.card!!.cardPublicKey, currentAttestationStatus)
                         processAttestationReport(session, callback)
@@ -211,7 +212,7 @@ class AttestationTask(
                         //We interest only in cardVerificationFailed error, ignore network errors
                         if (result.error is TangemSdkError.CardVerificationFailed) {
                             currentAttestationStatus = currentAttestationStatus.copy(
-                                    cardKeyAttestation = Attestation.Status.Failed
+                                cardKeyAttestation = Attestation.Status.Failed
                             )
                         }
                         processAttestationReport(session, callback)

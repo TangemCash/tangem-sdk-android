@@ -1,7 +1,10 @@
 package com.tangem.common.tlv
 
 import com.tangem.Log
-import com.tangem.common.card.*
+import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
@@ -138,15 +141,6 @@ class TlvEncoder {
                 typeCheck<T, DerivationPath>(tag)
                 return (value as DerivationPath).nodes.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
             }
-            TlvValueType.WalletIndex -> {
-                try {
-                    typeCheck<T, WalletIndex>(tag)
-                    (value as WalletIndex).value.toByteArray(1)
-                } catch (ex: Exception) {
-                    typeCheck<T, Int>(tag)
-                    (value as Int).toByteArray(1)
-                }
-            }
         }
     }
 
@@ -158,7 +152,7 @@ class TlvEncoder {
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
         if (T::class != ExpectedT::class) {
             val error = TangemSdkError.EncodingFailedTypeMismatch(
-                    "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+                "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
             )
             Log.error { error.customMessage }
             throw error

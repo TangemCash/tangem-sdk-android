@@ -3,7 +3,6 @@ package com.tangem.common.core
 import com.tangem.common.CardFilter
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.attestation.AttestationTask
 
 class Config(
@@ -57,12 +56,6 @@ class Config(
      */
     var canonizeSecp256k1Signatures: Boolean = true,
 
-    /**
-     * Format of wallet public key on secp256k1 curve. Depends on the card by default.
-     * Compressed for COS starting from 4.39. Uncompressed otherwise.
-     */
-    var secp256k1KeyFormat: Secp256k1KeyFormat = Secp256k1KeyFormat.DEFAULT,
-
     /** A card with HD wallets feature enabled will derive keys automatically on "scan" and "createWallet".
      * Repeated items will be ignored.
      * All derived keys will be stored in [com.tangem.common.card.CardWallet.derivedKeys].
@@ -83,30 +76,4 @@ sealed class CardIdDisplayFormat {
 
     ///n numbers from the end except last
     data class LastLunh(val numbers: Int) : CardIdDisplayFormat()
-}
-
-enum class Secp256k1KeyFormat {
-    /**
-     * The key format, determined by the card. Compressed for COS starting from 4.39. Uncompressed otherwise.
-     */
-    DEFAULT,
-
-    /**
-     * Compressed format. 33 bytes length.
-     */
-    COMPRESSED,
-
-    /**
-     * Uncompressed format. 65 bytes length.
-     */
-    UNCOMPRESSED;
-
-    @Throws()
-    fun format(walletPublicKey: ByteArray): ByteArray {
-        return when (this) {
-            DEFAULT -> walletPublicKey
-            COMPRESSED -> CryptoUtils.compressPublicKey(walletPublicKey)
-            UNCOMPRESSED -> CryptoUtils.decompressPublicKey(walletPublicKey)
-        }
-    }
 }

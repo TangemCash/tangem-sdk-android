@@ -1,7 +1,6 @@
 package com.tangem.common.tlv
 
 import com.google.common.truth.Truth.assertThat
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import org.junit.jupiter.api.Test
@@ -120,49 +119,5 @@ class TlvTest {
         val tlvs = Tlv.deserialize(response.hexToBytes(), true)
         assertThat(tlvs)
             .isNotEmpty()
-    }
-
-    @Test
-    fun `WalletIndex to bytes`() {
-        val builder = TlvBuilder()
-        builder.append(
-            TlvTag.WalletIndex, WalletIndex(1)
-        )
-        val expected = "650101".hexToBytes()
-
-        assertThat(builder.serialize())
-            .isEqualTo(expected)
-    }
-
-    @Test
-    fun `WalletIndex as Int to bytes`() {
-        val builder = TlvBuilder()
-        builder.append(
-            TlvTag.WalletIndex, 1
-        )
-        val expected = "650101".hexToBytes()
-
-        assertThat(builder.serialize())
-            .isEqualTo(expected)
-    }
-
-    @Test
-    fun `Bytes to WalletIndex`() {
-        val bytes = "650101".hexToBytes()
-        val tlvs = Tlv.deserialize(bytes)!!
-        val walletIndex = TlvDecoder(tlvs).decode<WalletIndex>(TlvTag.WalletIndex)
-
-        assertThat(walletIndex)
-            .isEqualTo(WalletIndex(1))
-    }
-
-    @Test
-    fun `Bytes to WalletIndex as Int`() {
-        val bytes = "650101".hexToBytes()
-        val tlvs = Tlv.deserialize(bytes)!!
-        val walletIndex = TlvDecoder(tlvs).decode<Int>(TlvTag.WalletIndex)
-
-        assertThat(walletIndex)
-            .isEqualTo(1)
     }
 }

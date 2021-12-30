@@ -22,8 +22,7 @@ enum class TlvValueType {
     FileDataMode,
     FileSettings,
     DerivationPath,
-    BackupStatus,
-    WalletIndex,
+    BackupStatus
 }
 
 /**
@@ -166,7 +165,7 @@ enum class TlvTag(val code: Int) {
             CurveId -> TlvValueType.EllipticCurve
             PauseBeforePin2, WalletRemainingSignatures, WalletSignedHashes, Health, TokenDecimal,
             Offset, Size -> TlvValueType.Uint16
-            FileIndex, WalletsCount, CheckWalletCounter, FileCounter, BackupCount -> TlvValueType.Uint8
+            FileIndex, WalletIndex, WalletsCount, CheckWalletCounter, FileCounter, BackupCount -> TlvValueType.Uint8
             MaxSignatures, UserCounter, UserProtectedCounter, IssuerDataCounter -> TlvValueType.Uint32
             IsActivated, TerminalIsLinked, CreateWalletAtPersonalize,
             PinIsDefault, Pin2IsDefault -> TlvValueType.BoolValue
@@ -180,7 +179,6 @@ enum class TlvTag(val code: Int) {
             FileSettings -> TlvValueType.FileSettings
             WalletHDPath -> TlvValueType.DerivationPath
             BackupStatus -> TlvValueType.BackupStatus
-            WalletIndex -> TlvValueType.WalletIndex
             else -> TlvValueType.ByteArray
         }
     }

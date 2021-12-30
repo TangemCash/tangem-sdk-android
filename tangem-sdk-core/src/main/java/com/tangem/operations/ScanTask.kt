@@ -6,6 +6,7 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.*
 import com.tangem.common.extensions.guard
+import com.tangem.common.extensions.toMapKey
 import com.tangem.operations.*
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.derivation.DeriveMultipleWalletPublicKeysTask
@@ -69,7 +70,7 @@ class ScanTask : CardSessionRunnable<Card> {
 
         val derivations = card.wallets.mapNotNull { wallet ->
             val paths = defaultPaths[wallet.curve]
-            if (!paths.isNullOrEmpty()) wallet.index to paths else null
+            if (!paths.isNullOrEmpty()) wallet.publicKey.toMapKey() to paths else null
         }.toMap()
 
         if (derivations.isEmpty()) {

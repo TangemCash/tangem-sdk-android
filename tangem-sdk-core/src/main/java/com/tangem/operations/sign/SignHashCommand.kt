@@ -2,7 +2,6 @@ package com.tangem.operations.sign
 
 import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
@@ -33,17 +32,17 @@ data class SignHashResponse(
 /**
  * Signs transaction hash using a wallet private key, stored on the card.
  * @property hash: Transaction hash for sign by card.
- * @property walletIndex: Index key of the wallet, using for sign.
+ * @property walletPublicKey: Public key of the wallet, using for sign.
  * @property derivationPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
  */
 class SignHashCommand(
     private val hash: ByteArray,
-    private val walletIndex: WalletIndex,
+    private val walletPublicKey: ByteArray,
     private val derivationPath: DerivationPath? = null
 ) : CardSessionRunnable<SignHashResponse> {
 
     override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
-        val signCommand = SignCommand(arrayOf(hash), walletIndex, derivationPath)
+        val signCommand = SignCommand(arrayOf(hash), walletPublicKey, derivationPath)
         signCommand.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {

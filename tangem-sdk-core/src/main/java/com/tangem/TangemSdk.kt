@@ -4,7 +4,6 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.*
 import com.tangem.common.files.DataToWrite
 import com.tangem.common.files.FileHashData
@@ -23,7 +22,7 @@ import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
-import com.tangem.operations.derivation.ExtendedPublicKeyList
+import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.*
 import com.tangem.operations.issuerAndUserData.*
 import com.tangem.operations.personalization.DepersonalizeCommand
@@ -91,7 +90,7 @@ class TangemSdk(
      * It is for `SessionViewDelegate` to notify users of security delay.
      *
      * @param hash: Transaction hash for sign by card.
-     * @param walletIndex: Index of wallet that should sign hash.
+     * @param walletPublicKey: Public key of wallet that should sign hash.
      * @param cardId: CID, Unique Tangem card ID number
      * @param derivationPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
@@ -102,13 +101,13 @@ class TangemSdk(
      */
     fun sign(
         hash: ByteArray,
-        walletIndex: WalletIndex,
+        walletPublicKey: ByteArray,
         cardId: String,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignHashResponse>
     ) {
-        val command = SignHashCommand(hash, walletIndex, derivationPath)
+        val command = SignHashCommand(hash, walletPublicKey, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -125,7 +124,7 @@ class TangemSdk(
      * It is for [SessionViewDelegate] to notify users of security delay.
      *
      * @param hashes: Array of transaction hashes. It can be from one or up to ten hashes of the same length.
-     * @param walletIndex: Index key of the wallet that should sign hashes.
+     * @param walletPublicKey: Public key of the wallet that should sign hashes.
      * @param cardId: CID, Unique Tangem card ID number
      * @param derivationPath: Derivation path of the wallet. Optional
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
@@ -136,13 +135,13 @@ class TangemSdk(
      */
     fun sign(
         hashes: Array<ByteArray>,
-        walletIndex: WalletIndex,
+        walletPublicKey: ByteArray,
         cardId: String,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignResponse>
     ) {
-        val command = SignCommand(hashes, walletIndex, derivationPath)
+        val command = SignCommand(hashes, walletPublicKey, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -151,7 +150,7 @@ class TangemSdk(
      * Warning: Only `secp256k1` and `ed25519` (BIP32-Ed25519 scheme) curves supported
      *
      * @param cardId: CID, Unique Tangem card ID number.
-     * @param walletIndex: Index key.
+     * @param walletPublicKey: Seed public key.
      * @param derivationPath: Derivation path
      * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
      * message will be used
@@ -161,12 +160,12 @@ class TangemSdk(
      */
     fun deriveWalletPublicKey(
         cardId: String,
-        walletIndex: WalletIndex,
+        walletPublicKey: ByteArray,
         derivationPath: DerivationPath,
         initialMessage: Message? = null,
         callback: CompletionCallback<ExtendedPublicKey>
     ) {
-        val command = DeriveWalletPublicKeyTask(walletIndex, derivationPath)
+        val command = DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -175,7 +174,7 @@ class TangemSdk(
      * Warning: Only `secp256k1` and `ed25519` (BIP32-Ed25519 scheme) curves supported
      *
      * @param cardId: CID, Unique Tangem card ID number.
-     * @param walletIndex: Index key.
+     * @param walletPublicKey: Seed public key.
      * @param derivationPaths: Derivation paths. Repeated items will be ignored.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session. If null, default
      * message will be used
@@ -185,12 +184,12 @@ class TangemSdk(
      */
     fun deriveWalletPublicKeys(
         cardId: String,
-        walletIndex: WalletIndex,
+        walletPublicKey: ByteArray,
         derivationPaths: List<DerivationPath>,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ExtendedPublicKeyList>
+        callback: CompletionCallback<ExtendedPublicKeysMap>
     ) {
-        val command = DeriveWalletPublicKeysTask(walletIndex, derivationPaths)
+        val command = DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
@@ -227,7 +226,7 @@ class TangemSdk(
      *
      * This command deletes all wallet data. If IsReusable flag is enabled during personalization.
      *
-     * @param walletIndex: Index key of wallet that should be purged.
+     * @param walletPublicKey: Public key of wallet that should be purged.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
@@ -236,12 +235,12 @@ class TangemSdk(
      * or [TangemSdkError] in case of an error.
      */
     fun purgeWallet(
-        walletIndex: WalletIndex,
+        walletPublicKey: ByteArray,
         cardId: String,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
     ) {
-        startSessionWithRunnable(PurgeWalletCommand(walletIndex), cardId, initialMessage, callback)
+        startSessionWithRunnable(PurgeWalletCommand(walletPublicKey), cardId, initialMessage, callback)
     }
 
     /**

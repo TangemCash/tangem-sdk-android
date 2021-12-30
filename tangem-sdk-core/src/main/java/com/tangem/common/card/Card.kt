@@ -3,6 +3,7 @@ package com.tangem.common.card
 import com.squareup.moshi.JsonClass
 import com.tangem.common.BaseMask
 import com.tangem.common.Mask
+import com.tangem.common.card.CardWallet.Status.Companion.initExtendedPublicKey
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
@@ -105,23 +106,23 @@ data class Card internal constructor(
 ) : CommandResponse {
 
     fun setWallets(newWallets: List<CardWallet>): Card {
-        val sortedWallets = newWallets.toMutableList().apply { sortBy { it.index.value } }
+        val sortedWallets = newWallets.toMutableList().apply { sortBy { it.index } }
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun wallet(walletIndex: WalletIndex): CardWallet? =
-        wallets.firstOrNull { it.index == walletIndex }
+    fun wallet(publicKey: ByteArray): CardWallet? =
+        wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
 
     fun addWallet(wallet: CardWallet): Card {
         val sortedWallets = wallets.toMutableList().apply {
             add(wallet)
-            sortBy { it.index.value }
+            sortBy { it.index }
         }
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun removeWallet(walletIndex: WalletIndex): Card {
-        val wallet = wallet(walletIndex) ?: return this
+    fun removeWallet(publicKey: ByteArray): Card {
+        val wallet = wallet(publicKey) ?: return this
         return setWallets(wallets.toMutableList().apply { remove(wallet) })
     }
 
@@ -348,7 +349,7 @@ data class Card internal constructor(
             isIssuerDataProtectedAgainstReplay = mask.contains(SettingsMask.Code.ProtectIssuerDataAgainstReplay),
             isSelectBlockchainAllowed = mask.contains(SettingsMask.Code.AllowSelectBlockchain),
             isFilesAllowed = !mask.contains(SettingsMask.Code.DisableFiles),
-            )
+        )
 
         fun updated(mask: Card.SettingsMask): Settings {
             return Settings(
@@ -407,11 +408,11 @@ data class Card internal constructor(
     }
 }
 
-data class WalletIndex(val value: Int)
-
 data class CardWallet(
     /**
-     *  Wallet's public key.
+     * Wallet's public key.
+     * For [EllipticCurve.Secp256k1], the key can be compressed or uncompressed.
+     * Use [com.tangem.crypto.Secp256k1Key] for any conversions.
      */
     val publicKey: ByteArray,
 
@@ -445,7 +446,7 @@ data class CardWallet(
     /**
      *  Index of the wallet in the card storage
      */
-    val index: WalletIndex,
+    val index: Int,
 
     /**
      *  Shows whether this wallet has a backup
@@ -455,8 +456,10 @@ data class CardWallet(
     /**
      * Derived keys according to [com.tangem.common.core.Config.defaultDerivationPaths]
      */
-    val derivedKeys: List<ExtendedPublicKey> = emptyList(),
-    ) {
+    val derivedKeys: Map<DerivationPath, ExtendedPublicKey> = emptyMap(),
+
+    val extendedPublicKey: ExtendedPublicKey? = initExtendedPublicKey(publicKey, chainCode)
+) {
 
     /**
      * Status of the wallet.
@@ -497,7 +500,7 @@ data class CardWallet(
             fun initExtendedPublicKey(publicKey: ByteArray, chainCode: ByteArray?): ExtendedPublicKey? {
                 val chainCode = chainCode ?: return null
 
-                return ExtendedPublicKey(publicKey, chainCode, DerivationPath())
+                return ExtendedPublicKey(publicKey, chainCode)
             }
         }
     }

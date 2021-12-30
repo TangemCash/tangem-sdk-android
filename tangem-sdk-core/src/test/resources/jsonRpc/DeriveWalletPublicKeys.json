@@ -3,7 +3,7 @@
     "jsonrpc": "2.0",
     "method": "derive_wallet_public_keys",
     "params": {
-      "walletIndex": 0,
+      "walletPublicKey": "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348",
       "derivationPaths" : ["m/44'/0'", "m/44'/1'"]
     },
     "id": 1

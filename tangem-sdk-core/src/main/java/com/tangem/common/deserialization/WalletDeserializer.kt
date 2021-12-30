@@ -1,8 +1,6 @@
 package com.tangem.common.deserialization
 
 import com.tangem.common.card.CardWallet
-import com.tangem.common.card.EllipticCurve
-import com.tangem.common.core.Secp256k1KeyFormat
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder
@@ -15,7 +13,6 @@ import com.tangem.common.tlv.TlvTag
  */
 internal class WalletDeserializer(
     private val isDefaultPermanentWallet: Boolean,
-    private val secp256k1KeyFormat: Secp256k1KeyFormat
 ) {
 
     internal fun deserializeWallets(decoder: TlvDecoder): DeserializedWallets {
@@ -25,17 +22,23 @@ internal class WalletDeserializer(
         val walletsDecoders = cardWalletsData.mapNotNull { walletData ->
             Tlv.deserialize(walletData)?.let { tlvs -> TlvDecoder(tlvs) }
         }
-        val wallets = walletsDecoders.mapNotNull { deserializeWallet(it) }
+        val wallets = walletsDecoders.mapNotNull {
+            try {
+                deserializeWallet(it)
+            } catch (exception: TangemSdkError.WalletNotFound) {
+                null
+            }
+        }
 
         return Pair(wallets, cardWalletsData.size)
     }
 
-    internal fun deserializeWallet(decoder: TlvDecoder): CardWallet? {
+    internal fun deserializeWallet(decoder: TlvDecoder): CardWallet {
         val status: CardWallet.Status? = decoder.decode(TlvTag.Status)
         return if (status == CardWallet.Status.Loaded || status == CardWallet.Status.Backuped) {
             deserialize(decoder, status)
         } else {
-            null
+            throw TangemSdkError.WalletNotFound()
         }
     }
 
@@ -50,18 +53,10 @@ internal class WalletDeserializer(
             CardWallet.Settings(isDefaultPermanentWallet)
         }
 
-        val walletPublicKey: ByteArray = decoder.decode(TlvTag.WalletPublicKey)
-        val curve: EllipticCurve = decoder.decode(TlvTag.CurveId)
-        val key = if (curve == EllipticCurve.Secp256k1) {
-            secp256k1KeyFormat.format(walletPublicKey)
-        } else {
-            walletPublicKey
-        }
-
         return CardWallet(
-            publicKey = key,
+            publicKey = decoder.decode(TlvTag.WalletPublicKey),
             chainCode = decoder.decodeOptional(TlvTag.WalletHDChain),
-            curve = curve,
+            curve = decoder.decode(TlvTag.CurveId),
             settings = settings,
             totalSignedHashes = decoder.decode(TlvTag.WalletSignedHashes),
             remainingSignatures = null,

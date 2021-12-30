@@ -8,7 +8,6 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.FirmwareVersion
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.*
 import com.tangem.common.deserialization.WalletDeserializer
 import com.tangem.common.hdWallet.DerivationPath
@@ -33,7 +32,7 @@ class ReadWalletResponse(
  * information about it and perform prechecks
  */
 class ReadWalletCommand(
-    private val walletIndex: WalletIndex,
+    private val walletIndex: Int,
     private val derivationPath: DerivationPath? = null
 ) : Command<ReadWalletResponse>() {
 
@@ -72,15 +71,12 @@ class ReadWalletCommand(
 
         val decoder = TlvDecoder(tlvData)
         val wallet = try {
-            WalletDeserializer(
-                isDefaultPermanentWallet = card.settings.isPermanentWallet,
-                secp256k1KeyFormat = environment.config.secp256k1KeyFormat
-            ).deserializeWallet(decoder)
+            WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder)
         } catch (ex: Exception) {
             throw TangemSdkError.WalletNotFound()
         }
 
         Log.debug { "Read wallet: $wallet" }
-        return ReadWalletResponse(decoder.decode(TlvTag.CardId), wallet!!)
+        return ReadWalletResponse(decoder.decode(TlvTag.CardId), wallet)
     }
 }

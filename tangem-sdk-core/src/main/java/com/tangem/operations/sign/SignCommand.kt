@@ -6,7 +6,10 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.*
+import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.card.SigningMethod
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
@@ -35,12 +38,12 @@ class SignResponse(
 /**
  * Signs transaction hashes using a wallet private key, stored on the card.
  * @property hashes Array of transaction hashes.
- * @property walletIndex: Index of the wallet, using for sign.
+ * @property walletPublicKey Public key of the wallet, using for sign.
  * @property derivationPath: Derivation path of the wallet. Optional. COS v. 4.28 and higher,
  */
 internal class SignCommand(
     private val hashes: Array<ByteArray>,
-    private val walletIndex: WalletIndex,
+    private val walletPublicKey: ByteArray,
     private val derivationPath: DerivationPath? = null
 ) : Command<SignResponse>() {
 
@@ -55,7 +58,7 @@ internal class SignCommand(
         get() = signatures.size / CHUNK_SIZE
 
     override fun performPreCheck(card: Card): TangemSdkError? {
-        val wallet = card.wallet(walletIndex) ?: return TangemSdkError.WalletNotFound()
+        val wallet = card.wallet(walletPublicKey) ?: return TangemSdkError.WalletNotFound()
 
         if (derivationPath != null) {
             if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable) {
@@ -104,7 +107,7 @@ internal class SignCommand(
                 is CompletionResult.Success -> {
                     signatures.addAll(result.data.signatures)
                     if (signatures.size == hashes.size) {
-                        session.environment.card?.wallet(walletIndex)?.let {
+                        session.environment.card?.wallet(walletPublicKey)?.let {
                             val wallet = it.copy(
                                 totalSignedHashes = result.data.totalSignedHashes,
                                 remainingSignatures = it.remainingSignatures?.minus(signatures.size)
@@ -134,6 +137,8 @@ internal class SignCommand(
      * TerminalPrivateKey (this key should be generated and security stored by the application).
      */
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
+
         val dataToSign = hashesChunked[currentChunkNumber].reduce { arr1, arr2 -> arr1 + arr2 }
 
         val tlvBuilder = TlvBuilder()
@@ -173,7 +178,7 @@ internal class SignCommand(
 
     private fun processSignatures(environment: SessionEnvironment, signatures: List<ByteArray>): List<ByteArray> {
         if (!environment.config.canonizeSecp256k1Signatures) return signatures
-        val wallet = environment.card?.wallet(walletIndex) ?: return signatures
+        val wallet = environment.card?.wallet(walletPublicKey) ?: return signatures
         if (wallet.curve != EllipticCurve.Secp256k1) return signatures
 
         return signatures.map { CryptoUtils.normalize(it) }

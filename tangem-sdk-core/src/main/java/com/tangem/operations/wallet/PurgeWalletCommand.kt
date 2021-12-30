@@ -6,7 +6,6 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
-import com.tangem.common.card.WalletIndex
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
@@ -19,16 +18,16 @@ import com.tangem.operations.Command
 
 /**
  * This command deletes all wallet data and its private and public keys
- * @property walletIndex: Index of the wallet to delete
+ * @property walletPublicKey: Public key of the wallet to delete
  */
 class PurgeWalletCommand(
-    private val walletIndex: WalletIndex
+    private val walletPublicKey: ByteArray
 ) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = true
 
     override fun performPreCheck(card: Card): TangemSdkError? {
-        val wallet = card.wallet(walletIndex)
+        val wallet = card.wallet(walletPublicKey)
 
         return when {
             wallet == null -> TangemSdkError.WalletNotFound()
@@ -46,7 +45,7 @@ class PurgeWalletCommand(
         super.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    session.environment.card = card.removeWallet(walletIndex)
+                    session.environment.card = card.removeWallet(walletPublicKey)
                     callback(CompletionResult.Success(result.data))
                 }
                 is CompletionResult.Failure -> callback(result)
@@ -55,6 +54,8 @@ class PurgeWalletCommand(
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
+
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)

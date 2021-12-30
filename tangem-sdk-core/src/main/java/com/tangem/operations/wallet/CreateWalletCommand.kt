@@ -98,7 +98,19 @@ internal class CreateWalletCommand(
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
-        walletIndex = calculateWalletIndex(card)
+        // We need to execute this wallet index calculation stuff only after precheck.
+        // Run fires only before precheck. And precheck will not fire if error handling disabled
+        val maxIndex = card.settings.maxWalletsCount
+        val occupiedIndexes = card.wallets.map { it.index }
+        val allIndexes = 0 until maxIndex
+
+        walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
+            if (maxIndex == 1) {
+                throw TangemSdkError.AlreadyCreated()
+            } else {
+                throw TangemSdkError.MaxNumberOfWalletsCreated()
+            }
+        }
 
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
@@ -121,23 +133,6 @@ internal class CreateWalletCommand(
         return CommandApdu(Instruction.CreateWallet, tlvBuilder.serialize())
     }
 
-    @Throws(TangemSdkError::class)
-    private fun calculateWalletIndex(card: Card): Int {
-        // We need to execute this wallet index calculation stuff only after precheck.
-        // Run fires only before precheck. And precheck will not fire if error handling disabled
-        val maxIndex = card.settings.maxWalletsCount
-        val occupiedIndexes = card.wallets.map { it.index.value }
-        val allIndexes = 0 until maxIndex
-
-        return allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
-            if (maxIndex == 1) {
-                throw TangemSdkError.AlreadyCreated()
-            } else {
-                throw TangemSdkError.MaxNumberOfWalletsCreated()
-            }
-        }
-    }
-
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): CreateWalletResponse {
         val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
         val card = environment.card ?: throw TangemSdkError.UnknownError()
@@ -146,29 +141,22 @@ internal class CreateWalletCommand(
         val wallet = when {
             card.firmwareVersion >= FirmwareVersion.CreateWalletResponseAvailable -> {
                 //Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
-                WalletDeserializer(
-                    isDefaultPermanentWallet = card.settings.isPermanentWallet,
-                    secp256k1KeyFormat = environment.config.secp256k1KeyFormat
-                ).deserializeWallet(decoder).guard {
-                    throw TangemSdkError.WalletCannotBeCreated()
-                }
+                WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder)
             }
             card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable -> {
                 //We don't have a wallet response so we use to create it ourselves
                 makeWalletLegacy(
-                    decoder = decoder,
-                    index = decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex,
-                    remainingSignatures = null,  //deprecated
-                    isPermanentWallet = false,  //We don't have a wallet response so we use to create it ourselves
-                    secp256k1KeyFormat = environment.config.secp256k1KeyFormat
+                    decoder,
+                    decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex,
+                    null,  //deprecated
+                    false,  //We don't have a wallet response so we use to create it ourselves
                 )
             }
             else -> makeWalletLegacy(
-                decoder = decoder,
-                index = 0,
-                remainingSignatures = card.remainingSignatures,
-                isPermanentWallet = card.settings.isPermanentWallet,
-                secp256k1KeyFormat = environment.config.secp256k1KeyFormat
+                decoder,
+                0,
+                card.remainingSignatures,
+                card.settings.isPermanentWallet
             )
         }
 
@@ -179,23 +167,16 @@ internal class CreateWalletCommand(
         decoder: TlvDecoder,
         index: Int,
         remainingSignatures: Int?,
-        isPermanentWallet: Boolean,
-        secp256k1KeyFormat: Secp256k1KeyFormat,
+        isPermanentWallet: Boolean
     ): CardWallet {
-        val walletPublicKey: ByteArray = decoder.decode(TlvTag.WalletPublicKey)
-        val key = if (curve == EllipticCurve.Secp256k1) {
-            secp256k1KeyFormat.format(walletPublicKey)
-        } else {
-            walletPublicKey
-        }
         return CardWallet(
-            publicKey = key,
+            publicKey = decoder.decode(TlvTag.WalletPublicKey),
             chainCode = null,
             curve = curve,
             settings = CardWallet.Settings(isPermanentWallet),
             totalSignedHashes = 0,
             remainingSignatures = remainingSignatures,
-            index = WalletIndex(index),
+            index = index,
             hasBackup = false
         )
     }

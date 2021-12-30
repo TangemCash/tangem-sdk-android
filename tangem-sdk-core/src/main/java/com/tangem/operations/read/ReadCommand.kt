@@ -72,8 +72,7 @@ class ReadCommand : Command<ReadResponse>() {
         val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
 
         val isAccessCodeSetLegacy = environment.isUserCodeSet(UserCodeType.AccessCode)
-        val card = CardDeserializer(environment.config.secp256k1KeyFormat)
-            .deserialize(isAccessCodeSetLegacy, decoder, cardDataDecoder)
+        val card = CardDeserializer.deserialize(isAccessCodeSetLegacy, decoder, cardDataDecoder)
         val walletData = cardDataDecoder?.let { WalletDataDeserializer.deserialize(it) }
 
         return ReadResponse(card, walletData)
