@@ -17,7 +17,7 @@ data class File(
     val fileSettings: FileSettings?
 ) {
 
-    constructor(response: ReadFileResponse) : this(response.fileData, response.fileIndex, response.fileSettings)
+    constructor(response: ReadFileResponse) : this(response.fileData, response.fileIndex, response.settings)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

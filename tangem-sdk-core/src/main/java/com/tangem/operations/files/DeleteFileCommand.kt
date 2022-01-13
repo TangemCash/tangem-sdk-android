@@ -30,14 +30,18 @@ class DeleteFileCommand(
         if (card.firmwareVersion < FirmwareVersion.FilesAvailable) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
+        if (!card.settings.isFilesAllowed) {
+            return TangemSdkError.FilesDisabled()
+        }
+
         return null
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val tlvBuilder = TlvBuilder()
+        tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-        tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.WriteFileMode, FileDataMode.DeleteFile)
         tlvBuilder.append(TlvTag.FileIndex, fileIndex)
 

@@ -5,7 +5,6 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
-import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.tlv.TlvBuilder
@@ -47,16 +46,17 @@ class ReadFileChecksumCommand private constructor() : Command<ReadFileChecksumRe
     override fun requiresPasscode(): Boolean = shouldReadPrivateFiles
 
     override fun performPreCheck(card: Card): TangemSdkError? {
-        if (card.firmwareVersion < FirmwareVersion.FilesAvailable) {
+        if (card.firmwareVersion.doubleValue < 3.34) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
+
         return null
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val tlvBuilder = TlvBuilder()
-        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
+        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.WriteFileMode, FileDataMode.ReadFileHash)
 
         if (shouldReadPrivateFiles) tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)

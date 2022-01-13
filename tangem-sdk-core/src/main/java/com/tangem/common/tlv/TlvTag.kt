@@ -164,7 +164,8 @@ enum class TlvTag(val code: Int) {
             CurveId -> TlvValueType.EllipticCurve
             PauseBeforePin2, WalletRemainingSignatures, WalletSignedHashes, Health, TokenDecimal,
             Offset, Size -> TlvValueType.Uint16
-            FileIndex, WalletIndex, WalletsCount, CheckWalletCounter, FileCounter, BackupCount -> TlvValueType.Uint8
+            FileIndex, WalletIndex, FileOwnerIndex, WalletsCount, CheckWalletCounter, FileCounter, BackupCount ->
+                TlvValueType.Uint8
             MaxSignatures, UserCounter, UserProtectedCounter, IssuerDataCounter -> TlvValueType.Uint32
             IsActivated, TerminalIsLinked, CreateWalletAtPersonalize,
             PinIsDefault, Pin2IsDefault -> TlvValueType.BoolValue

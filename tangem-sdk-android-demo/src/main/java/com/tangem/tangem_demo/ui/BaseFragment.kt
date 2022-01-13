@@ -406,7 +406,9 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun showToast(message: String) {
-        activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
+        activity?.let {
+            postUi { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
+        }
     }
 
     protected fun prepareHashesToSign(count: Int): Array<ByteArray> {

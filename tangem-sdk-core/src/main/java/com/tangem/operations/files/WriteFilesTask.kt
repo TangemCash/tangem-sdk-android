@@ -38,6 +38,7 @@ class WriteFilesTask(
             callback(CompletionResult.Failure(TangemSdkError.FilesIsEmpty()))
             return
         }
+
         writeFiles(0, session, callback)
     }
 

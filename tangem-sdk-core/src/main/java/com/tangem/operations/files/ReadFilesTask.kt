@@ -33,10 +33,13 @@ class ReadFilesTask(
         command.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    if (result.data.fileData.isNotEmpty()) {
-                        files.add(File(result.data))
+                    val file = result.data
+                    if (file.fileData.isNotEmpty()) {
+                        files.add(File(file))
+                        readAllFiles(file.fileIndex + 1, session, callback)
+                    } else {
+                        callback(CompletionResult.Success(files))
                     }
-                    readAllFiles(result.data.fileIndex + 1, session, callback)
                 }
                 is CompletionResult.Failure -> {
                     if (result.error is TangemSdkError.FileNotFound) {
@@ -49,3 +52,4 @@ class ReadFilesTask(
         }
     }
 }
+

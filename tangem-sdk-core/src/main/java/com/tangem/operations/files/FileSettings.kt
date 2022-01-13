@@ -15,11 +15,11 @@ data class FileSettings(
     companion object {
 
         @Throws(TangemSdkError.DecodingFailed::class)
-        operator fun invoke(data: ByteArray): FileSettings {
+        operator fun invoke(data: ByteArray): FileSettings? {
             val significantByte = try {
                 data.last()
             } catch (e: Exception) {
-                throw TangemSdkError.DecodingFailed("Failed to decode FileSettings")
+                return null
             }
 
             return if (data.size == 2) { //v3 version

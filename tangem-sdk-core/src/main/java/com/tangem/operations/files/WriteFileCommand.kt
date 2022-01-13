@@ -30,6 +30,9 @@ class WriteFileResponse(
     val fileIndex: Int? = null
 ) : CommandResponse
 
+/**
+ * Command for writing file on card
+ */
 class WriteFileCommand private constructor(
     verifier: IssuerDataVerifier = DefaultIssuerDataVerifier()
 ) : Command<WriteFileResponse>(), IssuerDataVerifier by verifier {
@@ -119,6 +122,9 @@ class WriteFileCommand private constructor(
         if (firmwareVersion < FirmwareVersion.FilesAvailable) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
+        if (!card.settings.isFilesAllowed) {
+            return TangemSdkError.FilesDisabled()
+        }
         if (isWritingByUserCodes && firmwareVersion.doubleValue < 3.34) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
@@ -152,8 +158,8 @@ class WriteFileCommand private constructor(
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val tlvBuilder = TlvBuilder()
-        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
+        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.WriteFileMode, mode)
 
         when (mode) {
@@ -183,13 +189,15 @@ class WriteFileCommand private constructor(
             }
             FileDataMode.ConfirmWritingFile -> {
                 tlvBuilder.append(TlvTag.FileIndex, fileIndex)
-                finalizingSignature?.let {
-                    tlvBuilder.append(TlvTag.IssuerDataSignature, it)
+                if (finalizingSignature != null) {
+                    tlvBuilder.append(TlvTag.IssuerDataSignature, finalizingSignature)
+                } else {
                     tlvBuilder.append(TlvTag.CodeHash, data.calculateSha256())
                     tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
                 }
             }
         }
+
         return CommandApdu(Instruction.WriteFileData, tlvBuilder.serialize())
     }
 
