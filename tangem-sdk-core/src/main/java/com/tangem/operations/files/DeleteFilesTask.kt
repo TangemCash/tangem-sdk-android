@@ -5,53 +5,39 @@ import com.tangem.common.SuccessResponse
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
-import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.guard
+import java.util.*
 
 /**
  * This task allows to delete multiple or all files written to the card with [WriteFileCommand].
  * Passcode (PIN2) is required to delete the files.
  *
- * @property filesToDelete indices of files to be deleted. If [filesToDelete] are not provided,
- * then all files will be deleted.
+ * @property indices optional array of indices that should be deleted. If not specified all files
+ * will be deleted from card
  */
 class DeleteFilesTask(
-    private val filesToDelete: List<Int>? = null
+    indices: List<Int>? = null
 ) : CardSessionRunnable<SuccessResponse> {
 
+    private val indices: Deque<Int> = indices?.let { ArrayDeque(it.sorted()) } ?: ArrayDeque()
+
     override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        if (filesToDelete == null) {
-            deleteAllFiles(session, callback)
+        if (indices.isEmpty()) {
+            DeleteAllFilesTask().run(session, callback)
         } else {
-            deleteFiles(filesToDelete.sorted(), session, callback)
+            deleteFiles(session, callback)
         }
     }
 
-    private fun deleteAllFiles(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        DeleteFileCommand(0).run(session) { result ->
-            when (result) {
-                is CompletionResult.Success -> deleteAllFiles(session, callback)
-                is CompletionResult.Failure ->
-                    if (result.error is TangemSdkError.ErrorProcessingCommand) {
-                        callback(CompletionResult.Success(SuccessResponse(session.environment.card?.cardId ?: "")))
-                    } else {
-                        callback(CompletionResult.Failure(result.error))
-                    }
-            }
+    private fun deleteFiles(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
+        val index = indices.pollLast().guard {
+            callback(CompletionResult.Success(SuccessResponse(session.environment.card?.cardId ?: "")))
+            return
         }
-    }
 
-    private fun deleteFiles(filesIndex: List<Int>, session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        val index = filesIndex.last()
         DeleteFileCommand(index).run(session) { result ->
             when (result) {
-                is CompletionResult.Success -> {
-                    val remainingIndex = filesIndex.dropLast(1)
-                    if (remainingIndex.isEmpty()) {
-                        callback(result)
-                    } else {
-                        deleteFiles(remainingIndex, session, callback)
-                    }
-                }
+                is CompletionResult.Success -> deleteFiles(session, callback)
                 is CompletionResult.Failure -> callback(result)
             }
         }

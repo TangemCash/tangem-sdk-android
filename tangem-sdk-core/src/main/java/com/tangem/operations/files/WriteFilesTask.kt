@@ -7,7 +7,6 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
-import com.tangem.common.files.DataToWrite
 import com.tangem.operations.CommandResponse
 
 /**
@@ -24,57 +23,41 @@ class WriteFilesResponse(
 /**
  * This task allows to write multiple files to a card.
  * There are two secure ways to write files.
- * 1) Data can be signed by Issuer (the one specified on card during personalization) -
- * [FileDataProtectedBySignature].
- * 2) Data can be protected by Passcode (PIN2). [FileDataProtectedByPasscode] In this case,
- * Passcode (PIN2) is required for the command.
+ * 1) Data can be signed by owner (the one specified on card during personalization).
+ * 2) Data can be protected by user code. In this case, user code is required for the command.
+ * @property files: Array of files to write
  */
 class WriteFilesTask(
-    private val files: List<DataToWrite>,
-    private val overwriteAllFiles: Boolean = false
+    private val files: List<FileToWrite>,
 ) : CardSessionRunnable<WriteFilesResponse> {
 
-    private var currentIndex = 0
     private val savedFilesIndices = mutableListOf<Int>()
 
     override fun run(session: CardSession, callback: CompletionCallback<WriteFilesResponse>) {
         if (files.isEmpty()) {
-            callback(CompletionResult.Success(WriteFilesResponse("", listOf())))
+            callback(CompletionResult.Failure(TangemSdkError.FilesIsEmpty()))
             return
         }
-        if (overwriteAllFiles) {
-            deleteFiles(session, callback)
-        } else {
-            writeFiles(session, callback)
-        }
+        writeFiles(0, session, callback)
     }
 
-    private fun deleteFiles(session: CardSession, callback: CompletionCallback<WriteFilesResponse>) {
-        DeleteFilesTask().run(session) { result ->
-            when (result) {
-                is CompletionResult.Success -> writeFiles(session, callback)
-                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
-            }
-        }
-    }
-
-    private fun writeFiles(session: CardSession, callback: CompletionCallback<WriteFilesResponse>) {
+    private fun writeFiles(index: Int, session: CardSession, callback: CompletionCallback<WriteFilesResponse>) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.CardError()))
             return
         }
 
-        val fileData = files[currentIndex]
-        WriteFileCommand(fileData).run(session) { result ->
+        if (index >= files.size) {
+            callback(CompletionResult.Success(WriteFilesResponse(card.cardId, savedFilesIndices)))
+            return
+        }
+
+        val fileToWrite = files[index]
+        WriteFileCommand(fileToWrite).run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     result.data.fileIndex?.let { savedFilesIndices.add(it) }
-                    if (currentIndex == files.lastIndex) {
-                        callback(CompletionResult.Success(WriteFilesResponse(card.cardId, savedFilesIndices)))
-                    } else {
-                        currentIndex += 1
-                        writeFiles(session, callback)
-                    }
+                    writeFiles(index + 1, session, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }

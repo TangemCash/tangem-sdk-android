@@ -20,7 +20,6 @@ enum class TlvValueType {
     SigningMethod,
     InteractionMode,
     FileDataMode,
-    FileSettings,
     DerivationPath,
     BackupStatus
 }
@@ -176,7 +175,6 @@ enum class TlvTag(val code: Int) {
             SigningMethod -> TlvValueType.SigningMethod
             InteractionMode -> TlvValueType.InteractionMode
             WriteFileMode -> TlvValueType.FileDataMode
-            FileSettings -> TlvValueType.FileSettings
             WalletHDPath -> TlvValueType.DerivationPath
             BackupStatus -> TlvValueType.BackupStatus
             else -> TlvValueType.ByteArray

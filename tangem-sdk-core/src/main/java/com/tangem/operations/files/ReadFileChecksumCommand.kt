@@ -8,7 +8,6 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.files.FileDataMode
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -27,15 +26,25 @@ class ReadFileChecksumResponse(
  * with [WriteFileCommand] using PIN2.
  * This may be used to check integrity of a file.
  *TestHealthTask
+ * @property fileName name of a file
  * @property fileIndex index of a file
- * @property readPrivateFiles if set to true, then the command will get hashes of private files.
  */
-class ReadFileChecksumCommand(
-    private val fileIndex: Int = 0,
-    private val readPrivateFiles: Boolean = false
-) : Command<ReadFileChecksumResponse>() {
+class ReadFileChecksumCommand private constructor() : Command<ReadFileChecksumResponse>() {
 
-    override fun requiresPasscode(): Boolean = readPrivateFiles
+    var shouldReadPrivateFiles: Boolean = false
+
+    private var fileName: String? = null
+    private var fileIndex: Int? = null
+
+    constructor(fileName: String) : this() {
+        this.fileName = fileName
+    }
+
+    constructor(fileIndex: Int) : this() {
+        this.fileIndex = fileIndex
+    }
+
+    override fun requiresPasscode(): Boolean = shouldReadPrivateFiles
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.FilesAvailable) {
@@ -47,10 +56,12 @@ class ReadFileChecksumCommand(
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
-        if (readPrivateFiles) tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.FileIndex, fileIndex)
         tlvBuilder.append(TlvTag.WriteFileMode, FileDataMode.ReadFileHash)
+
+        if (shouldReadPrivateFiles) tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
+        tlvBuilder.append(TlvTag.FileTypeName, fileName)
+        tlvBuilder.append(TlvTag.FileIndex, fileIndex)
 
         return CommandApdu(Instruction.ReadFileData, tlvBuilder.serialize())
     }
@@ -60,9 +71,9 @@ class ReadFileChecksumCommand(
 
         val decoder = TlvDecoder(tlvData)
         return ReadFileChecksumResponse(
-                decoder.decode(TlvTag.CardId),
-                decoder.decode(TlvTag.CodeHash),
-                decoder.decodeOptional(TlvTag.FileIndex),
+            decoder.decode(TlvTag.CardId),
+            decoder.decode(TlvTag.CodeHash),
+            decoder.decodeOptional(TlvTag.FileIndex),
         )
     }
 }

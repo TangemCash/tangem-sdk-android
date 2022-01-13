@@ -1,4 +1,4 @@
-package com.tangem.common.files
+package com.tangem.operations.files
 
 data class FileHashData(
     val startingHash: ByteArray,

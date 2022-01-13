@@ -15,14 +15,14 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
-import com.tangem.common.files.FileSettings
-import com.tangem.common.files.FileSettingsChange
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
+import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.tangem_demo.Personalization
 import com.tangem.tangem_demo.R
+import com.tangem.tangem_demo.postUi
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.backup.BackupActivity
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
@@ -108,12 +108,12 @@ class CommandListFragment : BaseFragment() {
 
         btnReadAllFiles.setOnClickListener { readFiles(true) }
         btnReadPublicFiles.setOnClickListener { readFiles(false) }
-        btnWriteSignedFile.setOnClickListener { writeFilesSigned() }
-        btnWriteFilesWithPasscode.setOnClickListener { writeFilesWithPassCode() }
+        btnWriteUserFile.setOnClickListener { writeUserFile() }
+        btnWriteOwnerFile.setOnClickListener { writeOwnerFile() }
         btnDeleteAll.setOnClickListener { deleteFiles() }
         btnDeleteFirst.setOnClickListener { deleteFiles(listOf(0)) }
-        btnMakeFilePublic.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Public)) }
-        btnMakeFilePrivate.setOnClickListener { changeFilesSettings(FileSettingsChange(0, FileSettings.Private)) }
+        btnMakeFilePublic.setOnClickListener { changeFilesSettings(mapOf(0 to FileVisibility.Public)) }
+        btnMakeFilePrivate.setOnClickListener { changeFilesSettings(mapOf(0 to FileVisibility.Private)) }
 
         etJsonRpc.setText(jsonRpcSingleCommandTemplate)
         btnSingleJsonRpc.setOnClickListener { etJsonRpc.setText(jsonRpcSingleCommandTemplate) }
@@ -145,7 +145,7 @@ class CommandListFragment : BaseFragment() {
     }
 
     override fun onCardChanged(card: Card?) {
-        updateWalletsSlider()
+        postUi { updateWalletsSlider() }
     }
 
     private fun updateWalletsSlider() {

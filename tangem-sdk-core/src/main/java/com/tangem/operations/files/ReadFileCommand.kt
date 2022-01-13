@@ -12,7 +12,7 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.files.FileSettings
+import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -28,7 +28,8 @@ class ReadFileResponse(
     val fileIndex: Int,
     val fileSettings: FileSettings,
     val fileDataSignature: ByteArray?,
-    val fileDataCounter: Int?
+    val fileDataCounter: Int?,
+    val walletIndex: Int?,
 ) : CommandResponse
 
 /**
@@ -36,30 +37,48 @@ class ReadFileResponse(
  * If the files are private, then Passcode (PIN2) is required to read the files.
  *
  * @property fileIndex index of a file
- * @property readPrivateFiles if set to true, then the command will read private files,
- * for which it requires PIN2. Otherwise only public files can be read.
  */
-class ReadFileCommand(
-    private val fileIndex: Int = 0,
-    private val readPrivateFiles: Boolean = false
+internal class ReadFileCommand(
+    private val fileIndex: Int,
+    private val fileName: String? = null,
+    private val walletPublicKey: ByteArray? = null,
 ) : Command<ReadFileResponse>() {
+
+    /**
+     * if true, user code or security delay will be requested
+     */
+    var shouldReadPrivateFiles: Boolean = false
+
+    private var walletIndex: Int? = null
 
     private val fileData = ByteArrayOutputStream()
     private var offset: Int = 0
     private var dataSize: Int = 0
     private var fileSettings: FileSettings? = null
 
-    override fun requiresPasscode(): Boolean = readPrivateFiles
+    override fun requiresPasscode(): Boolean = shouldReadPrivateFiles
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.FilesAvailable) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
+
         return null
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadFileResponse>) {
         Log.command(this)
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
+        if (walletPublicKey != null) {
+            walletIndex = card.wallet(walletPublicKey)?.index.guard {
+                callback(CompletionResult.Failure(TangemSdkError.WalletNotFound()))
+                return
+            }
+        }
+
         readFileData(session, callback)
     }
 
@@ -78,8 +97,9 @@ class ReadFileCommand(
                         dataSize = result.data.size
                         fileSettings = result.data.fileSettings
                     }
+
                     fileData.write(result.data.fileData)
-                    if (result.data.fileDataCounter == null) {
+                    if (fileData.size() < dataSize) {
                         offset = fileData.size()
                         readFileData(session, callback)
                     } else {
@@ -93,24 +113,36 @@ class ReadFileCommand(
 
     private fun completeTask(data: ReadFileResponse, callback: CompletionCallback<ReadFileResponse>) {
         val finalResult = ReadFileResponse(
-                data.cardId,
-                dataSize,
-                fileData.toByteArray(),
-                data.fileIndex,
-                fileSettings ?: data.fileSettings,
-                data.fileDataSignature,
-                data.fileDataCounter
+            cardId = data.cardId,
+            size = dataSize,
+            fileData = fileData.toByteArray(),
+            fileIndex = data.fileIndex,
+            fileSettings = fileSettings ?: data.fileSettings,
+            fileDataSignature = data.fileDataSignature,
+            fileDataCounter = data.fileDataCounter,
+            walletIndex = this.walletIndex,
         )
         callback(CompletionResult.Success(finalResult))
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
+        val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
+
         val tlvBuilder = TlvBuilder()
-        tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
-        if (readPrivateFiles) tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
+        tlvBuilder.append(TlvTag.CardId, card.cardId)
         tlvBuilder.append(TlvTag.FileIndex, fileIndex)
+        tlvBuilder.append(TlvTag.FileTypeName, fileName)
+        tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
         tlvBuilder.append(TlvTag.Offset, offset)
+
+        if (shouldReadPrivateFiles) {
+            tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
+            tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
+
+        } else if (card.firmwareVersion.doubleValue < 4) {
+            tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
+        }
+
         return CommandApdu(Instruction.ReadFileData, tlvBuilder.serialize())
     }
 
@@ -122,13 +154,14 @@ class ReadFileCommand(
 
         val decoder = TlvDecoder(tlvData)
         return ReadFileResponse(
-                cardId = decoder.decode(TlvTag.CardId),
-                size = decoder.decodeOptional(TlvTag.Size),
-                fileData = decoder.decodeOptional(TlvTag.IssuerData) ?: byteArrayOf(),
-                fileIndex = decoder.decodeOptional(TlvTag.FileIndex) ?: 0,
-                fileSettings = decoder.decodeOptional(TlvTag.FileSettings) ?: FileSettings.Public,
-                fileDataSignature = decoder.decodeOptional(TlvTag.IssuerDataSignature),
-                fileDataCounter = decoder.decodeOptional(TlvTag.IssuerDataCounter)
+            cardId = decoder.decode(TlvTag.CardId),
+            size = decoder.decodeOptional(TlvTag.Size),
+            fileData = decoder.decodeOptional(TlvTag.IssuerData) ?: byteArrayOf(),
+            fileIndex = decoder.decodeOptional(TlvTag.FileIndex) ?: 0,
+            fileSettings = FileSettings(decoder.decode(TlvTag.FileSettings)),
+            fileDataSignature = decoder.decodeOptional(TlvTag.IssuerDataSignature),
+            fileDataCounter = decoder.decodeOptional(TlvTag.IssuerDataCounter),
+            walletIndex = decoder.decodeOptional(TlvTag.WalletIndex)
         )
     }
 }
