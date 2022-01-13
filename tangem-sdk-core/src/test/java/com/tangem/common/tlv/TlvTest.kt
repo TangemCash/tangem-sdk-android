@@ -127,7 +127,8 @@ class TlvTest {
     fun testFileSettings() {
         val byte = byteArrayOf(0x11)
         val settings = FileSettings(byte)
-        assertThat(settings.isPermanent).isTrue()
+        assertThat(settings).isNotNull()
+        assertThat(settings!!.isPermanent).isTrue()
         assertThat(settings.visibility).isEqualTo(FileVisibility.Public)
     }
 }
