@@ -17,8 +17,6 @@ data class File(
     val fileSettings: FileSettings?
 ) {
 
-    constructor(response: ReadFileResponse) : this(response.fileData, response.fileIndex, response.settings)
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -36,11 +34,21 @@ data class File(
         fileIndex.hashCode(),
         fileSettings?.hashCode() ?: 0
     )
+
+    companion object {
+        operator fun invoke(response: ReadFileResponse): File? {
+            if (response.size == null || response.settings == null) return null
+
+            return File(response.fileData, response.fileIndex, response.settings)
+        }
+    }
 }
 
 data class NamedFile(
     val name: String,
     val payload: ByteArray,
+    val counter: Int? = null,
+    val signature: ByteArray? = null
 ) {
 
     @Throws()
@@ -48,6 +56,8 @@ data class NamedFile(
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.FileTypeName, name)
         tlvBuilder.append(TlvTag.FileData, payload)
+        tlvBuilder.append(TlvTag.FileCounter, counter)
+        tlvBuilder.append(TlvTag.FileSignature, signature)
 
         return tlvBuilder.serialize()
     }
@@ -76,7 +86,10 @@ data class NamedFile(
                 val decoder = TlvDecoder(tlv)
                 val name = decoder.decode<String>(TlvTag.FileTypeName)
                 val payload = decoder.decode<ByteArray>(TlvTag.FileData)
-                NamedFile(name, payload)
+                val counter = decoder.decodeOptional<Int>(TlvTag.FileCounter)
+                val signature = decoder.decodeOptional<ByteArray>(TlvTag.FileSignature)
+
+                NamedFile(name, payload, counter, signature)
             } catch (ex: Exception) {
                 null
             }
@@ -166,19 +179,4 @@ sealed class FileToWrite {
             walletPublicKey.contentHashCode(),
         )
     }
-
-    private data class UserFile(
-        val data: ByteArray,
-        val fileVisibility: FileVisibility?,
-        val walletPublicKey: ByteArray?,
-    )
-
-    private data class OwnerFile(
-        val data: ByteArray,
-        val startingSignature: ByteArray,
-        val finalizingSignature: ByteArray,
-        val counter: Int,
-        val fileVisibility: FileVisibility?,
-        val walletPublicKey: ByteArray?,
-    )
 }

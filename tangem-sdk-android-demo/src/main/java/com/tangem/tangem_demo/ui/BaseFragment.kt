@@ -294,12 +294,19 @@ abstract class BaseFragment : Fragment() {
             when (result) {
                 is CompletionResult.Success -> {
                     val filesDetailInfo = mutableListOf<Map<String, Any>>()
+                    if (result.data.isEmpty()) {
+                        showDialog(jsonConverter.prettyPrint(result.data))
+                        return@readFiles
+                    }
+
                     result.data.forEach {
                         val namedFile = NamedFile(it.fileData) ?: return@forEach
                         val detailInfo = mutableMapOf<String, Any>()
                         detailInfo["fileIndex"] = it.fileIndex
                         detailInfo["name"] = namedFile.name
                         detailInfo["fileData"] = namedFile.payload.toHexString()
+                        namedFile.counter?.let { detailInfo["counter"] = it }
+                        namedFile.signature?.let { detailInfo["signature"] = it.toHexString() }
                         Tlv.deserialize(namedFile.payload)?.let {
                             val decoder = TlvDecoder(it)
                             WalletDataDeserializer.deserialize(decoder)?.let { walletData ->

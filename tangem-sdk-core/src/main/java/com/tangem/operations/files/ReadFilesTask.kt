@@ -33,9 +33,9 @@ class ReadFilesTask(
         command.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    val file = result.data
-                    if (file.fileData.isNotEmpty()) {
-                        files.add(File(file))
+                    val file = File(result.data)
+                    if (file != null) {
+                        files.add(file)
                         readAllFiles(file.fileIndex + 1, session, callback)
                     } else {
                         callback(CompletionResult.Success(files))
