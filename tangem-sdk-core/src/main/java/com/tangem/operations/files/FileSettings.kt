@@ -1,7 +1,6 @@
 package com.tangem.operations.files
 
 import com.tangem.common.card.FirmwareVersion
-import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.containsByte
 
 /**
@@ -14,7 +13,6 @@ data class FileSettings(
 
     companion object {
 
-        @Throws(TangemSdkError.DecodingFailed::class)
         operator fun invoke(data: ByteArray): FileSettings? {
             val significantByte = try {
                 data.last()
