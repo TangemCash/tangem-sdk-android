@@ -4,16 +4,10 @@
     "id": 1,
     "method": "CHANGE_FILE_SETTINGS",
     "params": {
-      "changes": [
-        {
-          "fileIndex": 1,
-          "settings": "private"
-        },
-        {
-          "fileIndex": 2,
-          "settings": "public"
-        }
-      ]
+      "changes": {
+        "1": "private",
+        "2": "public"
+      }
     }
   },
   "response": {

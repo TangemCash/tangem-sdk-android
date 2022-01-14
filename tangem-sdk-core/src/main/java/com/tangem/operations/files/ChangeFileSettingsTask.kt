@@ -5,38 +5,32 @@ import com.tangem.common.SuccessResponse
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
-import com.tangem.common.files.FileSettingsChange
+import com.tangem.common.extensions.guard
+import java.util.*
 
 /**
  * This task allows to change settings of multiple files written to the card with [WriteFileCommand].
- * Passcode (PIN2) is required for this operation.
- * [FileSettings] change access level to a file - it can be [FileSettings.Private],
- * accessible only with PIN2, or [FileSettings.Public], accessible without PIN2
- *
- * @property changes contains list of [FileSettingsChange] -
- * indices of files that are to be changed and desired settings.
+ * @property changes: Dictionary of file indices with new settings
  */
 class ChangeFileSettingsTask(
-    private val changes: List<FileSettingsChange>
+    changes: Map<Int, FileVisibility>
 ) : CardSessionRunnable<SuccessResponse> {
 
-    private var currentIndex = 0
+    private val changes: Deque<Pair<Int, FileVisibility>> = ArrayDeque(changes.toList())
 
     override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
         changeSettings(session, callback)
     }
 
     private fun changeSettings(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        ChangeFileSettingsCommand(changes[currentIndex]).run(session) { result ->
+        val changes = changes.pollLast().guard {
+            callback(CompletionResult.Success(SuccessResponse(session.environment.card?.cardId ?: "")))
+            return
+        }
+
+        ChangeFileSettingsCommand(changes.first, changes.second).run(session) { result ->
             when (result) {
-                is CompletionResult.Success -> {
-                    if (currentIndex == changes.lastIndex) {
-                        callback(result)
-                    } else {
-                        currentIndex += 1
-                        changeSettings(session, callback)
-                    }
-                }
+                is CompletionResult.Success -> changeSettings(session, callback)
                 is CompletionResult.Failure -> callback(result)
             }
         }

@@ -9,10 +9,9 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
-import com.tangem.common.files.FileDataMode
-import com.tangem.common.files.FileSettings
 import com.tangem.common.hdWallet.DerivationNode.Companion.serialize
 import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.operations.files.FileDataMode
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -132,10 +131,6 @@ class TlvEncoder {
             TlvValueType.FileDataMode -> {
                 typeCheck<T, FileDataMode>(tag)
                 byteArrayOf((value as FileDataMode).rawValue.toByte())
-            }
-            TlvValueType.FileSettings -> {
-                typeCheck<T, FileSettings>(tag)
-                (value as FileSettings).rawValue.toByteArray(2)
             }
             TlvValueType.DerivationPath -> {
                 typeCheck<T, DerivationPath>(tag)

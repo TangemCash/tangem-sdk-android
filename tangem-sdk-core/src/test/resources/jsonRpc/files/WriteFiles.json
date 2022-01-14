@@ -4,7 +4,6 @@
     "id": 1,
     "method": "WRITE_FILES",
     "params": {
-      "overwriteAllFiles": true,
       "files": [
         {
           "data": "AABBCCDDEEFF"
