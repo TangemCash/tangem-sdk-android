@@ -19,14 +19,6 @@ import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDataDeserializer
 import com.tangem.common.extensions.*
-import com.tangem.common.extensions.VoidCallback
-import com.tangem.common.extensions.guard
-import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.extensions.toByteArray
-import com.tangem.common.files.FileDataProtectedByPasscode
-import com.tangem.common.files.FileDataProtectedBySignature
-import com.tangem.common.files.FileHashHelper
-import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.Tlv
@@ -287,47 +279,49 @@ abstract class BaseFragment : Fragment() {
 
     protected fun readFiles(readPrivateFiles: Boolean) {
         sdk.readFiles(readPrivateFiles, null, null, card?.cardId, initialMessage) { result ->
-            setCard(result)
-            when (result) {
-                is CompletionResult.Success -> {
-                    val filesDetailInfo = mutableListOf<Map<String, Any>>()
-                    if (result.data.isEmpty()) {
-                        showDialog(jsonConverter.prettyPrint(result.data))
-                        return@readFiles
-                    }
-
-                    result.data.forEach {
-                        val namedFile = NamedFile(it.fileData) ?: return@forEach
-                        val detailInfo = mutableMapOf<String, Any>()
-                        detailInfo["fileIndex"] = it.fileIndex
-                        detailInfo["name"] = namedFile.name
-                        detailInfo["fileData"] = namedFile.payload.toHexString()
-                        namedFile.counter?.let { detailInfo["counter"] = it }
-                        namedFile.signature?.let { detailInfo["signature"] = it.toHexString() }
-                        Tlv.deserialize(namedFile.payload)?.let {
-                            val decoder = TlvDecoder(it)
-                            WalletDataDeserializer.deserialize(decoder)?.let { walletData ->
-                                detailInfo["walletData"] = jsonConverter.toMap(walletData)
-                            }
+            setCard(result) {
+                when (result) {
+                    is CompletionResult.Success -> {
+                        val filesDetailInfo = mutableListOf<Map<String, Any>>()
+                        if (result.data.isEmpty()) {
+                            showDialog(jsonConverter.prettyPrint(result.data))
+                            return@setCard
                         }
-                        filesDetailInfo.add(detailInfo)
 
+                        result.data.forEach {
+                            val namedFile = NamedFile(it.fileData) ?: return@forEach
+                            val detailInfo = mutableMapOf<String, Any>()
+                            detailInfo["fileIndex"] = it.fileIndex
+                            detailInfo["name"] = namedFile.name
+                            detailInfo["fileData"] = namedFile.payload.toHexString()
+                            namedFile.counter?.let { detailInfo["counter"] = it }
+                            namedFile.signature?.let { detailInfo["signature"] = it.toHexString() }
+                            Tlv.deserialize(namedFile.payload)?.let {
+                                val decoder = TlvDecoder(it)
+                                WalletDataDeserializer.deserialize(decoder)?.let { walletData ->
+                                    detailInfo["walletData"] = jsonConverter.toMap(walletData)
+                                }
+                            }
+                            filesDetailInfo.add(detailInfo)
+
+                        }
+                        val builder = StringBuilder().apply {
+                            append(jsonConverter.prettyPrint(result.data))
+                            append("\n\n\nDetails:\n")
+                            append(jsonConverter.prettyPrint(filesDetailInfo))
+                        }
+                        postUi { showDialog(builder.toString()) }
                     }
-                    val builder = StringBuilder().apply {
-                        append(jsonConverter.prettyPrint(result.data))
-                        append("\n\n\nDetails:\n")
-                        append(jsonConverter.prettyPrint(filesDetailInfo))
-                    }
-                    postUi { showDialog(builder.toString()) }
-                }
-                is CompletionResult.Failure -> {
-                    if (result.error is TangemSdkError.UserCancelled) {
-                        showToast("${result.error.customMessage}: User was cancelled the operation")
-                    } else {
-                        showToast(result.error.customMessage)
+                    is CompletionResult.Failure -> {
+                        if (result.error is TangemSdkError.UserCancelled) {
+                            showToast("${result.error.customMessage}: User was cancelled the operation")
+                        } else {
+                            showToast(result.error.customMessage)
+                        }
                     }
                 }
             }
+
         }
     }
 
