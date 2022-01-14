@@ -13,6 +13,13 @@ class BIP44(
     val addressIndex: Long,
 ) {
 
+    constructor(coinType: Long) : this(
+        coinType,
+        0,
+        Chain.External,
+        0
+    )
+
     /**
      * Build path
      * @return Path according BIP32

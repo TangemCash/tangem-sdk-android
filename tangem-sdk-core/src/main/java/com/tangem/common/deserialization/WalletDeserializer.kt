@@ -12,7 +12,7 @@ import com.tangem.common.tlv.TlvTag
  * so we should take them from the card's settings
  */
 internal class WalletDeserializer(
-    private val isDefaultPermanentWallet: Boolean
+    private val isDefaultPermanentWallet: Boolean,
 ) {
 
     internal fun deserializeWallets(decoder: TlvDecoder): DeserializedWallets {
@@ -22,22 +22,29 @@ internal class WalletDeserializer(
         val walletsDecoders = cardWalletsData.mapNotNull { walletData ->
             Tlv.deserialize(walletData)?.let { tlvs -> TlvDecoder(tlvs) }
         }
-        val wallets = walletsDecoders.mapNotNull { deserializeWallet(it) }
+        val wallets = walletsDecoders.mapNotNull {
+            try {
+                deserializeWallet(it)
+            } catch (exception: TangemSdkError.WalletNotFound) {
+                null
+            }
+        }
 
         return Pair(wallets, cardWalletsData.size)
     }
 
-    internal fun deserializeWallet(decoder: TlvDecoder): CardWallet? {
+    internal fun deserializeWallet(decoder: TlvDecoder): CardWallet {
         val status: CardWallet.Status? = decoder.decode(TlvTag.Status)
         return if (status == CardWallet.Status.Loaded || status == CardWallet.Status.Backuped) {
             deserialize(decoder, status)
         } else {
-            null
+            throw TangemSdkError.WalletNotFound()
         }
     }
 
     private fun deserialize(decoder: TlvDecoder, status: CardWallet.Status): CardWallet {
-        val walletSettingsMask: CardWallet.SettingsMask? = decoder.decodeOptional(TlvTag.SettingsMask)
+        val walletSettingsMask: CardWallet.SettingsMask? =
+            decoder.decodeOptional(TlvTag.SettingsMask)
 
         val settings = if (walletSettingsMask != null) {
             CardWallet.Settings(walletSettingsMask)

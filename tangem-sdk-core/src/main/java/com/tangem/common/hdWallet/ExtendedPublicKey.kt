@@ -13,9 +13,8 @@ import com.tangem.operations.CommandResponse
  */
 @JsonClass(generateAdapter = true)
 class ExtendedPublicKey(
-    val compressedPublicKey: ByteArray,
-    val chainCode: ByteArray,
-    val derivationPath: DerivationPath
+    val publicKey: ByteArray,
+    val chainCode: ByteArray
 ) : CommandResponse {
 
     /**
@@ -25,25 +24,29 @@ class ExtendedPublicKey(
      */
     @Throws(HDWalletError::class)
     fun derivePublicKey(node: DerivationNode): ExtendedPublicKey {
+        if (publicKey.size != 33) { //secp256k1 only
+            throw HDWalletError.UnsupportedCurve
+        }
         val index = node.index
 
         //We can derive only non-hardened keys
         if (index >= BIP32.hardenedOffset) throw HDWalletError.HardenedNotSupported
 
-        val data = compressedPublicKey + index.toByteArray(4)
+        val data = publicKey + index.toByteArray(4)
         val i = chainCode.hmacSha512(data).clone()
         val iL = i.sliceArray(0 until 32)
-        val iR = i.sliceArray(32 until 64)
+        val chainCode = i.sliceArray(32 until 64)
 
-        val ki = Secp256k1.gMultiplyAndAddPoint(iL, compressedPublicKey)
+        val ki = Secp256k1.gMultiplyAndAddPoint(iL, publicKey)
         val derivedPublicKey = ki.getEncoded(true)
 
-        return ExtendedPublicKey(derivedPublicKey, iR, derivationPath.extendedPath(node))
+        return ExtendedPublicKey(derivedPublicKey, chainCode)
     }
 
     /**
      * This function performs CKDpub((Kpar, cpar), i) → (Ki, ci) to compute a child extended public key from the
-     * parent extended public key. It is only defined for non-hardened child keys.
+     * parent extended public key.
+     * It is only defined for non-hardened child keys. `secp256k1` only
      */
     @Throws(HDWalletError::class)
     fun derivePublicKey(derivationPath: DerivationPath): ExtendedPublicKey {
@@ -57,14 +60,12 @@ class ExtendedPublicKey(
     override fun equals(other: Any?): Boolean {
         val other = other as? ExtendedPublicKey ?: return false
 
-        return compressedPublicKey.contentEquals(other.compressedPublicKey)
+        return publicKey.contentEquals(other.publicKey)
                 && chainCode.contentEquals(other.chainCode)
-                && derivationPath == other.derivationPath
     }
 
     override fun hashCode(): Int = calculateHashCode(
-        compressedPublicKey.contentHashCode(),
+        publicKey.contentHashCode(),
         chainCode.contentHashCode(),
-        derivationPath.hashCode()
     )
 }

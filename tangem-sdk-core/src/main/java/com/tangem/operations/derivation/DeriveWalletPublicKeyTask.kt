@@ -5,6 +5,7 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.get
 import com.tangem.common.extensions.guard
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
@@ -12,6 +13,7 @@ import com.tangem.operations.read.ReadWalletCommand
 
 /**
  * Derive wallet  public key according to BIP32 (Private parent key → public child key)
+ * Warning: Only `secp256k1` and `ed25519` (BIP32-Ed25519 scheme) curves supported
  * @property walletPublicKey seed public key.
  * @property derivationPath derivation path.
  */
@@ -35,11 +37,26 @@ class DeriveWalletPublicKeyTask(
                         return@run
                     }
 
-                    val childKey = ExtendedPublicKey(result.data.wallet.publicKey, chainCode, derivationPath)
+                    val childKey = ExtendedPublicKey(
+                        publicKey = result.data.wallet.publicKey,
+                        chainCode = chainCode
+                    )
+                    updateKeys(childKey, session)
                     callback(CompletionResult.Success(childKey))
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
+        }
+    }
+
+    private fun updateKeys(childKey: ExtendedPublicKey, session: CardSession) {
+        val wallet = session.environment.card?.wallets?.get(walletPublicKey)
+        val updatedKeys = wallet?.derivedKeys?.toMutableMap()
+            ?.apply { this[derivationPath] = childKey }
+        if (wallet != null && updatedKeys != null) {
+            session.environment.card = session.environment.card?.updateWallet(
+                wallet.copy(derivedKeys = updatedKeys)
+            )
         }
     }
 }

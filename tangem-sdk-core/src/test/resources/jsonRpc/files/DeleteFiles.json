@@ -4,11 +4,9 @@
     "id": 1,
     "method": "DELETE_FILES",
     "params": {
-      "filesToDelete": [
+      "indices": [
         1,
-        2,
-        3,
-        5
+        2
       ]
     }
   },

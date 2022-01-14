@@ -9,10 +9,9 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
-import com.tangem.common.files.FileDataMode
-import com.tangem.common.files.FileSettings
 import com.tangem.common.hdWallet.DerivationNode.Companion.serialize
 import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.operations.files.FileDataMode
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -133,10 +132,6 @@ class TlvEncoder {
                 typeCheck<T, FileDataMode>(tag)
                 byteArrayOf((value as FileDataMode).rawValue.toByte())
             }
-            TlvValueType.FileSettings -> {
-                typeCheck<T, FileSettings>(tag)
-                (value as FileSettings).rawValue.toByteArray(2)
-            }
             TlvValueType.DerivationPath -> {
                 typeCheck<T, DerivationPath>(tag)
                 return (value as DerivationPath).nodes.map { it.serialize() }.reduce { acc, bytes -> acc + bytes }
@@ -152,7 +147,7 @@ class TlvEncoder {
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
         if (T::class != ExpectedT::class) {
             val error = TangemSdkError.EncodingFailedTypeMismatch(
-                    "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+                "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
             )
             Log.error { error.customMessage }
             throw error

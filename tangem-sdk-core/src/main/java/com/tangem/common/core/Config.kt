@@ -1,6 +1,8 @@
 package com.tangem.common.core
 
 import com.tangem.common.CardFilter
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.attestation.AttestationTask
 
 class Config(
@@ -30,16 +32,12 @@ class Config(
 
     var handleErrors: Boolean = true,
 
-    var savePin1InStaticField: Boolean = true,
-
-    var savePin2InStaticField: Boolean = true,
-
     var howToIsEnabled: Boolean = true,
 
     /**
      * Full CID will be displayed, if null
      */
-    var cardIdDisplayedNumbersCount: Int? = null,
+    var cardIdDisplayFormat: CardIdDisplayFormat = CardIdDisplayFormat.Full,
 
     /**
      * ScanTask or scanCard method in TangemSdk class will use this mode to attest the card
@@ -57,6 +55,13 @@ class Config(
      * Convert all secp256k1 signatures, produced by the card, to a lowers-S form. True by default
      */
     var canonizeSecp256k1Signatures: Boolean = true,
+
+    /** A card with HD wallets feature enabled will derive keys automatically on "scan" and "createWallet".
+     * Repeated items will be ignored.
+     * All derived keys will be stored in [com.tangem.common.card.CardWallet.derivedKeys].
+     * Only `secp256k1` and `ed25519` supported.
+     */
+    var defaultDerivationPaths: MutableMap<EllipticCurve, List<DerivationPath>> = mutableMapOf()
 )
 
 sealed class CardIdDisplayFormat {

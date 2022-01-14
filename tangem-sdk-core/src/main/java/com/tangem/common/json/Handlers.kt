@@ -11,7 +11,7 @@ import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
-import com.tangem.operations.derivation.ExtendedPublicKeyList
+import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.*
 import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
@@ -24,6 +24,7 @@ import com.tangem.operations.sign.SignResponse
 import com.tangem.operations.wallet.CreateWalletResponse
 import com.tangem.operations.wallet.CreateWalletTask
 import com.tangem.operations.wallet.PurgeWalletCommand
+import java.util.*
 
 /**
  * Created by Anton Zhilenkov on 29/06/2021.
@@ -128,10 +129,10 @@ class DeriveWalletPublicKeyHandler : JSONRPCHandler<ExtendedPublicKey> {
     }
 }
 
-class DeriveWalletPublicKeysHandler : JSONRPCHandler<ExtendedPublicKeyList> {
+class DeriveWalletPublicKeysHandler : JSONRPCHandler<ExtendedPublicKeysMap> {
     override val method: String = "DERIVE_WALLET_PUBLIC_KEYS"
 
-    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKeyList> {
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ExtendedPublicKeysMap> {
         val walletPublicKey: ByteArray = (params["walletPublicKey"] as String).hexToBytes()
         val rawDerivationPaths: List<String> = params["derivationPaths"] as List<String>
         val derivationPaths: List<DerivationPath> = rawDerivationPaths.map { DerivationPath(it) }
@@ -164,11 +165,14 @@ class ResetUserCodesHandler : JSONRPCHandler<SuccessResponse> {
     }
 }
 
-class ReadFilesHandler : JSONRPCHandler<ReadFilesResponse> {
+class ReadFilesHandler : JSONRPCHandler<List<File>> {
     override val method: String = "READ_FILES"
 
-    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ReadFilesResponse> {
-        return make<ReadFilesTask>(params)
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<List<File>> {
+        val task = make<ReadFilesTask>(params)
+        task.shouldReadPrivateFiles = params["readPrivateFiles"] as? Boolean ?: false
+
+        return task
     }
 }
 
@@ -184,7 +188,8 @@ class DeleteFilesHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "DELETE_FILES"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
-        return make<DeleteFilesTask>(params)
+        val indices = params["indices"] as? List<Int>
+        return DeleteFilesTask(indices)
     }
 }
 
@@ -192,6 +197,9 @@ class ChangeFileSettingsHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "CHANGE_FILE_SETTINGS"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
-        return make<ChangeFileSettingsTask>(params)
+        val changes = (params["changes"] as Map<String, String>).entries.associate {
+            it.key.toInt() to FileVisibility.valueOf(it.value.capitalize(Locale.getDefault()))
+        }
+        return ChangeFileSettingsTask(changes)
     }
 }

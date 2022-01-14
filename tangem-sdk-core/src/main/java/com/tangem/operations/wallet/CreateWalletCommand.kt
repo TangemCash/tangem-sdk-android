@@ -141,9 +141,7 @@ internal class CreateWalletCommand(
         val wallet = when {
             card.firmwareVersion >= FirmwareVersion.CreateWalletResponseAvailable -> {
                 //Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
-                WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder).guard {
-                    throw TangemSdkError.WalletCannotBeCreated()
-                }
+                WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder)
             }
             card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable -> {
                 //We don't have a wallet response so we use to create it ourselves
