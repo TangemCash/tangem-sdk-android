@@ -50,10 +50,11 @@ class ReadFileResponse(
         response.offset?.let { offset = it }
 
         fileData += response.fileData
+        Log.debug { fileData.size.toString() }
     }
 
     companion object {
-        val empty = ReadFileResponse(
+        fun empty() = ReadFileResponse(
             "",
             null,
             null,
@@ -84,7 +85,7 @@ internal class ReadFileCommand(
 
     private var walletIndex: Int? = null
 
-    private var aggregatedResponse: ReadFileResponse = ReadFileResponse.empty
+    private var aggregatedResponse: ReadFileResponse = ReadFileResponse.empty()
 
     override fun requiresPasscode(): Boolean = shouldReadPrivateFiles
 
