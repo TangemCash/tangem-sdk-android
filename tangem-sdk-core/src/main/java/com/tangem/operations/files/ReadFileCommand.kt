@@ -50,7 +50,6 @@ class ReadFileResponse(
         response.offset?.let { offset = it }
 
         fileData += response.fileData
-        Log.debug { fileData.size.toString() }
     }
 
     companion object {
