@@ -879,7 +879,15 @@ class TangemSdk(
 
     private fun makeSession(cardId: String? = null, initialMessage: Message? = null): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
-        return CardSession(viewDelegate, environment, reader, jsonRpcConverter, cardId, initialMessage)
+        return CardSession(
+            viewDelegate = viewDelegate,
+            environment = environment,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter,
+            cardId = cardId,
+            initialMessage = initialMessage,
+            secureStorage = secureStorage,
+        )
     }
 
     private fun checkSession(): Boolean {
@@ -887,5 +895,16 @@ class TangemSdk(
         return session.state == CardSession.CardSessionState.Active
     }
 
-    companion object
+    companion object {
+        fun makeSessionBuilder(
+            viewDelegate: SessionViewDelegate,
+            secureStorage: SecureStorage,
+            reader: CardReader,
+            jsonRpcConverter: JSONRPCConverter,
+        ): SessionBuilder {
+            return SessionBuilder(
+                viewDelegate, secureStorage, reader, jsonRpcConverter
+            )
+        }
+    }
 }

@@ -56,30 +56,41 @@ class HeaderWidget(
                 imvClose.hide()
                 btnHowTo.isEnabled = true
                 btnHowTo.show()
-                tvCard.show()
-                if (cardId == null) {
-                    tvCard.text = ""
-                } else {
-                    tvCard.text = getString(R.string.view_delegate_header_card)
-                    tvCardId.show()
-                    tvCardId.text = cardId
-                }
             }
             is SessionViewDelegateState.PinChangeRequested -> {
+                cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show()
             }
             is SessionViewDelegateState.PinRequested -> {
+                cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show(isFullScreenMode)
             }
             is SessionViewDelegateState.TagLost -> btnHowTo.isEnabled = true
             is SessionViewDelegateState.TagConnected, is SessionViewDelegateState.Error,
             is SessionViewDelegateState.WrongCard -> btnHowTo.isEnabled = false
+            is SessionViewDelegateState.ResetCodes -> {
+                cardId = params.cardId
+                btnHowTo.hide()
+                imvClose.show()
+            }
             else -> {
                 imvClose.hide()
                 btnHowTo.show()
             }
+        }
+        setCardId()
+    }
+
+    private fun setCardId() {
+        if (cardId == null) {
+            tvCard.text = ""
+        } else {
+            tvCard.text = getString(R.string.view_delegate_header_card)
+            tvCard.show()
+            tvCardId.show()
+            tvCardId.text = cardId
         }
     }
 }

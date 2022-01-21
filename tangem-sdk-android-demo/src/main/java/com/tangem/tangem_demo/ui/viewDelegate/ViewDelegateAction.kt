@@ -249,19 +249,19 @@ class RequestAccessCode : BaseDelegateAction() {
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, false) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, false, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
     }
@@ -282,19 +282,19 @@ class RequestPasscode : BaseDelegateAction() {
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, false) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, false, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
     }

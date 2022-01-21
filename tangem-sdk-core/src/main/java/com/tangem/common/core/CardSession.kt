@@ -1,9 +1,7 @@
 package com.tangem.common.core
 
 import com.tangem.*
-import com.tangem.common.CompletionResult
-import com.tangem.common.UserCode
-import com.tangem.common.UserCodeType
+import com.tangem.common.*
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
@@ -12,10 +10,13 @@ import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
 import com.tangem.operations.*
 import com.tangem.operations.read.ReadCommand
+import com.tangem.operations.resetcode.ResetCodesController
+import com.tangem.operations.resetcode.ResetPinService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.PrintWriter
@@ -39,6 +40,7 @@ class CardSession(
     val environment: SessionEnvironment,
     private val reader: CardReader,
     private val jsonRpcConverter: JSONRPCConverter,
+    private val secureStorage: SecureStorage,
     cardId: String? = null,
     private var initialMessage: Message? = null
 ) {
@@ -49,6 +51,9 @@ class CardSession(
         private set
     var state = CardSessionState.Inactive
         private set
+
+    private var resetCodesController: ResetCodesController? = null
+
 
     val scope = CoroutineScope(Dispatchers.IO) + CoroutineExceptionHandler { _, throwable ->
         val sw = StringWriter()
@@ -369,18 +374,79 @@ class CardSession(
             callback(CompletionResult.Success(Unit))
             return
         }
-
         Log.session { "Request user code of type: $type" }
-        viewDelegate.requestUserCode(type, isFirstAttempt) { stringValue ->
-            val code = UserCode(type, stringValue)
-            when (type) {
-                UserCodeType.AccessCode -> environment.accessCode = code
-                UserCodeType.Passcode -> environment.passcode = code
+
+        val cardId = environment.card?.cardId ?: this.cardId
+        val showForgotButton = environment.card?.backupStatus?.isActive ?: false
+        val formattedCardId = cardId?.let {
+            CardIdFormatter(environment.config.cardIdDisplayFormat).getFormattedCardId(it)
+        }
+
+        viewDelegate.requestUserCode(
+            type, isFirstAttempt,
+            showForgotButton = showForgotButton, cardId = formattedCardId,
+        ) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    val code = UserCode(type, result.data)
+                    when (type) {
+                        UserCodeType.AccessCode -> environment.accessCode = code
+                        UserCodeType.Passcode -> environment.passcode = code
+                    }
+                    callback(CompletionResult.Success(Unit))
+                }
+                is CompletionResult.Failure -> {
+                    if (result.error is TangemSdkError.UserForgotTheCode) {
+                        viewDelegate.dismiss()
+                        restoreUserCode(type, cardId) { restoreCodeResult ->
+                            when (restoreCodeResult) {
+                                is CompletionResult.Success -> {
+                                    updateEnvironment(type, restoreCodeResult.data)
+                                    resetCodesController = null
+                                    callback(CompletionResult.Success(Unit))
+                                }
+                                is CompletionResult.Failure -> {
+                                    callback(CompletionResult.Failure(restoreCodeResult.error))
+                                }
+                            }
+                        }
+                    } else {
+                        callback(CompletionResult.Failure(result.error))
+                    }
+                }
             }
-            callback(CompletionResult.Success(Unit))
         }
     }
 
+    private fun updateEnvironment(type: UserCodeType, code: String) {
+        val userCode = UserCode(type, code)
+        when (type) {
+            UserCodeType.AccessCode -> environment.accessCode = userCode
+            UserCodeType.Passcode -> environment.passcode = userCode
+        }
+    }
+
+    fun restoreUserCode(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
+        val sessionConstructor = TangemSdk.makeSessionBuilder(
+            viewDelegate = viewDelegate,
+            secureStorage = secureStorage,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter
+        )
+        val resetService = ResetPinService(
+            sessionConstructor = sessionConstructor,
+            stringsLocator = viewDelegate.resetCodesViewDelegate.stringsLocator,
+            config = environment.config
+        )
+        viewDelegate.resetCodesViewDelegate.stopSessionCallback = { stopSession() }
+        resetCodesController = ResetCodesController(
+            resetService = resetService,
+            viewDelegate = viewDelegate.resetCodesViewDelegate
+        ).apply {
+            cardIdDisplayFormat = environment.config.cardIdDisplayFormat
+            start(codeType = type, cardId = cardId, callback = callback)
+        }
+    }
 
     enum class CardSessionState {
         Inactive,
@@ -393,5 +459,29 @@ typealias SessionStartedCallback = (session: CardSession, error: TangemError?) -
 enum class TagType {
     Nfc,
     Slix
+}
+
+class SessionBuilder(
+    val viewDelegate: SessionViewDelegate,
+    val secureStorage: SecureStorage,
+    val reader: CardReader,
+    val jsonRpcConverter: JSONRPCConverter,
+) {
+    fun build(
+        config: Config,
+        cardId: String? = null,
+        initialMessage: Message? = null
+    ): CardSession {
+        val environment = SessionEnvironment(config, secureStorage)
+        return CardSession(
+            viewDelegate = viewDelegate,
+            environment = environment,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter,
+            cardId = cardId,
+            initialMessage = initialMessage,
+            secureStorage = secureStorage,
+        )
+    }
 }
 
