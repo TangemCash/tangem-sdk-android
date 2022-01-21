@@ -24,6 +24,7 @@ import com.tangem.operations.sign.SignResponse
 import com.tangem.operations.wallet.CreateWalletResponse
 import com.tangem.operations.wallet.CreateWalletTask
 import com.tangem.operations.wallet.PurgeWalletCommand
+import java.util.*
 
 /**
  * Created by Anton Zhilenkov on 29/06/2021.
@@ -164,11 +165,14 @@ class ResetUserCodesHandler : JSONRPCHandler<SuccessResponse> {
     }
 }
 
-class ReadFilesHandler : JSONRPCHandler<ReadFilesResponse> {
+class ReadFilesHandler : JSONRPCHandler<List<File>> {
     override val method: String = "READ_FILES"
 
-    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<ReadFilesResponse> {
-        return make<ReadFilesTask>(params)
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<List<File>> {
+        val task = make<ReadFilesTask>(params)
+        task.shouldReadPrivateFiles = params["readPrivateFiles"] as? Boolean ?: false
+
+        return task
     }
 }
 
@@ -184,7 +188,8 @@ class DeleteFilesHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "DELETE_FILES"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
-        return make<DeleteFilesTask>(params)
+        val indices = params["indices"] as? List<Int>
+        return DeleteFilesTask(indices)
     }
 }
 
@@ -192,6 +197,9 @@ class ChangeFileSettingsHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "CHANGE_FILE_SETTINGS"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
-        return make<ChangeFileSettingsTask>(params)
+        val changes = (params["changes"] as Map<String, String>).entries.associate {
+            it.key.toInt() to FileVisibility.valueOf(it.value.capitalize(Locale.getDefault()))
+        }
+        return ChangeFileSettingsTask(changes)
     }
 }

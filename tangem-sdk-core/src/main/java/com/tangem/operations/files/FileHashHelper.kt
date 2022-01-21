@@ -1,4 +1,4 @@
-package com.tangem.common.files
+package com.tangem.operations.files
 
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
@@ -10,7 +10,7 @@ import com.tangem.crypto.sign
 class FileHashHelper {
     companion object {
         /**
-         * Creates hashes and signatures for [FileDataProtectedBySignature]
+         * Creates hashes and signatures for [ByUser]
          *
          * @param cardId: CID, Unique Tangem card ID number.
          * @param fileData: File data that will be written on card

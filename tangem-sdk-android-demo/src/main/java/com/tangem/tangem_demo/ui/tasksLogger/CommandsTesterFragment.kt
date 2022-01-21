@@ -20,12 +20,14 @@ import com.tangem.common.files.FileSettings
 import com.tangem.common.files.FileSettingsChange
 import com.tangem.operations.resetcode.ResetCodesViewDelegate
 import com.tangem.operations.resetcode.ResetCodesViewState
+import com.tangem.operations.files.FileVisibility
 import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.CommandSpinnerAdapter
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.RvConsoleAdapter
 import com.tangem.tangem_sdk_new.nfc.NfcManager
 import kotlinx.android.synthetic.main.fg_commands_tester.*
+import kotlinx.android.synthetic.main.file_data.*
 
 /**
  * Created by Anton Zhilenkov on 23/12/2020.
@@ -117,18 +119,14 @@ class SdkTaskSpinnerFragment : BaseFragment() {
                 CommandType.UserDataWrite -> writeUserData()
                 CommandType.SetPin1 -> setAccessCode()
                 CommandType.SetPin2 -> setPasscode()
-                CommandType.FilesWriteSigned -> writeFilesSigned()
-                CommandType.FilesWriteWithPassCode -> writeFilesWithPassCode()
+                CommandType.FilesWriteUser -> writeUserFile()
+                CommandType.FilesWriteWithOwner -> writeOwnerFile()
                 CommandType.FilesReadAll -> readFiles(true)
                 CommandType.FilesReadPublic -> readFiles(false)
                 CommandType.FilesDeleteAll -> deleteFiles()
                 CommandType.FilesDeleteFirst -> deleteFiles(listOf(0))
-                CommandType.FilesChangeSettingsFirstPublic -> {
-                    changeFilesSettings(FileSettingsChange(0, FileSettings.Public))
-                }
-                CommandType.FilesChangeSettingsFirstPrivate -> {
-                    changeFilesSettings(FileSettingsChange(0, FileSettings.Private))
-                }
+                CommandType.FilesChangeSettingsFirstPublic -> changeFilesSettings(mapOf(0 to FileVisibility.Public))
+                CommandType.FilesChangeSettingsFirstPrivate -> changeFilesSettings(mapOf(0 to FileVisibility.Private))
             }
         }
     }
@@ -225,8 +223,8 @@ enum class CommandType {
     UserDataWrite,
     SetPin1,
     SetPin2,
-    FilesWriteSigned,
-    FilesWriteWithPassCode,
+    FilesWriteUser,
+    FilesWriteWithOwner,
     FilesReadAll,
     FilesReadPublic,
     FilesDeleteAll,
