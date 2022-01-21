@@ -427,14 +427,14 @@ class CardSession(
     }
 
     fun restoreUserCode(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
-        val sessionConstructor = TangemSdk.makeSessionBuilder(
+        val sessionBuilder = TangemSdk.makeSessionBuilder(
             viewDelegate = viewDelegate,
             secureStorage = secureStorage,
             reader = reader,
             jsonRpcConverter = jsonRpcConverter
         )
         val resetService = ResetPinService(
-            sessionConstructor = sessionConstructor,
+            sessionBuilder = sessionBuilder,
             stringsLocator = viewDelegate.resetCodesViewDelegate.stringsLocator,
             config = environment.config
         )
