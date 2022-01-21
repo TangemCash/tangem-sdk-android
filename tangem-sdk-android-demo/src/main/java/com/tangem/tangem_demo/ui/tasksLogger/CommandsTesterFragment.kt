@@ -16,11 +16,9 @@ import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.VoidCallback
-import com.tangem.common.files.FileSettings
-import com.tangem.common.files.FileSettingsChange
+import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.resetcode.ResetCodesViewDelegate
 import com.tangem.operations.resetcode.ResetCodesViewState
-import com.tangem.operations.files.FileVisibility
 import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.CommandSpinnerAdapter
