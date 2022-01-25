@@ -270,7 +270,9 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
 
 //    class Underlying : TangemSdkError(50012)
 
-    class NetworkError(override var customMessage: String) : TangemSdkError(50013)
+    class UserForgotTheCode : TangemSdkError(50013)
+
+    class NetworkError(override var customMessage: String) : TangemSdkError(50014)
 
     class WrongInteractionMode : TangemSdkError(50027)
 
