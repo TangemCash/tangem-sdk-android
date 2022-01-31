@@ -5,6 +5,8 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.inputmethod.InputMethodManager
+import androidx.annotation.ColorRes
+import androidx.core.content.ContextCompat
 
 internal fun View.show() {
     this.show(true)
@@ -55,4 +57,12 @@ fun View.showSoftKeyboard() {
 fun View.hideSoftKeyboard() {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.hideSoftInputFromWindow(this.windowToken, 0)
+}
+
+fun View.parseColor(@ColorRes color: Int): Int {
+    return context.parseColor(color)
+}
+
+fun Context.parseColor(@ColorRes color: Int): Int {
+    return ContextCompat.getColor(this, color)
 }

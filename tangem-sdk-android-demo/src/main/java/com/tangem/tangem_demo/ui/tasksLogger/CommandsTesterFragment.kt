@@ -61,7 +61,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
     private fun initSpinner() {
         spCommandSelector.adapter = CommandSpinnerAdapter(CommandType.values().toList())
         nfcManager.addTagDiscoveredListener(tagDiscoveredListener)
-        postWorker {
+        postBackground {
             spCommandSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     // close the session from a previous command
@@ -103,7 +103,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         commandState.canBeReactivated = false
 
         // if don't use the workerThread then fragments is stuck during first initialization
-        postWorker {
+        postBackground {
             when (type) {
                 CommandType.Scan -> scanCard()
                 CommandType.Sign -> signHashes(prepareHashesToSign(11))

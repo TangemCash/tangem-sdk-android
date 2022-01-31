@@ -15,19 +15,29 @@ import kotlinx.coroutines.flow.callbackFlow
 /**
  * Created by Anton Zhilenkov on 24/12/2020.
  */
-private val uiThread = Handler(Looper.getMainLooper())
-private val workerThread = Handler(HandlerThread("DemoWorkerThread").apply { start() }.looper)
+private val uiHandler = Handler(Looper.getMainLooper())
+private val backgroundHandler = Handler(HandlerThread("DemoWorkerThread").apply { start() }.looper)
 
-fun postUi(ms: Long = 0, func: Runnable) {
-    if (ms == 0L) uiThread.post { func.run() } else uiThread.postDelayed(func, ms)
+internal fun postUi(ms: Long = 0, func: Runnable) {
+    if (ms == 0L) uiHandler.post { func.run() } else uiHandler.postDelayed(func, ms)
 }
 
-fun postWorker(ms: Long = 0, func: Runnable) {
-    if (ms == 0L) workerThread.post { func.run() } else workerThread.postDelayed(func, ms)
+internal fun postBackground(ms: Long = 0, func: Runnable) {
+    if (ms == 0L) backgroundHandler.post { func.run() } else backgroundHandler.postDelayed(func, ms)
+}
+
+fun post(ms: Long = 0, func: Runnable) {
+    val currentLooper = Looper.myLooper() ?: return
+    val handler = Handler(currentLooper)
+    if (ms == 0L) {
+        handler.post { func.run() }
+    } else {
+        handler.postDelayed(func, ms)
+    }
 }
 
 fun <T> ViewGroup.inflate(@LayoutRes resId: Int, attach: Boolean = false): T =
-    LayoutInflater.from(context).inflate(resId, this, attach) as T
+        LayoutInflater.from(context).inflate(resId, this, attach) as T
 
 fun String.splitCamelCase(): String {
     return replace(String.format("%s|%s|%s",

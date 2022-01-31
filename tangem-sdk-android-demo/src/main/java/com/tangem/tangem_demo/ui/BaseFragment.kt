@@ -62,8 +62,6 @@ abstract class BaseFragment : Fragment() {
             return card.wallets[selectedIndexOfWallet].publicKey
         }
 
-    private var needRescanCard = true
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shPrefs = (requireContext().applicationContext as DemoApplication).shPrefs
@@ -99,10 +97,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun scanCard() {
-        sdk.scanCard(initialMessage) {
-            needRescanCard = false
-            handleResult(it)
-        }
+        sdk.scanCard(initialMessage) { handleResult(it) }
     }
 
     protected fun personalize(config: CardConfig) {
@@ -184,10 +179,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        sdk.createWallet(curve, cardId, initialMessage) {
-            needRescanCard = it is CompletionResult.Success
-            handleResult(it)
-        }
+        sdk.createWallet(curve, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
     }
 
     protected fun purgeWallet() {
@@ -199,10 +191,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.purgeWallet(publicKey, cardId, initialMessage) {
-            needRescanCard = it is CompletionResult.Success
-            handleResult(it)
-        }
+        sdk.purgeWallet(publicKey, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
     }
 
     protected fun readIssuerData() {
@@ -290,47 +279,49 @@ abstract class BaseFragment : Fragment() {
 
     protected fun readFiles(readPrivateFiles: Boolean) {
         sdk.readFiles(readPrivateFiles, null, null, card?.cardId, initialMessage) { result ->
-            setCard(result)
-            when (result) {
-                is CompletionResult.Success -> {
-                    val filesDetailInfo = mutableListOf<Map<String, Any>>()
-                    if (result.data.isEmpty()) {
-                        showDialog(jsonConverter.prettyPrint(result.data))
-                        return@readFiles
-                    }
-
-                    result.data.forEach {
-                        val namedFile = NamedFile(it.fileData) ?: return@forEach
-                        val detailInfo = mutableMapOf<String, Any>()
-                        detailInfo["fileIndex"] = it.fileIndex
-                        detailInfo["name"] = namedFile.name
-                        detailInfo["fileData"] = namedFile.payload.toHexString()
-                        namedFile.counter?.let { detailInfo["counter"] = it }
-                        namedFile.signature?.let { detailInfo["signature"] = it.toHexString() }
-                        Tlv.deserialize(namedFile.payload)?.let {
-                            val decoder = TlvDecoder(it)
-                            WalletDataDeserializer.deserialize(decoder)?.let { walletData ->
-                                detailInfo["walletData"] = jsonConverter.toMap(walletData)
-                            }
+            setCard(result) {
+                when (result) {
+                    is CompletionResult.Success -> {
+                        val filesDetailInfo = mutableListOf<Map<String, Any>>()
+                        if (result.data.isEmpty()) {
+                            showDialog(jsonConverter.prettyPrint(result.data))
+                            return@setCard
                         }
-                        filesDetailInfo.add(detailInfo)
 
+                        result.data.forEach {
+                            val namedFile = NamedFile(it.fileData) ?: return@forEach
+                            val detailInfo = mutableMapOf<String, Any>()
+                            detailInfo["fileIndex"] = it.fileIndex
+                            detailInfo["name"] = namedFile.name
+                            detailInfo["fileData"] = namedFile.payload.toHexString()
+                            namedFile.counter?.let { detailInfo["counter"] = it }
+                            namedFile.signature?.let { detailInfo["signature"] = it.toHexString() }
+                            Tlv.deserialize(namedFile.payload)?.let {
+                                val decoder = TlvDecoder(it)
+                                WalletDataDeserializer.deserialize(decoder)?.let { walletData ->
+                                    detailInfo["walletData"] = jsonConverter.toMap(walletData)
+                                }
+                            }
+                            filesDetailInfo.add(detailInfo)
+
+                        }
+                        val builder = StringBuilder().apply {
+                            append(jsonConverter.prettyPrint(result.data))
+                            append("\n\n\nDetails:\n")
+                            append(jsonConverter.prettyPrint(filesDetailInfo))
+                        }
+                        postUi { showDialog(builder.toString()) }
                     }
-                    val builder = StringBuilder().apply {
-                        append(jsonConverter.prettyPrint(result.data))
-                        append("\n\n\nDetails:\n")
-                        append(jsonConverter.prettyPrint(filesDetailInfo))
-                    }
-                    postUi { showDialog(builder.toString()) }
-                }
-                is CompletionResult.Failure -> {
-                    if (result.error is TangemSdkError.UserCancelled) {
-                        showToast("${result.error.customMessage}: User was cancelled the operation")
-                    } else {
-                        showToast(result.error.customMessage)
+                    is CompletionResult.Failure -> {
+                        if (result.error is TangemSdkError.UserCancelled) {
+                            showToast("${result.error.customMessage}: User was cancelled the operation")
+                        } else {
+                            showToast(result.error.customMessage)
+                        }
                     }
                 }
             }
+
         }
     }
 
@@ -376,26 +367,35 @@ abstract class BaseFragment : Fragment() {
         sdk.changeFileSettings(changes, card?.cardId, initialMessage) { handleResult(it) }
     }
 
-    private fun handleResult(result: CompletionResult<*>) {
-        setCard(result)
-        postUi { handleCommandResult(result) }
+    private fun handleResult(result: CompletionResult<*>, rescan: Boolean = false) {
+        when (result) {
+            is CompletionResult.Success -> postUi() { setCard(result, rescan) { handleCommandResult(result) } }
+            is CompletionResult.Failure -> handleCommandResult(result)
+        }
     }
 
-    private fun setCard(completionResult: CompletionResult<*>) {
-        if (completionResult is CompletionResult.Success) {
-            when {
-                needRescanCard -> {
+    private fun setCard(
+        result: CompletionResult<*>,
+        rescan: Boolean = false,
+        delay: Long = 1500,
+        callback: VoidCallback
+    ) {
+        when {
+            rescan -> {
+                showToast("Need rescan the card after Create/Purge wallet")
+                post(delay) {
                     val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
                     sdk.startSessionWithRunnable(command) {
-                        needRescanCard = false
-                        setCard(it)
+                        postUi() { setCard(it, false, callback = callback) }
                     }
                 }
-                completionResult.data is Card -> {
-                    card = completionResult.data as Card
-                    onCardChanged(card)
-                }
             }
+            result is CompletionResult.Success && result.data is Card -> {
+                card = result.data as Card
+                onCardChanged(card)
+                post(delay) { callback() }
+            }
+            else -> post(delay) { callback() }
         }
     }
 
@@ -413,9 +413,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun showToast(message: String) {
-        activity?.let {
-            postUi { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
-        }
+        postUi() { activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() } }
     }
 
     protected fun prepareHashesToSign(count: Int): Array<ByteArray> {
