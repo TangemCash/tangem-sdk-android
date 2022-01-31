@@ -14,6 +14,12 @@
 
     <color name="sdk_text">#ffffff</color>
 
+    <color name="light_gray">#514E4E</color>
+    <color name="medium_gray">#707070</color>
+    <color name="dark_gray">#E4E4E4</color>
+
+    <color name="light_blue">#74B6FF</color>
+
     <color name="sdk_header_background">#2B2B2D</color>
     <color name="sdk_header_card_text">@color/sdk_text</color>
     <color name="sdk_header_card_id_text">@color/sdk_text</color>

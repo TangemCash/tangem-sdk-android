@@ -27,17 +27,8 @@ import com.tangem.tangem_sdk_new.postUI
  */
 class PinCodeModificationWidget(
     mainView: View,
-    private var mode: Int
+    private var mode: Mode
 ) : BaseSessionDelegateStateWidget(mainView) {
-
-    companion object {
-        val MODE_SET = 0
-        val MODE_CHANGE = 1
-
-        private val MATCH = 1
-        private val NOT_MATCH = 0
-        private val UNDEFINED = -1
-    }
 
     var onSave: ((String) -> Unit)? = null
 
@@ -55,8 +46,6 @@ class PinCodeModificationWidget(
 
     private var isPasswordEnabled = true
     private var userCodeType: UserCodeType = UserCodeType.AccessCode
-
-    private val isChangeCodeMode: Boolean = mode == MODE_CHANGE
 
     init {
         modifyUiByMode()
@@ -94,7 +83,7 @@ class PinCodeModificationWidget(
         }
     }
 
-    fun switchModeTo(mode: Int) {
+    fun switchModeTo(mode: Mode) {
         this.mode = mode
         modifyUiByMode()
     }
@@ -104,17 +93,30 @@ class PinCodeModificationWidget(
             UserCodeType.AccessCode -> getString(R.string.pin1)
             UserCodeType.Passcode -> getString(R.string.pin2)
         }
-        if (isChangeCodeMode) {
-            tvScreenTitle.text = getFormattedString(R.string.pin_change_code_format, nameOfPin)
-            tilPinCode.hint = getFormattedString(R.string.pin_change_current_code_format, nameOfPin)
-            tilNewPinCode.hint = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
-            tilPinCodeConfirm.hint = getFormattedString(R.string.pin_change_new_code_confirm_format, nameOfPin)
-        } else {
-            tvScreenTitle.text = getFormattedString(R.string.pin_set_code_format, nameOfPin)
-            tilPinCode.hint = nameOfPin
-            tilNewPinCode.visibility = View.GONE
-            tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
+        when (mode) {
+            Mode.SET -> {
+                tvScreenTitle.text = getFormattedString(R.string.pin_set_code_format, nameOfPin)
+                tilPinCode.hint = nameOfPin
+                tilNewPinCode.visibility = View.GONE
+                tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
+                btnSave.text = getString(R.string.common_save)
+            }
+            Mode.CHANGE -> {
+                tvScreenTitle.text = getFormattedString(R.string.pin_change_code_format, nameOfPin)
+                tilPinCode.hint = getFormattedString(R.string.pin_change_current_code_format, nameOfPin)
+                tilNewPinCode.hint = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
+                tilPinCodeConfirm.hint = getFormattedString(R.string.pin_change_new_code_confirm_format, nameOfPin)
+                btnSave.text = getString(R.string.common_save)
+            }
+            Mode.RESET -> {
+                tvScreenTitle.text = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
+                tilPinCode.hint = nameOfPin
+                tilNewPinCode.visibility = View.GONE
+                tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
+                btnSave.text = getString(R.string.common_continue)
+            }
         }
+
     }
 
     private fun resetPinCodes() {
@@ -131,8 +133,11 @@ class PinCodeModificationWidget(
         }
     }
 
-    private fun getTilForCodeChecks(): TextInputLayout = if (isChangeCodeMode) tilNewPinCode else tilPinCode
-    private fun getEtForCodeChecks(): TextInputEditText = if (isChangeCodeMode) etNewPinCode else etPinCode
+    private fun getTilForCodeChecks(): TextInputLayout =
+        if (mode == Mode.CHANGE) tilNewPinCode else tilPinCode
+
+    private fun getEtForCodeChecks(): TextInputEditText =
+        if (mode == Mode.CHANGE) etNewPinCode else etPinCode
 
     private fun checkCodes(): Int {
         val code1 = getEtForCodeChecks().text?.toString() ?: ""
@@ -163,6 +168,16 @@ class PinCodeModificationWidget(
     private fun togglePasswordInputType(et: TextInputEditText) {
         et.inputType = if (isPasswordEnabled) 129 else InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         if (et.isFocused) et.setSelection(et.text?.length ?: 0)
+    }
+
+    companion object {
+        private val MATCH = 1
+        private val NOT_MATCH = 0
+        private val UNDEFINED = -1
+    }
+
+    enum class Mode {
+        SET, CHANGE, RESET
     }
 }
 

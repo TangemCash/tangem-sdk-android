@@ -7,14 +7,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.tangem.*
 import com.tangem.common.CompletionResult
+import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.operations.files.FileVisibility
+import com.tangem.operations.resetcode.ResetCodesViewDelegate
+import com.tangem.operations.resetcode.ResetCodesViewState
 import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.CommandSpinnerAdapter
@@ -163,6 +167,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
     }
 
     class EmptyViewDelegate : SessionViewDelegate {
+        override val resetCodesViewDelegate: ResetCodesViewDelegate = EmptyResetCodesViewDelegate()
         override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {}
         override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {}
         override fun onDelay(total: Int, current: Int, step: Int) {}
@@ -171,14 +176,35 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun onWrongCard(wrongValueType: WrongValueType) {}
         override fun onSessionStopped(message: Message?) {}
         override fun onError(error: TangemError) {}
-        override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {}
-        override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {}
+        override fun requestUserCode( type: UserCodeType, isFirstAttempt: Boolean,
+                                      showForgotButton: Boolean,
+                                      cardId: String?,
+                                      callback: CompletionCallback<String>
+        ) {}
+        override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {}
         override fun setConfig(config: Config) {}
         override fun setMessage(message: Message?) {}
         override fun dismiss() {}
         override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {}
         override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {}
         override fun attestationCompletedWithWarnings(positive: VoidCallback) {}
+    }
+
+    class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {
+        override var stopSessionCallback: VoidCallback = {}
+        override val stringsLocator: StringsLocator = MockStringLocator()
+
+        override fun setState(state: ResetCodesViewState) {}
+
+        override fun hide(callback: VoidCallback) {}
+
+        override fun showError(error: TangemError) {}
+
+        override fun showAlert(title: String, message: String, onContinue: VoidCallback) {}
+    }
+
+    class MockStringLocator: StringsLocator {
+        override fun getString(stringId: StringsLocator.ID, vararg formatArgs: String) = ""
     }
 }
 

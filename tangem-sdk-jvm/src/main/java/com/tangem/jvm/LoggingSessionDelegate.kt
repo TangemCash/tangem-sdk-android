@@ -4,12 +4,19 @@ import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
 import com.tangem.WrongValueType
+import com.tangem.common.CompletionResult
+import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
+import com.tangem.operations.resetcode.ResetCodesViewDelegate
+import com.tangem.operations.resetcode.ResetCodesViewState
 
 class LoggingSessionDelegate : SessionViewDelegate {
+    override val resetCodesViewDelegate: ResetCodesViewDelegate = EmptyResetCodesViewDelegate()
+
     override fun dismiss() {
     }
 
@@ -33,7 +40,13 @@ class LoggingSessionDelegate : SessionViewDelegate {
         Log.session { "Session started" }
     }
 
-    override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {
+    override fun requestUserCode(
+        type: UserCodeType,
+        isFirstAttempt: Boolean,
+        showForgotButton: Boolean,
+        cardId: String?,
+        callback: CompletionCallback<String>
+    ) {
         if (isFirstAttempt) {
             Log.view { "TAG: Enter PIN:" }
         } else {
@@ -41,12 +54,13 @@ class LoggingSessionDelegate : SessionViewDelegate {
         }
 
         val pin = readLine()
-        pin?.let { callback.invoke(it) }
+        pin?.let { callback.invoke(CompletionResult.Success(it)) }
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {
+    override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {
         Log.view { "TAG: Enter new PIN:" }
-        callback.invoke(readLine())
+        val pin = readLine()
+        pin?.let { callback.invoke(CompletionResult.Success(it)) }
     }
 
     override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {
@@ -79,4 +93,21 @@ class LoggingSessionDelegate : SessionViewDelegate {
     companion object {
         const val TAG = "DELEGATE"
     }
+}
+
+class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {
+    override var stopSessionCallback: VoidCallback = {}
+    override val stringsLocator: StringsLocator = MockStringLocator()
+
+    override fun setState(state: ResetCodesViewState) {}
+
+    override fun hide(callback: VoidCallback) {}
+
+    override fun showError(error: TangemError) {}
+
+    override fun showAlert(title: String, message: String, onContinue: VoidCallback) {}
+}
+
+class MockStringLocator: StringsLocator {
+    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: String) = ""
 }

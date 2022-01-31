@@ -72,9 +72,8 @@ class DemoActivity : AppCompatActivity() {
         }
         val nfcManager = TangemSdk.initNfcManager(this)
 
-        val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader)
+        val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, this)
         viewDelegate.sdkConfig = config
-        viewDelegate.activity = this
         this.viewDelegate = viewDelegate
 
         return TangemSdk(
