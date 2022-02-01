@@ -147,12 +147,13 @@ internal class SignCommand(
         val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
 
         val dataToSign = hashesChunked[currentChunkNumber].reduce { arr1, arr2 -> arr1 + arr2 }
+        val hashSize = if (hashSizes > 255) hashSizes.toByteArray(2) else hashSizes.toByteArray(1)
 
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.TransactionOutHashSize, byteArrayOf(hashSizes.toByte()))
+        tlvBuilder.append(TlvTag.TransactionOutHashSize, hashSize)
         tlvBuilder.append(TlvTag.TransactionOutHash, dataToSign)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
         // Wallet index works only on COS v. 4.0 and higher. For previous version index will be ignored
