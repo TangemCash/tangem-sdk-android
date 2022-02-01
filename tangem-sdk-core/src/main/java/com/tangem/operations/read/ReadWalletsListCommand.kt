@@ -71,7 +71,6 @@ class ReadWalletsListCommand : Command<ReadWalletsListResponse>() {
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.InteractionMode, ReadMode.WalletsList)
-        tlvBuilder.append(TlvTag.TerminalPublicKey, environment.terminalKeys?.publicKey)
         if (receivedWalletsCount > 0) tlvBuilder.append(TlvTag.WalletIndex, receivedWalletsCount)
 
         return CommandApdu(Instruction.Read, tlvBuilder.serialize())

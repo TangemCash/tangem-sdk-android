@@ -95,7 +95,7 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         /**
          * HD Wallet
          */
-        val HDWalletAvailable = FirmwareVersion(4, 28)
+        val HDWalletAvailable = FirmwareVersion(4, 39)
 
         /**
          * Field on card that describes is accessCode is default value or not
