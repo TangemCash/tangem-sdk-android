@@ -114,7 +114,12 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         Sprecial(null);
 
         companion object {
-            fun from(type: String): FirmwareType = values().firstOrNull { it.rawValue == type } ?: Sprecial
+            fun from(type: String): FirmwareType {
+                val trimmed = type.trim()
+                if (trimmed.isEmpty()) return Release
+
+                return values().firstOrNull { it.rawValue == type } ?: Sprecial
+            }
         }
     }
 
