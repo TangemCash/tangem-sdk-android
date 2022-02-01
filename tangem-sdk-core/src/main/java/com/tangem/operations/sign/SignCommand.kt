@@ -3,6 +3,7 @@ package com.tangem.operations.sign
 import com.squareup.moshi.JsonClass
 import com.tangem.Log
 import com.tangem.common.CompletionResult
+import com.tangem.common.KeyPair
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -14,6 +15,8 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.guard
+import com.tangem.common.extensions.toByteArray
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
@@ -47,7 +50,7 @@ internal class SignCommand(
     private val derivationPath: DerivationPath? = null
 ) : Command<SignResponse>() {
 
-    override fun requiresPasscode(): Boolean = true
+    private var terminalKeys: KeyPair? = null
 
     private val hashSizes = if (hashes.isNotEmpty()) hashes.first().size else 0
     private val hashesChunked = hashes.asList().chunked(CHUNK_SIZE)
@@ -56,6 +59,8 @@ internal class SignCommand(
     private val signatures = mutableListOf<ByteArray>()
     private val currentChunkNumber: Int
         get() = signatures.size / CHUNK_SIZE
+
+    override fun requiresPasscode(): Boolean = true
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         val wallet = card.wallet(walletPublicKey) ?: return TangemSdkError.WalletNotFound()
@@ -85,7 +90,7 @@ internal class SignCommand(
 
     override fun run(session: CardSession, callback: CompletionCallback<SignResponse>) {
         Log.command(this)
-        if (session.environment.card == null) {
+        val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
         }
@@ -97,6 +102,8 @@ internal class SignCommand(
             callback(CompletionResult.Failure(TangemSdkError.HashSizeMustBeEqual()))
             return
         }
+        terminalKeys = retrieveTerminalKeys(card, session.environment)
+
         sign(session, callback)
     }
 
@@ -140,20 +147,20 @@ internal class SignCommand(
         val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
 
         val dataToSign = hashesChunked[currentChunkNumber].reduce { arr1, arr2 -> arr1 + arr2 }
+        val hashSize = if (hashSizes > 255) hashSizes.toByteArray(2) else hashSizes.toByteArray(1)
 
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.TransactionOutHashSize, byteArrayOf(hashSizes.toByte()))
+        tlvBuilder.append(TlvTag.TransactionOutHashSize, hashSize)
         tlvBuilder.append(TlvTag.TransactionOutHash, dataToSign)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
         // Wallet index works only on COS v. 4.0 and higher. For previous version index will be ignored
         tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
 
-        val isLinkedTerminalSupported = environment.card?.settings?.isLinkedTerminalEnabled == true
-        if (environment.terminalKeys != null && isLinkedTerminalSupported) {
-            val signedData = dataToSign.sign(environment.terminalKeys!!.privateKey)
+        if (terminalKeys != null) {
+            val signedData = dataToSign.sign(terminalKeys!!.privateKey)
             tlvBuilder.append(TlvTag.TerminalTransactionSignature, signedData)
             tlvBuilder.append(TlvTag.TerminalPublicKey, environment.terminalKeys!!.publicKey)
         }
@@ -202,6 +209,15 @@ internal class SignCommand(
 
         return signatures
     }
+
+    private fun retrieveTerminalKeys(card: Card, environment: SessionEnvironment): KeyPair? {
+        if (!card.settings.isLinkedTerminalEnabled || card.firmwareVersion >= FirmwareVersion.HDWalletAvailable){
+            return null
+        }
+
+        return environment.terminalKeys
+    }
+
 
     companion object {
         const val CHUNK_SIZE = 10
