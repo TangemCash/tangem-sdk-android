@@ -133,7 +133,7 @@ class SecurityDelay : BaseDelegateAction() {
         delay(2000)
         withMainContext { delegate.onTagConnected() }
 
-        val totalDurationMs = slider.value.toInt()
+        val totalDurationMs = slider.value.toInt() + 1000
         val securityDelayCounts = totalDurationMs / 1000
         var currentMs = totalDurationMs / 10
         repeat(securityDelayCounts) {
@@ -270,7 +270,7 @@ class RequestAccessCode : BaseDelegateAction() {
 class RequestPasscode : BaseDelegateAction() {
 
     override fun info(): String {
-        return "Request Access codes with first/second/first attempts"
+        return "Request Passcodes with first/second/first attempts"
     }
 
     override fun usedCommandsInfo(): String {
