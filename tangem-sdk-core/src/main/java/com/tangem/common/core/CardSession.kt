@@ -438,7 +438,10 @@ class CardSession(
             stringsLocator = viewDelegate.resetCodesViewDelegate.stringsLocator,
             config = environment.config
         )
-        viewDelegate.resetCodesViewDelegate.stopSessionCallback = { stopSession() }
+        viewDelegate.resetCodesViewDelegate.stopSessionCallback = {
+            stopSession()
+            callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+        }
         resetCodesController = ResetCodesController(
             resetService = resetService,
             viewDelegate = viewDelegate.resetCodesViewDelegate
