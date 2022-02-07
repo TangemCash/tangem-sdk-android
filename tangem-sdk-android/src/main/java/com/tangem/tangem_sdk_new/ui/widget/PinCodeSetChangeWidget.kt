@@ -111,8 +111,10 @@ class PinCodeModificationWidget(
             Mode.RESET -> {
                 tvScreenTitle.text = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
                 tilPinCode.hint = nameOfPin
+                etPinCode.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                 tilNewPinCode.visibility = View.GONE
                 tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
+                etPinCodeConfirm.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                 btnSave.text = getString(R.string.common_continue)
             }
         }
