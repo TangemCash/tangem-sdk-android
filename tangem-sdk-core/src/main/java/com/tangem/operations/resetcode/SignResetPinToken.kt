@@ -6,6 +6,7 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
@@ -25,12 +26,26 @@ class SignResetPinTokenCommand(
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
-            return TangemSdkError.NotSupportedFirmwareVersion()
+            return TangemSdkError.ResetPinWrongCard(
+                internalCode = TangemSdkError.NotSupportedFirmwareVersion().code
+            )
         }
         if (card.backupStatus !is Card.BackupStatus.Active) {
-            return TangemSdkError.NoActiveBackup()
+            return TangemSdkError.ResetPinWrongCard(
+                internalCode = TangemSdkError.NoActiveBackup().code
+            )
+        }
+        if (card.cardId == resetPinCard.cardId) {
+            return TangemSdkError.ResetPinWrongCard()
         }
         return null
+    }
+
+    override fun mapError(card: Card?, error: TangemError): TangemError {
+        if (error is TangemSdkError.InvalidParams) {
+            return TangemSdkError.ResetPinWrongCard()
+        }
+        return error
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
