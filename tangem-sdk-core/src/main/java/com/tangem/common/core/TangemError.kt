@@ -208,7 +208,7 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class BackupFailedFirmware: TangemSdkError(41229)
 
     class ResetPinNoCardsToReset : TangemSdkError(41300)
-    class ResetPinWrongCard : TangemSdkError(41301)
+    class ResetPinWrongCard(internalCode: Int? = null) : TangemSdkError(internalCode ?: 41301)
 
     class HDWalletDisabled : TangemSdkError(42003)
 
