@@ -168,7 +168,8 @@ class PinCodeModificationWidget(
     }
 
     private fun togglePasswordInputType(et: TextInputEditText) {
-        et.inputType = if (isPasswordEnabled) 129 else InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        val hiddenPassword = (InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        et.inputType = if (isPasswordEnabled) hiddenPassword else InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         if (et.isFocused) et.setSelection(et.text?.length ?: 0)
     }
 
