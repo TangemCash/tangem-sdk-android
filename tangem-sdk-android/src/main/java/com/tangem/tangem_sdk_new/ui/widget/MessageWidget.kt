@@ -49,7 +49,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
             }
             is SessionViewDelegateState.Delay -> {
                 setText(tvTaskTitle, message?.header, R.string.view_delegate_delay)
-                setText(tvTaskMessage, message?.body, R.string.view_delegate_delay_description)
+                setText(tvTaskMessage, message?.body, R.string.view_delegate_security_delay_description)
             }
             is SessionViewDelegateState.PinRequested -> {
             }
