@@ -17,7 +17,6 @@
     <string name="dialog_nfc_enable_text">Questa app richiede l\'attivazione di NFC. Fare clic su OK per accedere alle Impostazioni in cui è possibile abilitare l\'NFC.</string>
     <string name="view_delegate_security_delay_description">Questa carta è dotata di un ritardo di sicurezza forzato. Mantenere la carta ben ferma fino al completamento dell\'operazione.</string>
     <string name="view_delegate_delay">Operazione in corso</string>
-    <string name="view_delegate_delay_description">Mantenere la carta ben ferma fino al completamento dell\'operazione</string>
     <string name="view_delegate_scan">Pronta alla scansione</string>
     <string name="view_delegate_scan_description">Scansionare la carta tramite il telefono, come mostrato sopra</string>
     <string name="view_delegate_header_card">Carta</string>
