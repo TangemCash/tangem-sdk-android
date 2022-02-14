@@ -1,5 +1,6 @@
 package com.tangem.tangem_sdk_new.ui.widget
 
+import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -40,6 +41,8 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
             }
             return@setOnEditorActionListener false
         }
+        val hiddenPassword = (InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        etPinCode.inputType = hiddenPassword
     }
 
     fun canExpand(): Boolean = expandingView != null
