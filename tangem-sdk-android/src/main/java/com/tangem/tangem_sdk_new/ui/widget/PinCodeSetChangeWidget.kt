@@ -111,8 +111,10 @@ class PinCodeModificationWidget(
             Mode.RESET -> {
                 tvScreenTitle.text = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
                 tilPinCode.hint = nameOfPin
+                etPinCode.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                 tilNewPinCode.visibility = View.GONE
                 tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
+                etPinCodeConfirm.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                 btnSave.text = getString(R.string.common_continue)
             }
         }
@@ -166,7 +168,8 @@ class PinCodeModificationWidget(
     }
 
     private fun togglePasswordInputType(et: TextInputEditText) {
-        et.inputType = if (isPasswordEnabled) 129 else InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        val hiddenPassword = (InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        et.inputType = if (isPasswordEnabled) hiddenPassword else InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         if (et.isFocused) et.setSelection(et.text?.length ?: 0)
     }
 

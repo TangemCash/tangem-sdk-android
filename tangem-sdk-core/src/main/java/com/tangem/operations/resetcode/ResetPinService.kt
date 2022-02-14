@@ -176,6 +176,7 @@ class ResetPinService(
         val command = ResetPinTask(confirmationCard, accessCodeUnwrapped, passcodeUnwrapped)
         sessionBuilder.build(
             config = config,
+            cardId = resetPinCard.cardId,
             initialMessage = Message(
                 header = stringsLocator.getString(
                     StringsLocator.ID.reset_codes_scan_to_reset
