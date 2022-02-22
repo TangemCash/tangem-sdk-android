@@ -194,6 +194,11 @@ abstract class BaseFragment : Fragment() {
         sdk.purgeWallet(publicKey, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
     }
 
+    protected fun purgeAllWallet() {
+        val task = PurgeAllWalletsTask()
+        sdk.startSessionWithRunnable(task) { handleResult(it, true) }
+    }
+
     protected fun readIssuerData() {
         sdk.readIssuerData(card?.cardId, initialMessage) { handleResult(it) }
     }
