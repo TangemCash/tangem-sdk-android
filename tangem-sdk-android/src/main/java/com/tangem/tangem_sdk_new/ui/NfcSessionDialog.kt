@@ -148,17 +148,15 @@ class NfcSessionDialog(
 
     private fun onPinRequested(state: SessionViewDelegateState.PinRequested) {
         enableBottomSheetAnimation()
-        if (pinCodeRequestWidget.canExpand()) {
-            headerWidget.isFullScreenMode = true
-            headerWidget.onClose = { cancel() }
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        headerWidget.onClose = {
+            dismissWithAnimation = false
+            cancel()
         }
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         pinCodeRequestWidget.onContinue = {
             enableBottomSheetAnimation()
             pinCodeRequestWidget.onContinue = null
-            headerWidget.isFullScreenMode = false
-
             setStateAndShow(getEmptyOnReadyEvent(), headerWidget, touchCardWidget, messageWidget)
             postUI(200) { state.callback(it) }
         }
@@ -172,7 +170,10 @@ class NfcSessionDialog(
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         headerWidget.howToIsEnabled = false
-        headerWidget.onClose = { cancel() }
+        headerWidget.onClose = {
+            dismissWithAnimation = false
+            cancel()
+        }
         // userCode changes failed if an user dismiss the dialog from any moment
         pinCodeSetChangeWidget.onBottomSheetDismiss = {
             state.callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))

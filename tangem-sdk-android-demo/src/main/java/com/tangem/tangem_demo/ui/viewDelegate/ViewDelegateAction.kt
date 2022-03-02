@@ -267,6 +267,21 @@ class RequestAccessCode : BaseDelegateAction() {
     }
 }
 
+class SingleRequestAccessCode(
+    private val showForgotButton: Boolean
+) : BaseDelegateAction() {
+
+    override fun info(): String = "Request Access code. Show the Forgot button = $showForgotButton"
+
+    override fun usedCommandsInfo(): String = "RequestUserCode(access,true), Dismiss"
+
+    override fun getCommandsPool(): suspend () -> Unit = suspend {
+        withMainContext { delegate.onSessionStarted(null, null, true) }
+        delay(500)
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, showForgotButton, null) {} }
+    }
+}
+
 class RequestPasscode : BaseDelegateAction() {
 
     override fun info(): String {
