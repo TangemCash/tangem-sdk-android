@@ -21,7 +21,7 @@ class ResetCodesDialog(context: Context) : BaseSdkDialog(context) {
 
     init {
         val dialogView =
-            LayoutInflater.from(context).inflate(R.layout.reset_codes_widget_layout, null)
+                LayoutInflater.from(context).inflate(R.layout.reset_codes_widget_layout, null)
         setContentView(dialogView)
     }
 
@@ -59,7 +59,10 @@ class ResetCodesDialog(context: Context) : BaseSdkDialog(context) {
         enableBottomSheetAnimation()
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-        headerWidget.onClose = { cancel() }
+        headerWidget.onClose = {
+            dismissWithAnimation = false
+            cancel()
+        }
         // userCode changes failed if an user dismiss the dialog from any moment
         pinCodeSetChangeWidget.onBottomSheetDismiss = {
             state.callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
@@ -73,7 +76,7 @@ class ResetCodesDialog(context: Context) : BaseSdkDialog(context) {
         }
 
         val viewState =
-            SessionViewDelegateState.PinChangeRequested(state.type, state.cardId, state.callback)
+                SessionViewDelegateState.PinChangeRequested(state.type, state.cardId, state.callback)
         setStateAndShow(viewState, pinCodeSetChangeWidget, headerWidget)
         performHapticFeedback()
     }

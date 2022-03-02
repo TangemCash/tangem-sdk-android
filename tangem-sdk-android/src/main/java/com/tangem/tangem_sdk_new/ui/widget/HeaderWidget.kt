@@ -25,7 +25,7 @@ class HeaderWidget(
 
     var onClose: VoidCallback? = null
     var onHowTo: VoidCallback? = null
-    var isFullScreenMode: Boolean = false
+//    var isFullScreenMode: Boolean = true
 
     var cardId: String? = null
         private set
@@ -65,7 +65,7 @@ class HeaderWidget(
             is SessionViewDelegateState.PinRequested -> {
                 cardId = params.cardId
                 btnHowTo.hide()
-                imvClose.show(isFullScreenMode)
+                imvClose.show(true)
             }
             is SessionViewDelegateState.TagLost -> btnHowTo.isEnabled = true
             is SessionViewDelegateState.TagConnected, is SessionViewDelegateState.Error,
