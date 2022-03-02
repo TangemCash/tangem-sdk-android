@@ -59,6 +59,8 @@ class ViewDelegateFragment : BaseFragment() {
             RequestAccessCode(),
             RequestPasscode(),
             RequestUserCode(),
+            SingleRequestAccessCode(false),
+            SingleRequestAccessCode(true),
         )
 
         actionsList.forEach {
