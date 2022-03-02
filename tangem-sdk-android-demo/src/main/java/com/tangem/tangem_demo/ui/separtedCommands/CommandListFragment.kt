@@ -91,6 +91,7 @@ class CommandListFragment : BaseFragment() {
         btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1) }
         btnCreateWalletEdwards.setOnClickListener { createWallet(EllipticCurve.Ed25519) }
         btnPurgeWallet.setOnClickListener { purgeWallet() }
+        btnPurgeAllWallet.setOnClickListener { purgeAllWallet() }
 
         btnReadIssuerData.setOnClickListener { readIssuerData() }
         btnWriteIssuerData.setOnClickListener { writeIssuerData() }
@@ -148,6 +149,8 @@ class CommandListFragment : BaseFragment() {
         postUi { updateWalletsSlider() }
     }
 
+    private var walletsCount = 0
+
     private fun updateWalletsSlider() {
         sliderWallet.removeOnSliderTouchListener(touchListener)
         val card = card.guard {
@@ -155,7 +158,8 @@ class CommandListFragment : BaseFragment() {
             selectedIndexOfWallet = -1
             return
         }
-        val walletsCount = card.wallets.size
+
+        walletsCount = card.wallets.size
         if (walletsCount == 0) {
             walletIndexesContainer.visibility = View.GONE
             selectedIndexOfWallet = -1
@@ -178,8 +182,8 @@ class CommandListFragment : BaseFragment() {
                 selectedIndexOfWallet = 0
             }
             sliderWallet.value = selectedIndexOfWallet.toFloat()
-            tvWalletIndex.text = "$selectedIndexOfWallet"
             sliderWallet.addOnSliderTouchListener(touchListener)
+            updateTvWalletIndexText(selectedIndexOfWallet, walletsCount)
         }
     }
 
@@ -189,8 +193,12 @@ class CommandListFragment : BaseFragment() {
 
         override fun onStopTrackingTouch(slider: Slider) {
             selectedIndexOfWallet = slider.value.toInt()
-            tvWalletIndex.text = "$selectedIndexOfWallet"
+            updateTvWalletIndexText(selectedIndexOfWallet, walletsCount)
         }
+    }
+
+    private fun updateTvWalletIndexText(currentWallet: Int, walletsCount: Int) {
+        tvWalletIndex.text = "i${currentWallet} / i${walletsCount - 1}"
     }
 
     private var jsonRpcSingleCommandTemplate: String = """
