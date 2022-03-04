@@ -3,7 +3,7 @@
     <string name="nfc_session_timeout">Истекло время сеанса. Пожалуйста, попробуйте еще раз.</string>
     <string name="nfc_alert_default">Держите iPhone рядом с картой</string>
     <string name="nfc_alert_sign_completed">Транзакция успешно подписана</string>
-    <string name="view_delegate_security_delay">Приложите и удерживайте</string>
+    <string name="view_delegate_security_delay">Удерживайте карту</string>
     <string name="nfc_seconds_left">Осталось %s</string>
     <string name="nfc_alert_default_done">Готово</string>
     <string name="nfc_stuck_error">Кажется, что NFC не работает должным образом на вашем iPhone</string>
@@ -79,7 +79,7 @@
     <string name="how_to_known_antenna_is_here">Ваша NFC антенна здесь</string>
     <string name="how_to_known_tap_card_to_the_back">Приложите карту к задней панели телефона</string>
     <string name="how_to_known_tap_card_to_the_front">Приложите карту к передней панели телефона</string>
-    <string name="how_to_button">Как</string>
+    <string name="how_to_button">Помощь</string>
     <string name="how_to_got_it_button">Хорошо, понял!</string>
     <string name="how_to_nfc_detected">Вы только что нашли местоположение вашей NFC антенны. Пожалуйста, запомните это.</string>
     <string name="how_to_try_other_way_button">До сих пор не работает</string>
@@ -115,7 +115,7 @@
     <string name="backup_finalize_primary_card_message_format">Отсканируйте основную карту с номером %s</string>
     <string name="backup_finalize_backup_card_message_format">Отсканируйте резервную карту с номером %s</string>
     <string name="reset_codes_scan_first_card">Отсканируйте карту, на которой вы хотите сбросить пин-код</string>
-    <string name="reset_codes_scan_confirmation_card">Отсканируйте карту подтверждения</string>
+    <string name="reset_codes_scan_confirmation_card">Отсканируйте другую привязанную карту</string>
     <string name="reset_codes_scan_to_reset">Отсканируйте карту для сброса кода</string>
     <string name="reset_codes_message_title_restore">Приложите карту, которую хотите восстановить</string>
     <string name="reset_codes_message_body_restore">Сначала подготовьте карту к процессу восстановления</string>
