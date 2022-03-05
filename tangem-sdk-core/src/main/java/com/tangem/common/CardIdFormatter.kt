@@ -13,11 +13,11 @@ class CardIdFormatter(
             is CardIdDisplayFormat.Last -> {
                 cardId.takeLast(style.numbers).splitBySpace()
             }
-            is CardIdDisplayFormat.LastLunh -> {
+            is CardIdDisplayFormat.LastLuhn -> {
                 cardId.dropLast(1).takeLast(style.numbers).splitBySpace()
             }
             is CardIdDisplayFormat.LastMasked -> {
-                val formattedCardId = cardId.dropLast(1).takeLast(style.numbers).splitBySpace()
+                val formattedCardId = cardId.takeLast(style.numbers).splitBySpace()
                 return style.mask + formattedCardId
             }
         }
