@@ -47,11 +47,14 @@ object CryptoUtils {
      * @return Result of a verification
      */
     fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray,
-               curve: EllipticCurve = EllipticCurve.Secp256k1): Boolean {
+               curve: EllipticCurve = EllipticCurve.Secp256k1
+    ): Boolean {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.verify(publicKey, message, signature)
             EllipticCurve.Secp256r1 -> Secp256r1.verify(publicKey, message, signature)
             EllipticCurve.Ed25519 -> Ed25519.verify(publicKey, message, signature)
+            EllipticCurve.Bls12381_G2, EllipticCurve.Bls12381_G2_AUG,
+            EllipticCurve.Bls12381_G2_POP -> throw java.lang.UnsupportedOperationException("Not implemented")
         }
     }
 
@@ -71,6 +74,8 @@ object CryptoUtils {
             EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKeyArray)
             EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKeyArray)
             EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKeyArray)
+            EllipticCurve.Bls12381_G2, EllipticCurve.Bls12381_G2_AUG,
+            EllipticCurve.Bls12381_G2_POP -> throw java.lang.UnsupportedOperationException("Not implemented")
         }
     }
 
@@ -82,6 +87,8 @@ object CryptoUtils {
             EllipticCurve.Secp256k1 -> Secp256k1.loadPublicKey(publicKey)
             EllipticCurve.Secp256r1 -> Secp256r1.loadPublicKey(publicKey)
             EllipticCurve.Ed25519 -> Ed25519.loadPublicKey(publicKey)
+            EllipticCurve.Bls12381_G2, EllipticCurve.Bls12381_G2_AUG,
+            EllipticCurve.Bls12381_G2_POP -> throw java.lang.UnsupportedOperationException("Not implemented")
         }
     }
 
@@ -126,6 +133,8 @@ fun ByteArray.sign(privateKeyArray: ByteArray, curve: EllipticCurve = EllipticCu
         EllipticCurve.Secp256k1 -> Secp256k1.sign(this, privateKeyArray)
         EllipticCurve.Secp256r1 -> Secp256r1.sign(this, privateKeyArray)
         EllipticCurve.Ed25519 -> Ed25519.sign(this, privateKeyArray)
+        EllipticCurve.Bls12381_G2, EllipticCurve.Bls12381_G2_AUG,
+        EllipticCurve.Bls12381_G2_POP -> throw java.lang.UnsupportedOperationException("Not implemented")
     }
 }
 
