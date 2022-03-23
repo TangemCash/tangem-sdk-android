@@ -74,7 +74,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.BackupFailedCardNotLinked -> null
         is TangemSdkError.BackupFailedEmptyWallets -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupFailedHDWalletSettings -> R.string.error_backup_wrong_card
-        is TangemSdkError.BackupFailedNotEmptyWallets -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedNotEmptyWallets -> R.string.error_backup_not_empty_wallets
         is TangemSdkError.BackupFailedNotEnoughCurves -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupFailedNotEnoughWallets -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupFailedWrongIssuer -> R.string.error_backup_wrong_card

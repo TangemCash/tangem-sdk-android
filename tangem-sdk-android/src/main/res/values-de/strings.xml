@@ -74,6 +74,7 @@
     <string name="error_pin1_required">Der Zugangscode ist erforderlich</string>
     <string name="error_pin2_required">Der Passcode ist erforderlich</string>
     <string name="error_invalid_response">Ungültige Antwort</string>
+    <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
 
     <string name="how_to_nfc_detected">Sie haben gerade den Standort Ihrer NFC-Antenne gefunden. Bitte merken Sie sich diesen Standort.</string>
     <string name="how_to_known_here_how_to_use">Hier finden Sie Informationen, wie man Tangem Cards mit (Telefon) verwendet</string>
