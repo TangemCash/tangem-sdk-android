@@ -103,6 +103,7 @@
     <string name="error_backup_wrong_card">Эту карту нельзя использовать для процесса резервного копирования.</string>
     <string name="error_reset_wrong_card">Эту карту нельзя использовать для восстановления кода.</string>
     <string name="error_backup_not_empty_wallets">На этой карте уже создан кошелёк. Если вы хотите продолжить, сбросьте карту к заводским настройкам.</string>
+    <string name="error_extended_apdu_not_supported">Похоже, что ваш телефон не полностью поддерживает NFC и операция не может быть завершена</string>
 
 
     <string name="dialog_attestation_did_failed_title">Проверка карты не удалась</string>

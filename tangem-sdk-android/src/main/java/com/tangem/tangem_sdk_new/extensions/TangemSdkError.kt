@@ -13,7 +13,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty -> null
 
         is TangemSdkError.TagLost -> R.string.error_tag_lost
-        is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_operation
+        is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_extended_apdu_not_supported
         is TangemSdkError.SerializeCommandError -> R.string.error_operation
         is TangemSdkError.DeserializeApduFailed -> R.string.error_operation
         is TangemSdkError.UnknownStatus -> R.string.error_operation
