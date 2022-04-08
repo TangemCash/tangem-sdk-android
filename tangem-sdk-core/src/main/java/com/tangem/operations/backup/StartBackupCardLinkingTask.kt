@@ -50,6 +50,11 @@ class StartBackupCardLinkingTask(
             return
         }
 
+        if (!isBatchIdCompatible(card.batchId)) {
+            callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleBatch()))
+            return
+        }
+
         if (card.cardId.lowercase() == primaryCard.cardId.lowercase()) {
             callback(CompletionResult.Failure(TangemSdkError.BackupCardRequired()))
             return
@@ -97,6 +102,27 @@ class StartBackupCardLinkingTask(
                 is Result.Failure ->
                     callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed()))
             }
+        }
+    }
+
+    private fun isBatchIdCompatible(batchId: String): Boolean {
+        val primaryCardBatchId = primaryCard.batchId?.uppercase()
+            ?: return true //We found the old interrupted backup. Skip this check.
+
+        val backupCardBatchId = batchId.uppercase()
+
+        if (backupCardBatchId == primaryCardBatchId) return true
+
+        if (isBatchDetached(backupCardBatchId) || isBatchDetached(primaryCardBatchId)) return false
+
+        return true
+    }
+
+    companion object {
+        private val detachedBatches = listOf("AC01", "AC02")
+
+        private fun isBatchDetached(batchId: String): Boolean {
+            return detachedBatches.contains(batchId)
         }
     }
 }

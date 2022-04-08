@@ -59,7 +59,8 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
             existingWalletsCount = card.wallets.size,
             isHDWalletAllowed = card.settings.isHDWalletAllowed,
             issuer = card.issuer,
-            walletCurves = card.wallets.map { it.curve }
+            walletCurves = card.wallets.map { it.curve },
+            batchId = card.batchId,
         )
     }
 }
