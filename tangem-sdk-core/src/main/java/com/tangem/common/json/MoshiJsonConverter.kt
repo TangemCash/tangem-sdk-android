@@ -80,7 +80,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
     }
 
     companion object {
-        var INSTANCE: MoshiJsonConverter = default()
+        val INSTANCE: MoshiJsonConverter = default()
 
         fun default() = MoshiJsonConverter(getTangemSdkAdapters(), getTangemSdkTypedAdapters())
 
