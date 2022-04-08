@@ -119,7 +119,7 @@ class StartBackupCardLinkingTask(
     }
 
     companion object {
-        private val detachedBatches = listOf("AC01", "AC02")
+        private val detachedBatches = listOf("AC01", "AC02", "CB95")
 
         private fun isBatchDetached(batchId: String): Boolean {
             return detachedBatches.contains(batchId)
