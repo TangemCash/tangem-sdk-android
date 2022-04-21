@@ -159,10 +159,10 @@ internal class SignCommand(
         // Wallet index works only on COS v. 4.0 and higher. For previous version index will be ignored
         tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
 
-        if (terminalKeys != null) {
-            val signedData = dataToSign.sign(terminalKeys!!.privateKey)
+        terminalKeys?.let {
+            val signedData = dataToSign.sign(it.privateKey)
             tlvBuilder.append(TlvTag.TerminalTransactionSignature, signedData)
-            tlvBuilder.append(TlvTag.TerminalPublicKey, environment.terminalKeys!!.publicKey)
+            tlvBuilder.append(TlvTag.TerminalPublicKey, it.publicKey)
         }
         tlvBuilder.append(TlvTag.WalletHDPath, derivationPath)
 
