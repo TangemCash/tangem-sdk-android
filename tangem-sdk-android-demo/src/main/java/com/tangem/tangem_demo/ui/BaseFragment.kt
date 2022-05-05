@@ -400,7 +400,7 @@ abstract class BaseFragment : Fragment() {
                 onCardChanged(card)
                 post(delay) { callback() }
             }
-            else -> post(delay) { callback() }
+            else -> postUi(delay) { callback() }
         }
     }
 
