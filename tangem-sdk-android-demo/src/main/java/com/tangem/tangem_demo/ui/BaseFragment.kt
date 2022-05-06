@@ -31,7 +31,6 @@ import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.files.FileHashHelper
 import com.tangem.operations.files.FileToWrite
 import com.tangem.operations.files.FileVisibility
-import com.tangem.operations.files.NamedFile
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
 import com.tangem.tangem_demo.*
@@ -297,15 +296,12 @@ abstract class BaseFragment : Fragment() {
                             return@setCard
                         }
 
-                        result.data.forEach {
-                            val namedFile = NamedFile(it.fileData) ?: return@forEach
+                        result.data.forEach { file ->
                             val detailInfo = mutableMapOf<String, Any>()
-                            detailInfo["fileIndex"] = it.fileIndex
-                            detailInfo["name"] = namedFile.name
-                            detailInfo["fileData"] = namedFile.payload.toHexString()
-                            namedFile.counter?.let { detailInfo["counter"] = it }
-                            namedFile.signature?.let { detailInfo["signature"] = it.toHexString() }
-                            Tlv.deserialize(namedFile.payload)?.let {
+                            detailInfo["name"] = file.name ?: ""
+                            detailInfo["fileData"] = file.fileData.toHexString()
+                            detailInfo["fileIndex"] = file.fileIndex
+                            Tlv.deserialize(file.fileData)?.let {
                                 val decoder = TlvDecoder(it)
                                 WalletDataDeserializer.deserialize(decoder)?.let { walletData ->
                                     detailInfo["walletData"] = jsonConverter.toMap(walletData)
