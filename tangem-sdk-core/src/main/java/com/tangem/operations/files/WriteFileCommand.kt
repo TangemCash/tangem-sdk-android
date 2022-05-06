@@ -276,7 +276,7 @@ class WriteFileCommand private constructor(
         operator fun invoke(file: FileToWrite): WriteFileCommand = when (file) {
             is FileToWrite.ByFileOwner -> {
                 WriteFileCommand(
-                    data = file.data,
+                    data = file.payload,
                     startingSignature = file.startingSignature,
                     finalizingSignature = file.finalizingSignature,
                     counter = file.counter,
@@ -286,7 +286,7 @@ class WriteFileCommand private constructor(
             }
             is FileToWrite.ByUser -> {
                 WriteFileCommand(
-                    data = file.data,
+                    data = file.payload,
                     fileVisibility = file.fileVisibility,
                     walletPublicKey = file.walletPublicKey,
                 )
