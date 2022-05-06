@@ -145,7 +145,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         val files: List<FileToWrite>? = cmd.getOptionValue(TangemCommandOptions.Files.opt)
                 ?.split(",")
                 ?.map { it.trim().hexToBytes() }
-                ?.map { FileToWrite.ByUser(it, FileVisibility.Public, null) }
+                ?.map { FileToWrite.ByUser(it, null, FileVisibility.Public, null) }
 
         if (files == null) {
             println("Missing option value")
