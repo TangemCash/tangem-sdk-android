@@ -8,7 +8,6 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.files.FileDataMode
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -21,7 +20,9 @@ import com.tangem.operations.Command
  *
  * @property fileIndex index of a file to be deleted.
  */
-class DeleteFileCommand(private val fileIndex: Int) : Command<SuccessResponse>() {
+class DeleteFileCommand(
+    private val fileIndex: Int
+) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = true
 
@@ -29,14 +30,18 @@ class DeleteFileCommand(private val fileIndex: Int) : Command<SuccessResponse>()
         if (card.firmwareVersion < FirmwareVersion.FilesAvailable) {
             return TangemSdkError.NotSupportedFirmwareVersion()
         }
+        if (!card.settings.isFilesAllowed) {
+            return TangemSdkError.FilesDisabled()
+        }
+
         return null
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val tlvBuilder = TlvBuilder()
+        tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-        tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.WriteFileMode, FileDataMode.DeleteFile)
         tlvBuilder.append(TlvTag.FileIndex, fileIndex)
 

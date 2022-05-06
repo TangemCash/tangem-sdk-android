@@ -8,11 +8,11 @@ import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.files.DataToWrite
-import com.tangem.common.files.FileDataProtectedByPasscode
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.jvm.init
 import com.tangem.operations.CommandResponse
+import com.tangem.operations.files.FileToWrite
+import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.sign.SignHashesCommand
 import com.tangem.operations.sign.SignHashesResponse
 import kotlinx.coroutines.runBlocking
@@ -34,7 +34,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         }
 
         runBlocking {
-            val result: CompletionResult<out CommandResponse> = suspendCoroutine { continuation ->
+            val result: CompletionResult<*> = suspendCoroutine { continuation ->
                 when (command) {
                     Command.Read -> read(sdk) { continuation.resume(it) }
                     Command.Sign -> sign(sdk) { continuation.resume(it) }
@@ -126,7 +126,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         sdk.purgeWallet(publicKey, cardId, null, callback)
     }
 
-    private fun readFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+    private fun readFiles(sdk: TangemSdk, callback: CompletionCallback<*>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val readPrivateFiles: Boolean = cmd.hasOption(TangemCommandOptions.ReadPrivateFiles.opt)
         val fileIndices: List<Int>? = cmd.getOptionValue(TangemCommandOptions.FileIndices.opt)
@@ -134,17 +134,18 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
                 ?.mapNotNull { it.trim().toIntOrNull() }
 
         sdk.readFiles(
-                readPrivateFiles = readPrivateFiles, indices = fileIndices, cardId = cid,
-                callback = callback
+            readPrivateFiles = readPrivateFiles,
+            cardId = cid,
+            callback = callback
         )
     }
 
-    private fun writeFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
+    private fun writeFiles(sdk: TangemSdk, callback: CompletionCallback<*>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
-        val files: List<DataToWrite>? = cmd.getOptionValue(TangemCommandOptions.Files.opt)
+        val files: List<FileToWrite>? = cmd.getOptionValue(TangemCommandOptions.Files.opt)
                 ?.split(",")
                 ?.map { it.trim().hexToBytes() }
-                ?.map { FileDataProtectedByPasscode(it) }
+                ?.map { FileToWrite.ByUser(it, FileVisibility.Public, null) }
 
         if (files == null) {
             println("Missing option value")
@@ -164,7 +165,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         sdk.deleteFiles(indices = fileIndices, cardId = cid, callback = callback)
     }
 
-    private fun handleResult(result: CompletionResult<out CommandResponse>) {
+    private fun handleResult(result: CompletionResult<*>) {
         when (result) {
             is CompletionResult.Success -> {
                 println(responseConverter.toJson(result.data))

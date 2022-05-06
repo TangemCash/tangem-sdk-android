@@ -9,13 +9,12 @@
     <string name="nfc_stuck_error">Es scheint, dass NFC auf Ihrem iPhone nicht richtig funktioniert</string>
     <string name="unknown_status">Unbekannter Kartenstatus</string>
     <string name="generic_error_code">Während des Vorgangs ist ein Fehler aufgetreten. Code: %s</string>
-    <string name="reading_data_progress">Die Daten werden abgelesen: %@%%</string>
-    <string name="writing_data_progress">Die Daten werden geschrieben: %@%%</string>
+    <string name="reading_data_progress">Die Daten werden abgelesen: %s%%</string>
+    <string name="writing_data_progress">Die Daten werden geschrieben: %s%%</string>
     <string name="dialog_nfc_enable_title">Soll NFC aktiviert werden?</string>
     <string name="dialog_nfc_enable_text">Diese App braucht NFC eingeschaltet. Drücken Sie auf OK, um zu den Einstellungen zu übergehen, wo Sie NFC aktivieren können.</string>
     <string name="view_delegate_security_delay_description">Diese Karte hat Sicherheitsverzögerungen initiiert. Bitte halten Sie die Karte fest, bis der Vorgang abgeschlossen ist.</string>
     <string name="view_delegate_delay">Der Vorgang läuft</string>
-    <string name="view_delegate_delay_description"> Bitte halten Sie die Karte fest, bis der Vorgang abgeschlossen ist</string>
     <string name="view_delegate_scan">Bereit zum Scannen</string>
     <string name="view_delegate_scan_description">Scannen Sie die Karte mit Ihrem Handy wie oben gezeigt</string>
     <string name="view_delegate_header_card">Karte</string>
@@ -75,6 +74,8 @@
     <string name="error_pin1_required">Der Zugangscode ist erforderlich</string>
     <string name="error_pin2_required">Der Passcode ist erforderlich</string>
     <string name="error_invalid_response">Ungültige Antwort</string>
+    <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
+    <string name="error_extended_apdu_not_supported">It looks like your phone doesn\’t fully support NFC protocol. Please try to use another phone for this operation.</string>
 
     <string name="how_to_nfc_detected">Sie haben gerade den Standort Ihrer NFC-Antenne gefunden. Bitte merken Sie sich diesen Standort.</string>
     <string name="how_to_known_here_how_to_use">Hier finden Sie Informationen, wie man Tangem Cards mit (Telefon) verwendet</string>

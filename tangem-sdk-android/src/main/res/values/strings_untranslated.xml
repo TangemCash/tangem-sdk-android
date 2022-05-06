@@ -19,8 +19,10 @@
     <string name="error_wrong_interaction_mode" translatable="false">Unsupported interaction mode</string>
     <string name="error_backup_card_already_added" translatable="false">This card has already been added to the list</string>
     <string name="error_backup_wrong_card" translatable="false">This card can\'t be used for backup process.</string>
+    <string name="error_reset_wrong_card" translatable="false">This card can’t be used for code recovery.</string>
 
-    <string name="dialog_attestation_did_failed_title" translatable="false">@string/error_card_verification_failed</string>
+
+    <string name="dialog_attestation_did_failed_title" translatable="false">Card verification failed</string>
     <string name="dialog_attestation_did_failed_message" translatable="false">This card may be production sample or counterfeit. You can continue at your own risk</string>
     <string name="dialog_attestation_did_failed_message_dev_card" translatable="false">This is a development card. You can continue at your own risk</string>
     <string name="dialog_attestation_completed_offline_title" translatable="false">Online attestation failed</string>
@@ -33,4 +35,20 @@
     <string name="backup_add_backup_card_message" translatable="false">Scan the card you want to use as a backup</string>
     <string name="backup_finalize_primary_card_message_format" translatable="false">Scan the primary card with number %s</string>
     <string name="backup_finalize_backup_card_message_format" translatable="false">Scan the backup card with number %s</string>
+
+    <string name="reset_codes_scan_first_card" translatable="false">Scan the card on which you want to reset the pin</string>
+    <string name="reset_codes_scan_confirmation_card" translatable="false">Scan the confirmation card</string>
+    <string name="reset_codes_scan_to_reset" translatable="false">Scan card to reset user codes</string>
+
+    <string name="reset_codes_message_title_restore" translatable="false">Tap the card you want to restore</string>
+    <string name="reset_codes_message_body_restore" translatable="false">First, prepare the card for restore process.</string>
+    <string name="reset_codes_message_title_backup" translatable="false">Tap a backup card</string>
+    <string name="reset_codes_message_body_backup" translatable="false">Tap the linked card.</string>
+    <string name="reset_codes_message_body_restore_final" translatable="false">Tap the restore card again.</string>
+    <string name="reset_codes_success_message" translatable="false">Code was reset successfully</string>
+    <string name="reset_codes_reset_access_code" translatable="false">Reset access code</string>
+    <string name="reset_codes_current_card" translatable="false">Current card</string>
+    <string name="reset_codes_linked_card" translatable="false">Linked card</string>
+    <string name="reset_codes_btn_forgot_your_code" translatable="false">Forgot your code?</string>
+
 </resources>

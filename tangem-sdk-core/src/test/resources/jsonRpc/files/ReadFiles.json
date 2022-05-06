@@ -8,14 +8,13 @@
   "response": {
     "jsonrpc": "2.0",
     "result": {
-      "files": [
-        {
-          "fileIndex": 0,
-          "fileData": "00AABBCCDD",
-          "fileSettings": "public"
-        }
-      ]
-    },
-    "id": 1
+      "fileIndex": 0,
+      "fileData": "00AABBCCDD",
+      "fileSettings": {
+        "isPermanent": false,
+        "visibility": "public"
+      },
+      "id": 1
+    }
   }
 }

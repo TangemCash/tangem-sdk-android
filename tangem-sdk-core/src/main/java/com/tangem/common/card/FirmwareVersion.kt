@@ -95,7 +95,7 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         /**
          * HD Wallet
          */
-        val HDWalletAvailable = FirmwareVersion(4, 28)
+        val HDWalletAvailable = FirmwareVersion(4, 39)
 
         /**
          * Field on card that describes is accessCode is default value or not
@@ -114,7 +114,12 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         Sprecial(null);
 
         companion object {
-            fun from(type: String): FirmwareType = values().firstOrNull { it.rawValue == type } ?: Sprecial
+            fun from(type: String): FirmwareType {
+                val trimmed = type.trim()
+                if (trimmed.isEmpty()) return Release
+
+                return values().firstOrNull { it.rawValue == type } ?: Sprecial
+            }
         }
     }
 

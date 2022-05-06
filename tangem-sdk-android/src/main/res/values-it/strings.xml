@@ -17,7 +17,6 @@
     <string name="dialog_nfc_enable_text">Questa app richiede l\'attivazione di NFC. Fare clic su OK per accedere alle Impostazioni in cui è possibile abilitare l\'NFC.</string>
     <string name="view_delegate_security_delay_description">Questa carta è dotata di un ritardo di sicurezza forzato. Mantenere la carta ben ferma fino al completamento dell\'operazione.</string>
     <string name="view_delegate_delay">Operazione in corso</string>
-    <string name="view_delegate_delay_description">Mantenere la carta ben ferma fino al completamento dell\'operazione</string>
     <string name="view_delegate_scan">Pronta alla scansione</string>
     <string name="view_delegate_scan_description">Scansionare la carta tramite il telefono, come mostrato sopra</string>
     <string name="view_delegate_header_card">Carta</string>
@@ -77,6 +76,8 @@
     <string name="error_pin1_required">Richiesto un codice di accesso</string>
     <string name="error_pin2_required">Richiesta una password</string>
     <string name="error_invalid_response">Risposta non valida</string>
+    <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
+    <string name="error_extended_apdu_not_supported">It looks like your phone doesn\’t fully support NFC protocol. Please try to use another phone for this operation.</string>
 
     <string name="how_to_nfc_detected"> Hai appena trovato la posizione della tua antenna NFC. Per favore, ricordala.</string>
     <string name="how_to_known_here_how_to_use">Qui viene descritto come utilizzare la Tangem Cards con (telefono)</string>

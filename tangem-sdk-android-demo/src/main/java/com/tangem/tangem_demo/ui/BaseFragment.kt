@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.UiThread
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Message
@@ -15,20 +16,22 @@ import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.extensions.guard
-import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.extensions.toByteArray
-import com.tangem.common.files.FileDataProtectedByPasscode
-import com.tangem.common.files.FileDataProtectedBySignature
-import com.tangem.common.files.FileHashHelper
-import com.tangem.common.files.FileSettingsChange
+import com.tangem.common.core.TangemSdkError
+import com.tangem.common.deserialization.WalletDataDeserializer
+import com.tangem.common.extensions.*
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.json.MoshiJsonConverter
+import com.tangem.common.tlv.Tlv
+import com.tangem.common.tlv.TlvDecoder
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
+import com.tangem.operations.files.FileHashHelper
+import com.tangem.operations.files.FileToWrite
+import com.tangem.operations.files.FileVisibility
+import com.tangem.operations.files.NamedFile
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
 import com.tangem.tangem_demo.*
@@ -58,8 +61,6 @@ abstract class BaseFragment : Fragment() {
 
             return card.wallets[selectedIndexOfWallet].publicKey
         }
-
-    private var needRescanCard = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,10 +97,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun scanCard() {
-        sdk.scanCard(initialMessage) {
-            needRescanCard = false
-            handleResult(it)
-        }
+        sdk.scanCard(initialMessage) { handleResult(it) }
     }
 
     protected fun personalize(config: CardConfig) {
@@ -181,10 +179,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        sdk.createWallet(curve, cardId, initialMessage) {
-            needRescanCard = it is CompletionResult.Success
-            handleResult(it)
-        }
+        sdk.createWallet(curve, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
     }
 
     protected fun purgeWallet() {
@@ -196,10 +191,12 @@ abstract class BaseFragment : Fragment() {
             showToast("Wallet publicKey is null")
             return
         }
-        sdk.purgeWallet(publicKey, cardId, initialMessage) {
-            needRescanCard = it is CompletionResult.Success
-            handleResult(it)
-        }
+        sdk.purgeWallet(publicKey, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
+    }
+
+    protected fun purgeAllWallet() {
+        val task = PurgeAllWalletsTask()
+        sdk.startSessionWithRunnable(task) { handleResult(it, true) }
     }
 
     protected fun readIssuerData() {
@@ -286,55 +283,128 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun readFiles(readPrivateFiles: Boolean) {
-        sdk.readFiles(readPrivateFiles, null, card?.cardId, initialMessage) { handleResult(it) }
+        sdk.readFiles(readPrivateFiles, null, null, card?.cardId, initialMessage) { result ->
+            setCard(result) {
+                when (result) {
+                    is CompletionResult.Success -> {
+                        val filesDetailInfo = mutableListOf<Map<String, Any>>()
+                        if (result.data.isEmpty()) {
+                            showDialog(jsonConverter.prettyPrint(result.data))
+                            return@setCard
+                        }
+
+                        result.data.forEach {
+                            val namedFile = NamedFile(it.fileData) ?: return@forEach
+                            val detailInfo = mutableMapOf<String, Any>()
+                            detailInfo["fileIndex"] = it.fileIndex
+                            detailInfo["name"] = namedFile.name
+                            detailInfo["fileData"] = namedFile.payload.toHexString()
+                            namedFile.counter?.let { detailInfo["counter"] = it }
+                            namedFile.signature?.let { detailInfo["signature"] = it.toHexString() }
+                            Tlv.deserialize(namedFile.payload)?.let {
+                                val decoder = TlvDecoder(it)
+                                WalletDataDeserializer.deserialize(decoder)?.let { walletData ->
+                                    detailInfo["walletData"] = jsonConverter.toMap(walletData)
+                                }
+                            }
+                            filesDetailInfo.add(detailInfo)
+
+                        }
+                        val builder = StringBuilder().apply {
+                            append(jsonConverter.prettyPrint(result.data))
+                            append("\n\n\nDetails:\n")
+                            append(jsonConverter.prettyPrint(filesDetailInfo))
+                        }
+                        postUi { showDialog(builder.toString()) }
+                    }
+                    is CompletionResult.Failure -> {
+                        if (result.error is TangemSdkError.UserCancelled) {
+                            showToast("${result.error.customMessage}: User was cancelled the operation")
+                        } else {
+                            showToast(result.error.customMessage)
+                        }
+                    }
+                }
+            }
+
+        }
     }
 
-    protected fun writeFilesSigned() {
+    protected fun writeUserFile() {
+        val demoPayload = Utils.randomString(Utils.randomInt(15, 30)).toByteArray()
+        val demoData = NamedFile("User file", demoPayload).serialize()
+        val visibility: FileVisibility = FileVisibility.Private
+        //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
+        val file: FileToWrite = FileToWrite.ByUser(demoData, visibility, null)
+
+        sdk.writeFiles(listOf(file), card?.cardId, initialMessage) {
+            handleResult(it)
+        }
+    }
+
+    protected fun writeOwnerFile() {
         val cardId = card?.cardId.guard {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
-        val file = prepareSignedData(cardId)
-        sdk.writeFiles(listOf(file), card?.cardId, initialMessage) { handleResult(it) }
-    }
 
-    protected fun writeFilesWithPassCode() {
-        val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
-        val files = listOf(FileDataProtectedByPasscode(issuerData), FileDataProtectedByPasscode(issuerData))
-        sdk.writeFiles(files, card?.cardId, initialMessage) { handleResult(it) }
+        val demoPayload = Utils.randomString(Utils.randomInt(15, 30)).toByteArray()
+        val demoData = NamedFile("Ownerfile", demoPayload).serialize()
+        val visibility: FileVisibility = FileVisibility.Private
+        val counter = 1
+        //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
+        val issuer = Personalization.issuer()
+        val fileHash = FileHashHelper.prepareHashes(cardId, demoData, counter, issuer.dataKeyPair.privateKey)
+
+        ifNotNullOr(fileHash.startingSignature, fileHash.finalizingSignature, { sSignature, fSignature ->
+            val file = FileToWrite.ByFileOwner(demoData, sSignature, fSignature, counter, visibility, null)
+            sdk.writeFiles(listOf(file)) { handleResult(it) }
+        }, {
+            showToast("Failed to sign data with issuer signature")
+        })
     }
 
     protected fun deleteFiles(indices: List<Int>? = null) {
         sdk.deleteFiles(indices, card?.cardId, initialMessage) { handleResult(it) }
     }
 
-    protected fun changeFilesSettings(change: FileSettingsChange) {
-        sdk.changeFileSettings(listOf(change), card?.cardId, initialMessage) { handleResult(it) }
+    protected fun changeFilesSettings(changes: Map<Int, FileVisibility>) {
+        sdk.changeFileSettings(changes, card?.cardId, initialMessage) { handleResult(it) }
     }
 
-    private fun handleResult(result: CompletionResult<*>) {
-        setCard(result)
-        postUi { handleCommandResult(result) }
-    }
-
-    private fun setCard(completionResult: CompletionResult<*>) {
-        if (completionResult is CompletionResult.Success) {
-            when {
-                needRescanCard -> {
-                    val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
-                    sdk.startSessionWithRunnable(command) {
-                        needRescanCard = false
-                        setCard(it)
-                    }
-                }
-                completionResult.data is Card -> {
-                    card = completionResult.data as Card
-                    onCardChanged(card)
-                }
-            }
+    private fun handleResult(result: CompletionResult<*>, rescan: Boolean = false) {
+        when (result) {
+            is CompletionResult.Success -> postUi() { setCard(result, rescan) { handleCommandResult(result) } }
+            is CompletionResult.Failure -> handleCommandResult(result)
         }
     }
 
+    private fun setCard(
+        result: CompletionResult<*>,
+        rescan: Boolean = false,
+        delay: Long = 1500,
+        callback: VoidCallback
+    ) {
+        when {
+            rescan -> {
+                showToast("Need rescan the card after Create/Purge wallet")
+                post(delay) {
+                    val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
+                    sdk.startSessionWithRunnable(command) {
+                        postUi() { setCard(it, false, callback = callback) }
+                    }
+                }
+            }
+            result is CompletionResult.Success && result.data is Card -> {
+                card = result.data as Card
+                onCardChanged(card)
+                post(delay) { callback() }
+            }
+            else -> postUi(delay) { callback() }
+        }
+    }
+
+    @UiThread
     protected fun showDialog(message: String) {
         val dlg = bshDlg ?: BottomSheetDialog(requireActivity())
         if (dlg.isShowing) dlg.hide()
@@ -348,28 +418,13 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun showToast(message: String) {
-        activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
+        postUi() { activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() } }
     }
 
     protected fun prepareHashesToSign(count: Int): Array<ByteArray> {
         val listOfData = MutableList(count) { Utils.randomString(32) }
         val listOfHashes = listOfData.map { it.toByteArray() }
         return listOfHashes.toTypedArray()
-    }
-
-    protected fun prepareSignedData(cardId: String): FileDataProtectedBySignature {
-        val counter = 1
-        val issuer = Personalization.issuer()
-        val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
-        val signatures = FileHashHelper.prepareHashes(
-            cardId, issuerData, counter, issuer.dataKeyPair.privateKey
-        )
-        return FileDataProtectedBySignature(
-            issuerData,
-            signatures.startingSignature!!,
-            signatures.finalizingSignature!!,
-            counter,
-        )
     }
 
     private fun createDerivationPath(): DerivationPath? {

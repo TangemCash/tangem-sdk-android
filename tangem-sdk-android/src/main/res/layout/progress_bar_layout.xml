@@ -1,63 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/clProgress"
-        android:layout_width="@dimen/progress_bar_state_width"
-        android:layout_height="@dimen/bottom_sheet_top_container_height">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/clProgress"
+    android:layout_width="@dimen/progress_bar_state_width"
+    android:layout_height="@dimen/bottom_sheet_top_container_height"
+    android:clipChildren="false">
 
-    <com.tangem.tangem_sdk_new.ui.widget.progressBar.SdkProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/progress_bar_state_inset"
-            android:layout_marginTop="@dimen/progress_bar_state_inset"
-            android:layout_marginEnd="@dimen/progress_bar_state_inset"
-            android:layout_marginBottom="@dimen/progress_bar_state_inset"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:pb_color="@color/sdk_progress_bar_primary"
-            app:pb_round_border="true"
-            app:pb_secondary_color="@color/sdk_progress_bar_secondary"
-            app:pb_secondary_thickness="6dp"
-            app:pb_thickness="6dp" />
-
-    <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imvSuccess"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_success_anim"
-            app:tint="@color/sdk_drawable_icon_blue"/>
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/progress_bar_state_inset"
+        android:layout_marginTop="@dimen/progress_bar_state_inset"
+        android:layout_marginEnd="@dimen/progress_bar_state_inset"
+        android:layout_marginBottom="@dimen/progress_bar_state_inset"
+        app:indicatorSize="170dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:trackCornerRadius="8dp"
+        app:trackThickness="6dp" />
 
     <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imvExclamation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_exclamation_anim" />
+        android:id="@+id/imvSuccess"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_success_anim"
+        app:tint="@color/sdk_drawable_icon_blue" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/imvExclamation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_exclamation_anim" />
 
     <TextView
-            android:id="@+id/tvProgressValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingBottom="5dp"
-            android:textColor="@color/sdk_drawable_icon_blue"
-            android:textSize="@dimen/progress_bar_state_text_size"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="22" />
+        android:id="@+id/tvProgressValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5dp"
+        android:textColor="@color/sdk_drawable_icon_blue"
+        android:textSize="@dimen/progress_bar_state_text_size"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="22" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

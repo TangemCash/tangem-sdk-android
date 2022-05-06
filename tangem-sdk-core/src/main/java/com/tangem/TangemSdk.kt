@@ -5,10 +5,6 @@ import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
-import com.tangem.common.files.DataToWrite
-import com.tangem.common.files.FileHashData
-import com.tangem.common.files.FileHashHelper
-import com.tangem.common.files.FileSettingsChange
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.*
@@ -387,23 +383,27 @@ class TangemSdk(
      * Note: When performing reading private files command, you must  provide `passcode`
      * Warning: Command available only for cards with COS 3.29 and higher
      *
-     * @param readPrivateFiles: If true - all files saved on card will be read otherwise
-     * @param indices: indices of files that should be read from card. If not specifies all files will be read.
+     * @param readPrivateFiles: If true - all files saved on card will be read. User code or security delay will be
+     * requested
+     * @param fileName: Read files by the given name.
+     * @param walletPublicKey: Read files by the given wallet.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used
      * @param callback: is triggered on the completion of the [ReadFilesTask] and provides
-     * card response in the form of [ReadFilesResponse] if the task was performed successfully
+     * card response in the form of [List<File>] if the task was performed successfully
      * or [TangemSdkError] in case of an error.
      */
     fun readFiles(
         readPrivateFiles: Boolean = false,
-        indices: List<Int>? = null,
+        fileName: String? = null,
+        walletPublicKey: ByteArray? = null,
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ReadFilesResponse>
+        callback: CompletionCallback<List<File>>
     ) {
-        val task = ReadFilesTask(readPrivateFiles, indices)
+        val task = ReadFilesTask(fileName, walletPublicKey)
+        task.shouldReadPrivateFiles = readPrivateFiles
         startSessionWithRunnable(task, cardId, initialMessage, callback)
     }
 
@@ -416,7 +416,7 @@ class TangemSdk(
      * Note: In COS 3.29 and higher only file visibility option (public or private) available to update
      * Warning: This method works with COS 3.29 and higher
      *
-     * @param changes: Array of file indices with new settings
+     * @param changes: Dictionary of file indices with new settings
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
@@ -425,7 +425,7 @@ class TangemSdk(
      * or [TangemSdkError] in case of an error.
      */
     fun changeFileSettings(
-        changes: List<FileSettingsChange>,
+        changes: Map<Int, FileVisibility>,
         cardId: String? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SuccessResponse>
@@ -438,11 +438,8 @@ class TangemSdk(
      * This method launches a [WriteFilesTask] on a new thread.
      *
      * This command write all files provided in `files` to card.
-     * There are 2 main implementation of `DataToWrite` protocol:
-     * 1. [FileDataProtectedBySignature] - for files  signed by Issuer (specified on card during personalization)
-     * 2. [FileDataProtectedByPasscode] - write files protected by Passcode
-     *  Note: Writing files protected by Passcode only available for COS 3.34 and higher
      * Warning: This command available for COS 3.29 and higher
+     * Note: Writing files protected by Passcode only available for COS 3.34 and higher
      *
      * @param files: List of files that should be written to card
      * @param cardId: CID, Unique Tangem card ID number.
@@ -453,7 +450,7 @@ class TangemSdk(
      * or [TangemSdkError] in case of an error.
      */
     fun writeFiles(
-        files: List<DataToWrite>,
+        files: List<FileToWrite>,
         cardId: String? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<WriteFilesResponse>
@@ -470,8 +467,8 @@ class TangemSdk(
      * After deleting files you should additionally perform `readFiles` command to actualize files indexes
      * Warning: This command available for COS 3.29 and higher
      *
-     * @param indices: Indexes of files that should be deleted. If null - deletes all files from card
-     * then all files will be deleted.
+     * @param indices optional array of indices that should be deleted. If not specified all files
+     * will be deleted from card
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
@@ -879,7 +876,15 @@ class TangemSdk(
 
     private fun makeSession(cardId: String? = null, initialMessage: Message? = null): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
-        return CardSession(viewDelegate, environment, reader, jsonRpcConverter, cardId, initialMessage)
+        return CardSession(
+            viewDelegate = viewDelegate,
+            environment = environment,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter,
+            cardId = cardId,
+            initialMessage = initialMessage,
+            secureStorage = secureStorage,
+        )
     }
 
     private fun checkSession(): Boolean {
@@ -887,5 +892,16 @@ class TangemSdk(
         return session.state == CardSession.CardSessionState.Active
     }
 
-    companion object
+    companion object {
+        fun makeSessionBuilder(
+            viewDelegate: SessionViewDelegate,
+            secureStorage: SecureStorage,
+            reader: CardReader,
+            jsonRpcConverter: JSONRPCConverter,
+        ): SessionBuilder {
+            return SessionBuilder(
+                viewDelegate, secureStorage, reader, jsonRpcConverter
+            )
+        }
+    }
 }

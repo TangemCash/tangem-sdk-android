@@ -7,21 +7,25 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.tangem.*
 import com.tangem.common.CompletionResult
+import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.VoidCallback
-import com.tangem.common.files.FileSettings
-import com.tangem.common.files.FileSettingsChange
+import com.tangem.operations.files.FileVisibility
+import com.tangem.operations.resetcode.ResetCodesViewDelegate
+import com.tangem.operations.resetcode.ResetCodesViewState
 import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.CommandSpinnerAdapter
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.RvConsoleAdapter
 import com.tangem.tangem_sdk_new.nfc.NfcManager
 import kotlinx.android.synthetic.main.fg_commands_tester.*
+import kotlinx.android.synthetic.main.file_data.*
 
 /**
  * Created by Anton Zhilenkov on 23/12/2020.
@@ -57,7 +61,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
     private fun initSpinner() {
         spCommandSelector.adapter = CommandSpinnerAdapter(CommandType.values().toList())
         nfcManager.addTagDiscoveredListener(tagDiscoveredListener)
-        postWorker {
+        postBackground {
             spCommandSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     // close the session from a previous command
@@ -99,7 +103,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         commandState.canBeReactivated = false
 
         // if don't use the workerThread then fragments is stuck during first initialization
-        postWorker {
+        postBackground {
             when (type) {
                 CommandType.Scan -> scanCard()
                 CommandType.Sign -> signHashes(prepareHashesToSign(11))
@@ -113,18 +117,14 @@ class SdkTaskSpinnerFragment : BaseFragment() {
                 CommandType.UserDataWrite -> writeUserData()
                 CommandType.SetPin1 -> setAccessCode()
                 CommandType.SetPin2 -> setPasscode()
-                CommandType.FilesWriteSigned -> writeFilesSigned()
-                CommandType.FilesWriteWithPassCode -> writeFilesWithPassCode()
+                CommandType.FilesWriteUser -> writeUserFile()
+                CommandType.FilesWriteWithOwner -> writeOwnerFile()
                 CommandType.FilesReadAll -> readFiles(true)
                 CommandType.FilesReadPublic -> readFiles(false)
                 CommandType.FilesDeleteAll -> deleteFiles()
                 CommandType.FilesDeleteFirst -> deleteFiles(listOf(0))
-                CommandType.FilesChangeSettingsFirstPublic -> {
-                    changeFilesSettings(FileSettingsChange(0, FileSettings.Public))
-                }
-                CommandType.FilesChangeSettingsFirstPrivate -> {
-                    changeFilesSettings(FileSettingsChange(0, FileSettings.Private))
-                }
+                CommandType.FilesChangeSettingsFirstPublic -> changeFilesSettings(mapOf(0 to FileVisibility.Public))
+                CommandType.FilesChangeSettingsFirstPrivate -> changeFilesSettings(mapOf(0 to FileVisibility.Private))
             }
         }
     }
@@ -167,6 +167,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
     }
 
     class EmptyViewDelegate : SessionViewDelegate {
+        override val resetCodesViewDelegate: ResetCodesViewDelegate = EmptyResetCodesViewDelegate()
         override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {}
         override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {}
         override fun onDelay(total: Int, current: Int, step: Int) {}
@@ -175,14 +176,35 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun onWrongCard(wrongValueType: WrongValueType) {}
         override fun onSessionStopped(message: Message?) {}
         override fun onError(error: TangemError) {}
-        override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {}
-        override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {}
+        override fun requestUserCode( type: UserCodeType, isFirstAttempt: Boolean,
+                                      showForgotButton: Boolean,
+                                      cardId: String?,
+                                      callback: CompletionCallback<String>
+        ) {}
+        override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {}
         override fun setConfig(config: Config) {}
         override fun setMessage(message: Message?) {}
         override fun dismiss() {}
         override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {}
         override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {}
         override fun attestationCompletedWithWarnings(positive: VoidCallback) {}
+    }
+
+    class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {
+        override var stopSessionCallback: VoidCallback = {}
+        override val stringsLocator: StringsLocator = MockStringLocator()
+
+        override fun setState(state: ResetCodesViewState) {}
+
+        override fun hide(callback: VoidCallback) {}
+
+        override fun showError(error: TangemError) {}
+
+        override fun showAlert(title: String, message: String, onContinue: VoidCallback) {}
+    }
+
+    class MockStringLocator: StringsLocator {
+        override fun getString(stringId: StringsLocator.ID, vararg formatArgs: String) = ""
     }
 }
 
@@ -199,8 +221,8 @@ enum class CommandType {
     UserDataWrite,
     SetPin1,
     SetPin2,
-    FilesWriteSigned,
-    FilesWriteWithPassCode,
+    FilesWriteUser,
+    FilesWriteWithOwner,
     FilesReadAll,
     FilesReadPublic,
     FilesDeleteAll,

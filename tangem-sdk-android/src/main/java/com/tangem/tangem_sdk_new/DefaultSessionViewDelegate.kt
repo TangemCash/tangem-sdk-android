@@ -9,10 +9,12 @@ import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CardIdDisplayFormat
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.nfc.CardReader
+import com.tangem.operations.resetcode.ResetCodesViewDelegate
 import com.tangem.tangem_sdk_new.extensions.sdkThemeContext
 import com.tangem.tangem_sdk_new.nfc.NfcAntennaLocationProvider
 import com.tangem.tangem_sdk_new.nfc.NfcManager
@@ -25,12 +27,15 @@ import com.tangem.tangem_sdk_new.ui.NfcSessionDialog
  */
 class DefaultSessionViewDelegate(
     private val nfcManager: NfcManager,
-    private val reader: CardReader
+    private val reader: CardReader,
+    private val activity: Activity
 ) : SessionViewDelegate {
 
     var sdkConfig: Config? = null
 
-    lateinit var activity: Activity
+    override val resetCodesViewDelegate: ResetCodesViewDelegate =
+        AndroidResetCodesViewDelegate(activity)
+
     private var readingDialog: NfcSessionDialog? = null
     private var stoppedBySession: Boolean = false
 
@@ -74,15 +79,28 @@ class DefaultSessionViewDelegate(
         readingDialog?.show(SessionViewDelegateState.Error(error))
     }
 
-    override fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (pin: String) -> Unit) {
+    override fun requestUserCode(
+        type: UserCodeType, isFirstAttempt: Boolean,
+        showForgotButton: Boolean,
+        cardId: String?,
+        callback: CompletionCallback<String>
+    ) {
         Log.view { "Showing pin request with type: $type" }
-        readingDialog?.show(SessionViewDelegateState.PinRequested(type, isFirstAttempt, callback))
+        readingDialog?.show(
+            SessionViewDelegateState.PinRequested(
+                type = type,
+                isFirstAttempt = isFirstAttempt,
+                showForgotButton = showForgotButton,
+                cardId = cardId,
+                callback = callback
+            )
+        )
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: (pin: String?) -> Unit) {
+    override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {
         Log.view { "Showing pin change request with type: $type" }
         if (readingDialog == null) createReadingDialog(activity)
-        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, callback))
+        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, null, callback))
     }
 
     override fun dismiss() {

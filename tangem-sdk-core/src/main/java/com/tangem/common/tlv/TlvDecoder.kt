@@ -7,9 +7,8 @@ import com.tangem.common.extensions.toDate
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.extensions.toInt
 import com.tangem.common.extensions.toUtf8
-import com.tangem.common.files.FileDataMode
-import com.tangem.common.files.FileSettings
 import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.operations.files.FileDataMode
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
@@ -195,15 +194,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                 }
             }
-            TlvValueType.FileSettings -> {
-                typeCheck<T, FileSettings>(tag)
-                try {
-                    FileSettings.byRawValue(tlvValue.toInt()) as T
-                } catch (exception: Exception) {
-                    logException(tag, tlvValue.toInt().toString(), exception)
-                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
-                }
-            }
             TlvValueType.DerivationPath -> {
                 typeCheck<T, DerivationPath>(tag)
                 try {
@@ -217,7 +207,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
     }
 
     fun provideDecodingFailedMessage(tag: TlvTag): String =
-        "Decoding failed. Failed to convert $tag to ${tag.valueType()}"
+            "Decoding failed. Failed to convert $tag to ${tag.valueType()}"
 
     fun logException(tag: TlvTag, value: String, exception: Exception) {
         Log.error { "Unknown ${tag.name} with value of: $value, \n${exception.message}" }
