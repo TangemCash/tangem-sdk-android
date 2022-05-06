@@ -1,7 +1,9 @@
-*   27ec40e8 - (HEAD -> release/3.6.0, tag: develop-149, tag: develop-148, origin/develop, develop) Merge pull request #161 from tangem/CSK-310-show_walletData_for_read_files
+*   35b3a393 - (HEAD -> release/3.6.2, tag: develop-151, origin/develop, develop) Merge pull request #164 from tangem/CSK-311-fix_build_of_the_jvm-demo
 |\  
-| * 8cac08a8 - CSK-310 demo: show walletData for read files
-|/  
-* fe58cc87 - (tag: develop-147) Merge pull request #160 from tangem/master
-* cebbe740 - (tag: develop-146) Merge pull request #159 from tangem/CSK-309-write_named_files_support
-* 57f05b40 - CSK-309 write named files supported
+| *   cf937734 - Merge branch 'develop' into CSK-311-fix_build_of_the_jvm-demo
+| |\  
+| |/  
+|/|   
+* | 79fa2395 - (tag: develop-150) Merge pull request #163 from tangem/master
+ /  
+* b6be5181 - CSK-311 fixed build of the jvm-demo
