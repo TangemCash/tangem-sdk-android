@@ -1,16 +1,149 @@
-*   d79d9a1d - (HEAD -> release/3.5.0, tag: develop-120, origin/develop, develop) Merge pull request #132 from tangem/CSK-281_fix_display_of_NfcSessionDialog_when_using_the_setPasscode_command_if_no_other_command_was_used
+*   8ffeb4f3 - (HEAD -> release/3.5.1, tag: develop-145, origin/develop, develop) Merge pull request #157 from tangem/CSK-308-merge_master_to_develop
 |\  
-| * 2fde0bbc - CSK-279 fixed display of NfcSessionDialog when using the "setPasscode" command if no other command was used.
+| * 9531869f - Merge branch 'master' into CSK-308-merge_master_to_develop
 |/  
-*   ae8094e4 - (tag: develop-119) Merge pull request #131 from tangem/CSK-280_hd_wallets_refactoring
+*   2a7544f2 - (tag: develop-144) Merge pull request #154 from tangem/CSK-307-fix_showing_response_for_ReadAllFiles_command
 |\  
-| *   be22ccc7 - Merge branch 'develop' of https://github.com/tangem/tangem-sdk-android into CSK-280_hd_wallets_refactoring
+| * 2c1135e3 - CSK-307 fix showing response for ReadAllFiles command
+|/  
+*   8883159f - (tag: develop-143) Merge pull request #153 from tangem/CSK-304_fix-signCommand-npe
+|\  
+| * 143a1b87 - CSK-304 fixed signCommand npe
+|/  
+*   d57c6f1c - (tag: develop-142) Merge pull request #152 from tangem/CSK-303_backup_batches
+|\  
+| * 033f7d00 - CSK-303: add another 'detached batch'
+| *   c593105b - Merge branch 'develop' of https://github.com/tangem/tangem-sdk-android into CSK-303_backup_batches
 | |\  
 | |/  
 |/|   
-* | 3715dfdd - (tag: develop-118) Merge pull request #130 from tangem/master
+* |   d5be2251 - (tag: develop-141) Merge pull request #151 from tangem/CSK-302_immutable-moshi-json-converter
+|\ \  
+| * | 9bae2150 - CSK-302 MoshiJsonConverter.INSTANCE is immutable now
+|/ /  
+| * bf03ed3f - CSK-303: check batches during backup
+|/  
+*   9897c22b - (tag: develop-140) Merge pull request #150 from tangem/CSK-297_not_empty_wallets_error
+|\  
+| * 1b6fb3ef - CSK-297: change text for 10002 error (Extended length not supported)
+| * 36bb71b2 - CSK-297: add text to ExtendedLengthNotSupported error
+| * 0f761c4e - CSK-297: add text to Backup Error 'Not Empty Wallets'
+|/  
+*   aa1d19ce - (tag: develop-139, tag: develop-138) Merge pull request #149 from tangem/CSK-301_change_id_formatter
+|\  
+| * 8c75aec3 - CSK-301: show last 4 digits in Card ID unless Luhn
+|/  
+*   bf4cefbe - (tag: develop-137, tag: develop-136) Merge pull request #148 from tangem/CSK-300_translation-change-how
+|\  
+| * 614c7a90 - CSK-300 update russian language
+|/  
+*   e4d1800a - (tag: develop-135) Merge pull request #146 from tangem/CSK-299_delete-all-wallets
+|\  
+| *   ef4c0380 - Merge branch 'develop' into CSK-299_delete-all-wallets
+| |\  
+| |/  
+|/|   
+* |   42ad4bc2 - (tag: develop-134) Merge pull request #147 from tangem/CSK-298_fix-hidden-button-on-access-code-request
+|\ \  
+| * | 292cdd18 - CSK-298 fixed hidden the forgot access code buttton on medium devices
+| * | ccdec613 - CSK-298 fixed backup layout
+|/ /  
+| * f0ec1cc5 - CSK-299 added the ability to delete all wallets through the demo app
+|/  
+*   304a66ff - (tag: develop-133) Merge pull request #140 from tangem/CSK-287_wrong-text
+|\  
+| *   814e2884 - Merge branch 'develop' into CSK-287_wrong-text
+| |\  
+| |/  
+|/|   
+* |   49de1f12 - (tag: develop-132) Merge pull request #145 from tangem/CSK-296_add-ru-localization
+|\ \  
+| * \   5e4a33a9 - Merge branch 'develop' into CSK-296_add-ru-localization
+| |\ \  
+| |/ /  
+|/| |   
+| * | b5c14e3c - CSK-296 added russian localization
+| | *   8ab28a2c - Merge branch 'develop' into CSK-287_wrong-text
+| | |\  
+| |_|/  
+|/| |   
+* | |   bc9a3afe - (tag: develop-131) Merge pull request #144 from tangem/CSK-291_hide_access_code_input
+|\ \ \  
+| * | | ed123429 - CSK-291: hide PIN code in input field
+|/ / /  
+* | |   4202aff8 - (tag: develop-130) Merge pull request #143 from tangem/CSK-295_fix-equals-for-derivationPath
+|\ \ \  
+| |/ /  
+|/| |   
+| * | 1a14e267 - CSK-292 fixed equals for the DerivationPath
+|/ /  
+* |   3320403f - (tag: develop-129) Merge pull request #142 from tangem/CSK-294_fix_reset_pin_error_messages
+|\ \  
+| * \   1af5dabd - Merge branch 'develop' into CSK-294_fix_reset_pin_error_messages
+| |\ \  
+| |/ /  
+|/| |   
+* | |   20e1a619 - (tag: develop-128) Merge pull request #141 from tangem/CSK-290_cancel_session_after_reset_pin
+|\ \ \  
+| * | | 1f346684 - CSK-291: make Access Code in ResetPin view visible by default
+| * | | 12d0cc13 - CSK-290: cancel Session when ResetPin view is closed
+|/ / /  
+| * | 2d3bfe89 - CSK-273: use one text for all SignResetPinTokenCommand errors
+| * | 03bab4fb - CSK-292: check for Card ID in third step of ResetPin
+| * | 426d8ce0 - CSK-294: show ResetPinWrongCard error when needed
+|/ /  
+| * 77eaba27 - CSK-287 fixed wrong text; fixed start delay for viewDelegate tests
+|/  
+*   4261c813 - (tag: develop-127) Merge pull request #139 from tangem/CSK-285_antique-card-support
+|\  
+| *   dd3f5987 - Merge remote-tracking branch 'origin/CSK-285_antique-card-support' into CSK-285_antique-card-support
+| |\  
+| | * 634fb52e - CSK-285 handle long hashes
+| * | 4935c3b0 - CSK-282 handle long hashes
+| |/  
+| * 306eb7d2 - CSK-285 omit terminal keys for new cards
+| * 7bbedd11 - CSK-285 added support for antique cards
+|/  
+*   16879308 - (tag: develop-126) Merge pull request #120 from tangem/CSK-271_fix-progressBar-color-on-nightMode-if-error-occurs
+|\  
+| *   dbdde459 - Merge branch 'develop' into CSK-271_fix-progressBar-color-on-nightMode-if-error-occurs
+| |\  
+| |/  
+|/|   
+* |   91d4a10c - (tag: develop-125) Merge pull request #138 from tangem/CSK-267_reset_codes
+|\ \  
+| * | d7066f4e - CSK-268: fix build
+* | | 5bd80443 - (tag: develop-124) Merge pull request #137 from tangem/CSK-267_reset_codes
+|\| | 
+| * | a472d8be - CSK-268: resolve merge conflicts
+| * |   2c3e4bc5 - Merge branch 'develop' of https://github.com/tangem/tangem-sdk-android into CSK-267_reset_codes
+| |\ \  
+| |/ /  
+|/| |   
+* | |   255d3657 - (tag: develop-123) Merge pull request #136 from tangem/CSK-284_publick-file-not-read
+|\ \ \  
+| * | | bf254edf - CSK-282 clean debug lines
+| * | | 48dee871 - CSK-282 fixed reading files
+|/ / /  
+| * | 52690fa8 - CSK-268: complete reset codes feature
+| * | 6b21eb1e - CSK-268: complete reset codes feature
+| * | 88672d8c - CSK-267: implement reset codes basic logic
+| | * 6b026f83 - CSK-271 updated with develop
+| | *   62348410 - Merge branch 'develop' into CSK-271_fix-progressBar-color-on-nightMode-if-error-occurs
+| | |\  
+| |_|/  
+|/| |   
+* | |   0d2ad492 - (tag: develop-122) Merge pull request #135 from tangem/CSK-241_update-files
+|\ \ \  
+| |/ /  
+|/| |   
+| * | e8acb9f8 - CSK-239 synced files to January 11, 2022 (v2)
+| * | 84a52922 - CSK-241 fixed test
+| * | e1014a60 - CSK-241 removed redundant throws
+| * | 01a6523c - CSK-239 synced files to January 11, 2022
+| * | 8305d925 - CSK-241 update files
+|/ /  
+* / db31c912 - (tag: develop-121) Merge pull request #134 from tangem/master
  /  
-* 3c683b92 - CSK-280: refactor HD wallets
-* dd9d3a2e - CSK-278: allow to use compressed/uncompressed keys based on Config
-* b86da909 - CSK-277: migrate to wallet index from pubkey
-* fc1c9803 - CSK-276: facilitate derivations for Scan and Create wallet
+* 5986833a - CSK-271 added a rescan delay to better show how the viewDelegate works
+* b9312357 - CSK-271 fixed progressBar color for the nightMode by replacing it with CircularProgressIndicator
