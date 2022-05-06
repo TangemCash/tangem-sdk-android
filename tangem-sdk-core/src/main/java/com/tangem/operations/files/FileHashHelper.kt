@@ -23,8 +23,11 @@ class FileHashHelper {
             cardId: String,
             fileData: ByteArray,
             fileCounter: Int,
+            fileName: String? = null,
             privateKey: ByteArray? = null
         ): FileHashData {
+            val fileData: ByteArray = fileName?.let { NamedFile(it, fileData).serialize() } ?: fileData
+
             val startingHash = cardId.hexToBytes() + fileCounter.toByteArray(4) + fileData.size.toByteArray(2)
             val finalizingHash = cardId.hexToBytes() + fileData + fileCounter.toByteArray(4)
 

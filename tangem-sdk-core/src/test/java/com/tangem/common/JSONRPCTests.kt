@@ -197,7 +197,12 @@ class JSONRPCTests {
     fun testFiles() {
         testMethod(
             "files/ReadFiles", listOf(
-                File("00AABBCCDD".hexToBytes(), 0, FileSettings(false, FileVisibility.Public))
+                File(
+                    name = null,
+                    fileData = "00AABBCCDD".hexToBytes(),
+                    fileIndex = 0,
+                    fileSettings = FileSettings(false, FileVisibility.Public)
+                )
             )
         )
         testMethod("files/DeleteFiles", SuccessResponse("c000111122223333"))
@@ -220,18 +225,18 @@ class JSONRPCTests {
         val jsonMap = converter.toMap(readJson(name))
         val jsonRequest = converter.toJson(jsonMap["request"])
         val request: JSONRPCRequest =
-            assertDoesNotThrow("Json conversion failed to structure for $name") {
-                JSONRPCRequest(jsonRequest)
-            }
+                assertDoesNotThrow("Json conversion failed to structure for $name") {
+                    JSONRPCRequest(jsonRequest)
+                }
 
         assertDoesNotThrow("Conversion to JSONRPC Failed. File: ${name}") {
             jsonRpcConverter.convert(request)
         }
 
         val jsonResponse: JSONRPCResponse? =
-            jsonMap["response"]?.let { converter.toJson(it).let { converter.fromJson(it) } }
+                jsonMap["response"]?.let { converter.toJson(it).let { converter.fromJson(it) } }
         val result: CompletionResult<Any>? =
-            response?.let { CompletionResult.Success(it) }
+                response?.let { CompletionResult.Success(it) }
         if (jsonResponse != null && result != null) {
             val jsonResponseMap = converter.toMap(jsonResponse)
             val resultJsonRpcResponse = when (result) {
