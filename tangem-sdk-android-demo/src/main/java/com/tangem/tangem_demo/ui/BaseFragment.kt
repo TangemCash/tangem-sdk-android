@@ -232,7 +232,11 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-            cardId, issuerData, counter, Personalization.issuer().dataKeyPair.privateKey
+            cardId = cardId,
+            fileData = issuerData,
+            fileCounter = counter,
+            fileName = null,
+            privateKey = Personalization.issuer().dataKeyPair.privateKey
         )
 
         sdk.writeIssuerExtraData(
@@ -332,10 +336,13 @@ abstract class BaseFragment : Fragment() {
 
     protected fun writeUserFile() {
         val demoPayload = Utils.randomString(Utils.randomInt(15, 30)).toByteArray()
-        val demoData = NamedFile("User file", demoPayload).serialize()
-        val visibility: FileVisibility = FileVisibility.Private
         //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
-        val file: FileToWrite = FileToWrite.ByUser(demoData, visibility, null)
+        val file: FileToWrite = FileToWrite.ByUser(
+            data = demoPayload,
+            fileName = "User file",
+            fileVisibility = FileVisibility.Public,
+            walletPublicKey = null
+        )
 
         sdk.writeFiles(listOf(file), card?.cardId, initialMessage) {
             handleResult(it)
@@ -348,16 +355,28 @@ abstract class BaseFragment : Fragment() {
             return
         }
 
+        val fileName = "Issuer file"
         val demoPayload = Utils.randomString(Utils.randomInt(15, 30)).toByteArray()
-        val demoData = NamedFile("Ownerfile", demoPayload).serialize()
-        val visibility: FileVisibility = FileVisibility.Private
         val counter = 1
         //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
-        val issuer = Personalization.issuer()
-        val fileHash = FileHashHelper.prepareHashes(cardId, demoData, counter, issuer.dataKeyPair.privateKey)
+        val fileHash = FileHashHelper.prepareHashes(
+            cardId = cardId,
+            fileData = demoPayload,
+            fileCounter = counter,
+            fileName = fileName,
+            privateKey = Personalization.issuer().dataKeyPair.privateKey
+        )
 
         ifNotNullOr(fileHash.startingSignature, fileHash.finalizingSignature, { sSignature, fSignature ->
-            val file = FileToWrite.ByFileOwner(demoData, sSignature, fSignature, counter, visibility, null)
+            val file = FileToWrite.ByFileOwner(
+                data = demoPayload,
+                fileName = fileName,
+                startingSignature = sSignature,
+                finalizingSignature = fSignature,
+                counter = counter,
+                fileVisibility = FileVisibility.Public,
+                walletPublicKey = null
+            )
             sdk.writeFiles(listOf(file)) { handleResult(it) }
         }, {
             showToast("Failed to sign data with issuer signature")

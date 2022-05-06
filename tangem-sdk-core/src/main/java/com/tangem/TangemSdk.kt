@@ -491,6 +491,7 @@ class TangemSdk(
      * @param cardId: CID, Unique Tangem card ID number.
      * @param fileData: File data that will be written on card
      * @param fileCounter:  A counter that protects issuer data against replay attack.
+     * @param fileName: Optional name of the file.
      * @param privateKey: Optional private key that will be used for signing files hashes.
      * If it is provided, then  `FileHashData` will contain signed file signatures.
      * @return [FileHashData] with hashes to sign and signatures if [privateKey] was provided.
@@ -499,9 +500,10 @@ class TangemSdk(
         cardId: String,
         fileData: ByteArray,
         fileCounter: Int,
+        fileName: String? = null,
         privateKey: ByteArray? = null
     ): FileHashData {
-        return FileHashHelper.prepareHashes(cardId, fileData, fileCounter, privateKey)
+        return FileHashHelper.prepareHashes(cardId, fileData, fileCounter, fileName, privateKey)
     }
 
     /**

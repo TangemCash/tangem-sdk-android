@@ -12,6 +12,7 @@ import com.tangem.common.tlv.TlvTag
  */
 @JsonClass(generateAdapter = true)
 data class File(
+    val name: String?,
     val fileData: ByteArray,
     val fileIndex: Int,
     val fileSettings: FileSettings?
@@ -39,7 +40,14 @@ data class File(
         operator fun invoke(response: ReadFileResponse): File? {
             if (response.size == null || response.settings == null) return null
 
-            return File(response.fileData, response.fileIndex, response.settings)
+            val namedFile = NamedFile(tlvData = response.fileData)
+            val (name, fileData) = if (namedFile == null) {
+                null to response.fileData
+            } else {
+                namedFile.name to namedFile.payload
+            }
+
+            return File(name, fileData, response.fileIndex, response.settings)
         }
     }
 }
@@ -102,14 +110,38 @@ data class NamedFile(
  */
 sealed class FileToWrite {
 
+    val payload: ByteArray
+        get() = fileName?.let {
+            try {
+                NamedFile(it, data).serialize()
+            } catch (ex: Exception) {
+                throw IllegalArgumentException(ex)
+            }
+        } ?: data
+
+    private val data: ByteArray
+        get() = when (this) {
+            is ByFileOwner -> (this as ByFileOwner).data
+            is ByUser -> (this as ByUser).data
+        }
+
+    private val fileName: String?
+        get() = when (this) {
+            is ByFileOwner -> (this as ByFileOwner).fileName
+            is ByUser -> (this as ByUser).fileName
+        }
+
+
     /**
      * Write file protected by the user with security delay or user code if set
      * @property data: Data to write
+     * @property fileName: Optional name of the file. COS 4.0+
      * @property fileVisibility: Optional visibility setting for the file. COS 4.0+
      * @property walletPublicKey: Optional link to the card's wallet. COS 4.0+
      */
     data class ByUser(
         val data: ByteArray,
+        val fileName: String?,
         val fileVisibility: FileVisibility?,
         val walletPublicKey: ByteArray?
     ) : FileToWrite() {
@@ -136,6 +168,7 @@ sealed class FileToWrite {
     /**
      * Write file protected by the file owner with two signatures and counter
      * @property data: Data to write
+     * @property fileName: Optional name of the file. COS 4.0+
      * @property startingSignature: Starting signature of the file data. You can use `FileHashHelper` to generate
      * signatures or
      * use it as a reference to create the signature yourself
@@ -148,6 +181,7 @@ sealed class FileToWrite {
      */
     data class ByFileOwner(
         val data: ByteArray,
+        val fileName: String?,
         val startingSignature: ByteArray,
         val finalizingSignature: ByteArray,
         val counter: Int,
