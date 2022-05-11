@@ -342,6 +342,19 @@ class RequestUserCode : BaseDelegateAction() {
     }
 }
 
+class RequestPinSetup : BaseDelegateAction() {
+
+    override fun info(): String = "Request pin setup"
+
+    override fun usedCommandsInfo(): String = "SessionStarted, RequestPinSetup"
+
+    override fun getCommandsPool(): suspend () -> Unit = suspend {
+        withMainContext { delegate.onSessionStarted(null, null, true) }
+        delay(500)
+        withMainContext { delegate.requestUserCodeChange(UserCodeType.Passcode) {} }
+    }
+}
+
 private fun createSecurityDelaySliderContainer(
     additionContainer: ViewGroup?,
     step: Float,
