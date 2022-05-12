@@ -24,15 +24,9 @@ import com.tangem.operations.issuerAndUserData.*
 import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
-import com.tangem.operations.personalization.entities.Acquirer
-import com.tangem.operations.personalization.entities.CardConfig
-import com.tangem.operations.personalization.entities.Issuer
-import com.tangem.operations.personalization.entities.Manufacturer
+import com.tangem.operations.personalization.entities.*
 import com.tangem.operations.pins.SetUserCodeCommand
-import com.tangem.operations.sign.SignCommand
-import com.tangem.operations.sign.SignHashCommand
-import com.tangem.operations.sign.SignHashResponse
-import com.tangem.operations.sign.SignResponse
+import com.tangem.operations.sign.*
 import com.tangem.operations.wallet.*
 import kotlinx.coroutines.*
 
@@ -48,10 +42,10 @@ import kotlinx.coroutines.*
  * Do not change the default values unless you know what you are doing.
  */
 class TangemSdkImpl(
-    private val reader: CardReader,
-    private val viewDelegate: SessionViewDelegate,
-    override val secureStorage: SecureStorage,
-    override var config: Config = Config()
+        private val reader: CardReader,
+        private val viewDelegate: SessionViewDelegate,
+        override val secureStorage: SecureStorage,
+        override var config: Config = Config()
 ) : TangemSdk {
 
     private var cardSession: CardSession? = null
@@ -96,12 +90,12 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun sign(
-        hash: ByteArray,
-        walletPublicKey: ByteArray,
-        cardId: String,
-        derivationPath: DerivationPath?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SignHashResponse>
+            hash: ByteArray,
+            walletPublicKey: ByteArray,
+            cardId: String,
+            derivationPath: DerivationPath?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SignHashResponse>
     ) {
         val command = SignHashCommand(hash, walletPublicKey, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -130,12 +124,12 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun sign(
-        hashes: Array<ByteArray>,
-        walletPublicKey: ByteArray,
-        cardId: String,
-        derivationPath: DerivationPath?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SignResponse>
+            hashes: Array<ByteArray>,
+            walletPublicKey: ByteArray,
+            cardId: String,
+            derivationPath: DerivationPath?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SignResponse>
     ) {
         val command = SignCommand(hashes, walletPublicKey, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -155,11 +149,11 @@ class TangemSdkImpl(
      * of an error.
      */
     override fun deriveWalletPublicKey(
-        cardId: String,
-        walletPublicKey: ByteArray,
-        derivationPath: DerivationPath,
-        initialMessage: Message?,
-        callback: CompletionCallback<ExtendedPublicKey>
+            cardId: String,
+            walletPublicKey: ByteArray,
+            derivationPath: DerivationPath,
+            initialMessage: Message?,
+            callback: CompletionCallback<ExtendedPublicKey>
     ) {
         val command = DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -179,11 +173,11 @@ class TangemSdkImpl(
      * of an error. All derived keys are unique and will be returned in arbitrary order.
      */
     override fun deriveWalletPublicKeys(
-        cardId: String,
-        walletPublicKey: ByteArray,
-        derivationPaths: List<DerivationPath>,
-        initialMessage: Message?,
-        callback: CompletionCallback<ExtendedPublicKeysMap>
+            cardId: String,
+            walletPublicKey: ByteArray,
+            derivationPaths: List<DerivationPath>,
+            initialMessage: Message?,
+            callback: CompletionCallback<ExtendedPublicKeysMap>
     ) {
         val command = DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -209,10 +203,10 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun createWallet(
-        curve: EllipticCurve,
-        cardId: String,
-        initialMessage: Message?,
-        callback: CompletionCallback<CreateWalletResponse>
+            curve: EllipticCurve,
+            cardId: String,
+            initialMessage: Message?,
+            callback: CompletionCallback<CreateWalletResponse>
     ) {
         startSessionWithRunnable(CreateWalletTask(curve), cardId, initialMessage, callback)
     }
@@ -231,10 +225,10 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun purgeWallet(
-        walletPublicKey: ByteArray,
-        cardId: String,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            walletPublicKey: ByteArray,
+            cardId: String,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         startSessionWithRunnable(PurgeWalletCommand(walletPublicKey), cardId, initialMessage, callback)
     }
@@ -247,9 +241,9 @@ class TangemSdkImpl(
      *  @param callback: [CardVerifyAndGetInfo.Response.Item]
      */
     override fun loadCardInfo(
-        cardPublicKey: ByteArray,
-        cardId: String,
-        callback: CompletionCallback<CardVerifyAndGetInfo.Response.Item>
+            cardPublicKey: ByteArray,
+            cardId: String,
+            callback: CompletionCallback<CardVerifyAndGetInfo.Response.Item>
     ) {
         onlineCardVerifier.scope.launch {
             when (val result = onlineCardVerifier.getCardInfo(cardId, cardPublicKey)) {
@@ -280,12 +274,12 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun personalize(
-        config: CardConfig,
-        issuer: Issuer,
-        manufacturer: Manufacturer,
-        acquirer: Acquirer?,
-        initialMessage: Message?,
-        callback: CompletionCallback<Card>
+            config: CardConfig,
+            issuer: Issuer,
+            manufacturer: Manufacturer,
+            acquirer: Acquirer?,
+            initialMessage: Message?,
+            callback: CompletionCallback<Card>
     ) {
         val command = PersonalizeCommand(config, issuer, manufacturer, acquirer)
         startSessionWithRunnable(command, null, initialMessage, callback)
@@ -304,8 +298,8 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      * */
     override fun depersonalize(
-        initialMessage: Message?,
-        callback: CompletionCallback<DepersonalizeResponse>
+            initialMessage: Message?,
+            callback: CompletionCallback<DepersonalizeResponse>
     ) {
         startSessionWithRunnable(DepersonalizeCommand(), null, initialMessage, callback)
     }
@@ -324,10 +318,10 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      * */
     override fun setAccessCode(
-        accessCode: String?,
-        cardId: String,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            accessCode: String?,
+            cardId: String,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         val command = SetUserCodeCommand.changeAccessCode(accessCode)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -347,10 +341,10 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      * */
     override fun setPasscode(
-        passcode: String?,
-        cardId: String,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            passcode: String?,
+            cardId: String,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         val command = SetUserCodeCommand.changePasscode(passcode)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -369,9 +363,9 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun resetUserCodes(
-        cardId: String,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            cardId: String,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         startSessionWithRunnable(SetUserCodeCommand.resetUserCodes(), cardId, initialMessage, callback)
     }
@@ -395,12 +389,12 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun readFiles(
-        readPrivateFiles: Boolean,
-        fileName: String?,
-        walletPublicKey: ByteArray?,
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<List<File>>
+            readPrivateFiles: Boolean,
+            fileName: String?,
+            walletPublicKey: ByteArray?,
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<List<File>>
     ) {
         val task = ReadFilesTask(fileName, walletPublicKey)
         task.shouldReadPrivateFiles = readPrivateFiles
@@ -425,10 +419,10 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun changeFileSettings(
-        changes: Map<Int, FileVisibility>,
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            changes: Map<Int, FileVisibility>,
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         val task = ChangeFileSettingsTask(changes)
         startSessionWithRunnable(task, cardId, initialMessage, callback)
@@ -450,10 +444,10 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun writeFiles(
-        files: List<FileToWrite>,
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<WriteFilesResponse>
+            files: List<FileToWrite>,
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<WriteFilesResponse>
     ) {
         startSessionWithRunnable(WriteFilesTask(files), cardId, initialMessage, callback)
     }
@@ -477,10 +471,10 @@ class TangemSdkImpl(
      * or [TangemSdkError] in case of an error.
      */
     override fun deleteFiles(
-        indices: List<Int>?,
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            indices: List<Int>?,
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         startSessionWithRunnable(DeleteFilesTask(indices), cardId, initialMessage, callback)
     }
@@ -497,11 +491,11 @@ class TangemSdkImpl(
      * @return [FileHashData] with hashes to sign and signatures if [privateKey] was provided.
      */
     override fun prepareHashes(
-        cardId: String,
-        fileData: ByteArray,
-        fileCounter: Int,
-        fileName: String?,
-        privateKey: ByteArray?
+            cardId: String,
+            fileData: ByteArray,
+            fileCounter: Int,
+            fileName: String?,
+            privateKey: ByteArray?
     ): FileHashData {
         return FileHashHelper.prepareHashes(cardId, fileData, fileCounter, fileName, privateKey)
     }
@@ -523,9 +517,9 @@ class TangemSdkImpl(
      */
     @Deprecated(message = "Use files instead")
     override fun readIssuerData(
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<ReadIssuerDataResponse>
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<ReadIssuerDataResponse>
     ) {
         val command = ReadIssuerDataCommand(config.issuerPublicKey)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -551,18 +545,18 @@ class TangemSdkImpl(
      */
     @Deprecated(message = "Use files instead")
     override fun writeIssuerData(
-        cardId: String?,
-        issuerData: ByteArray,
-        issuerDataSignature: ByteArray,
-        issuerDataCounter: Int?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            cardId: String?,
+            issuerData: ByteArray,
+            issuerDataSignature: ByteArray,
+            issuerDataCounter: Int?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteIssuerDataCommand(
-            issuerData,
-            issuerDataSignature,
-            issuerDataCounter,
-            config.issuerPublicKey
+                issuerData,
+                issuerDataSignature,
+                issuerDataCounter,
+                config.issuerPublicKey
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
@@ -585,9 +579,9 @@ class TangemSdkImpl(
      */
     @Deprecated(message = "Use files instead")
     override fun readIssuerExtraData(
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<ReadIssuerExtraDataResponse>
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<ReadIssuerExtraDataResponse>
     ) {
         val command = ReadIssuerExtraDataCommand(config.issuerPublicKey)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -620,19 +614,19 @@ class TangemSdkImpl(
      */
     @Deprecated(message = "Use files instead")
     override fun writeIssuerExtraData(
-        cardId: String?,
-        issuerData: ByteArray,
-        startingSignature: ByteArray,
-        finalizingSignature: ByteArray,
-        issuerDataCounter: Int?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            cardId: String?,
+            issuerData: ByteArray,
+            startingSignature: ByteArray,
+            finalizingSignature: ByteArray,
+            issuerDataCounter: Int?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteIssuerExtraDataCommand(
-            issuerData,
-            startingSignature, finalizingSignature,
-            issuerDataCounter,
-            config.issuerPublicKey
+                issuerData,
+                startingSignature, finalizingSignature,
+                issuerDataCounter,
+                config.issuerPublicKey
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
@@ -658,9 +652,9 @@ class TangemSdkImpl(
      */
     @Deprecated(message = "Use files instead")
     override fun readUserData(
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<ReadUserDataResponse>
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<ReadUserDataResponse>
     ) {
         val command = ReadUserDataCommand()
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -692,11 +686,11 @@ class TangemSdkImpl(
      */
     @Deprecated(message = "Use files instead")
     override fun writeUserData(
-        userData: ByteArray,
-        userCounter: Int?,
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            userData: ByteArray,
+            userCounter: Int?,
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteUserDataCommand(userData = userData, userCounter = userCounter)
         startSessionWithRunnable(command, cardId, initialMessage, callback)
@@ -730,15 +724,15 @@ class TangemSdkImpl(
      */
     @Deprecated(message = "Use files instead")
     override fun writeUserProtectedData(
-        userProtectedData: ByteArray,
-        userProtectedCounter: Int?,
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<SuccessResponse>
+            userProtectedData: ByteArray,
+            userProtectedCounter: Int?,
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<SuccessResponse>
     ) {
         val command = WriteUserDataCommand(
-            userProtectedData = userProtectedData,
-            userProtectedCounter = userProtectedCounter
+                userProtectedData = userProtectedData,
+                userProtectedCounter = userProtectedCounter
         )
         startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
@@ -758,10 +752,10 @@ class TangemSdkImpl(
      * @param callback: Standard [TangemSdk] callback.
      */
     override fun <T> startSessionWithRunnable(
-        runnable: CardSessionRunnable<T>,
-        cardId: String?,
-        initialMessage: Message?,
-        callback: CompletionCallback<T>
+            runnable: CardSessionRunnable<T>,
+            cardId: String?,
+            initialMessage: Message?,
+            callback: CompletionCallback<T>
     ) {
         if (checkSession()) {
             callback(CompletionResult.Failure(TangemSdkError.Busy()))
@@ -786,9 +780,9 @@ class TangemSdkImpl(
      * then you can use the [CardSession] to interact with a card.
      */
     override fun startSession(
-        cardId: String?,
-        initialMessage: Message?,
-        callback: (session: CardSession, error: TangemError?) -> Unit
+            cardId: String?,
+            initialMessage: Message?,
+            callback: (session: CardSession, error: TangemError?) -> Unit
     ) {
         if (checkSession()) {
             callback(cardSession!!, TangemSdkError.Busy())
@@ -810,10 +804,10 @@ class TangemSdkImpl(
      */
 
     override fun startSessionWithJsonRequest(
-        jsonRequest: String,
-        cardId: String?,
-        initialMessage: String?,
-        callback: (String) -> Unit
+            jsonRequest: String,
+            cardId: String?,
+            initialMessage: String?,
+            callback: (String) -> Unit
     ) {
         val converter = MoshiJsonConverter.INSTANCE
         val linkersList: List<JSONRPCLinker> = try {
@@ -879,13 +873,13 @@ class TangemSdkImpl(
     private fun makeSession(cardId: String? = null, initialMessage: Message? = null): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
         return CardSession(
-            viewDelegate = viewDelegate,
-            environment = environment,
-            reader = reader,
-            jsonRpcConverter = jsonRpcConverter,
-            cardId = cardId,
-            initialMessage = initialMessage,
-            secureStorage = secureStorage,
+                viewDelegate = viewDelegate,
+                environment = environment,
+                reader = reader,
+                jsonRpcConverter = jsonRpcConverter,
+                cardId = cardId,
+                initialMessage = initialMessage,
+                secureStorage = secureStorage,
         )
     }
 
