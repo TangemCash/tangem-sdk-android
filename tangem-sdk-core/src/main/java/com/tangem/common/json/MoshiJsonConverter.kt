@@ -7,14 +7,15 @@ import com.tangem.common.card.*
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
-import com.tangem.common.files.*
 import com.tangem.common.hdWallet.DerivationNode
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.bip.BIP44
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
-import com.tangem.operations.files.settings.FileWriteSettings
+import com.tangem.operations.files.FileDataMode
+import com.tangem.operations.files.FileToWrite
+import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.personalization.entities.ProductMask
 import java.lang.reflect.ParameterizedType
 import java.text.SimpleDateFormat
@@ -79,39 +80,38 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
     }
 
     companion object {
-        var INSTANCE: MoshiJsonConverter = default()
+        val INSTANCE: MoshiJsonConverter = default()
 
         fun default() = MoshiJsonConverter(getTangemSdkAdapters(), getTangemSdkTypedAdapters())
 
         fun getTangemSdkAdapters(): List<Any> {
             return listOf(
-                    TangemSdkAdapter.ByteArrayAdapter(),
-                    TangemSdkAdapter.CardSettingsMaskAdapter(),
-                    TangemSdkAdapter.ProductMaskAdapter(),
-                    TangemSdkAdapter.WalletSettingsMaskAdapter(),
-                    TangemSdkAdapter.DateAdapter(),
-                    TangemSdkAdapter.FirmwareVersionAdapter(),
-                    TangemSdkAdapter.PreflightReadModeAdapter(),
-                    TangemSdkAdapter.DataToWriteAdapter(),
-                    TangemSdkAdapter.EllipticCurveAdapter(),
-                    TangemSdkAdapter.LinkedTerminalStatusAdapter(),
-                    TangemSdkAdapter.CardStatusAdapter(),
-                    TangemSdkAdapter.CardWalletStatusAdapter(),
-                    TangemSdkAdapter.CardSettingsMaskCodeAdapter(),
-                    TangemSdkAdapter.CardWalletSettingsMaskCodeAdapter(),
-                    TangemSdkAdapter.SigningMethodCodeAdapter(),
-                    TangemSdkAdapter.ProductMaskCodeAdapter(),
-                    TangemSdkAdapter.EncryptionModeAdapter(),
-                    TangemSdkAdapter.FirmwareTypeAdapter(),
-                    TangemSdkAdapter.FileDataModeAdapter(),
-                    TangemSdkAdapter.FileSettingsAdapter(),
-                    TangemSdkAdapter.FileWriteSettingsAdapter(),
-                    TangemSdkAdapter.AttestationStatusAdapter(),
-                    TangemSdkAdapter.AttestationModeAdapter(),
-                    TangemSdkAdapter.BIP44ChainAdapter(),
-                    TangemSdkAdapter.BackupStatusAdapter(),
-                    TangemSdkAdapter.DerivationPathAdapter(),
-                    TangemSdkAdapter.DerivationNodeAdapter(),
+                TangemSdkAdapter.ByteArrayAdapter(),
+                TangemSdkAdapter.CardSettingsMaskAdapter(),
+                TangemSdkAdapter.ProductMaskAdapter(),
+                TangemSdkAdapter.WalletSettingsMaskAdapter(),
+                TangemSdkAdapter.DateAdapter(),
+                TangemSdkAdapter.FirmwareVersionAdapter(),
+                TangemSdkAdapter.PreflightReadModeAdapter(),
+                TangemSdkAdapter.EllipticCurveAdapter(),
+                TangemSdkAdapter.LinkedTerminalStatusAdapter(),
+                TangemSdkAdapter.CardStatusAdapter(),
+                TangemSdkAdapter.CardWalletStatusAdapter(),
+                TangemSdkAdapter.CardSettingsMaskCodeAdapter(),
+                TangemSdkAdapter.CardWalletSettingsMaskCodeAdapter(),
+                TangemSdkAdapter.SigningMethodCodeAdapter(),
+                TangemSdkAdapter.ProductMaskCodeAdapter(),
+                TangemSdkAdapter.EncryptionModeAdapter(),
+                TangemSdkAdapter.FirmwareTypeAdapter(),
+                TangemSdkAdapter.FileToWriteAdapter(),
+                TangemSdkAdapter.FileDataModeAdapter(),
+                TangemSdkAdapter.FilesVisibilityAdapter(),
+                TangemSdkAdapter.AttestationStatusAdapter(),
+                TangemSdkAdapter.AttestationModeAdapter(),
+                TangemSdkAdapter.BIP44ChainAdapter(),
+                TangemSdkAdapter.BackupStatusAdapter(),
+                TangemSdkAdapter.DerivationPathAdapter(),
+                TangemSdkAdapter.DerivationNodeAdapter(),
             )
         }
 
@@ -278,46 +278,53 @@ class TangemSdkAdapter {
         }
     }
 
-    class DataToWriteAdapter {
+    class FileToWriteAdapter {
         @ToJson
-        fun toJson(src: DataToWrite): String {
+        fun toJson(src: FileToWrite): String {
             return when (src) {
-                is FileDataProtectedBySignature -> DataProtectedBySignatureAdapter().toJson(src)
-                is FileDataProtectedByPasscode -> DataProtectedByPasscodeAdapter().toJson(src)
-                else -> throw UnsupportedOperationException()
+                is FileToWrite.ByFileOwner -> ByFileOwnerAdapter().toJson(src)
+                is FileToWrite.ByUser -> ByUserAdapter().toJson(src)
             }
         }
 
         @FromJson
-        fun fromJson(map: MutableMap<String, Any>): DataToWrite {
+        fun fromJson(map: MutableMap<String, Any>): FileToWrite {
             return if (map.containsKey("startingSignature")) {
-                DataProtectedBySignatureAdapter().fromJson(map)
+                ByFileOwnerAdapter().fromJson(map)
             } else {
-                DataProtectedByPasscodeAdapter().fromJson(map)
+                ByUserAdapter().fromJson(map)
+            }
+        }
+
+        class ByUserAdapter {
+            @ToJson
+            fun toJson(src: FileToWrite.ByUser): String = MoshiJsonConverter.default().toJson(src)
+
+            @FromJson
+            fun fromJson(map: MutableMap<String, Any>): FileToWrite.ByUser {
+                val converter = MoshiJsonConverter.default()
+                return converter.fromJson(converter.toJson(map))!!
+            }
+        }
+
+        class ByFileOwnerAdapter {
+            @ToJson
+            fun toJson(src: FileToWrite.ByFileOwner): String = MoshiJsonConverter.default().toJson(src)
+
+            @FromJson
+            fun fromJson(map: MutableMap<String, Any>): FileToWrite.ByFileOwner {
+                val converter = MoshiJsonConverter.default()
+                return converter.fromJson(converter.toJson(map))!!
             }
         }
     }
 
-    class DataProtectedBySignatureAdapter {
+    class FilesVisibilityAdapter {
         @ToJson
-        fun toJson(src: FileDataProtectedBySignature): String = MoshiJsonConverter.default().toJson(src)
+        fun toJson(src: FileVisibility): String = EnumConverter.toJson(src)
 
         @FromJson
-        fun fromJson(map: MutableMap<String, Any>): FileDataProtectedBySignature {
-            val converter = MoshiJsonConverter.default()
-            return converter.fromJson(converter.toJson(map))!!
-        }
-    }
-
-    class DataProtectedByPasscodeAdapter {
-        @ToJson
-        fun toJson(src: FileDataProtectedByPasscode): String = MoshiJsonConverter.default().toJson(src)
-
-        @FromJson
-        fun fromJson(map: MutableMap<String, Any>): FileDataProtectedByPasscode {
-            val converter = MoshiJsonConverter.default()
-            return converter.fromJson(converter.toJson(map))!!
-        }
+        fun fromJson(json: String): FileVisibility = EnumConverter.toEnum(json)
     }
 
     class DerivationPathAdapter {
@@ -477,22 +484,6 @@ class TangemSdkAdapter {
 
         @FromJson
         fun fromJson(json: String): FileDataMode = EnumConverter.toEnum(json)
-    }
-
-    class FileSettingsAdapter {
-        @ToJson
-        fun toJson(src: FileSettings): String = EnumConverter.toJson(src)
-
-        @FromJson
-        fun fromJson(json: String): FileSettings = EnumConverter.toEnum(json)
-    }
-
-    class FileWriteSettingsAdapter {
-        @ToJson
-        fun toJson(src: FileWriteSettings): String = EnumConverter.toJson(src)
-
-        @FromJson
-        fun fromJson(json: String): FileWriteSettings = EnumConverter.toEnum(json)
     }
 
     class AttestationStatusAdapter {

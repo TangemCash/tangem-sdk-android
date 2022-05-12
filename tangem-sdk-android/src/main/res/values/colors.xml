@@ -21,6 +21,12 @@
     <color name="sdk_message_header">@color/sdk_text</color>
     <color name="sdk_message_body">#2C2C2E</color>
 
+    <color name="light_gray">#E4E4E4</color>
+    <color name="medium_gray">#DFDCDC</color>
+    <color name="dark_gray">#707070</color>
+
+    <color name="light_blue">#007AFF</color>
+
     <color name="sdk_how_to_background">#F2F2F7</color>
     <color name="sdk_how_to_text">@color/sdk_text</color>
 

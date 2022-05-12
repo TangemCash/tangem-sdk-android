@@ -12,3 +12,8 @@ fun Int.toByteArray(size: Int = Int.SIZE_BYTES): ByteArray = when (size) {
     1 -> byteArrayOf(this.toByte())
     else -> byteArrayOf()
 }
+
+// For byte comparisons
+fun Int.containsByte(byte: Int): Boolean {
+    return (this and byte) != 0
+}

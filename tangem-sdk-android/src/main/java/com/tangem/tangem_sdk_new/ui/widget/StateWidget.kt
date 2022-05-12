@@ -4,10 +4,13 @@ import android.view.View
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.show
 
-interface StateWidget<T> {
+interface StateConsumer<T>{
+    fun setState(params: T)
+}
+
+interface StateWidget<T> :StateConsumer<T>{
     fun isVisible(): Boolean
     fun showWidget(show: Boolean, withAnimation: Boolean = true)
-    fun setState(params: T)
     fun onBottomSheetDismiss()
 }
 

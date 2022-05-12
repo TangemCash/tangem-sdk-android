@@ -19,15 +19,15 @@ import java.util.*
 fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Config()): TangemSdk {
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader)
+    val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
     viewDelegate.sdkConfig = config
-    viewDelegate.activity = activity
 
     return TangemSdkImpl(
             nfcManager.reader,
             viewDelegate,
             SecureStorage.create(activity),
             config,
+            master
     )
 }
 
@@ -38,16 +38,18 @@ fun TangemSdk.Companion.customDelegate(
 ): TangemSdk {
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val viewDelegate = viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader).apply {
-        this.sdkConfig = config
-        this.activity = activity
-    }
+    val viewDelegate =
+        viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
+            this.sdkConfig = config
+        }
+
 
     return TangemSdkImpl(
             nfcManager.reader,
             viewDelegate,
             SecureStorage.create(activity),
             config,
+            master
     )
 }
 
@@ -61,13 +63,15 @@ fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager 
 fun TangemSdk.Companion.createLogger(): TangemSdkLogger {
     return object : TangemSdkLogger {
         private val tag = "TangemSdkLogger"
-        private val dateFormatter: DateFormat = SimpleDateFormat("HH:mm:ss:SSS", Locale.getDefault())
+        private val dateFormatter: DateFormat =
+            SimpleDateFormat("HH:mm:ss:SSS", Locale.getDefault())
 
         override fun log(message: () -> String, level: Log.Level) {
             if (!Log.Config.Verbose.levels.contains(level)) return
 
             val prefixDelimiter = if (level.prefix.isEmpty()) "" else ": "
-            val logMessage = "${dateFormatter.format(Date())}: ${level.prefix}$prefixDelimiter${message()}"
+            val logMessage =
+                "${dateFormatter.format(Date())}: ${level.prefix}$prefixDelimiter${message()}"
             when (level) {
                 Log.Level.Debug -> android.util.Log.d(tag, logMessage)
                 Log.Level.Info -> android.util.Log.i(tag, logMessage)

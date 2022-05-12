@@ -133,7 +133,7 @@ class SecurityDelay : BaseDelegateAction() {
         delay(2000)
         withMainContext { delegate.onTagConnected() }
 
-        val totalDurationMs = slider.value.toInt()
+        val totalDurationMs = slider.value.toInt() + 1000
         val securityDelayCounts = totalDurationMs / 1000
         var currentMs = totalDurationMs / 10
         repeat(securityDelayCounts) {
@@ -249,28 +249,43 @@ class RequestAccessCode : BaseDelegateAction() {
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, false) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, false, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
+    }
+}
+
+class SingleRequestAccessCode(
+    private val showForgotButton: Boolean
+) : BaseDelegateAction() {
+
+    override fun info(): String = "Request Access code. Show the Forgot button = $showForgotButton"
+
+    override fun usedCommandsInfo(): String = "RequestUserCode(access,true), Dismiss"
+
+    override fun getCommandsPool(): suspend () -> Unit = suspend {
+        withMainContext { delegate.onSessionStarted(null, null, true) }
+        delay(500)
+        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, showForgotButton, null) {} }
     }
 }
 
 class RequestPasscode : BaseDelegateAction() {
 
     override fun info(): String {
-        return "Request Access codes with first/second/first attempts"
+        return "Request Passcodes with first/second/first attempts"
     }
 
     override fun usedCommandsInfo(): String {
@@ -282,19 +297,19 @@ class RequestPasscode : BaseDelegateAction() {
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, false) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, false, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true) {} }
+        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
         delay(2000)
         withMainContext { delegate.dismiss() }
     }

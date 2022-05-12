@@ -1,18 +1,17 @@
 package com.tangem.tangem_sdk_new.ui
 
 import android.content.Context
-import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.UiThread
-import androidx.transition.TransitionManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Log
 import com.tangem.Message
+import com.tangem.common.CompletionResult
 import com.tangem.common.Timer
 import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemSdkError
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.hide
@@ -23,14 +22,13 @@ import com.tangem.tangem_sdk_new.postUI
 import com.tangem.tangem_sdk_new.ui.widget.*
 import com.tangem.tangem_sdk_new.ui.widget.howTo.HowToTapWidget
 import com.tangem.tangem_sdk_new.ui.widget.progressBar.ProgressbarStateWidget
-import kotlinx.android.synthetic.main.bottom_sheet_layout.*
 import kotlinx.coroutines.Dispatchers
 
 class NfcSessionDialog(
     context: Context,
     private val nfcManager: NfcManager,
     private val nfcLocationProvider: NfcLocationProvider,
-) : BottomSheetDialog(context) {
+) : BaseSdkDialog(context) {
 
     private lateinit var taskContainer: ViewGroup
     private lateinit var howToContainer: ViewGroup
@@ -42,8 +40,6 @@ class NfcSessionDialog(
     private lateinit var pinCodeSetChangeWidget: PinCodeModificationWidget
     private lateinit var messageWidget: MessageWidget
     private lateinit var howToTapWidget: HowToTapWidget
-
-    private val stateWidgets = mutableListOf<StateWidget<*>>()
 
     private var currentState: SessionViewDelegateState? = null
 
@@ -67,7 +63,7 @@ class NfcSessionDialog(
         touchCardWidget = TouchCardWidget(view.findViewById(R.id.rlTouchCard), nfcLocation)
         progressStateWidget = ProgressbarStateWidget(view.findViewById(R.id.clProgress))
         pinCodeRequestWidget = PinCodeRequestWidget(view.findViewById(R.id.csPinCode))
-        pinCodeSetChangeWidget = PinCodeModificationWidget(view.findViewById(R.id.llChangePin), 0)
+        pinCodeSetChangeWidget = PinCodeModificationWidget(view.findViewById(R.id.llChangePin), PinCodeModificationWidget.Mode.SET)
         messageWidget = MessageWidget(view.findViewById(R.id.llMessage))
         howToTapWidget = HowToTapWidget(howToContainer, nfcManager, nfcLocationProvider)
 
@@ -152,19 +148,17 @@ class NfcSessionDialog(
 
     private fun onPinRequested(state: SessionViewDelegateState.PinRequested) {
         enableBottomSheetAnimation()
-        if (pinCodeRequestWidget.canExpand()) {
-            headerWidget.isFullScreenMode = true
-            headerWidget.onClose = { cancel() }
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        headerWidget.onClose = {
+            dismissWithAnimation = false
+            cancel()
         }
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         pinCodeRequestWidget.onContinue = {
             enableBottomSheetAnimation()
             pinCodeRequestWidget.onContinue = null
-            headerWidget.isFullScreenMode = false
-
             setStateAndShow(getEmptyOnReadyEvent(), headerWidget, touchCardWidget, messageWidget)
-            postUI(200) { state.callback(it.trim()) }
+            postUI(200) { state.callback(it) }
         }
 
         setStateAndShow(state, headerWidget, pinCodeRequestWidget)
@@ -176,9 +170,14 @@ class NfcSessionDialog(
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         headerWidget.howToIsEnabled = false
-        headerWidget.onClose = { cancel() }
+        headerWidget.onClose = {
+            dismissWithAnimation = false
+            cancel()
+        }
         // userCode changes failed if an user dismiss the dialog from any moment
-        pinCodeSetChangeWidget.onBottomSheetDismiss = { state.callback(null) }
+        pinCodeSetChangeWidget.onBottomSheetDismiss = {
+            state.callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+        }
         pinCodeSetChangeWidget.onSave = {
             enableBottomSheetAnimation()
             // disable sending the error if dialog closed after accepting an userCode
@@ -186,7 +185,7 @@ class NfcSessionDialog(
             pinCodeSetChangeWidget.onSave = null
 
             setStateAndShow(getEmptyOnReadyEvent(), headerWidget, touchCardWidget, messageWidget)
-            postUI(200) { state.callback(it.trim()) }
+            postUI(200) { state.callback(CompletionResult.Success(it.trim())) }
         }
 
         setStateAndShow(state, headerWidget, pinCodeSetChangeWidget)
@@ -247,16 +246,12 @@ class NfcSessionDialog(
         setStateAndShow(state, howToTapWidget)
     }
 
-    private fun setStateAndShow(state: SessionViewDelegateState, vararg views: StateWidget<SessionViewDelegateState>) {
-        Log.debug { "setStateAndShow: state: $state" }
+    override fun setStateAndShow(
+        state: SessionViewDelegateState,
+        vararg views: StateWidget<SessionViewDelegateState>
+    ) {
         handleStateForTrickySecurityDelay(state)
-        views.forEach { it.setState(state) }
-
-        val toHide = stateWidgets.filter { !views.contains(it) && it.isVisible() }
-        val toShow = views.filter { !it.isVisible() }
-
-        toHide.forEach { it.showWidget(false) }
-        toShow.forEach { it.showWidget(true) }
+        super.setStateAndShow(state, *views)
     }
 
     @Deprecated("Used to fix lack of security delay on cards with firmware version below 1.21")
@@ -293,33 +288,7 @@ class NfcSessionDialog(
         }
     }
 
-    private fun performHapticFeedback() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            llHeader?.isHapticFeedbackEnabled = true
-            llHeader?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-        }
-    }
-
     private fun getEmptyOnReadyEvent(): SessionViewDelegateState {
         return SessionViewDelegateState.Ready(headerWidget.cardId)
-    }
-
-    private fun enableBottomSheetAnimation() {
-        (findDesignBottomSheetView()?.parent as? ViewGroup)?.let {
-            TransitionManager.beginDelayedTransition(it)
-        }
-    }
-
-    private fun findDesignBottomSheetView(): View? {
-        return delegate.findViewById(com.google.android.material.R.id.design_bottom_sheet)
-    }
-
-    override fun dismiss() {
-        postUI {
-            stateWidgets.forEach { it.onBottomSheetDismiss() }
-            if (ownerActivity == null || ownerActivity?.isFinishing == true) return@postUI
-
-            super.dismiss()
-        }
     }
 }

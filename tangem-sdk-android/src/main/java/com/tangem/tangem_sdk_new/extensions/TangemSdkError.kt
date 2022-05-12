@@ -13,7 +13,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty -> null
 
         is TangemSdkError.TagLost -> R.string.error_tag_lost
-        is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_operation
+        is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_extended_apdu_not_supported
         is TangemSdkError.SerializeCommandError -> R.string.error_operation
         is TangemSdkError.DeserializeApduFailed -> R.string.error_operation
         is TangemSdkError.UnknownStatus -> R.string.error_operation
@@ -74,13 +74,14 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.BackupFailedCardNotLinked -> null
         is TangemSdkError.BackupFailedEmptyWallets -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupFailedHDWalletSettings -> R.string.error_backup_wrong_card
-        is TangemSdkError.BackupFailedNotEmptyWallets -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedNotEmptyWallets -> R.string.error_backup_not_empty_wallets
         is TangemSdkError.BackupFailedNotEnoughCurves -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupFailedNotEnoughWallets -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupFailedWrongIssuer -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupNotAllowed -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupServiceInvalidState -> null
         is TangemSdkError.BackupFailedFirmware -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedIncompatibleBatch -> R.string.error_backup_wrong_card
         is TangemSdkError.CertificateSignatureRequired -> null
         is TangemSdkError.EmptyBackupCards -> null
         is TangemSdkError.MissingPrimaryAttestSignature -> null
@@ -90,10 +91,11 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.NoBackupDataForCard -> null
         is TangemSdkError.ResetBackupFailedHasBackupedWallets -> null
         is TangemSdkError.ResetPinNoCardsToReset -> null
-        is TangemSdkError.ResetPinWrongCard -> null
+        is TangemSdkError.ResetPinWrongCard -> R.string.error_reset_wrong_card
         is TangemSdkError.TooMuchBackupCards -> null
         is TangemSdkError.WrongInteractionMode -> R.string.error_wrong_interaction_mode
         is TangemSdkError.IssuerSignatureLoadingFailed -> null
+        is TangemSdkError.UserForgotTheCode -> null
     }
 
     return if (resId != null) {

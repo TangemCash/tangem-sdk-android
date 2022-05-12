@@ -2,9 +2,11 @@ package com.tangem
 
 import com.squareup.moshi.JsonClass
 import com.tangem.common.UserCodeType
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
+import com.tangem.operations.resetcode.ResetCodesViewDelegate
 
 /**
  * Allows interaction with users and shows visual elements.
@@ -12,6 +14,8 @@ import com.tangem.common.extensions.VoidCallback
  * Its default implementation, DefaultCardManagerDelegate, is in our tangem-sdk module.
  */
 interface SessionViewDelegate {
+
+    val resetCodesViewDelegate: ResetCodesViewDelegate
 
     /**
      * It is called when user is expected to scan a Tangem Card with an Android device.
@@ -53,12 +57,17 @@ interface SessionViewDelegate {
     /**
      * It is called when a user is expected to enter pin code.
      */
-    fun requestUserCode(type: UserCodeType, isFirstAttempt: Boolean, callback: (code: String) -> Unit)
+    fun requestUserCode(
+        type: UserCodeType, isFirstAttempt: Boolean,
+        showForgotButton: Boolean,
+        cardId: String?,
+        callback: CompletionCallback<String>
+    )
 
     /**
      * It is called when a user wants to change pin code.
      */
-    fun requestUserCodeChange(type: UserCodeType, callback: (newCode: String?) -> Unit)
+    fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>)
 
     fun setConfig(config: Config)
 
@@ -68,7 +77,11 @@ interface SessionViewDelegate {
 
     fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback)
 
-    fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback)
+    fun attestationCompletedOffline(
+        positive: VoidCallback,
+        negative: VoidCallback,
+        retry: VoidCallback
+    )
 
     fun attestationCompletedWithWarnings(positive: VoidCallback)
 }

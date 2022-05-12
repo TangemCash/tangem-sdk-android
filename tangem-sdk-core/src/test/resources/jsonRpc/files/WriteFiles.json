@@ -4,10 +4,13 @@
     "id": 1,
     "method": "WRITE_FILES",
     "params": {
-      "overwriteAllFiles": true,
       "files": [
         {
           "data": "AABBCCDDEEFF"
+        },
+        {
+          "data": "AABBCCDDEEFF",
+          "fileName": "File 1"
         },
         {
           "data": "00000000"

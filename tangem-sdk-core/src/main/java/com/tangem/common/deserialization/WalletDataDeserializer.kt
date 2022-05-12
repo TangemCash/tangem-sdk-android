@@ -10,25 +10,25 @@ import com.tangem.common.tlv.TlvTag
  */
 class WalletDataDeserializer {
     companion object {
-        internal fun deserialize(cardDataDecoder: TlvDecoder): WalletData? {
-            val blockchain: String = cardDataDecoder.decodeOptional(TlvTag.BlockchainName) ?: return null
+        fun deserialize(decoder: TlvDecoder): WalletData? {
+            val blockchain: String = decoder.decodeOptional(TlvTag.BlockchainName) ?: return null
 
-            return WalletData(blockchain, deserializeToken(cardDataDecoder))
+            return WalletData(blockchain, deserializeToken(decoder))
         }
 
-        private fun deserializeToken(cardDataDecoder: TlvDecoder): Token? {
-            val tokenName: String? = cardDataDecoder.decodeOptional(TlvTag.TokenName)
-            val tokenSymbol: String = cardDataDecoder.decodeOptional(TlvTag.TokenSymbol)
+        private fun deserializeToken(decoder: TlvDecoder): Token? {
+            val tokenName: String? = decoder.decodeOptional(TlvTag.TokenName)
+            val tokenSymbol: String = decoder.decodeOptional(TlvTag.TokenSymbol)
                     ?: return null
-            val tokenContractAddress: String = cardDataDecoder.decodeOptional(TlvTag.TokenContractAddress)
+            val tokenContractAddress: String = decoder.decodeOptional(TlvTag.TokenContractAddress)
                     ?: return null
-            val tokenDecimals: Int = cardDataDecoder.decodeOptional(TlvTag.TokenDecimal)
+            val tokenDecimals: Int = decoder.decodeOptional(TlvTag.TokenDecimal)
                     ?: return null
 
             return Token(tokenName ?: tokenSymbol,
-                    tokenSymbol,
-                    tokenContractAddress,
-                    tokenDecimals)
+                tokenSymbol,
+                tokenContractAddress,
+                tokenDecimals)
         }
     }
 }

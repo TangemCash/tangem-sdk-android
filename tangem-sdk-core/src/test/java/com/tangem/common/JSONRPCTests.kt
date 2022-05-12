@@ -5,14 +5,13 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.files.File
-import com.tangem.common.files.FileSettings
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.*
-import com.tangem.operations.CommandResponse
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
-import com.tangem.operations.files.ReadFilesResponse
+import com.tangem.operations.files.File
+import com.tangem.operations.files.FileSettings
+import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.files.WriteFilesResponse
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.sign.SignHashResponse
@@ -60,7 +59,7 @@ class JSONRPCTests {
         JSONRPCRequest("{\"jsonrpc\": \"2.0\", \"method\": \"any\", \"params\": {}}")
 
         val json =
-            "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, \"minuend\": 42}, \"id\": 3}"
+                "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, \"minuend\": 42}, \"id\": 3}"
         val request = JSONRPCRequest(json)
         assertEquals(request.method, "subtract")
         assertEquals(request.params["subtrahend"], 23.0)
@@ -80,7 +79,7 @@ class JSONRPCTests {
         val response = SuccessResponse("c000111122223333")
         val result: CompletionResult<SuccessResponse> = CompletionResult.Success(response)
         val testResponse =
-            "{\n \"jsonrpc\" : \"2.0\",\n \"result\" : {\n \"cardId\" : \"c000111122223333\"\n},\n\"id\" : 1\n}"
+                "{\n \"jsonrpc\" : \"2.0\",\n \"result\" : {\n \"cardId\" : \"c000111122223333\"\n},\n\"id\" : 1\n}"
 
         val jsonRpcResponse = when (result) {
             is CompletionResult.Success -> JSONRPCResponse(result.data, null, 1)
@@ -197,17 +196,12 @@ class JSONRPCTests {
     @Test
     fun testFiles() {
         testMethod(
-            "files/ReadFiles", ReadFilesResponse(
-                listOf(
-                    File(0, FileSettings.Public, "00AABBCCDD".hexToBytes())
-                )
-            )
-        )
-        testMethod(
-            "files/ReadFilesByIndex", ReadFilesResponse(
-                listOf(
-                    File(1, FileSettings.Private, "00AABBCCDD".hexToBytes()),
-                    File(2, FileSettings.Public, "00AABBCCDD".hexToBytes())
+            "files/ReadFiles", listOf(
+                File(
+                    name = null,
+                    fileData = "00AABBCCDD".hexToBytes(),
+                    fileIndex = 0,
+                    fileSettings = FileSettings(false, FileVisibility.Public)
                 )
             )
         )
@@ -227,22 +221,22 @@ class JSONRPCTests {
         assertFalse(linkersList.any { it.hasError() })
     }
 
-    private fun testMethod(name: String, response: CommandResponse?) {
+    private fun testMethod(name: String, response: Any?) {
         val jsonMap = converter.toMap(readJson(name))
         val jsonRequest = converter.toJson(jsonMap["request"])
         val request: JSONRPCRequest =
-            assertDoesNotThrow("Json conversion failed to structure for $name") {
-                JSONRPCRequest(jsonRequest)
-            }
+                assertDoesNotThrow("Json conversion failed to structure for $name") {
+                    JSONRPCRequest(jsonRequest)
+                }
 
         assertDoesNotThrow("Conversion to JSONRPC Failed. File: ${name}") {
             jsonRpcConverter.convert(request)
         }
 
         val jsonResponse: JSONRPCResponse? =
-            jsonMap["response"]?.let { converter.toJson(it).let { converter.fromJson(it) } }
-        val result: CompletionResult<CommandResponse>? =
-            response?.let { CompletionResult.Success(it) }
+                jsonMap["response"]?.let { converter.toJson(it).let { converter.fromJson(it) } }
+        val result: CompletionResult<Any>? =
+                response?.let { CompletionResult.Success(it) }
         if (jsonResponse != null && result != null) {
             val jsonResponseMap = converter.toMap(jsonResponse)
             val resultJsonRpcResponse = when (result) {

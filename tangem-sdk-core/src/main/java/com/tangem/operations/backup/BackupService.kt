@@ -395,6 +395,7 @@ class RawPrimaryCard(
     val isHDWalletAllowed: Boolean,
     val issuer: Card.Issuer,
     val walletCurves: List<EllipticCurve>,
+    val batchId: String? //for compatibility with interrupted backups
 ) : CommandResponse
 
 @JsonClass(generateAdapter = true)
@@ -408,6 +409,7 @@ class PrimaryCard(
     val isHDWalletAllowed: Boolean,
     val issuer: Card.Issuer,
     val walletCurves: List<EllipticCurve>,
+    val batchId: String? //for compatibility with interrupted backups
 ) : CertificateProvider {
     constructor(
         rawPrimaryCard: RawPrimaryCard, issuerSignature: ByteArray,
@@ -419,7 +421,8 @@ class PrimaryCard(
         existingWalletsCount = rawPrimaryCard.existingWalletsCount,
         isHDWalletAllowed = rawPrimaryCard.isHDWalletAllowed,
         issuer = rawPrimaryCard.issuer,
-        walletCurves = rawPrimaryCard.walletCurves
+        walletCurves = rawPrimaryCard.walletCurves,
+        batchId = rawPrimaryCard.batchId,
     )
 }
 

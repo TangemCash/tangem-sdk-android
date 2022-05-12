@@ -1,16 +1,20 @@
 package com.tangem.tangem_sdk_new.ui.widget
 
+import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.tangem.common.CompletionResult
 import com.tangem.common.UserCodeType
+import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.hideSoftKeyboard
 import com.tangem.tangem_sdk_new.extensions.localizedDescription
+import com.tangem.tangem_sdk_new.extensions.show
 import com.tangem.tangem_sdk_new.extensions.showSoftKeyboard
 import com.tangem.tangem_sdk_new.postUI
 
@@ -19,11 +23,12 @@ import com.tangem.tangem_sdk_new.postUI
  */
 class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
-    var onContinue: ((String) -> Unit)? = null
+    var onContinue: CompletionCallback<String>? = null
 
     private val tilPinCode = mainView.findViewById<TextInputLayout>(R.id.tilPinCode)
     private val etPinCode = mainView.findViewById<TextInputEditText>(R.id.etPinCode)
     private val btnContinue = mainView.findViewById<Button>(R.id.btnContinue)
+    private val btnForgotCode = mainView.findViewById<Button>(R.id.btnForgotCode)
     private val expandingView = mainView.findViewById<View>(R.id.expandingView)
 
     init {
@@ -36,6 +41,8 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
             }
             return@setOnEditorActionListener false
         }
+        val hiddenPassword = (InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        etPinCode.inputType = hiddenPassword
     }
 
     fun canExpand(): Boolean = expandingView != null
@@ -69,7 +76,19 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
                         tilPinCode.isErrorEnabled = false
                         mainView.requestFocus()
                         etPinCode.hideSoftKeyboard()
-                        postUI(250) { onContinue?.invoke(pin) }
+                        postUI(250) {
+                            onContinue?.invoke(CompletionResult.Success(pin.trim()))
+                        }
+                    }
+                }
+                btnForgotCode.show(params.showForgotButton)
+                btnForgotCode.setOnClickListener {
+                    tilPinCode.error = null
+                    tilPinCode.isErrorEnabled = false
+                    mainView.requestFocus()
+                    etPinCode.hideSoftKeyboard()
+                    postUI(250) {
+                        onContinue?.invoke(CompletionResult.Failure(TangemSdkError.UserForgotTheCode()))
                     }
                 }
             }

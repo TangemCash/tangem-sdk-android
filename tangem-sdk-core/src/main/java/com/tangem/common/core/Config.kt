@@ -75,5 +75,5 @@ sealed class CardIdDisplayFormat {
     data class LastMasked(val numbers: Int, val mask: String = " * * * ") : CardIdDisplayFormat()
 
     ///n numbers from the end except last
-    data class LastLunh(val numbers: Int) : CardIdDisplayFormat()
+    data class LastLuhn(val numbers: Int) : CardIdDisplayFormat()
 }

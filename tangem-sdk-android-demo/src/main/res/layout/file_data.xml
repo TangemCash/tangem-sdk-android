@@ -50,18 +50,18 @@
                 android:text="Read public files" />
 
             <Button
-                android:id="@+id/btnWriteSignedFile"
+                android:id="@+id/btnWriteUserFile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Write signed by issuer" />
+                android:text="Write user file" />
 
             <Button
-                android:id="@+id/btnWriteFilesWithPasscode"
+                android:id="@+id/btnWriteOwnerFile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Write protected with PIN2" />
+                android:text="Write owner file" />
 
             <Button
                 android:id="@+id/btnMakeFilePublic"

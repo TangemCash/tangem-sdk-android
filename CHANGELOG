@@ -1,16 +1,9 @@
-*   d79d9a1d - (HEAD -> release/3.5.0, tag: develop-120, origin/develop, develop) Merge pull request #132 from tangem/CSK-281_fix_display_of_NfcSessionDialog_when_using_the_setPasscode_command_if_no_other_command_was_used
+*   35b3a393 - (HEAD -> release/3.6.2, tag: develop-151, origin/develop, develop) Merge pull request #164 from tangem/CSK-311-fix_build_of_the_jvm-demo
 |\  
-| * 2fde0bbc - CSK-279 fixed display of NfcSessionDialog when using the "setPasscode" command if no other command was used.
-|/  
-*   ae8094e4 - (tag: develop-119) Merge pull request #131 from tangem/CSK-280_hd_wallets_refactoring
-|\  
-| *   be22ccc7 - Merge branch 'develop' of https://github.com/tangem/tangem-sdk-android into CSK-280_hd_wallets_refactoring
+| *   cf937734 - Merge branch 'develop' into CSK-311-fix_build_of_the_jvm-demo
 | |\  
 | |/  
 |/|   
-* | 3715dfdd - (tag: develop-118) Merge pull request #130 from tangem/master
+* | 79fa2395 - (tag: develop-150) Merge pull request #163 from tangem/master
  /  
-* 3c683b92 - CSK-280: refactor HD wallets
-* dd9d3a2e - CSK-278: allow to use compressed/uncompressed keys based on Config
-* b86da909 - CSK-277: migrate to wallet index from pubkey
-* fc1c9803 - CSK-276: facilitate derivations for Scan and Create wallet
+* b6be5181 - CSK-311 fixed build of the jvm-demo

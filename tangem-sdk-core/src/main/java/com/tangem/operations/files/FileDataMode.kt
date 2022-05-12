@@ -1,4 +1,4 @@
-package com.tangem.common.files
+package com.tangem.operations.files
 
 enum class FileDataMode(val rawValue: Int) {
     InitiateWritingFile(0x01),

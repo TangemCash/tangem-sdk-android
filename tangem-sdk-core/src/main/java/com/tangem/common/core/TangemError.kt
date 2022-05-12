@@ -205,10 +205,11 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class BackupFailedNotEnoughCurves : TangemSdkError(41227)
     class BackupFailedNotEnoughWallets : TangemSdkError(41228)
     class IssuerSignatureLoadingFailed: TangemSdkError(41229)
-    class BackupFailedFirmware: TangemSdkError(41229)
+    class BackupFailedFirmware: TangemSdkError(41230)
+    class BackupFailedIncompatibleBatch: TangemSdkError(41231)
 
     class ResetPinNoCardsToReset : TangemSdkError(41300)
-    class ResetPinWrongCard : TangemSdkError(41301)
+    class ResetPinWrongCard(internalCode: Int? = null) : TangemSdkError(internalCode ?: 41301)
 
     class HDWalletDisabled : TangemSdkError(42003)
 
@@ -270,7 +271,9 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
 
 //    class Underlying : TangemSdkError(50012)
 
-    class NetworkError(override var customMessage: String) : TangemSdkError(50013)
+    class UserForgotTheCode : TangemSdkError(50013)
+
+    class NetworkError(override var customMessage: String) : TangemSdkError(50014)
 
     class WrongInteractionMode : TangemSdkError(50027)
 

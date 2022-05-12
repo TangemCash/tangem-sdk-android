@@ -35,6 +35,7 @@ class DerivationPath {
 
     override fun equals(other: Any?): Boolean {
         val other = other as? DerivationPath ?: return false
+        if (this.nodes.size != other.nodes.size) return false
 
         this.nodes.forEachIndexed { index, node ->
             if (node != other.nodes[index]) return false
