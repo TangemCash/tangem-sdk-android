@@ -10,6 +10,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.tangem.Log
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkImpl
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
@@ -76,7 +77,7 @@ class DemoActivity : AppCompatActivity() {
         viewDelegate.sdkConfig = config
         this.viewDelegate = viewDelegate
 
-        return TangemSdk(
+        return TangemSdkImpl(
             nfcManager.reader,
             viewDelegate,
             SecureStorage.create(this),
