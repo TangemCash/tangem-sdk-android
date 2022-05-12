@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import com.tangem.Log
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkImpl
 import com.tangem.TangemSdkLogger
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
@@ -22,7 +23,7 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
     viewDelegate.sdkConfig = config
     viewDelegate.activity = activity
 
-    return TangemSdk(
+    return TangemSdkImpl(
             nfcManager.reader,
             viewDelegate,
             SecureStorage.create(activity),
@@ -42,7 +43,7 @@ fun TangemSdk.Companion.customDelegate(
         this.activity = activity
     }
 
-    return TangemSdk(
+    return TangemSdkImpl(
             nfcManager.reader,
             viewDelegate,
             SecureStorage.create(activity),

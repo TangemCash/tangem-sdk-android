@@ -3,6 +3,7 @@ package com.tangem.operations.backup
 import com.squareup.moshi.JsonClass
 import com.tangem.Message
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkImpl
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.StringsLocator

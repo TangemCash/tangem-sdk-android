@@ -2,6 +2,7 @@ package com.tangem.jvm.demo
 
 import com.tangem.Log
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkImpl
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve

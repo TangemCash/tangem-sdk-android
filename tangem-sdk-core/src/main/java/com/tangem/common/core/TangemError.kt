@@ -226,7 +226,7 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class UserCancelled : TangemSdkError(50002)
 
     /**
-     * This error is returned when [com.tangem.TangemSdk] was called with a new [Task],
+     * This error is returned when [com.tangem.TangemSdkImpl] was called with a new [Task],
      * while a previous [Task] is still in progress.
      */
     class Busy : TangemSdkError(50003)

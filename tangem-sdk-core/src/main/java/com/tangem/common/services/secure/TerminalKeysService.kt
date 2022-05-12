@@ -6,8 +6,8 @@ import com.tangem.crypto.generateKeyPair
 
 /**
  * Interface for a service for managing Terminal keypair, used for Linked Terminal feature.
- * Its implementation Needs to be provided to [com.tangem.TangemSdk]
- * by calling [com.tangem.TangemSdk.setTerminalKeysService].
+ * Its implementation Needs to be provided to [com.tangem.TangemSdkImpl]
+ * by calling [com.tangem.TangemSdkImpl.setTerminalKeysService].
  * Default implementation is provided in tangem-sdk module: [TerminalKeysStorage].
  * Linked Terminal feature can be disabled manually by editing [com.tangem.Config].
  */
@@ -17,7 +17,7 @@ interface TerminalKeysService {
 
 /**
  * Service for managing Terminal keypair, used for Linked Terminal feature.
- * Needs to be provided to [com.tangem.TangemSdk] by calling [com.tangem.TangemSdk.setTerminalKeysService]
+ * Needs to be provided to [com.tangem.TangemSdkImpl] by calling [com.tangem.TangemSdkImpl.setTerminalKeysService]
  * Linked Terminal feature can be disabled manually by editing [com.tangem.Config].
  * @param context is required to retrieve an instance of [SharedPreferences]
  */

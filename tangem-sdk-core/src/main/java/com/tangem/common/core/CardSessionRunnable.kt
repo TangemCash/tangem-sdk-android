@@ -1,6 +1,6 @@
 package com.tangem.common.core
 
-import com.tangem.TangemSdk
+import com.tangem.TangemSdkImpl
 import com.tangem.common.CompletionResult
 import com.tangem.operations.PreflightReadMode
 
@@ -24,7 +24,7 @@ interface CardSessionRunnable<T> {
 
     /**
      * The starting point for custom business logic.
-     * Implement this interface and use [TangemSdk.startSessionWithRunnable] to run.
+     * Implement this interface and use [TangemSdkImpl.startSessionWithRunnable] to run.
      * @param session run commands in this [CardSession].
      * @param callback trigger the callback to complete the task.
      */

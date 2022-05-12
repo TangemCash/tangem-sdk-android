@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkImpl
 import com.tangem.common.CompletionResult
 import com.tangem.operations.backup.BackupService
 import com.tangem.operations.backup.ResetBackupCommand
@@ -105,13 +106,7 @@ class BackupActivity : ComponentActivity() {
         }
 
         btn_reset.setOnClickListener {
-            tangemSdk.startSessionWithRunnable(ResetBackupCommand()) {
-
-            }
-
+            tangemSdk.startSessionWithRunnable(ResetBackupCommand()) {}
         }
-
-
-
     }
 }

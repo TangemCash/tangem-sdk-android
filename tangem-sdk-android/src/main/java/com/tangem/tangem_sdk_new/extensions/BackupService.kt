@@ -2,6 +2,7 @@ package com.tangem.tangem_sdk_new.extensions
 
 import androidx.activity.ComponentActivity
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkImpl
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.operations.backup.BackupRepo
