@@ -41,7 +41,7 @@ import kotlinx.coroutines.*
  * @property config allows to change a number of parameters for communication with Tangem cards.
  * Do not change the default values unless you know what you are doing.
  */
-class BaseTangemSdk(
+class DefaultTangemSdk(
         private val reader: CardReader,
         private val viewDelegate: SessionViewDelegate,
         override val secureStorage: SecureStorage,
