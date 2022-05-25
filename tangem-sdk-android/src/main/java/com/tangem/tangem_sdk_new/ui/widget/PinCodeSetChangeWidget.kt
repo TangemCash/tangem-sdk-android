@@ -51,7 +51,7 @@ class PinCodeModificationWidget(
         modifyUiByMode()
         attachCodesCheck(getEtForCodeChecks())
         attachCodesCheck(etPinCodeConfirm)
-//        btnSave.isEnabled = false
+        btnSave.isEnabled = false
 
         tilPinCode.setEndIconOnClickListener {
             isPasswordEnabled = !isPasswordEnabled
@@ -61,13 +61,18 @@ class PinCodeModificationWidget(
         }
 
         btnSave.setOnClickListener {
-            val state = checkCodes()
-//            btnSave.isEnabled = state == MATCH
-            updateErrorsVisibility(state == NOT_MATCH || state == UNDEFINED)
-            if (state == MATCH) {
-                mainView.requestFocus()
-                mainView.hideSoftKeyboard()
-                postUI(250) { onSave?.invoke(etPinCodeConfirm.text?.toString() ?: "") }
+            when (checkCodes()) {
+                CheckCodesState.NOT_MATCH -> {
+                    updateErrorsVisibility(errorIsVisible = true)
+                    btnSave.isEnabled = false
+                }
+                CheckCodesState.MATCH -> {
+                    mainView.requestFocus()
+                    mainView.hideSoftKeyboard()
+                    postUI(250) { onSave?.invoke(etPinCodeConfirm.text?.toString() ?: "") }
+                }
+                CheckCodesState.UNDEFINED,
+                CheckCodesState.TOO_SHORT -> { /* no-op */ }
             }
         }
     }
@@ -129,9 +134,9 @@ class PinCodeModificationWidget(
 
     private fun attachCodesCheck(et: TextInputEditText) {
         DebounceAfterTextChanged(et) {
-//            val state = checkCodes()
-//            btnSave.isEnabled = state == MATCH
-//            updateErrorsVisibility(state == NOT_MATCH)
+            updateErrorsVisibility(errorIsVisible = false)
+            val state = checkCodes()
+            btnSave.isEnabled = state.isSaveButtonEnabled
         }
     }
 
@@ -141,13 +146,14 @@ class PinCodeModificationWidget(
     private fun getEtForCodeChecks(): TextInputEditText =
         if (mode == Mode.CHANGE) etNewPinCode else etPinCode
 
-    private fun checkCodes(): Int {
+    private fun checkCodes(): CheckCodesState {
         val code1 = getEtForCodeChecks().text?.toString() ?: ""
         val code2 = etPinCodeConfirm.text?.toString() ?: ""
 
-        if (code1.isEmpty() || code2.isEmpty()) return UNDEFINED
+        if (code1.isEmpty() || code2.isEmpty()) return CheckCodesState.UNDEFINED
+        if (code1.length < 4 || code2.length < 4) return CheckCodesState.TOO_SHORT
 
-        return if (code1 == code2) MATCH else NOT_MATCH
+        return if (code1 == code2) CheckCodesState.MATCH else CheckCodesState.NOT_MATCH
     }
 
     private fun updateErrorsVisibility(errorIsVisible: Boolean) {
@@ -173,10 +179,13 @@ class PinCodeModificationWidget(
         if (et.isFocused) et.setSelection(et.text?.length ?: 0)
     }
 
-    companion object {
-        private val MATCH = 1
-        private val NOT_MATCH = 0
-        private val UNDEFINED = -1
+    enum class CheckCodesState(
+        val isSaveButtonEnabled: Boolean = false
+    ) {
+        NOT_MATCH(isSaveButtonEnabled = true),
+        UNDEFINED,
+        TOO_SHORT,
+        MATCH(isSaveButtonEnabled = true)
     }
 
     enum class Mode {

@@ -59,6 +59,7 @@ class ViewDelegateFragment : BaseFragment() {
             RequestAccessCode(),
             RequestPasscode(),
             RequestUserCode(),
+            RequestPinSetup(),
             SingleRequestAccessCode(false),
             SingleRequestAccessCode(true),
         )
@@ -75,4 +76,3 @@ class ViewDelegateFragment : BaseFragment() {
     override fun onCardChanged(card: Card?) {
     }
 }
-
