@@ -7,10 +7,10 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
+import com.tangem.DefaultTangemSdk
 import com.tangem.Log
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
-import com.tangem.DefaultTangemSdk
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
@@ -19,9 +19,12 @@ import com.tangem.tangem_demo.ui.settings.SettingsFragment
 import com.tangem.tangem_demo.ui.viewDelegate.ViewDelegateFragment
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
 import com.tangem.tangem_sdk_new.extensions.createLogger
+import com.tangem.tangem_sdk_new.extensions.initBiometricAuthManager
 import com.tangem.tangem_sdk_new.extensions.initNfcManager
+import com.tangem.tangem_sdk_new.storage.AndroidStorage
 import com.tangem.tangem_sdk_new.storage.create
-import kotlinx.android.synthetic.main.activity_demo.*
+import kotlinx.android.synthetic.main.activity_demo.tabLayout
+import kotlinx.android.synthetic.main.activity_demo.viewPager
 
 class DemoActivity : AppCompatActivity() {
 
@@ -73,15 +76,21 @@ class DemoActivity : AppCompatActivity() {
         }
         val nfcManager = TangemSdk.initNfcManager(this)
 
-        val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, this)
+        val viewDelegate = DefaultSessionViewDelegate(
+            nfcManager = nfcManager,
+            reader = nfcManager.reader,
+            activity = this,
+        )
         viewDelegate.sdkConfig = config
         this.viewDelegate = viewDelegate
 
         return DefaultTangemSdk(
-            nfcManager.reader,
-            viewDelegate,
-            SecureStorage.create(this),
-            config,
+            reader = nfcManager.reader,
+            viewDelegate = viewDelegate,
+            authManager = TangemSdk.initBiometricAuthManager(this, viewDelegate),
+            storage = AndroidStorage.create(this),
+            secureStorage = SecureStorage.create(this),
+            config = config,
         )
     }
 

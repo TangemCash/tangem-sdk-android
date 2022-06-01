@@ -37,6 +37,18 @@
 
     </FrameLayout>
 
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switchSavePin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:textColor="@color/sdk_message_body"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:text="@string/use_fingerprint_on_this_device" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"

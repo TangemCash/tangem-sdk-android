@@ -116,5 +116,6 @@
 
     <string name="how_to_try_other_way_button">Still not working</string>
     <string name="how_to_show_again_button">Show again</string>
+    <string name="use_fingerprint_on_this_device">Use fingerprint on this device</string>
 
 </resources>

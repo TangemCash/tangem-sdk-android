@@ -249,19 +249,49 @@ class RequestAccessCode : BaseDelegateAction() {
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
+        withMainContext {
+            delegate.requestUserCode(
+                type = UserCodeType.AccessCode,
+                isFirstAttempt = true,
+                showForgotButton = false,
+                showRememberCodeToggle = false,
+                rememberCodeToggled = false,
+                cardId = null,
+                {}
+            )
+        }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, false, false, null) {} }
+        withMainContext {
+            delegate.requestUserCode(
+                type = UserCodeType.AccessCode,
+                isFirstAttempt = false,
+                showForgotButton = false,
+                showRememberCodeToggle = false,
+                rememberCodeToggled = false,
+                cardId = null,
+                {},
+            )
+        }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
+        withMainContext {
+            delegate.requestUserCode(
+                type = UserCodeType.AccessCode,
+                isFirstAttempt = true,
+                showForgotButton = false,
+                showRememberCodeToggle = false,
+                rememberCodeToggled = false,
+                cardId = null,
+                {},
+            )
+        }
         delay(2000)
         withMainContext { delegate.dismiss() }
     }
@@ -278,7 +308,17 @@ class SingleRequestAccessCode(
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, showForgotButton, null) {} }
+        withMainContext {
+            delegate.requestUserCode(
+                type = UserCodeType.AccessCode,
+                isFirstAttempt = true,
+                showForgotButton = showForgotButton,
+                showRememberCodeToggle = false,
+                rememberCodeToggled = false,
+                cardId = null,
+                {},
+            )
+        }
     }
 }
 
@@ -297,19 +337,49 @@ class RequestPasscode : BaseDelegateAction() {
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
+        withMainContext {
+            delegate.requestUserCode(
+                type = UserCodeType.Passcode,
+                isFirstAttempt = true,
+                showForgotButton = false,
+                showRememberCodeToggle = false,
+                rememberCodeToggled = false,
+                cardId = null,
+                {},
+            )
+        }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, false, false, null) {} }
+        withMainContext {
+            delegate.requestUserCode(
+                type = UserCodeType.Passcode,
+                isFirstAttempt = false,
+                showForgotButton = false,
+                showRememberCodeToggle = false,
+                rememberCodeToggled = false,
+                cardId = null,
+                {},
+            )
+        }
         delay(2000)
         withMainContext { delegate.dismiss() }
         delay(500)
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
+        withMainContext {
+            delegate.requestUserCode(
+                type = UserCodeType.Passcode,
+                isFirstAttempt = true,
+                showForgotButton = false,
+                showRememberCodeToggle = false,
+                rememberCodeToggled = false,
+                cardId = null,
+                {},
+            )
+        }
         delay(2000)
         withMainContext { delegate.dismiss() }
     }

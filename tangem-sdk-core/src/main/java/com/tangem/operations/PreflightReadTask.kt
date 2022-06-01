@@ -2,6 +2,7 @@ package com.tangem.operations
 
 import com.tangem.Log
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CardSession
@@ -42,23 +43,38 @@ class PreflightReadTask(
     private val readMode: PreflightReadMode,
     private val cardId: String? = null
 ) : CardSessionRunnable<Card> {
-
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         Log.debug { "================ Perform preflight check with settings: $readMode) ================" }
         ReadCommand().run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
+                    val receivedCard = result.data.card
+                    
                     if (session.environment.config.handleErrors) {
-                        if (cardId != null && !cardId.equals(result.data.card.cardId, true)) {
+                        if (cardId != null && !cardId.equals(receivedCard.cardId, true)) {
                             callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
                             return@run
                         }
                     }
-                    if (!session.environment.config.filter.isCardAllowed(result.data.card)) {
+                    if (!session.environment.config.filter.isCardAllowed(receivedCard)) {
                         callback(CompletionResult.Failure(TangemSdkError.WrongCardType()))
                         return@run
                     }
-                    finalizeRead(session, result.data.card, callback)
+
+                    session.environment.accessCodeRepository.get(receivedCard.cardId)
+                        .onFailure { finalizeRead(session, receivedCard, callback) }
+                        .onSuccess { accessCode ->
+                            session.viewDelegate.onAuthentication()
+                            session.environment.authManager.authenticate { isAuthenticated ->
+                                if (isAuthenticated) {
+                                    session.updateEnvironment(
+                                        type = UserCodeType.AccessCode,
+                                        code = accessCode
+                                    )
+                                }
+                                finalizeRead(session, receivedCard, callback)
+                            }
+                        }
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }

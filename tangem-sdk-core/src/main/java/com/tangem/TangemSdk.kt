@@ -1,6 +1,8 @@
 package com.tangem
 
 import com.tangem.common.SuccessResponse
+import com.tangem.common.accesscode.AccessCodeRepository
+import com.tangem.common.biomteric.AuthManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
@@ -8,6 +10,7 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.JSONRPCConverter
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.services.Storage
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.operations.attestation.CardVerifyAndGetInfo.Response.Item
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
@@ -683,11 +686,20 @@ interface TangemSdk {
         fun makeSessionBuilder(
             viewDelegate: SessionViewDelegate,
             secureStorage: SecureStorage,
+            storage: Storage,
             reader: CardReader,
+            authManager: AuthManager,
+            accessCodeRepository: AccessCodeRepository,
             jsonRpcConverter: JSONRPCConverter,
         ): SessionBuilder {
             return SessionBuilder(
-                viewDelegate, secureStorage, reader, jsonRpcConverter
+                viewDelegate = viewDelegate,
+                secureStorage = secureStorage,
+                reader = reader,
+                authManager = authManager,
+                accessCodeRepository = accessCodeRepository,
+                jsonRpcConverter = jsonRpcConverter,
+                storage = storage,
             )
         }
     }

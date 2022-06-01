@@ -5,7 +5,11 @@ import android.view.View
 import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tangem.*
+import com.tangem.Log
+import com.tangem.Message
+import com.tangem.RequestUserCodeResult
+import com.tangem.SessionViewDelegate
+import com.tangem.WrongValueType
 import com.tangem.common.CompletionResult
 import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
@@ -19,13 +23,16 @@ import com.tangem.common.extensions.VoidCallback
 import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.resetcode.ResetCodesViewDelegate
 import com.tangem.operations.resetcode.ResetCodesViewState
-import com.tangem.tangem_demo.*
+import com.tangem.tangem_demo.DemoActivity
+import com.tangem.tangem_demo.R
+import com.tangem.tangem_demo.postBackground
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.CommandSpinnerAdapter
 import com.tangem.tangem_demo.ui.tasksLogger.adapter.RvConsoleAdapter
 import com.tangem.tangem_sdk_new.nfc.NfcManager
-import kotlinx.android.synthetic.main.fg_commands_tester.*
-import kotlinx.android.synthetic.main.file_data.*
+import kotlinx.android.synthetic.main.fg_commands_tester.btnClearConsole
+import kotlinx.android.synthetic.main.fg_commands_tester.rvConsole
+import kotlinx.android.synthetic.main.fg_commands_tester.spCommandSelector
 
 /**
  * Created by Anton Zhilenkov on 23/12/2020.
@@ -176,10 +183,14 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun onWrongCard(wrongValueType: WrongValueType) {}
         override fun onSessionStopped(message: Message?) {}
         override fun onError(error: TangemError) {}
-        override fun requestUserCode( type: UserCodeType, isFirstAttempt: Boolean,
-                                      showForgotButton: Boolean,
-                                      cardId: String?,
-                                      callback: CompletionCallback<String>
+        override fun requestUserCode(
+            type: UserCodeType,
+            isFirstAttempt: Boolean,
+            showForgotButton: Boolean,
+            showRememberCodeToggle: Boolean,
+            rememberCodeToggled: Boolean,
+            cardId: String?,
+            callback: CompletionCallback<RequestUserCodeResult>
         ) {}
         override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {}
         override fun setConfig(config: Config) {}
@@ -188,6 +199,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {}
         override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {}
         override fun attestationCompletedWithWarnings(positive: VoidCallback) {}
+        override fun onAuthentication() {}
     }
 
     class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {

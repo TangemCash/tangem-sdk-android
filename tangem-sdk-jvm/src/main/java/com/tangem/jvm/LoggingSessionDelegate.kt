@@ -2,6 +2,7 @@ package com.tangem.jvm
 
 import com.tangem.Log
 import com.tangem.Message
+import com.tangem.RequestUserCodeResult
 import com.tangem.SessionViewDelegate
 import com.tangem.WrongValueType
 import com.tangem.common.CompletionResult
@@ -44,8 +45,10 @@ class LoggingSessionDelegate : SessionViewDelegate {
         type: UserCodeType,
         isFirstAttempt: Boolean,
         showForgotButton: Boolean,
+        showRememberCodeToggle: Boolean,
+        rememberCodeToggled: Boolean,
         cardId: String?,
-        callback: CompletionCallback<String>
+        callback: CompletionCallback<RequestUserCodeResult>
     ) {
         if (isFirstAttempt) {
             Log.view { "TAG: Enter PIN:" }
@@ -54,7 +57,16 @@ class LoggingSessionDelegate : SessionViewDelegate {
         }
 
         val pin = readLine()
-        pin?.let { callback.invoke(CompletionResult.Success(it)) }
+        pin?.let { code ->
+            callback.invoke(
+                CompletionResult.Success(
+                    RequestUserCodeResult(
+                        code = code,
+                        rememberCode = false,
+                    )
+                )
+            )
+        }
     }
 
     override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {
@@ -88,6 +100,10 @@ class LoggingSessionDelegate : SessionViewDelegate {
     }
 
     override fun attestationCompletedWithWarnings(positive: VoidCallback) {
+    }
+
+    override fun onAuthentication() {
+        /* no-op */
     }
 
     companion object {

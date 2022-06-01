@@ -3,10 +3,13 @@ package com.tangem.common.core
 import com.tangem.common.KeyPair
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
+import com.tangem.common.accesscode.AccessCodeRepository
+import com.tangem.common.biomteric.AuthManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.card.WalletData
 import com.tangem.common.extensions.calculateSha256
+import com.tangem.common.services.Storage
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.secure.TerminalKeysService
 import com.tangem.common.services.secure.TerminalKeysStorage
@@ -19,7 +22,10 @@ import java.lang.ref.WeakReference
  */
 class SessionEnvironment(
     val config: Config,
-    val secureStorage: SecureStorage
+    val secureStorage: SecureStorage,
+    val storage: Storage,
+    val accessCodeRepository: AccessCodeRepository,
+    val authManager: AuthManager,
 ) {
     /**
      * Current card, read by preflight `Read` command

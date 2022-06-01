@@ -1,51 +1,67 @@
 package com.tangem.tangem_sdk_new.extensions
 
 import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
+import com.tangem.DefaultTangemSdk
 import com.tangem.Log
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
-import com.tangem.DefaultTangemSdk
 import com.tangem.TangemSdkLogger
+import com.tangem.common.biomteric.AuthManager
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
 import com.tangem.tangem_sdk_new.NfcLifecycleObserver
+import com.tangem.tangem_sdk_new.biometrics.BiometricAuthManager
 import com.tangem.tangem_sdk_new.nfc.NfcManager
+import com.tangem.tangem_sdk_new.storage.AndroidStorage
 import com.tangem.tangem_sdk_new.storage.create
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Config()): TangemSdk {
+fun TangemSdk.Companion.init(activity: FragmentActivity, config: Config = Config()): TangemSdk {
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
+    val viewDelegate = DefaultSessionViewDelegate(
+        nfcManager = nfcManager,
+        reader = nfcManager.reader,
+        activity = activity,
+    )
     viewDelegate.sdkConfig = config
 
     return DefaultTangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
+        authManager = TangemSdk.initBiometricAuthManager(activity, viewDelegate),
+        storage = AndroidStorage.create(activity),
         secureStorage = SecureStorage.create(activity),
         config = config,
     )
 }
 
 fun TangemSdk.Companion.customDelegate(
-    activity: ComponentActivity,
+    activity: FragmentActivity,
     viewDelegate: SessionViewDelegate? = null,
     config: Config = Config()
 ): TangemSdk {
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val viewDelegate =
-        viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
+    val viewDelegateSafe =
+        viewDelegate ?: DefaultSessionViewDelegate(
+            nfcManager = nfcManager,
+            reader = nfcManager.reader,
+            activity = activity,
+        ).apply {
             this.sdkConfig = config
         }
 
 
     return DefaultTangemSdk(
-        nfcManager.reader,
-        viewDelegate,
+        reader = nfcManager.reader,
+        viewDelegate = viewDelegateSafe,
+        authManager = TangemSdk.initBiometricAuthManager(activity, viewDelegateSafe),
+        storage = AndroidStorage.create(activity),
         secureStorage = SecureStorage.create(activity),
         config = config,
     )
@@ -79,4 +95,12 @@ fun TangemSdk.Companion.createLogger(): TangemSdkLogger {
             }
         }
     }
+}
+
+fun TangemSdk.Companion.initBiometricAuthManager(
+    activity: FragmentActivity,
+    sessionViewDelegate: SessionViewDelegate
+): AuthManager {
+    return BiometricAuthManager(activity, sessionViewDelegate)
+        .also(activity.lifecycle::addObserver)
 }

@@ -1,26 +1,52 @@
 package com.tangem.common.core
 
-import com.tangem.*
-import com.tangem.common.*
+import com.tangem.Log
+import com.tangem.Message
+import com.tangem.SessionViewDelegate
+import com.tangem.TangemSdk
+import com.tangem.WrongValueType
+import com.tangem.common.CardIdFormatter
+import com.tangem.common.CompletionResult
+import com.tangem.common.UserCode
+import com.tangem.common.UserCodeType
+import com.tangem.common.accesscode.AccessCodeRepository
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.biomteric.AuthManager
 import com.tangem.common.card.EncryptionMode
-import com.tangem.common.core.*
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.json.*
+import com.tangem.common.json.JSONRPCConverter
+import com.tangem.common.json.JSONRPCLinker
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.services.Storage
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
-import com.tangem.operations.*
+import com.tangem.operations.OpenSessionCommand
+import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.resetcode.ResetCodesController
 import com.tangem.operations.resetcode.ResetPinService
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import java.io.PrintWriter
 import java.io.StringWriter
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 
 /**
  * Allows interaction with Tangem cards. Should be opened before sending commands.
@@ -40,7 +66,6 @@ class CardSession(
     val environment: SessionEnvironment,
     private val reader: CardReader,
     private val jsonRpcConverter: JSONRPCConverter,
-    private val secureStorage: SecureStorage,
     cardId: String? = null,
     private var initialMessage: Message? = null
 ) {
@@ -202,6 +227,19 @@ class CardSession(
             when (result) {
                 is CompletionResult.Success -> {
                     onSessionStarted(this, null)
+
+                    val cardId = result.data.cardId
+                    val accessCode = environment.accessCode.value
+                    val rememberAccessCodeToggled = environment.accessCodeRepository
+                        .getRememberCodeToggleState(cardId)
+                        .getOrDefault(defaultValue = true)
+
+                    if (rememberAccessCodeToggled && accessCode != null) {
+                        environment.accessCodeRepository.append(
+                            cardId = cardId,
+                            accessCode = accessCode
+                        )
+                    }
                 }
                 is CompletionResult.Failure -> {
                     val wrongType = when (result.error) {
@@ -378,21 +416,37 @@ class CardSession(
 
         val cardId = environment.card?.cardId ?: this.cardId
         val showForgotButton = environment.card?.backupStatus?.isActive ?: false
+        val showRememberCodeToggle = cardId != null
+                && type == UserCodeType.AccessCode
+                && environment.authManager.canAuthenticate
+        val rememberCodeToggled = if (cardId != null) {
+            environment.accessCodeRepository
+                .getRememberCodeToggleState(cardId)
+                .getOrDefault(defaultValue = true)
+        } else true
         val formattedCardId = cardId?.let {
             CardIdFormatter(environment.config.cardIdDisplayFormat).getFormattedCardId(it)
         }
 
         viewDelegate.requestUserCode(
-            type, isFirstAttempt,
-            showForgotButton = showForgotButton, cardId = formattedCardId,
+            type = type,
+            isFirstAttempt = isFirstAttempt,
+            showForgotButton = showForgotButton,
+            showRememberCodeToggle = showRememberCodeToggle,
+            rememberCodeToggled = rememberCodeToggled,
+            cardId = formattedCardId,
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    val code = UserCode(type, result.data)
-                    when (type) {
-                        UserCodeType.AccessCode -> environment.accessCode = code
-                        UserCodeType.Passcode -> environment.passcode = code
+                    if (cardId != null) {
+                        environment.accessCodeRepository
+                            .saveRememberCodeToggleState(
+                                cardId = cardId,
+                                isToggled = result.data.rememberCode
+                            )
                     }
+
+                    updateEnvironment(type, result.data.code)
                     callback(CompletionResult.Success(Unit))
                 }
                 is CompletionResult.Failure -> {
@@ -426,12 +480,23 @@ class CardSession(
         }
     }
 
+    fun updateEnvironment(type: UserCodeType, code: ByteArray) {
+        val userCode = UserCode(type, code)
+        when (type) {
+            UserCodeType.AccessCode -> environment.accessCode = userCode
+            UserCodeType.Passcode -> environment.passcode = userCode
+        }
+    }
+
     fun restoreUserCode(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
         val sessionBuilder = TangemSdk.makeSessionBuilder(
             viewDelegate = viewDelegate,
-            secureStorage = secureStorage,
+            secureStorage = environment.secureStorage,
             reader = reader,
-            jsonRpcConverter = jsonRpcConverter
+            jsonRpcConverter = jsonRpcConverter,
+            accessCodeRepository = environment.accessCodeRepository,
+            authManager = environment.authManager,
+            storage = environment.storage
         )
         val resetService = ResetPinService(
             sessionBuilder = sessionBuilder,
@@ -467,15 +532,24 @@ enum class TagType {
 class SessionBuilder(
     val viewDelegate: SessionViewDelegate,
     val secureStorage: SecureStorage,
+    val storage: Storage,
     val reader: CardReader,
-    val jsonRpcConverter: JSONRPCConverter,
+    val accessCodeRepository: AccessCodeRepository,
+    private val authManager: AuthManager,
+    private val jsonRpcConverter: JSONRPCConverter,
 ) {
     fun build(
         config: Config,
         cardId: String? = null,
         initialMessage: Message? = null
     ): CardSession {
-        val environment = SessionEnvironment(config, secureStorage)
+        val environment = SessionEnvironment(
+            config = config,
+            secureStorage = secureStorage,
+            storage = storage,
+            accessCodeRepository = accessCodeRepository,
+            authManager = authManager
+        )
         return CardSession(
             viewDelegate = viewDelegate,
             environment = environment,
@@ -483,8 +557,6 @@ class SessionBuilder(
             jsonRpcConverter = jsonRpcConverter,
             cardId = cardId,
             initialMessage = initialMessage,
-            secureStorage = secureStorage,
         )
     }
 }
-

@@ -2,6 +2,8 @@ package com.tangem
 
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
+import com.tangem.common.accesscode.AccessCodeRepositoryImpl
+import com.tangem.common.biomteric.AuthManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
@@ -10,6 +12,7 @@ import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
+import com.tangem.common.services.Storage
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
 import com.tangem.crypto.CryptoUtils
@@ -42,10 +45,12 @@ import kotlinx.coroutines.*
  * Do not change the default values unless you know what you are doing.
  */
 class DefaultTangemSdk(
-        private val reader: CardReader,
-        private val viewDelegate: SessionViewDelegate,
-        override val secureStorage: SecureStorage,
-        override var config: Config = Config()
+    private val reader: CardReader,
+    private val viewDelegate: SessionViewDelegate,
+    private val authManager: AuthManager,
+    private val storage: Storage,
+    override val secureStorage: SecureStorage,
+    override var config: Config = Config()
 ) : TangemSdk {
 
     private var cardSession: CardSession? = null
@@ -871,15 +876,25 @@ class DefaultTangemSdk(
     }
 
     private fun makeSession(cardId: String? = null, initialMessage: Message? = null): CardSession {
-        val environment = SessionEnvironment(config, secureStorage)
+        val accessCodeRepository = AccessCodeRepositoryImpl(
+            secureStorage = secureStorage,
+            jsonConverter = MoshiJsonConverter.INSTANCE,
+            storage = storage
+        )
+        val environment = SessionEnvironment(
+            config = config,
+            secureStorage = secureStorage,
+            storage = storage,
+            accessCodeRepository = accessCodeRepository,
+            authManager = authManager,
+        )
         return CardSession(
-                viewDelegate = viewDelegate,
-                environment = environment,
-                reader = reader,
-                jsonRpcConverter = jsonRpcConverter,
-                cardId = cardId,
-                initialMessage = initialMessage,
-                secureStorage = secureStorage,
+            viewDelegate = viewDelegate,
+            environment = environment,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter,
+            cardId = cardId,
+            initialMessage = initialMessage,
         )
     }
 

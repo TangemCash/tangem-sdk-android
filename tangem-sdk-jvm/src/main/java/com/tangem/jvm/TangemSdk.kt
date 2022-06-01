@@ -1,11 +1,10 @@
 package com.tangem.jvm
 
+import com.tangem.DefaultTangemSdk
 import com.tangem.Log
 import com.tangem.TangemSdk
-import com.tangem.DefaultTangemSdk
 import com.tangem.TangemSdkLogger
 import com.tangem.common.core.Config
-import com.tangem.common.services.secure.UnsafeInMemoryStorage
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -13,7 +12,14 @@ import java.util.*
 fun TangemSdk.Companion.init(verbose: Boolean = false, indexOfTerminal: Int? = null): TangemSdk? {
     setLogger(verbose)
     val reader = ReaderFactory().create(indexOfTerminal) ?: return null
-    return DefaultTangemSdk(reader, LoggingSessionDelegate(), UnsafeInMemoryStorage(), Config())
+    return DefaultTangemSdk(
+        reader = reader,
+        viewDelegate = LoggingSessionDelegate(),
+        authManager = DummyAuthManager(),
+        secureStorage = InMemoryStorage(),
+        storage = InMemoryStorage(),
+        config = Config()
+    )
 }
 
 private fun setLogger(verbose: Boolean) {

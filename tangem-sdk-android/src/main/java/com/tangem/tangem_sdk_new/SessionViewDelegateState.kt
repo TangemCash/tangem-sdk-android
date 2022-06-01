@@ -1,6 +1,7 @@
 package com.tangem.tangem_sdk_new
 
 import com.tangem.Message
+import com.tangem.RequestUserCodeResult
 import com.tangem.WrongValueType
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CompletionCallback
@@ -19,8 +20,10 @@ sealed class SessionViewDelegateState {
         val type: UserCodeType,
         val isFirstAttempt: Boolean,
         val showForgotButton: Boolean,
+        val showRememberCodeToggle: Boolean,
+        val rememberCodeToggled: Boolean,
         val cardId: String?,
-        val callback: CompletionCallback<String>
+        val callback: CompletionCallback<RequestUserCodeResult>
     ) : SessionViewDelegateState()
 
     data class PinChangeRequested(
@@ -37,6 +40,8 @@ sealed class SessionViewDelegateState {
     ) : SessionViewDelegateState()
 
     data class WrongCard(val wrongValueType: WrongValueType) : SessionViewDelegateState()
+    object Authenticate : SessionViewDelegateState()
+
     object TagLost : SessionViewDelegateState()
     object TagConnected : SessionViewDelegateState()
     object HowToTap : SessionViewDelegateState()

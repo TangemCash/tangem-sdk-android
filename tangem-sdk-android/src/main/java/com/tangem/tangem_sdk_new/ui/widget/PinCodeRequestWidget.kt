@@ -4,8 +4,11 @@ import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
+import androidx.core.view.isVisible
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.tangem.RequestUserCodeResult
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CompletionCallback
@@ -21,20 +24,23 @@ import com.tangem.tangem_sdk_new.postUI
 /**
  * Created by Anton Zhilenkov on 09/08/2020.
  */
-class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
+class PinCodeRequestWidget(
+    mainView: View,
+) : BaseSessionDelegateStateWidget(mainView) {
 
-    var onContinue: CompletionCallback<String>? = null
+    var onContinue: CompletionCallback<RequestUserCodeResult>? = null
 
     private val tilPinCode = mainView.findViewById<TextInputLayout>(R.id.tilPinCode)
     private val etPinCode = mainView.findViewById<TextInputEditText>(R.id.etPinCode)
     private val btnContinue = mainView.findViewById<Button>(R.id.btnContinue)
     private val btnForgotCode = mainView.findViewById<Button>(R.id.btnForgotCode)
     private val expandingView = mainView.findViewById<View>(R.id.expandingView)
+    private val switchSavePun = mainView.findViewById<SwitchMaterial>(R.id.switchSavePin)
 
     init {
         etPinCode.isSingleLine = true
         etPinCode.imeOptions = EditorInfo.IME_ACTION_DONE
-        etPinCode.setOnEditorActionListener { v, actionId, event ->
+        etPinCode.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 btnContinue.performClick()
                 return@setOnEditorActionListener true
@@ -48,48 +54,58 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
     fun canExpand(): Boolean = expandingView != null
 
     override fun setState(params: SessionViewDelegateState) {
-        when (params) {
-            is SessionViewDelegateState.PinRequested -> {
-                val code = when (params.type) {
-                    UserCodeType.AccessCode -> getString(R.string.pin1)
-                    UserCodeType.Passcode -> getString(R.string.pin2)
-                }
-                tilPinCode.hint = code
-                tilPinCode.error = if (params.isFirstAttempt) {
-                    null
+        if (params is SessionViewDelegateState.PinRequested) {
+            val code = when (params.type) {
+                UserCodeType.AccessCode -> getString(R.string.pin1)
+                UserCodeType.Passcode -> getString(R.string.pin2)
+            }
+
+            switchSavePun.isVisible = params.showRememberCodeToggle
+            switchSavePun.isChecked = params.rememberCodeToggled
+
+            tilPinCode.hint = code
+            tilPinCode.error = if (params.isFirstAttempt) {
+                null
+            } else {
+                when (params.type) {
+                    UserCodeType.AccessCode -> TangemSdkError.WrongAccessCode()
+                    UserCodeType.Passcode -> TangemSdkError.WrongPasscode()
+                }.localizedDescription(mainView.context)
+            }
+
+            etPinCode.setText("")
+            postUI(1000) { etPinCode.showSoftKeyboard() }
+
+            btnContinue.setOnClickListener {
+                val pin = etPinCode.text.toString()
+                if (pin.isEmpty()) {
+                    tilPinCode.error = mainView.context.getString(R.string.pin_enter, code)
                 } else {
-                    when (params.type) {
-                        UserCodeType.AccessCode -> TangemSdkError.WrongAccessCode()
-                        UserCodeType.Passcode -> TangemSdkError.WrongPasscode()
-                    }.localizedDescription(mainView.context)
-                }
-
-                etPinCode.setText("")
-                postUI(1000) { etPinCode.showSoftKeyboard() }
-
-                btnContinue.setOnClickListener {
-                    val pin = etPinCode.text.toString()
-                    if (pin.isEmpty()) {
-                        tilPinCode.error = mainView.context.getString(R.string.pin_enter, code)
-                    } else {
-                        tilPinCode.error = null
-                        tilPinCode.isErrorEnabled = false
-                        mainView.requestFocus()
-                        etPinCode.hideSoftKeyboard()
-                        postUI(250) {
-                            onContinue?.invoke(CompletionResult.Success(pin.trim()))
-                        }
-                    }
-                }
-                btnForgotCode.show(params.showForgotButton)
-                btnForgotCode.setOnClickListener {
                     tilPinCode.error = null
                     tilPinCode.isErrorEnabled = false
                     mainView.requestFocus()
                     etPinCode.hideSoftKeyboard()
                     postUI(250) {
-                        onContinue?.invoke(CompletionResult.Failure(TangemSdkError.UserForgotTheCode()))
+                        onContinue?.invoke(
+                            CompletionResult.Success(
+                                RequestUserCodeResult(
+                                    code = pin.trim(),
+                                    rememberCode = switchSavePun.isVisible
+                                            && switchSavePun.isChecked
+                                )
+                            )
+                        )
                     }
+                }
+            }
+            btnForgotCode.show(params.showForgotButton)
+            btnForgotCode.setOnClickListener {
+                tilPinCode.error = null
+                tilPinCode.isErrorEnabled = false
+                mainView.requestFocus()
+                etPinCode.hideSoftKeyboard()
+                postUI(250) {
+                    onContinue?.invoke(CompletionResult.Failure(TangemSdkError.UserForgotTheCode()))
                 }
             }
         }

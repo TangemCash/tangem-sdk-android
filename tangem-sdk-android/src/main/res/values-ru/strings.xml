@@ -131,4 +131,5 @@
     <string name="reset_codes_current_card">Текущая карта</string>
     <string name="reset_codes_linked_card">Связанная карта</string>
     <string name="reset_codes_btn_forgot_your_code">Забыли код?</string>
+    <string name="use_fingerprint_on_this_device">Использовать отпечаток пальца на этом устройстве</string>
 </resources>

@@ -10,7 +10,7 @@ import com.tangem.Log
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.postUI
 import com.tangem.tangem_sdk_new.ui.widget.StateWidget
-import kotlinx.android.synthetic.main.bottom_sheet_layout.*
+import kotlinx.android.synthetic.main.bottom_sheet_layout.llHeader
 
 open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
 

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Build
 import com.tangem.Log
 import com.tangem.Message
+import com.tangem.RequestUserCodeResult
 import com.tangem.SessionViewDelegate
 import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
@@ -28,7 +29,7 @@ import com.tangem.tangem_sdk_new.ui.NfcSessionDialog
 class DefaultSessionViewDelegate(
     private val nfcManager: NfcManager,
     private val reader: CardReader,
-    private val activity: Activity
+    private val activity: Activity,
 ) : SessionViewDelegate {
 
     var sdkConfig: Config? = null
@@ -80,10 +81,13 @@ class DefaultSessionViewDelegate(
     }
 
     override fun requestUserCode(
-        type: UserCodeType, isFirstAttempt: Boolean,
+        type: UserCodeType,
+        isFirstAttempt: Boolean,
         showForgotButton: Boolean,
+        showRememberCodeToggle: Boolean,
+        rememberCodeToggled: Boolean,
         cardId: String?,
-        callback: CompletionCallback<String>
+        callback: CompletionCallback<RequestUserCodeResult>
     ) {
         Log.view { "Showing pin request with type: $type" }
         readingDialog?.show(
@@ -91,6 +95,8 @@ class DefaultSessionViewDelegate(
                 type = type,
                 isFirstAttempt = isFirstAttempt,
                 showForgotButton = showForgotButton,
+                showRememberCodeToggle = showRememberCodeToggle,
+                rememberCodeToggled = rememberCodeToggled,
                 cardId = cardId,
                 callback = callback
             )
@@ -135,6 +141,10 @@ class DefaultSessionViewDelegate(
         AttestationFailedDialog.completedWithWarnings(activity, positive)
     }
 
+    override fun onAuthentication() {
+        readingDialog?.show(SessionViewDelegateState.Authenticate)
+    }
+
     private fun createAndShowState(state: SessionViewDelegateState, enableHowTo: Boolean, message: Message? = null) {
         postUI {
             if (readingDialog == null) createReadingDialog(activity)
@@ -146,7 +156,11 @@ class DefaultSessionViewDelegate(
 
     private fun createReadingDialog(activity: Activity) {
         val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
-        readingDialog = NfcSessionDialog(activity.sdkThemeContext(), nfcManager, nfcLocationProvider).apply {
+        readingDialog = NfcSessionDialog(
+            context = activity.sdkThemeContext(),
+            nfcManager = nfcManager,
+            nfcLocationProvider = nfcLocationProvider,
+        ).apply {
             setOwnerActivity(activity)
             dismissWithAnimation = true
             stoppedBySession = false

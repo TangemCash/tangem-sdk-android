@@ -58,10 +58,13 @@ interface SessionViewDelegate {
      * It is called when a user is expected to enter pin code.
      */
     fun requestUserCode(
-        type: UserCodeType, isFirstAttempt: Boolean,
+        type: UserCodeType,
+        isFirstAttempt: Boolean,
         showForgotButton: Boolean,
+        showRememberCodeToggle: Boolean,
+        rememberCodeToggled: Boolean,
         cardId: String?,
-        callback: CompletionCallback<String>
+        callback: CompletionCallback<RequestUserCodeResult>
     )
 
     /**
@@ -84,6 +87,8 @@ interface SessionViewDelegate {
     )
 
     fun attestationCompletedWithWarnings(positive: VoidCallback)
+
+    fun onAuthentication()
 }
 
 /**
@@ -93,3 +98,8 @@ interface SessionViewDelegate {
 data class Message(val header: String? = null, val body: String? = null)
 
 enum class WrongValueType { CardId, CardType }
+
+data class RequestUserCodeResult(
+    val code: String,
+    val rememberCode: Boolean,
+)
