@@ -51,12 +51,7 @@ class PreflightReadTask(
             when (result) {
                 is CompletionResult.Success -> {
                     if (session.environment.config.handleErrors) {
-                        if (backupStatus?.isActive == true && publicKey != null) {
-                            if (result.data.card.wallet(publicKey) == null) {
-                                callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
-                                return@run
-                            }
-                        } else if (backupStatus?.isActive == false && cardId != null
+                        if (backupStatus?.isActive == false && cardId != null
                                 && !cardId.equals(result.data.card.cardId, true)) {
                             callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
                             return@run
