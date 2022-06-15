@@ -122,8 +122,7 @@ class CommandListFragment : BaseFragment() {
         btnPasteJsonRpc.setOnClickListener { requireContext().getFromClipboard()?.let { etJsonRpc.setText(it) } }
         btnLaunchJsonRpc.setOnClickListener { launchJSONRPC(etJsonRpc.text.toString().trim()) }
 
-        btnCheckSetMessage.setOnClickListener {
-            sdk.startSessionWithRunnable(MultiMessageTask(), card?.cardId, initialMessage) { handleCommandResult(it) }
+        btnCheckSetMessage.setOnClickListener { sdk.startSessionWithRunnable(MultiMessageTask(), card?.cardId, initialMessage = initialMessage) { handleCommandResult(it) }
         }
 
         sliderWallet.stepSize = 1f

@@ -39,8 +39,10 @@ sealed class PreflightReadMode {
 }
 
 class PreflightReadTask(
-    private val readMode: PreflightReadMode,
-    private val cardId: String? = null
+        private val readMode: PreflightReadMode,
+        private val backupStatus: Card.BackupStatus? = null,
+        private val cardId: String? = null,
+        private val publicKey: ByteArray? = null
 ) : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
@@ -49,7 +51,13 @@ class PreflightReadTask(
             when (result) {
                 is CompletionResult.Success -> {
                     if (session.environment.config.handleErrors) {
-                        if (cardId != null && !cardId.equals(result.data.card.cardId, true)) {
+                        if (backupStatus?.isActive == true && publicKey != null) {
+                            if (result.data.card.wallet(publicKey) == null) {
+                                callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
+                                return@run
+                            }
+                        } else if (backupStatus?.isActive == false && cardId != null
+                                && !cardId.equals(result.data.card.cardId, true)) {
                             callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
                             return@run
                         }

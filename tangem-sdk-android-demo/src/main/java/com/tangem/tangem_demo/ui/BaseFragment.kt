@@ -119,7 +119,7 @@ abstract class BaseFragment : Fragment() {
 
     protected fun attestCard(mode: AttestationTask.Mode) {
         val command = AttestationTask(mode, sdk.secureStorage)
-        sdk.startSessionWithRunnable(command, card?.cardId, initialMessage) { handleResult(it) }
+        sdk.startSessionWithRunnable(command, card?.cardId, initialMessage = initialMessage) { handleResult(it) }
     }
 
     protected fun derivePublicKey() {
@@ -153,7 +153,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hash, publicKey, cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hash, publicKey, card?.backupStatus, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun signHashes(hashes: Array<ByteArray>) {
@@ -170,7 +170,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hashes, publicKey, cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hashes, publicKey, card?.backupStatus, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun createWallet(curve: EllipticCurve) {
@@ -231,17 +231,17 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-            cardId = cardId,
-            fileData = issuerData,
-            fileCounter = counter,
-            fileName = null,
-            privateKey = Personalization.issuer().dataKeyPair.privateKey
+                cardId = cardId,
+                fileData = issuerData,
+                fileCounter = counter,
+                fileName = null,
+                privateKey = Personalization.issuer().dataKeyPair.privateKey
         )
 
         sdk.writeIssuerExtraData(
-            cardId, issuerData,
-            signatures.startingSignature!!, signatures.finalizingSignature!!,
-            counter, initialMessage
+                cardId, issuerData,
+                signatures.startingSignature!!, signatures.finalizingSignature!!,
+                counter, initialMessage
         ) { handleResult(it) }
     }
 
@@ -334,10 +334,10 @@ abstract class BaseFragment : Fragment() {
         val demoPayload = Utils.randomString(Utils.randomInt(15, 30)).toByteArray()
         //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
         val file: FileToWrite = FileToWrite.ByUser(
-            data = demoPayload,
-            fileName = "User file",
-            fileVisibility = FileVisibility.Public,
-            walletPublicKey = null
+                data = demoPayload,
+                fileName = "User file",
+                fileVisibility = FileVisibility.Public,
+                walletPublicKey = null
         )
 
         sdk.writeFiles(listOf(file), card?.cardId, initialMessage) {
@@ -356,22 +356,22 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
         val fileHash = FileHashHelper.prepareHashes(
-            cardId = cardId,
-            fileData = demoPayload,
-            fileCounter = counter,
-            fileName = fileName,
-            privateKey = Personalization.issuer().dataKeyPair.privateKey
+                cardId = cardId,
+                fileData = demoPayload,
+                fileCounter = counter,
+                fileName = fileName,
+                privateKey = Personalization.issuer().dataKeyPair.privateKey
         )
 
         ifNotNullOr(fileHash.startingSignature, fileHash.finalizingSignature, { sSignature, fSignature ->
             val file = FileToWrite.ByFileOwner(
-                data = demoPayload,
-                fileName = fileName,
-                startingSignature = sSignature,
-                finalizingSignature = fSignature,
-                counter = counter,
-                fileVisibility = FileVisibility.Public,
-                walletPublicKey = null
+                    data = demoPayload,
+                    fileName = fileName,
+                    startingSignature = sSignature,
+                    finalizingSignature = fSignature,
+                    counter = counter,
+                    fileVisibility = FileVisibility.Public,
+                    walletPublicKey = null
             )
             sdk.writeFiles(listOf(file)) { handleResult(it) }
         }, {
@@ -395,16 +395,16 @@ abstract class BaseFragment : Fragment() {
     }
 
     private fun setCard(
-        result: CompletionResult<*>,
-        rescan: Boolean = false,
-        delay: Long = 1500,
-        callback: VoidCallback
+            result: CompletionResult<*>,
+            rescan: Boolean = false,
+            delay: Long = 1500,
+            callback: VoidCallback
     ) {
         when {
             rescan -> {
                 showToast("Need rescan the card after Create/Purge wallet")
                 post(delay) {
-                    val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
+                    val command = PreflightReadTask(PreflightReadMode.FullCardRead, cardId = card?.cardId)
                     sdk.startSessionWithRunnable(command) {
                         postUi() { setCard(it, false, callback = callback) }
                     }

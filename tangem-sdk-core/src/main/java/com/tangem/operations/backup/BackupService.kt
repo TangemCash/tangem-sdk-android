@@ -289,7 +289,7 @@ class BackupService(
             sdk.startSessionWithRunnable(
                 task, primaryCard.cardId,
                 initialMessage = message,
-                callback
+                callback = callback
             )
         } catch (error: TangemSdkError) {
             callback(CompletionResult.Failure(error))

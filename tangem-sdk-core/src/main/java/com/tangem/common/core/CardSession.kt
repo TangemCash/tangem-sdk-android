@@ -4,6 +4,7 @@ import com.tangem.*
 import com.tangem.common.*
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.core.*
 import com.tangem.common.extensions.VoidCallback
@@ -36,13 +37,15 @@ import java.io.StringWriter
  * If null, a default header and text body will be used.
  */
 class CardSession(
-    val viewDelegate: SessionViewDelegate,
-    val environment: SessionEnvironment,
-    private val reader: CardReader,
-    private val jsonRpcConverter: JSONRPCConverter,
-    private val secureStorage: SecureStorage,
-    cardId: String? = null,
-    private var initialMessage: Message? = null
+        val viewDelegate: SessionViewDelegate,
+        val environment: SessionEnvironment,
+        private val reader: CardReader,
+        private val jsonRpcConverter: JSONRPCConverter,
+        private val secureStorage: SecureStorage,
+        cardId: String? = null,
+        private val cardBackupStatus: Card.BackupStatus? = null,
+        private val walletPublicKey: ByteArray? = null,
+        private var initialMessage: Message? = null
 ) {
 
     var cardId: String? = cardId
@@ -197,7 +200,12 @@ class CardSession(
 
     private fun preflightCheck(onSessionStarted: SessionStartedCallback) {
         Log.session { "Start preflight check" }
-        val preflightTask = PreflightReadTask(preflightReadMode, cardId)
+        val preflightTask = PreflightReadTask(
+                preflightReadMode,
+                backupStatus = cardBackupStatus,
+                cardId = cardId,
+                publicKey = walletPublicKey
+        )
         preflightTask.run(this) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -337,9 +345,9 @@ class CardSession(
                 val uid = result.uid
                 val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, 50)
                         ?: return CompletionResult.Failure(
-                            TangemSdkError.CryptoUtilsError(
-                                "Failed to establish encryption"
-                            )
+                                TangemSdkError.CryptoUtilsError(
+                                        "Failed to establish encryption"
+                                )
                         )
 
                 val secret = encryptionHelper.generateSecret(result.sessionKeyB)
@@ -443,8 +451,8 @@ class CardSession(
             callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
         }
         resetCodesController = ResetCodesController(
-            resetService = resetService,
-            viewDelegate = viewDelegate.resetCodesViewDelegate
+                resetService = resetService,
+                viewDelegate = viewDelegate.resetCodesViewDelegate
         ).apply {
             cardIdDisplayFormat = environment.config.cardIdDisplayFormat
             start(codeType = type, cardId = cardId, callback = callback)
@@ -465,25 +473,25 @@ enum class TagType {
 }
 
 class SessionBuilder(
-    val viewDelegate: SessionViewDelegate,
-    val secureStorage: SecureStorage,
-    val reader: CardReader,
-    val jsonRpcConverter: JSONRPCConverter,
+        val viewDelegate: SessionViewDelegate,
+        val secureStorage: SecureStorage,
+        val reader: CardReader,
+        val jsonRpcConverter: JSONRPCConverter,
 ) {
     fun build(
-        config: Config,
-        cardId: String? = null,
-        initialMessage: Message? = null
+            config: Config,
+            cardId: String? = null,
+            initialMessage: Message? = null
     ): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
         return CardSession(
-            viewDelegate = viewDelegate,
-            environment = environment,
-            reader = reader,
-            jsonRpcConverter = jsonRpcConverter,
-            cardId = cardId,
-            initialMessage = initialMessage,
-            secureStorage = secureStorage,
+                viewDelegate = viewDelegate,
+                environment = environment,
+                reader = reader,
+                jsonRpcConverter = jsonRpcConverter,
+                cardId = cardId,
+                initialMessage = initialMessage,
+                secureStorage = secureStorage,
         )
     }
 }
