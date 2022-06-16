@@ -47,7 +47,7 @@
         android:textColor="@color/sdk_message_body"
         android:textSize="15sp"
         android:fontFamily="sans-serif"
-        android:text="@string/use_fingerprint_on_this_device" />
+        android:text="@string/use_biometrics_on_this_device" />
 
     <View
         android:layout_width="match_parent"

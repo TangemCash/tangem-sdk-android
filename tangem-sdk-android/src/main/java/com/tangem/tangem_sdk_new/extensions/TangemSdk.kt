@@ -7,7 +7,7 @@ import com.tangem.Log
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
-import com.tangem.common.biomteric.AuthManager
+import com.tangem.common.auth.AuthManager
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
@@ -33,7 +33,7 @@ fun TangemSdk.Companion.init(activity: FragmentActivity, config: Config = Config
     return DefaultTangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
-        authManager = TangemSdk.initBiometricAuthManager(activity, viewDelegate),
+        authManager = TangemSdk.initBiometricAuthManager(activity),
         storage = AndroidStorage.create(activity),
         secureStorage = SecureStorage.create(activity),
         config = config,
@@ -60,7 +60,7 @@ fun TangemSdk.Companion.customDelegate(
     return DefaultTangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegateSafe,
-        authManager = TangemSdk.initBiometricAuthManager(activity, viewDelegateSafe),
+        authManager = TangemSdk.initBiometricAuthManager(activity),
         storage = AndroidStorage.create(activity),
         secureStorage = SecureStorage.create(activity),
         config = config,
@@ -97,10 +97,7 @@ fun TangemSdk.Companion.createLogger(): TangemSdkLogger {
     }
 }
 
-fun TangemSdk.Companion.initBiometricAuthManager(
-    activity: FragmentActivity,
-    sessionViewDelegate: SessionViewDelegate
-): AuthManager {
-    return BiometricAuthManager(activity, sessionViewDelegate)
-        .also(activity.lifecycle::addObserver)
+fun TangemSdk.Companion.initBiometricAuthManager(activity: FragmentActivity): AuthManager {
+    return BiometricAuthManager(activity)
+        .also { activity.lifecycle.addObserver(it) }
 }

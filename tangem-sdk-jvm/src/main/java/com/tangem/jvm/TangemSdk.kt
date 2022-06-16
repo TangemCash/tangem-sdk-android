@@ -4,7 +4,9 @@ import com.tangem.DefaultTangemSdk
 import com.tangem.Log
 import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
+import com.tangem.common.auth.DummyAuthManager
 import com.tangem.common.core.Config
+import com.tangem.common.services.InMemoryStorage
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*

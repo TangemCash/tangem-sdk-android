@@ -1,4 +1,4 @@
-package com.tangem.common.biomteric
+package com.tangem.common.auth
 
 interface AuthManager {
     val canAuthenticate: Boolean

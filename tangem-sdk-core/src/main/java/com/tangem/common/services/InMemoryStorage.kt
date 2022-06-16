@@ -1,9 +1,8 @@
-package com.tangem.jvm
+package com.tangem.common.services
 
-import com.tangem.common.services.Storage
 import com.tangem.common.services.secure.SecureStorage
 
-internal class InMemoryStorage : SecureStorage, Storage {
+class InMemoryStorage : SecureStorage, Storage {
     private val byteArrayStorage = mutableMapOf<String, ByteArray>()
     private val stringStorage = mutableMapOf<String, String>()
 

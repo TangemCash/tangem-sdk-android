@@ -87,8 +87,6 @@ interface SessionViewDelegate {
     )
 
     fun attestationCompletedWithWarnings(positive: VoidCallback)
-
-    fun onAuthentication()
 }
 
 /**

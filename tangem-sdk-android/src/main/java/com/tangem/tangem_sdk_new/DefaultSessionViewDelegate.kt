@@ -29,7 +29,7 @@ import com.tangem.tangem_sdk_new.ui.NfcSessionDialog
 class DefaultSessionViewDelegate(
     private val nfcManager: NfcManager,
     private val reader: CardReader,
-    private val activity: Activity,
+    private val activity: Activity
 ) : SessionViewDelegate {
 
     var sdkConfig: Config? = null
@@ -139,10 +139,6 @@ class DefaultSessionViewDelegate(
 
     override fun attestationCompletedWithWarnings(positive: VoidCallback) {
         AttestationFailedDialog.completedWithWarnings(activity, positive)
-    }
-
-    override fun onAuthentication() {
-        readingDialog?.show(SessionViewDelegateState.Authenticate)
     }
 
     private fun createAndShowState(state: SessionViewDelegateState, enableHowTo: Boolean, message: Message? = null) {

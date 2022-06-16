@@ -35,11 +35,11 @@ import kotlin.coroutines.CoroutineContext
 class BackupActivity : FragmentActivity() {
 
     lateinit var backupService: BackupService
-    private lateinit var tangemSdk: TangemSdk
+    lateinit var tangemSdk: TangemSdk
 
     private val mainCoroutineContext: CoroutineContext
         get() = Job() + Dispatchers.Main + initCoroutineExceptionHandler()
-    private val mainScope = CoroutineScope(mainCoroutineContext)
+    val mainScope = CoroutineScope(mainCoroutineContext)
 
     private fun initCoroutineExceptionHandler(): CoroutineExceptionHandler {
         return CoroutineExceptionHandler { _, throwable ->
@@ -115,6 +115,10 @@ class BackupActivity : FragmentActivity() {
             tangemSdk.startSessionWithRunnable(ResetBackupCommand()) {
 
             }
+
         }
+
+
+
     }
 }

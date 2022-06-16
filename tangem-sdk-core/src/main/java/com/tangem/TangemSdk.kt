@@ -2,7 +2,7 @@ package com.tangem
 
 import com.tangem.common.SuccessResponse
 import com.tangem.common.accesscode.AccessCodeRepository
-import com.tangem.common.biomteric.AuthManager
+import com.tangem.common.auth.AuthManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*

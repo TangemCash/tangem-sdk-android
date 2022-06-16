@@ -102,10 +102,6 @@ class LoggingSessionDelegate : SessionViewDelegate {
     override fun attestationCompletedWithWarnings(positive: VoidCallback) {
     }
 
-    override fun onAuthentication() {
-        /* no-op */
-    }
-
     companion object {
         const val TAG = "DELEGATE"
     }

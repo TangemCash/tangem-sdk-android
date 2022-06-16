@@ -1,15 +1,13 @@
 package com.tangem.common.apdu
 
 import com.google.common.truth.Truth.assertThat
-import com.tangem.common.core.Config
 import com.tangem.common.core.SessionEnvironment
-import com.tangem.common.services.secure.UnsafeInMemoryStorage
 import com.tangem.common.tlv.TlvTag
 import org.junit.jupiter.api.Test
 
 class ResponseApduTest {
 
-    private val environment = SessionEnvironment(Config(), UnsafeInMemoryStorage())
+    private val environment = SessionEnvironment.Dummy
 
     @Test
     fun `get StatusWord returns Unknown`() {

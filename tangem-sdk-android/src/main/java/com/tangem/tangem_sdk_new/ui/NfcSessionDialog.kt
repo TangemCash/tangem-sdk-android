@@ -114,7 +114,6 @@ class NfcSessionDialog(
                 is SessionViewDelegateState.PinRequested -> onPinRequested(state)
                 is SessionViewDelegateState.PinChangeRequested -> onPinChangeRequested(state)
                 is SessionViewDelegateState.WrongCard -> onWrongCard(state)
-                is SessionViewDelegateState.Authenticate -> onAuthenticate()
                 SessionViewDelegateState.TagConnected -> onTagConnected(state)
                 SessionViewDelegateState.TagLost -> onTagLost(state)
                 SessionViewDelegateState.HowToTap -> howToTap(state)
@@ -225,10 +224,6 @@ class NfcSessionDialog(
                 setStateAndShow(currentState!!, headerWidget, touchCardWidget, messageWidget)
             }
         }
-    }
-
-    private fun onAuthenticate() {
-        dismiss()
     }
 
     private fun howToTap(state: SessionViewDelegateState) {

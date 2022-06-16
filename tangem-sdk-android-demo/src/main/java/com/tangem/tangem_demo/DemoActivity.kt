@@ -87,7 +87,7 @@ class DemoActivity : AppCompatActivity() {
         return DefaultTangemSdk(
             reader = nfcManager.reader,
             viewDelegate = viewDelegate,
-            authManager = TangemSdk.initBiometricAuthManager(this, viewDelegate),
+            authManager = TangemSdk.initBiometricAuthManager(this),
             storage = AndroidStorage.create(this),
             secureStorage = SecureStorage.create(this),
             config = config,

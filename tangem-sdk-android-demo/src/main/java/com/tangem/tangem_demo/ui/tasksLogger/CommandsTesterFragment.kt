@@ -199,7 +199,6 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {}
         override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {}
         override fun attestationCompletedWithWarnings(positive: VoidCallback) {}
-        override fun onAuthentication() {}
     }
 
     class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {

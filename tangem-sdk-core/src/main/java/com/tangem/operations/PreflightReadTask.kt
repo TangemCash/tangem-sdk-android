@@ -64,7 +64,7 @@ class PreflightReadTask(
                     session.environment.accessCodeRepository.get(receivedCard.cardId)
                         .onFailure { finalizeRead(session, receivedCard, callback) }
                         .onSuccess { accessCode ->
-                            session.viewDelegate.onAuthentication()
+                            session.viewDelegate.dismiss()
                             session.environment.authManager.authenticate { isAuthenticated ->
                                 if (isAuthenticated) {
                                     session.updateEnvironment(

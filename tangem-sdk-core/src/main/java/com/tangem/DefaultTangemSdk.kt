@@ -2,8 +2,8 @@ package com.tangem
 
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
-import com.tangem.common.accesscode.AccessCodeRepositoryImpl
-import com.tangem.common.biomteric.AuthManager
+import com.tangem.common.accesscode.DefaultAccessCodeRepository
+import com.tangem.common.auth.AuthManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
@@ -876,9 +876,9 @@ class DefaultTangemSdk(
     }
 
     private fun makeSession(cardId: String? = null, initialMessage: Message? = null): CardSession {
-        val accessCodeRepository = AccessCodeRepositoryImpl(
-            secureStorage = secureStorage,
+        val accessCodeRepository = DefaultAccessCodeRepository(
             jsonConverter = MoshiJsonConverter.INSTANCE,
+            secureStorage = secureStorage,
             storage = storage
         )
         val environment = SessionEnvironment(

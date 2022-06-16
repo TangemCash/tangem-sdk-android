@@ -1,8 +1,6 @@
-package com.tangem.jvm
+package com.tangem.common.auth
 
-import com.tangem.common.biomteric.AuthManager
-
-internal class DummyAuthManager : AuthManager {
+class DummyAuthManager : AuthManager {
     override val canAuthenticate: Boolean
         get() = false
 

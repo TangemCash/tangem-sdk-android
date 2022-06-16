@@ -116,6 +116,9 @@
 
     <string name="how_to_try_other_way_button">Still not working</string>
     <string name="how_to_show_again_button">Show again</string>
-    <string name="use_fingerprint_on_this_device">Use fingerprint on this device</string>
+
+    <string name="use_biometrics_on_this_device">Use biometrics on this device</string>
+    <string name="biometric_auth_title">Biometric authorization</string>
+    <string name="biometric_auth_negative_text">Cancel</string>
 
 </resources>

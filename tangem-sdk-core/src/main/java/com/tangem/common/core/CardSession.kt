@@ -12,7 +12,7 @@ import com.tangem.common.UserCodeType
 import com.tangem.common.accesscode.AccessCodeRepository
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.biomteric.AuthManager
+import com.tangem.common.auth.AuthManager
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
@@ -39,6 +39,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
