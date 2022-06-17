@@ -451,8 +451,8 @@ class CardSession(
             callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
         }
         resetCodesController = ResetCodesController(
-                resetService = resetService,
-                viewDelegate = viewDelegate.resetCodesViewDelegate
+            resetService = resetService,
+            viewDelegate = viewDelegate.resetCodesViewDelegate
         ).apply {
             cardIdDisplayFormat = environment.config.cardIdDisplayFormat
             start(codeType = type, cardId = cardId, callback = callback)
@@ -473,25 +473,25 @@ enum class TagType {
 }
 
 class SessionBuilder(
-        val viewDelegate: SessionViewDelegate,
-        val secureStorage: SecureStorage,
-        val reader: CardReader,
-        val jsonRpcConverter: JSONRPCConverter,
+    val viewDelegate: SessionViewDelegate,
+    val secureStorage: SecureStorage,
+    val reader: CardReader,
+    val jsonRpcConverter: JSONRPCConverter,
 ) {
     fun build(
-            config: Config,
-            cardId: String? = null,
-            initialMessage: Message? = null
+        config: Config,
+        cardId: String? = null,
+        initialMessage: Message? = null
     ): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
         return CardSession(
-                viewDelegate = viewDelegate,
-                environment = environment,
-                reader = reader,
-                jsonRpcConverter = jsonRpcConverter,
-                cardId = cardId,
-                initialMessage = initialMessage,
-                secureStorage = secureStorage,
+            viewDelegate = viewDelegate,
+            environment = environment,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter,
+            cardId = cardId,
+            initialMessage = initialMessage,
+            secureStorage = secureStorage,
         )
     }
 }
