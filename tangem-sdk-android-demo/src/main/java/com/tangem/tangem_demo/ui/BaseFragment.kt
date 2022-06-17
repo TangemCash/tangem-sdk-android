@@ -356,22 +356,22 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
         val fileHash = FileHashHelper.prepareHashes(
-                cardId = cardId,
-                fileData = demoPayload,
-                fileCounter = counter,
-                fileName = fileName,
-                privateKey = Personalization.issuer().dataKeyPair.privateKey
+            cardId = cardId,
+            fileData = demoPayload,
+            fileCounter = counter,
+            fileName = fileName,
+            privateKey = Personalization.issuer().dataKeyPair.privateKey
         )
 
         ifNotNullOr(fileHash.startingSignature, fileHash.finalizingSignature, { sSignature, fSignature ->
             val file = FileToWrite.ByFileOwner(
-                    data = demoPayload,
-                    fileName = fileName,
-                    startingSignature = sSignature,
-                    finalizingSignature = fSignature,
-                    counter = counter,
-                    fileVisibility = FileVisibility.Public,
-                    walletPublicKey = null
+                data = demoPayload,
+                fileName = fileName,
+                startingSignature = sSignature,
+                finalizingSignature = fSignature,
+                counter = counter,
+                fileVisibility = FileVisibility.Public,
+                walletPublicKey = null
             )
             sdk.writeFiles(listOf(file)) { handleResult(it) }
         }, {
