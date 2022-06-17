@@ -231,17 +231,17 @@ abstract class BaseFragment : Fragment() {
         val counter = 1
         val issuerData = CryptoUtils.generateRandomBytes(WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE * 5)
         val signatures = FileHashHelper.prepareHashes(
-                cardId = cardId,
-                fileData = issuerData,
-                fileCounter = counter,
-                fileName = null,
-                privateKey = Personalization.issuer().dataKeyPair.privateKey
+            cardId = cardId,
+            fileData = issuerData,
+            fileCounter = counter,
+            fileName = null,
+            privateKey = Personalization.issuer().dataKeyPair.privateKey
         )
 
         sdk.writeIssuerExtraData(
-                cardId, issuerData,
-                signatures.startingSignature!!, signatures.finalizingSignature!!,
-                counter, initialMessage
+            cardId, issuerData,
+            signatures.startingSignature!!, signatures.finalizingSignature!!,
+            counter, initialMessage
         ) { handleResult(it) }
     }
 

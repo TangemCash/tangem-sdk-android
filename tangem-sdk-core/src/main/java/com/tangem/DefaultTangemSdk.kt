@@ -288,7 +288,7 @@ class DefaultTangemSdk(
             callback: CompletionCallback<Card>
     ) {
         val command = PersonalizeCommand(config, issuer, manufacturer, acquirer)
-        startSessionWithRunnable(command, null, initialMessage = initialMessage, callback = callback)
+        startSessionWithRunnable(command, cardId = null, initialMessage = initialMessage, callback = callback)
     }
 
     /**
@@ -307,7 +307,7 @@ class DefaultTangemSdk(
             initialMessage: Message?,
             callback: CompletionCallback<DepersonalizeResponse>
     ) {
-        startSessionWithRunnable(DepersonalizeCommand(), null, initialMessage = initialMessage, callback = callback)
+        startSessionWithRunnable(DepersonalizeCommand(), cardId = null, initialMessage = initialMessage, callback = callback)
     }
 
     /**
@@ -771,7 +771,8 @@ class DefaultTangemSdk(
         }
 
         configure()
-        cardSession = makeSession(cardId,
+        cardSession = makeSession(
+                cardId = cardId,
                 cardBackupStatus = cardBackupStatus,
                 walletPublicKey = walletPublicKey,
                 initialMessage = initialMessage
