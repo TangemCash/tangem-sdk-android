@@ -50,8 +50,6 @@
     <string name="error_cannot_be_depersonalized">Cette carte ne peut pas être dépersonnalisée. </string>
     <string name="error_already_created">Le portefeuille a déjà été créé </string>
     <string name="error_purge_prohibited">La configuration de cette carte ne permet pas d\'effacer le portefeuille </string>
-    <string name="error_pin1_cannot_be_changed">Le code d\'accès PIN1 ne peut pas être modifié </string>
-    <string name="error_pin2_cannot_be_changed">Le mot de passe PIN2 ne peut pas être modifié </string>
     <string name="error_pin1_cannot_be_default">Le code d\'accès PIN1 ne peut pas être remplacé par la valeur par défaut. Créer un nouveau code d\'accès PIN1 </string>
     <string name="error_no_remaining_signatures">Vous ne pouvez pas signer les données avec ce portefeuille car la carte a atteint sa limite de signatures </string>
     <string name="error_empty_hashes">Il n\'y a rien à signer ici </string>

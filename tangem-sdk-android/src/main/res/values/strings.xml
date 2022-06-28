@@ -66,9 +66,8 @@
     <string name="error_cannot_be_depersonalized">This card cannot be depersonalized</string>
     <string name="error_already_created">A wallet has already been created</string>
     <string name="error_purge_prohibited">This card’s configuration does not allow you to erase the wallet</string>
-    <string name="error_pin1_cannot_be_changed">Access code cannot be changed</string>
-    <string name="error_pin2_cannot_be_changed">Passcode cannot be changed</string>
-    <string name="error_pin1_cannot_be_default">Access code cannot be changed to the default value. Please create a new Access code.</string>
+    <string name="error_pin_cannot_be_changed_format">%s cannot be changed</string>
+    <string name="error_pin_cannot_be_default_format">%s cannot be changed to this value. Please, enter another one.</string>
     <string name="error_no_remaining_signatures">You cannot sign data with this wallet because the card has reached its signature limit</string>
     <string name="error_empty_hashes">There is nothing to sign here</string>
     <string name="error_cannot_be_signed">This data cannot be signed</string>
@@ -88,8 +87,7 @@
     <string name="error_wrong_card_number">You tapped a different card. Please match the in-app Card ID to the your physical Card ID to continue this process.</string>
     <string name="error_wrong_card_type">This card is configured for a different app. Please see the information on your card and download the related app.</string>
     <string name="error_card_error">Your card is missing essential data</string>
-    <string name="error_pin1_required">Access code is required</string>
-    <string name="error_pin2_required">Passcode is required</string>
+    <string name="error_pin_required_format">%s is required</string>
     <string name="error_invalid_response">Invalid Response</string>
     <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
     <string name="error_extended_apdu_not_supported">It looks like your phone doesn\’t fully support NFC protocol. Please try to use another phone for this operation.</string>

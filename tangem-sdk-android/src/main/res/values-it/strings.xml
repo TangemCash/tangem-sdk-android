@@ -51,8 +51,6 @@
     <string name="error_cannot_be_depersonalized">Questa carta non può essere generica</string>
     <string name="error_already_created">Portafoglio già creato</string>
     <string name="error_purge_prohibited">La configurazione di questa carta non consente la cancellazione del portafoglio</string>
-    <string name="error_pin1_cannot_be_changed">Il codice di accesso PIN1 non può essere modificato</string>
-    <string name="error_pin2_cannot_be_changed">La password PIN2 non può essere modificata</string>
     <string name="error_pin1_cannot_be_default">Il codice di accesso PIN1 non può essere modificato in base all\'impostazione predefinita. Crea un nuovo codice di accesso PIN1.</string>
     <string name="error_no_remaining_signatures">Non puoi firmare dati con questo portafoglio perché la carta ha raggiunto il limite di firma</string>
     <string name="error_empty_hashes">Non c\' è nulla da firmare qui</string>

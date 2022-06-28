@@ -42,9 +42,8 @@
     <string name="error_cannot_be_depersonalized">Эту карту нельзя деперсонализировать</string>
     <string name="error_already_created">Кошелек уже создан</string>
     <string name="error_purge_prohibited">Конфигурация этой карты не позволяет удалить кошелек</string>
-    <string name="error_pin1_cannot_be_changed">Код доступа не может быть изменен</string>
-    <string name="error_pin2_cannot_be_changed">Пароль не может быть изменен</string>
-    <string name="error_pin1_cannot_be_default">Код доступа нельзя изменить на значение по умолчанию. Пожалуйста, создайте новый код доступа.</string>
+    <string name="error_pin_cannot_be_changed_format">%s не может быть изменен</string>
+    <string name="error_pin_cannot_be_default_format">%s нельзя изменить на это значение. Пожалуйста, введите другое</string>
     <string name="error_no_remaining_signatures">Вы не можете подписывать данные с помощью этого кошелька, так как лимит подписей на карте исчерпан.</string>
     <string name="error_empty_hashes">Здесь нечего подписывать</string>
     <string name="error_cannot_be_signed">Эти данные не могут быть подписаны</string>
@@ -64,8 +63,7 @@
     <string name="error_wrong_card_number">Вы коснулись другой картой. Чтобы продолжить этот процесс, сопоставьте Card ID карты в приложении с Card ID вашей физической карты.</string>
     <string name="error_wrong_card_type">Эта карта настроена для другого приложения. Ознакомьтесь с информацией на вашей карте и загрузите соответствующее приложение.</string>
     <string name="error_card_error">На вашей карте отсутствуют важные данные</string>
-    <string name="error_pin1_required">Требуется код доступа</string>
-    <string name="error_pin2_required">Требуется пароль</string>
+    <string name="error_pin_required_format">Введите %@</string>
     <string name="error_invalid_response">Неверный ответ</string>
     <string name="how_to_unknown_tap_card">Приложите карту к задней панели телефона</string>
     <string name="how_to_unknown_move_card">Чтобы определить, где находится ваша антенна NFC, перемещайте карту вверх и вниз пока не почувствуете вибрацию.</string>

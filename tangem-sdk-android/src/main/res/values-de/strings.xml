@@ -49,8 +49,6 @@
     <string name="error_cannot_be_depersonalized">Diese Karte kann nicht depersonalisiert werden</string>
     <string name="error_already_created">Ein Wallet ist bereits erstellt worden</string>
     <string name="error_purge_prohibited">Die Konfiguration der Karte erlaubt nicht, das Wallet zu löschen</string>
-    <string name="error_pin1_cannot_be_changed">PIN1 Der Zugangscode konnte nicht geändert werden</string>
-    <string name="error_pin2_cannot_be_changed">PIN2 Der Passcode konnte nicht geändert werden </string>
     <string name="error_pin1_cannot_be_default"> PIN1 Der Zugangscode konnte durch einen Default-Wert nicht geändert werden. Bitte erstellen Sie einen neuen PIN1-Zugangscode.</string>
     <string name="error_no_remaining_signatures">Sie können die Daten mit diesem Wallet nicht signieren, weil die Karte die Unterschriftsbeschränkung erreicht hat</string>
     <string name="error_empty_hashes">Hier gibt es nichts zu signieren</string>
