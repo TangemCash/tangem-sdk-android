@@ -6,7 +6,6 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
-import com.tangem.common.core.*
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.json.*
@@ -43,8 +42,6 @@ class CardSession(
         private val jsonRpcConverter: JSONRPCConverter,
         private val secureStorage: SecureStorage,
         cardId: String? = null,
-        private val cardBackupStatus: Card.BackupStatus? = null,
-        private val walletPublicKey: ByteArray? = null,
         private var initialMessage: Message? = null
 ) {
 
@@ -202,9 +199,7 @@ class CardSession(
         Log.session { "Start preflight check" }
         val preflightTask = PreflightReadTask(
                 preflightReadMode,
-                backupStatus = cardBackupStatus,
-                cardId = cardId,
-                publicKey = walletPublicKey
+                cardId = cardId
         )
         preflightTask.run(this) { result ->
             when (result) {

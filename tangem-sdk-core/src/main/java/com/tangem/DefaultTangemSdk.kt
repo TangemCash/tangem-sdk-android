@@ -29,6 +29,7 @@ import com.tangem.operations.pins.SetUserCodeCommand
 import com.tangem.operations.sign.*
 import com.tangem.operations.wallet.*
 import kotlinx.coroutines.*
+import java.security.PublicKey
 
 /**
  * The main interface of Tangem SDK that allows your app to communicate with Tangem cards.
@@ -70,7 +71,7 @@ class DefaultTangemSdk(
      * in the form of [Card] if the task was performed successfully or [TangemSdkError] in case of an error.
      */
     override fun scanCard(initialMessage: Message?, callback: CompletionCallback<Card>) {
-        startSessionWithRunnable(ScanTask(), null, initialMessage = initialMessage, callback = callback)
+        startSessionWithRunnable(runnable = ScanTask(), cardId = null, initialMessage = initialMessage, callback = callback)
     }
 
     /**
@@ -92,14 +93,13 @@ class DefaultTangemSdk(
     override fun sign(
             hash: ByteArray,
             walletPublicKey: ByteArray,
-            backupStatus: Card.BackupStatus?,
             cardId: String?,
             derivationPath: DerivationPath?,
             initialMessage: Message?,
             callback: CompletionCallback<SignHashResponse>
     ) {
         val command = SignHashCommand(hash, walletPublicKey, derivationPath)
-        startSessionWithRunnable(command, cardId, walletPublicKey, backupStatus, initialMessage, callback)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
     /**
@@ -127,14 +127,13 @@ class DefaultTangemSdk(
     override fun sign(
             hashes: Array<ByteArray>,
             walletPublicKey: ByteArray,
-            cardBackupStatus: Card.BackupStatus?,
             cardId: String?,
             derivationPath: DerivationPath?,
             initialMessage: Message?,
             callback: CompletionCallback<SignResponse>
     ) {
         val command = SignCommand(hashes, walletPublicKey, derivationPath)
-        startSessionWithRunnable(command, cardId, walletPublicKey, cardBackupStatus, initialMessage, callback)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
     /**
@@ -158,7 +157,7 @@ class DefaultTangemSdk(
             callback: CompletionCallback<ExtendedPublicKey>
     ) {
         val command = DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
-        startSessionWithRunnable(command, cardId, walletPublicKey, null, initialMessage, callback)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
     /**
@@ -182,7 +181,7 @@ class DefaultTangemSdk(
             callback: CompletionCallback<ExtendedPublicKeysMap>
     ) {
         val command = DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
-        startSessionWithRunnable(command, cardId, walletPublicKey, null, initialMessage, callback)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
     }
 
     /**
@@ -760,8 +759,6 @@ class DefaultTangemSdk(
     override fun <T> startSessionWithRunnable(
             runnable: CardSessionRunnable<T>,
             cardId: String?,
-            walletPublicKey: ByteArray?,
-            cardBackupStatus: Card.BackupStatus?,
             initialMessage: Message?,
             callback: CompletionCallback<T>
     ) {
@@ -773,8 +770,6 @@ class DefaultTangemSdk(
         configure()
         cardSession = makeSession(
                 cardId = cardId,
-                cardBackupStatus = cardBackupStatus,
-                walletPublicKey = walletPublicKey,
                 initialMessage = initialMessage
         )
         Thread().run { cardSession?.startWithRunnable(runnable, callback) }
@@ -884,8 +879,6 @@ class DefaultTangemSdk(
     }
 
     private fun makeSession(cardId: String? = null,
-                            cardBackupStatus: Card.BackupStatus? = null,
-                            walletPublicKey: ByteArray? = null,
                             initialMessage: Message? = null): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
         return CardSession(
@@ -894,8 +887,6 @@ class DefaultTangemSdk(
                 reader = reader,
                 jsonRpcConverter = jsonRpcConverter,
                 cardId = cardId,
-                cardBackupStatus = cardBackupStatus,
-                walletPublicKey = walletPublicKey,
                 initialMessage = initialMessage,
                 secureStorage = secureStorage,
         )

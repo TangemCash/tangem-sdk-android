@@ -62,7 +62,6 @@ interface TangemSdk {
     fun sign(
             hash: ByteArray,
             walletPublicKey: ByteArray,
-            backupStatus: Card.BackupStatus?,
             cardId: String?,
             derivationPath: DerivationPath? = null,
             initialMessage: Message? = null,
@@ -94,7 +93,6 @@ interface TangemSdk {
     fun sign(
         hashes: Array<ByteArray>,
         walletPublicKey: ByteArray,
-        cardBackupStatus: Card.BackupStatus? = null,
         cardId: String?,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
@@ -643,8 +641,6 @@ interface TangemSdk {
     fun <T> startSessionWithRunnable(
         runnable: CardSessionRunnable<T>,
         cardId: String? = null,
-        walletPublicKey: ByteArray? = null,
-        cardBackupStatus: Card.BackupStatus? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<T>
     )
