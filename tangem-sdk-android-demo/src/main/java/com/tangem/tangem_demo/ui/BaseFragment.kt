@@ -153,7 +153,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hash, publicKey, card?.backupStatus, cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hash, publicKey, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun signHashes(hashes: Array<ByteArray>) {
@@ -170,7 +170,7 @@ abstract class BaseFragment : Fragment() {
             showToast("Failed to parse hd path")
             return
         }
-        sdk.sign(hashes, publicKey, card?.backupStatus, cardId, path, initialMessage) { handleResult(it) }
+        sdk.sign(hashes, publicKey, cardId, path, initialMessage) { handleResult(it) }
     }
 
     protected fun createWallet(curve: EllipticCurve) {
