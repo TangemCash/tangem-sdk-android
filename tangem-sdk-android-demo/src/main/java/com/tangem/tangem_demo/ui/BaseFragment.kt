@@ -2,13 +2,17 @@ package com.tangem.tangem_demo.ui
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.UiThread
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.tangem.*
+import com.tangem.Message
+import com.tangem.TangemSdk
+import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
@@ -24,14 +28,15 @@ import com.tangem.crypto.sign
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
-import com.tangem.operations.files.*
+import com.tangem.operations.files.FileHashHelper
+import com.tangem.operations.files.FileToWrite
+import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
 import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
-import kotlinx.android.synthetic.main.bottom_sheet_response_layout.btnCopyResponse
-import kotlin.collections.set
+import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
 
 abstract class BaseFragment : Fragment() {
 
