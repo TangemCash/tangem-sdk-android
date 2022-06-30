@@ -16,10 +16,14 @@ import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.*
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
-import com.tangem.operations.derivation.*
+import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
+import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
+import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.*
 import com.tangem.operations.issuerAndUserData.*
-import com.tangem.operations.personalization.*
+import com.tangem.operations.personalization.DepersonalizeCommand
+import com.tangem.operations.personalization.DepersonalizeResponse
+import com.tangem.operations.personalization.PersonalizeCommand
 import com.tangem.operations.personalization.entities.*
 import com.tangem.operations.pins.SetUserCodeCommand
 import com.tangem.operations.sign.*
