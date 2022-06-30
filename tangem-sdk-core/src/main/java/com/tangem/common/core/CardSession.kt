@@ -7,8 +7,7 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.json.JSONRPCConverter
-import com.tangem.common.json.JSONRPCLinker
+import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.EncryptionHelper
@@ -17,10 +16,10 @@ import com.tangem.operations.*
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.resetcode.ResetCodesController
 import com.tangem.operations.resetcode.ResetPinService
-import java.io.PrintWriter
-import java.io.StringWriter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.io.PrintWriter
+import java.io.StringWriter
 
 /**
  * Allows interaction with Tangem cards. Should be opened before sending commands.
