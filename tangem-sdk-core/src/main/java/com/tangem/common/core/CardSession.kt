@@ -36,13 +36,13 @@ import java.io.StringWriter
  * If null, a default header and text body will be used.
  */
 class CardSession(
-        val viewDelegate: SessionViewDelegate,
-        val environment: SessionEnvironment,
-        private val reader: CardReader,
-        private val jsonRpcConverter: JSONRPCConverter,
-        private val secureStorage: SecureStorage,
-        cardId: String? = null,
-        private var initialMessage: Message? = null
+    val viewDelegate: SessionViewDelegate,
+    val environment: SessionEnvironment,
+    private val reader: CardReader,
+    private val jsonRpcConverter: JSONRPCConverter,
+    private val secureStorage: SecureStorage,
+    cardId: String? = null,
+    private var initialMessage: Message? = null
 ) {
 
     var cardId: String? = cardId

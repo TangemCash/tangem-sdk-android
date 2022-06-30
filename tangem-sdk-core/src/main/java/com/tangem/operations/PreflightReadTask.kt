@@ -39,8 +39,8 @@ sealed class PreflightReadMode {
 }
 
 class PreflightReadTask(
-        private val readMode: PreflightReadMode,
-        private val cardId: String? = null
+    private val readMode: PreflightReadMode,
+    private val cardId: String? = null
 ) : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {

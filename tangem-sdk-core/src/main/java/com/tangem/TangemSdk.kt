@@ -60,12 +60,12 @@ interface TangemSdk {
      * or [TangemSdkError] in case of an error.
      */
     fun sign(
-            hash: ByteArray,
-            walletPublicKey: ByteArray,
-            cardId: String?,
-            derivationPath: DerivationPath? = null,
-            initialMessage: Message? = null,
-            callback: CompletionCallback<SignHashResponse>
+        hash: ByteArray,
+        walletPublicKey: ByteArray,
+        cardId: String?,
+        derivationPath: DerivationPath? = null,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<SignHashResponse>
     )
 
     /**
