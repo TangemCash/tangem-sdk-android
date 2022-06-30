@@ -1,26 +1,50 @@
 package com.tangem.common.core
 
-import com.tangem.*
-import com.tangem.common.*
+import com.tangem.Log
+import com.tangem.Message
+import com.tangem.SessionViewDelegate
+import com.tangem.TangemSdk
+import com.tangem.WrongValueType
+import com.tangem.common.CardIdFormatter
+import com.tangem.common.CompletionResult
+import com.tangem.common.UserCode
+import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.json.*
+import com.tangem.common.json.JSONRPCConverter
+import com.tangem.common.json.JSONRPCLinker
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
-import com.tangem.operations.*
+import com.tangem.operations.OpenSessionCommand
+import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.resetcode.ResetCodesController
 import com.tangem.operations.resetcode.ResetPinService
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import java.io.PrintWriter
 import java.io.StringWriter
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 
 /**
  * Allows interaction with Tangem cards. Should be opened before sending commands.
@@ -199,7 +223,7 @@ class CardSession(
         Log.session { "Start preflight check" }
         val preflightTask = PreflightReadTask(
                 preflightReadMode,
-                cardId = cardId
+                cardId
         )
         preflightTask.run(this) { result ->
             when (result) {

@@ -18,7 +18,12 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDataDeserializer
-import com.tangem.common.extensions.*
+import com.tangem.common.extensions.VoidCallback
+import com.tangem.common.extensions.guard
+import com.tangem.common.extensions.hexToBytes
+import com.tangem.common.extensions.ifNotNullOr
+import com.tangem.common.extensions.toByteArray
+import com.tangem.common.extensions.toHexString
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.Tlv
@@ -33,10 +38,18 @@ import com.tangem.operations.files.FileToWrite
 import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
-import com.tangem.tangem_demo.*
+import com.tangem.tangem_demo.DemoActivity
+import com.tangem.tangem_demo.DemoApplication
+import com.tangem.tangem_demo.Personalization
+import com.tangem.tangem_demo.PurgeAllWalletsTask
+import com.tangem.tangem_demo.R
+import com.tangem.tangem_demo.Utils
+import com.tangem.tangem_demo.post
+import com.tangem.tangem_demo.postUi
 import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
-import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
+import kotlinx.android.synthetic.main.bottom_sheet_response_layout.btnCopyResponse
+import kotlin.collections.set
 
 abstract class BaseFragment : Fragment() {
 
@@ -119,7 +132,7 @@ abstract class BaseFragment : Fragment() {
 
     protected fun attestCard(mode: AttestationTask.Mode) {
         val command = AttestationTask(mode, sdk.secureStorage)
-        sdk.startSessionWithRunnable(command, card?.cardId, initialMessage = initialMessage) { handleResult(it) }
+        sdk.startSessionWithRunnable(command, card?.cardId, initialMessage) { handleResult(it) }
     }
 
     protected fun derivePublicKey() {
