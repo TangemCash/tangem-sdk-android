@@ -322,6 +322,7 @@ class CardSession(
             ?: return CompletionResult.Failure(
                 TangemSdkError.CryptoUtilsError("Failed to establish encryption")
             )
+
         val openSessionCommand = OpenSessionCommand(encryptionHelper.keyA)
         val apdu = openSessionCommand.serialize(environment)
 
@@ -335,7 +336,11 @@ class CardSession(
 
                 val uid = result.uid
                 val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, 50)
-                        ?: return CompletionResult.Failure(TangemSdkError.CryptoUtilsError("Failed to establish encryption"))
+                    ?: return CompletionResult.Failure(
+                        TangemSdkError.CryptoUtilsError(
+                            "Failed to establish encryption"
+                        )
+                    )
 
                 val secret = encryptionHelper.generateSecret(result.sessionKeyB)
                 val sessionKey = (secret + protocolKey).calculateSha256()
