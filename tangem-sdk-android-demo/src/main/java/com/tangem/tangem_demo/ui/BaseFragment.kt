@@ -334,10 +334,10 @@ abstract class BaseFragment : Fragment() {
         val demoPayload = Utils.randomString(Utils.randomInt(15, 30)).toByteArray()
         //let walletPublicKey = Data(hexString: "40D2D7CFEF2436C159CCC918B7833FCAC5CB6037A7C60C481E8CA50AF9EDC70B")
         val file: FileToWrite = FileToWrite.ByUser(
-                data = demoPayload,
-                fileName = "User file",
-                fileVisibility = FileVisibility.Public,
-                walletPublicKey = null
+            data = demoPayload,
+            fileName = "User file",
+            fileVisibility = FileVisibility.Public,
+            walletPublicKey = null
         )
 
         sdk.writeFiles(listOf(file), card?.cardId, initialMessage) {
@@ -395,10 +395,10 @@ abstract class BaseFragment : Fragment() {
     }
 
     private fun setCard(
-            result: CompletionResult<*>,
-            rescan: Boolean = false,
-            delay: Long = 1500,
-            callback: VoidCallback
+        result: CompletionResult<*>,
+        rescan: Boolean = false,
+        delay: Long = 1500,
+        callback: VoidCallback
     ) {
         when {
             rescan -> {
