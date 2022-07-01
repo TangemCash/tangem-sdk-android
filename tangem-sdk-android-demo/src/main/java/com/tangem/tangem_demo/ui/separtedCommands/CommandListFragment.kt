@@ -140,18 +140,10 @@ class CommandListFragment : BaseFragment() {
         val userHexHash = etHashesToSign.text.toString()
         val strategy = when (strategyType) {
             SignStrategyType.SINGLE -> {
-                SingleSignStrategy(
-                    hexHash = userHexHash,
-                    sign = { super.signHash(it) },
-                    randomHashesGenerator = { prepareHashesToSign(it) }
-                )
+                SingleSignStrategy(userHexHash, ::signHash, ::prepareHashesToSign)
             }
             SignStrategyType.MULTIPLE -> {
-                MultiplySignStrategy(
-                    hexHashes = userHexHash,
-                    sign = { super.signHashes(it) },
-                    randomHashesGenerator = { prepareHashesToSign(it) }
-                )
+                MultiplySignStrategy(userHexHash, ::signHashes, ::prepareHashesToSign)
             }
         }
         strategy.onError = { showToast(it) }
