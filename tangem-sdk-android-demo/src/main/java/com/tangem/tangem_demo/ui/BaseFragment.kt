@@ -145,7 +145,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
         val publicKey = selectedWalletPubKey.guard {
-            showToast("Wallet publicKey is null")
+            showToast("Wallet not found")
             return
         }
         val path = createDerivationPath()
@@ -162,7 +162,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
         val publicKey = selectedWalletPubKey.guard {
-            showToast("Wallet publicKey is null")
+            showToast("Wallet not found")
             return
         }
         val path = createDerivationPath()
@@ -187,7 +187,7 @@ abstract class BaseFragment : Fragment() {
             return
         }
         val publicKey = selectedWalletPubKey.guard {
-            showToast("Wallet publicKey is null")
+            showToast("Wallet not found")
             return
         }
         sdk.purgeWallet(publicKey, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }

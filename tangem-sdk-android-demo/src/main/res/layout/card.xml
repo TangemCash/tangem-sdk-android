@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/flCardContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:paddingStart="@dimen/box_padding_horizontal"
+    android:paddingTop="@dimen/box_padding_vertical"
+    android:paddingEnd="@dimen/box_padding_horizontal"
+    android:paddingBottom="@dimen/box_padding_vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/rounded_corner" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?android:windowBackground"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="Card"
+        android:translationX="10dp"
+        android:translationY="-10dp" />
+
+    <FrameLayout
+        android:id="@+id/contentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btnScanCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Full scan" />
+
+            <Button
+                android:id="@+id/btnLoadCardInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Load card info" />
+
+            <FrameLayout
+                android:id="@+id/walletInfoContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/rounded_corner" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?android:windowBackground"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:text="Wallet info"
+                    android:translationX="10dp" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp">
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/sliderWallet"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvWalletsCountTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="wallets count:"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/sliderWallet" />
+
+                    <TextView
+                        android:id="@+id/tvWalletsCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/tvWalletsCountTitle"
+                        tools:text="0" />
+
+                    <TextView
+                        android:id="@+id/tvWalletIndexTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="selected wallet index:"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvWalletsCount" />
+
+                    <TextView
+                        android:id="@+id/tvWalletIndex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/tvWalletIndexTitle"
+                        tools:text="0" />
+
+                    <TextView
+                        android:id="@+id/tvWalletPubKeyTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="pubKey:"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvWalletIndexTitle" />
+
+                    <TextView
+                        android:id="@+id/tvWalletPubKey"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvWalletPubKeyTitle"
+                        tools:text="m12oinDSInfnu8f2sdlkfmslkmefslkmdflkm3bnfnslkdm" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</FrameLayout>
