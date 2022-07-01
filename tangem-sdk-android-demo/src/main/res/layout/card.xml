@@ -90,7 +90,7 @@
                         android:id="@+id/tvWalletsCountTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="wallets count:"
+                        android:text="Wallets count:"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/sliderWallet" />
 
@@ -106,7 +106,7 @@
                         android:id="@+id/tvWalletIndexTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="selected wallet index:"
+                        android:text="wallet index:"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tvWalletsCount" />
 
@@ -119,12 +119,28 @@
                         tools:text="0" />
 
                     <TextView
+                        android:id="@+id/tvWalletCurveTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="wallet curve:"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvWalletIndexTitle" />
+
+                    <TextView
+                        android:id="@+id/tvWalletCurve"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/tvWalletCurveTitle"
+                        tools:text="SecpK1" />
+
+                    <TextView
                         android:id="@+id/tvWalletPubKeyTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="pubKey:"
+                        android:text="wallet pubKey:"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tvWalletIndexTitle" />
+                        app:layout_constraintTop_toBottomOf="@+id/tvWalletCurveTitle" />
 
                     <TextView
                         android:id="@+id/tvWalletPubKey"

@@ -15,6 +15,7 @@ import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDataDeserializer
@@ -46,20 +47,25 @@ abstract class BaseFragment : Fragment() {
 
     protected lateinit var shPrefs: SharedPreferences
     protected var bshDlg: BottomSheetDialog? = null
-    protected var card: Card? = null
-    protected var derivationPath: String? = null
-    protected var initialMessage: Message? = null
-        private set
 
+    protected var card: Card? = null
     protected var selectedIndexOfWallet = -1
-    protected val selectedWalletPubKey: ByteArray?
+
+    protected val walletsCount: Int
+        get() = card?.wallets?.size ?: 0
+
+    protected val selectedWallet: CardWallet?
         get() {
             if (selectedIndexOfWallet == -1) return null
             val card = card ?: return null
             if (card.wallets.isEmpty() || selectedIndexOfWallet >= card.wallets.size) return null
 
-            return card.wallets[selectedIndexOfWallet].publicKey
+            return card.wallets[selectedIndexOfWallet]
         }
+
+    protected var derivationPath: String? = null
+    protected var initialMessage: Message? = null
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,7 +133,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
-        val walletPublicKey = selectedWalletPubKey.guard {
+        val walletPublicKey = selectedWallet?.publicKey.guard {
             showToast("Wallet publicKey required. Scan your card before proceeding")
             return
         }
@@ -144,7 +150,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        val publicKey = selectedWalletPubKey.guard {
+        val publicKey = selectedWallet?.publicKey.guard {
             showToast("Wallet not found")
             return
         }
@@ -161,7 +167,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        val publicKey = selectedWalletPubKey.guard {
+        val publicKey = selectedWallet?.publicKey.guard {
             showToast("Wallet not found")
             return
         }
@@ -186,7 +192,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        val publicKey = selectedWalletPubKey.guard {
+        val publicKey = selectedWallet?.publicKey.guard {
             showToast("Wallet not found")
             return
         }

@@ -15,7 +15,6 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.toHexString
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
@@ -28,6 +27,7 @@ import com.tangem.tangem_demo.postUi
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.backup.BackupActivity
 import com.tangem.tangem_demo.ui.extension.beginDelayedTransition
+import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.tangem_demo.ui.extension.setTextFromClipboard
 import kotlinx.android.synthetic.main.attestation.*
@@ -48,8 +48,6 @@ import kotlinx.android.synthetic.main.wallet.*
  * Created by Anton Zhilenkov on 23/12/2020.
  */
 class CommandListFragment : BaseFragment() {
-
-    private val hashesSplitSeparator = "|"
 
     override fun getLayoutId(): Int = R.layout.fg_command_list
 
@@ -89,8 +87,8 @@ class CommandListFragment : BaseFragment() {
         btnDerivePublicKey.setOnClickListener { derivePublicKey() }
 
         btnPasteHashes.setOnClickListener { etHashesToSign.setTextFromClipboard() }
-        btnSignHash.setOnClickListener { signHash() }
-        btnSignHashes.setOnClickListener { signHashes() }
+        btnSignHash.setOnClickListener { sign(SignStrategyType.SINGLE) }
+        btnSignHashes.setOnClickListener { sign(SignStrategyType.MULTIPLE) }
 
         btnCreateWalletSecpK1.setOnClickListener { createWallet(EllipticCurve.Secp256k1) }
         btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1) }
@@ -132,35 +130,32 @@ class CommandListFragment : BaseFragment() {
         }
 
         sliderWallet.stepSize = 1f
-    }
-
-    private fun signHash() {
-        val userHash = etHashesToSign.text.toString()
-        if (userHash.isEmpty()) {
-            super.signHash(prepareHashesToSign(1)[0])
-        } else {
-            if (userHash.contains(hashesSplitSeparator)) {
-                showToast("To sign multiply hashes use 'Sign Hashes' instead")
-            } else {
-                super.signHash(userHash.toByteArray())
-            }
+        tvWalletPubKey.setOnClickListener {
+            requireContext().copyToClipboard(tvWalletPubKey.text)
+            showToast("PubKey copied to clipboard")
         }
     }
 
-    private fun signHashes() {
-        val userHashes = etHashesToSign.text.toString()
-        if (userHashes.isEmpty()) {
-            super.signHashes(prepareHashesToSign(11))
-        } else {
-            if (!userHashes.contains(hashesSplitSeparator)) {
-                showToast("To sign a single hash use 'Sign Hash' instead")
-            } else {
-                val hashes = userHashes.split(hashesSplitSeparator)
-                        .map { it.toByteArray() }
-                        .toTypedArray()
-                super.signHashes(hashes)
+    private fun sign(strategyType: SignStrategyType) {
+        val userHexHash = etHashesToSign.text.toString()
+        val strategy = when (strategyType) {
+            SignStrategyType.SINGLE -> {
+                SingleSignStrategy(
+                    hexHash = userHexHash,
+                    sign = { super.signHash(it) },
+                    randomHashesGenerator = { prepareHashesToSign(it) }
+                )
+            }
+            SignStrategyType.MULTIPLE -> {
+                MultiplySignStrategy(
+                    hexHashes = userHexHash,
+                    sign = { super.signHashes(it) },
+                    randomHashesGenerator = { prepareHashesToSign(it) }
+                )
             }
         }
+        strategy.onError = { showToast(it) }
+        strategy.execute()
     }
 
     override fun handleCommandResult(result: CompletionResult<*>) {
@@ -183,22 +178,13 @@ class CommandListFragment : BaseFragment() {
         postUi { updateWalletsSlider() }
     }
 
-    private var walletsCount = 0
-
     private fun updateWalletsSlider() {
         fun updateWalletInfoContainerVisibility(visibility: Int) {
-            flCardContainer.beginDelayedTransition()
+            if (visibility == View.VISIBLE) flCardContainer.beginDelayedTransition()
             walletInfoContainer.visibility = visibility
         }
-
         sliderWallet.removeOnSliderTouchListener(sliderTouchListener)
-        val card = card.guard {
-            updateWalletInfoContainerVisibility(View.GONE)
-            selectedIndexOfWallet = -1
-            return
-        }
 
-        walletsCount = card.wallets.size
         if (walletsCount == 0) {
             updateWalletInfoContainerVisibility(View.GONE)
             selectedIndexOfWallet = -1
@@ -212,7 +198,7 @@ class CommandListFragment : BaseFragment() {
                 sliderWallet.value = 0f
                 sliderWallet.valueTo = 1f
                 sliderWallet.isEnabled = false
-                updateWalletInfo(walletsCount, selectedIndexOfWallet, selectedWalletPubKey)
+                updateWalletInfo()
                 return@post
             }
 
@@ -226,7 +212,7 @@ class CommandListFragment : BaseFragment() {
             }
             sliderWallet.value = selectedIndexOfWallet.toFloat()
             sliderWallet.addOnSliderTouchListener(sliderTouchListener)
-            updateWalletInfo(walletsCount, selectedIndexOfWallet, selectedWalletPubKey)
+            updateWalletInfo()
         }
     }
 
@@ -238,18 +224,15 @@ class CommandListFragment : BaseFragment() {
         @SuppressLint("RestrictedApi")
         override fun onStopTrackingTouch(slider: Slider) {
             selectedIndexOfWallet = slider.value.toInt()
-            updateWalletInfo(walletsCount, selectedIndexOfWallet, selectedWalletPubKey)
+            updateWalletInfo()
         }
     }
 
-    private fun updateWalletInfo(
-        walletsCount: Int,
-        selectedWalletIndex: Int,
-        selectedWalletPublicKey: ByteArray?
-    ) {
+    private fun updateWalletInfo() {
         tvWalletsCount.text = "$walletsCount"
-        tvWalletIndex.text = "$selectedWalletIndex"
-        tvWalletPubKey.text = selectedWalletPublicKey?.toHexString() ?: ""
+        tvWalletIndex.text = "$selectedIndexOfWallet"
+        tvWalletCurve.text = "${selectedWallet?.curve}"
+        tvWalletPubKey.text = "${selectedWallet?.publicKey?.toHexString()}"
     }
 
     private var jsonRpcSingleCommandTemplate: String = """

@@ -36,7 +36,7 @@
             android:id="@+id/etHashesToSign"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Paste hash(es) to sign"
+            android:hint="Paste HEX hash(es) to sign"
             android:inputType="textNoSuggestions|textMultiLine"
             app:layout_constraintEnd_toStartOf="@+id/btnPasteHashes"
             app:layout_constraintStart_toStartOf="parent"
