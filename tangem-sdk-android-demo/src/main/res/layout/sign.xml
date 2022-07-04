@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clipToPadding="false"
@@ -11,7 +12,9 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/rounded_corner" />
+        android:background="@drawable/rounded_corner">
+
+    </FrameLayout>
 
     <TextView
         android:layout_width="wrap_content"
@@ -23,38 +26,66 @@
         android:translationX="10dp"
         android:translationY="-10dp" />
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/contentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="10dp">
+        android:layout_height="wrap_content"
+        android:padding="10dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/etHashesToSign"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:hint="Paste HEX hash(es) to sign"
+            android:inputType="textNoSuggestions|textMultiLine"
+            app:layout_constraintEnd_toStartOf="@+id/btnPasteHashes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <Button
-                android:id="@+id/btnSignHash"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Sign hash" />
+        <ImageView
+            android:id="@+id/btnPasteHashes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_paste"
+            app:layout_constraintBottom_toBottomOf="@+id/etHashesToSign"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/etHashesToSign" />
 
-            <Space
-                android:layout_width="8dp"
-                android:layout_height="match_parent" />
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="To sign multiple hashes, separate them with '|'. If the field is left empty, then a random hash will be generated"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/etHashesToSign" />
 
-            <Button
-                android:text="Sign hashes"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/btnSignHashes"
-                android:layout_weight="1" />
+        <Button
+            android:id="@+id/btnSignHash"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:text="Sign hash"
+            app:layout_constraintEnd_toStartOf="@+id/btnSignHashes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
-        </LinearLayout>
+        <Button
+            android:id="@+id/btnSignHashes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="Sign hashes"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btnSignHash"
+            app:layout_constraintTop_toTopOf="@+id/btnSignHash" />
 
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

@@ -1,5 +1,6 @@
 package com.tangem.tangem_demo.ui.separtedCommands
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -14,7 +15,7 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.extensions.guard
+import com.tangem.common.extensions.toHexString
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
@@ -25,17 +26,18 @@ import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.postUi
 import com.tangem.tangem_demo.ui.BaseFragment
 import com.tangem.tangem_demo.ui.backup.BackupActivity
+import com.tangem.tangem_demo.ui.extension.beginDelayedTransition
+import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
-import com.tangem.tangem_demo.ui.extension.getFromClipboard
+import com.tangem.tangem_demo.ui.extension.setTextFromClipboard
 import kotlinx.android.synthetic.main.attestation.*
 import kotlinx.android.synthetic.main.backup.*
+import kotlinx.android.synthetic.main.card.*
 import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.json_rpc.*
-import kotlinx.android.synthetic.main.personalization_backup.*
-import kotlinx.android.synthetic.main.scan_card.*
 import kotlinx.android.synthetic.main.set_message.*
 import kotlinx.android.synthetic.main.set_pin.*
 import kotlinx.android.synthetic.main.sign.*
@@ -84,8 +86,9 @@ class CommandListFragment : BaseFragment() {
         etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it!!.toString() }
         btnDerivePublicKey.setOnClickListener { derivePublicKey() }
 
-        btnSignHash.setOnClickListener { signHash(prepareHashesToSign(1)[0]) }
-        btnSignHashes.setOnClickListener { signHashes(prepareHashesToSign(11)) }
+        btnPasteHashes.setOnClickListener { etHashesToSign.setTextFromClipboard() }
+        btnSignHash.setOnClickListener { sign(SignStrategyType.SINGLE) }
+        btnSignHashes.setOnClickListener { sign(SignStrategyType.MULTIPLE) }
 
         btnCreateWalletSecpK1.setOnClickListener { createWallet(EllipticCurve.Secp256k1) }
         btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1) }
@@ -119,7 +122,7 @@ class CommandListFragment : BaseFragment() {
         etJsonRpc.setText(jsonRpcSingleCommandTemplate)
         btnSingleJsonRpc.setOnClickListener { etJsonRpc.setText(jsonRpcSingleCommandTemplate) }
         btnListJsonRpc.setOnClickListener { etJsonRpc.setText(jsonRpcListCommandsTemplate) }
-        btnPasteJsonRpc.setOnClickListener { requireContext().getFromClipboard()?.let { etJsonRpc.setText(it) } }
+        btnPasteJsonRpc.setOnClickListener { etJsonRpc.setTextFromClipboard() }
         btnLaunchJsonRpc.setOnClickListener { launchJSONRPC(etJsonRpc.text.toString().trim()) }
 
         btnCheckSetMessage.setOnClickListener {
@@ -127,6 +130,24 @@ class CommandListFragment : BaseFragment() {
         }
 
         sliderWallet.stepSize = 1f
+        tvWalletPubKey.setOnClickListener {
+            requireContext().copyToClipboard(tvWalletPubKey.text)
+            showToast("PubKey copied to clipboard")
+        }
+    }
+
+    private fun sign(strategyType: SignStrategyType) {
+        val userHexHash = etHashesToSign.text.toString()
+        val strategy = when (strategyType) {
+            SignStrategyType.SINGLE -> {
+                SingleSignStrategy(userHexHash, ::signHash, ::prepareHashesToSign)
+            }
+            SignStrategyType.MULTIPLE -> {
+                MultiplySignStrategy(userHexHash, ::signHashes, ::prepareHashesToSign)
+            }
+        }
+        strategy.onError = { showToast(it) }
+        strategy.execute()
     }
 
     override fun handleCommandResult(result: CompletionResult<*>) {
@@ -149,19 +170,15 @@ class CommandListFragment : BaseFragment() {
         postUi { updateWalletsSlider() }
     }
 
-    private var walletsCount = 0
-
     private fun updateWalletsSlider() {
-        sliderWallet.removeOnSliderTouchListener(touchListener)
-        val card = card.guard {
-            walletIndexesContainer.visibility = View.GONE
-            selectedIndexOfWallet = -1
-            return
+        fun updateWalletInfoContainerVisibility(visibility: Int) {
+            if (visibility == View.VISIBLE) flCardContainer.beginDelayedTransition()
+            walletInfoContainer.visibility = visibility
         }
+        sliderWallet.removeOnSliderTouchListener(sliderTouchListener)
 
-        walletsCount = card.wallets.size
         if (walletsCount == 0) {
-            walletIndexesContainer.visibility = View.GONE
+            updateWalletInfoContainerVisibility(View.GONE)
             selectedIndexOfWallet = -1
             return
         }
@@ -169,12 +186,16 @@ class CommandListFragment : BaseFragment() {
         sliderWallet.post {
             if (walletsCount == 1) {
                 selectedIndexOfWallet = 0
-                walletIndexesContainer.visibility = View.GONE
-                sliderWallet.valueTo = 0f
+                updateWalletInfoContainerVisibility(View.VISIBLE)
+                sliderWallet.value = 0f
+                sliderWallet.valueTo = 1f
+                sliderWallet.isEnabled = false
+                updateWalletInfo()
                 return@post
             }
 
-            walletIndexesContainer.visibility = View.VISIBLE
+            updateWalletInfoContainerVisibility(View.VISIBLE)
+            sliderWallet.isEnabled = true
             sliderWallet.valueFrom = 0f
             sliderWallet.valueTo = walletsCount - 1f
 
@@ -182,23 +203,28 @@ class CommandListFragment : BaseFragment() {
                 selectedIndexOfWallet = 0
             }
             sliderWallet.value = selectedIndexOfWallet.toFloat()
-            sliderWallet.addOnSliderTouchListener(touchListener)
-            updateTvWalletIndexText(selectedIndexOfWallet, walletsCount)
+            sliderWallet.addOnSliderTouchListener(sliderTouchListener)
+            updateWalletInfo()
         }
     }
 
-    private val touchListener = object : Slider.OnSliderTouchListener {
+    private val sliderTouchListener = object : Slider.OnSliderTouchListener {
+        @SuppressLint("RestrictedApi")
         override fun onStartTrackingTouch(slider: Slider) {
         }
 
+        @SuppressLint("RestrictedApi")
         override fun onStopTrackingTouch(slider: Slider) {
             selectedIndexOfWallet = slider.value.toInt()
-            updateTvWalletIndexText(selectedIndexOfWallet, walletsCount)
+            updateWalletInfo()
         }
     }
 
-    private fun updateTvWalletIndexText(currentWallet: Int, walletsCount: Int) {
-        tvWalletIndex.text = "i${currentWallet} / i${walletsCount - 1}"
+    private fun updateWalletInfo() {
+        tvWalletsCount.text = "$walletsCount"
+        tvWalletIndex.text = "$selectedIndexOfWallet"
+        tvWalletCurve.text = "${selectedWallet?.curve}"
+        tvWalletPubKey.text = "${selectedWallet?.publicKey?.toHexString()}"
     }
 
     private var jsonRpcSingleCommandTemplate: String = """
