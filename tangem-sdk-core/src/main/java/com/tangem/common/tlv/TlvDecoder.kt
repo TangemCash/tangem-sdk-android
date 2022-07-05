@@ -59,8 +59,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             } else {
                 if (logError) {
                     Log.error { "TLV $tag not found" }
-                } else {
-                    Log.warning { "TLV $tag not found, but it is not required" }
                 }
                 throw TangemSdkError.DecodingFailedMissingTag("TLV $tag not found")
             }

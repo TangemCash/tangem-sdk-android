@@ -92,7 +92,7 @@ class CardSession(
             return
         }
 
-        Log.session { "Start card session with runnable" }
+        Log.session { "start card session with runnable" }
         prepareSession(runnable) { prepareResult ->
             when (prepareResult) {
                 is CompletionResult.Success -> {
@@ -102,9 +102,9 @@ class CardSession(
                             callback(CompletionResult.Failure(error))
                             return@start
                         }
-                        Log.session { "Start runnable" }
+                        Log.session { "start runnable" }
                         runnable.run(this) { result ->
-                            Log.session { "Runnable completed" }
+                            Log.session { "runnable completed" }
                             when (result) {
                                 is CompletionResult.Success -> stop()
                                 is CompletionResult.Failure -> stopWithError(result.error)
@@ -127,7 +127,7 @@ class CardSession(
      * @param onSessionStarted: callback with the card session. Can contain [TangemSdkError] if something goes wrong.
      */
     fun start(onSessionStarted: SessionStartedCallback) {
-        Log.session { "Start card session with delegate" }
+        Log.session { "start card session with delegate" }
         state = CardSessionState.Active
         viewDelegate.onSessionStarted(cardId, initialMessage, environment.config.howToIsEnabled)
 
@@ -195,13 +195,13 @@ class CardSession(
     }
 
     private fun <T : CardSessionRunnable<*>> prepareSession(runnable: T, callback: CompletionCallback<Unit>) {
-        Log.session { "Prepare card session" }
+        Log.session { "prepare card session" }
         preflightReadMode = runnable.preflightReadMode()
         runnable.prepare(this, callback)
     }
 
     private fun preflightCheck(onSessionStarted: SessionStartedCallback) {
-        Log.session { "Start preflight check" }
+        Log.session { "start preflight check" }
         val preflightTask = PreflightReadTask(preflightReadMode, cardId)
         preflightTask.run(this) { result ->
             when (result) {
@@ -261,7 +261,7 @@ class CardSession(
     }
 
     private fun stopSession() {
-        Log.session { "Stop session" }
+        Log.session { "stop session" }
         state = CardSessionState.Inactive
         preflightReadMode = PreflightReadMode.FullCardRead
 //        environmentService.saveEnvironmentValues(environment, cardId)
@@ -270,7 +270,7 @@ class CardSession(
     }
 
     fun send(apdu: CommandApdu, callback: CompletionCallback<ResponseApdu>) {
-        Log.session { "Send" }
+        Log.session { "send CommandApdu" }
         val subscription = reader.tag.openSubscription()
         scope.launch {
             subscription.consumeAsFlow()
@@ -293,7 +293,7 @@ class CardSession(
                             }
                             is CompletionResult.Failure -> {
                                 when (result.error) {
-                                    is TangemSdkError.TagLost -> Log.session { "Tag lost. Waiting for tag..." }
+                                    is TangemSdkError.TagLost -> Log.session { "tag lost. Waiting for tag..." }
                                     else -> {
                                         Log.error { "${result.error}" }
                                         subscription.cancel()
@@ -318,7 +318,7 @@ class CardSession(
     }
 
     private suspend fun establishEncryptionIfNeeded(): CompletionResult<Boolean> {
-        Log.session { "Try establish encryption" }
+        Log.session { "establish encryption if needed" }
         if (environment.encryptionMode == EncryptionMode.None || environment.encryptionKey != null) {
             return CompletionResult.Success(true)
         }
@@ -379,7 +379,7 @@ class CardSession(
             callback(CompletionResult.Success(Unit))
             return
         }
-        Log.session { "Request user code of type: $type" }
+        Log.session { "request user code of type: $type" }
 
         val cardId = environment.card?.cardId ?: this.cardId
         val showForgotButton = environment.card?.backupStatus?.isActive ?: false

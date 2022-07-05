@@ -20,7 +20,7 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
         state: SessionViewDelegateState,
         vararg views: StateWidget<SessionViewDelegateState>
     ) {
-        Log.debug { "setStateAndShow: state: $state" }
+        Log.view { "setStateAndShow: state: $state" }
         views.forEach { it.setState(state) }
 
         val toHide = stateWidgets.filter { !views.contains(it) && it.isVisible() }

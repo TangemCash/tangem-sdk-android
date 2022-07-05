@@ -7,10 +7,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
-import com.tangem.Log
-import com.tangem.SessionViewDelegate
-import com.tangem.TangemSdk
-import com.tangem.DefaultTangemSdk
+import com.tangem.*
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
@@ -25,8 +22,8 @@ import kotlinx.android.synthetic.main.activity_demo.*
 
 class DemoActivity : AppCompatActivity() {
 
+    val logger = TangemSdk.createLogger(LogFormat.StairsFormatter())
 
-    val logger = TangemSdk.createLogger()
     lateinit var sdk: TangemSdk
         private set
     lateinit var viewDelegate: SessionViewDelegate

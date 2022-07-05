@@ -1,8 +1,13 @@
 package com.tangem.operations
 
-import com.tangem.*
-import com.tangem.common.*
-import com.tangem.common.apdu.*
+import com.tangem.Log
+import com.tangem.common.CompletionResult
+import com.tangem.common.UserCode
+import com.tangem.common.UserCodeType
+import com.tangem.common.apdu.CommandApdu
+import com.tangem.common.apdu.ResponseApdu
+import com.tangem.common.apdu.StatusWord
+import com.tangem.common.apdu.toTangemSdkError
 import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.core.*
@@ -10,7 +15,6 @@ import com.tangem.common.extensions.toInt
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvTag
 import okhttp3.internal.toHexString
-import java.util.*
 
 /**
  * Basic interface for a parsed response from [Command].
@@ -73,9 +77,9 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
     }
 
     private fun transceiveInternal(session: CardSession, callback: CompletionCallback<T>) {
-        Log.apduCommand { "C-APDU serialization start" }
+        Log.apduCommand { "C-APDU serialization..." }
         val apdu = serialize(session.environment)
-        Log.apduCommand { "C-APDU serialization finish" }
+        Log.apduCommand { "C-APDU serialization complete" }
         showMissingSecurityDelay(session)
         transceiveApdu(apdu, session) { result ->
             when (result) {
@@ -114,9 +118,9 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                 }
                 is CompletionResult.Success -> {
                     try {
-                        Log.apduCommand { "R-APDU deserialization start" }
+                        Log.apduCommand { "R-APDU deserialization..." }
                         val response = deserialize(session.environment, result.data)
-                        Log.apduCommand { "R-APDU deserialization finish" }
+                        Log.apduCommand { "R-APDU deserialization complete" }
                         callback(CompletionResult.Success(response))
                     } catch (error: TangemSdkError) {
                         callback(CompletionResult.Failure(error))

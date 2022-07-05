@@ -61,7 +61,7 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        Log.nfc { "NFC tag is discovered" }
+        Log.debug { "NFC tag is discovered" }
         onTagDiscoveredListeners.forEach { it.invoke() }
         if (readingIsActive) reader.onTagDiscovered(tag) else ignoreTag(tag)
     }

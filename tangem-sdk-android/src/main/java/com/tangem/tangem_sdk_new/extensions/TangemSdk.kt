@@ -1,11 +1,7 @@
 package com.tangem.tangem_sdk_new.extensions
 
 import androidx.activity.ComponentActivity
-import com.tangem.Log
-import com.tangem.SessionViewDelegate
-import com.tangem.TangemSdk
-import com.tangem.DefaultTangemSdk
-import com.tangem.TangemSdkLogger
+import com.tangem.*
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
@@ -38,9 +34,9 @@ fun TangemSdk.Companion.customDelegate(
     val nfcManager = TangemSdk.initNfcManager(activity)
 
     val viewDelegate =
-        viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
-            this.sdkConfig = config
-        }
+            viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
+                this.sdkConfig = config
+            }
 
 
     return DefaultTangemSdk(
@@ -58,25 +54,26 @@ fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager 
     return nfcManager
 }
 
-fun TangemSdk.Companion.createLogger(): TangemSdkLogger {
-    return object : TangemSdkLogger {
-        private val tag = "TangemSdkLogger"
-        private val dateFormatter: DateFormat =
-            SimpleDateFormat("HH:mm:ss:SSS", Locale.getDefault())
+fun TangemSdk.Companion.createLogger(
+    formatter: Log.LogFormat? = null
+): TangemSdkLogger = object : TangemSdkLogger {
 
-        override fun log(message: () -> String, level: Log.Level) {
-            if (!Log.Config.Verbose.levels.contains(level)) return
+    val dateFormatter: DateFormat = SimpleDateFormat("HH:mm:ss:SSS", Locale.getDefault())
 
-            val prefixDelimiter = if (level.prefix.isEmpty()) "" else ": "
-            val logMessage =
-                "${dateFormatter.format(Date())}: ${level.prefix}$prefixDelimiter${message()}"
-            when (level) {
-                Log.Level.Debug -> android.util.Log.d(tag, logMessage)
-                Log.Level.Info -> android.util.Log.i(tag, logMessage)
-                Log.Level.Warning -> android.util.Log.w(tag, logMessage)
-                Log.Level.Error -> android.util.Log.e(tag, logMessage)
-                else -> android.util.Log.v(tag, logMessage)
-            }
+    private val tag = "TangemSdkLogger"
+
+    override fun log(message: () -> String, level: Log.Level) {
+        if (!Log.Config.Verbose.levels.contains(level)) return
+
+        val formatMessage = formatter?.format(message, level) ?: "${level.prefix}${message()}"
+        val logMessage = "${dateFormatter.format(Date())}: $formatMessage"
+
+        when (level) {
+            Log.Level.Debug -> android.util.Log.d(tag, logMessage)
+            Log.Level.Info -> android.util.Log.i(tag, logMessage)
+            Log.Level.Warning -> android.util.Log.w(tag, logMessage)
+            Log.Level.Error -> android.util.Log.e(tag, logMessage)
+            else -> android.util.Log.v(tag, logMessage)
         }
     }
 }
