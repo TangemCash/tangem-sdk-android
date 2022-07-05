@@ -55,7 +55,7 @@ fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager 
 }
 
 fun TangemSdk.Companion.createLogger(
-    formatter: Log.LogFormat? = null
+    formatter: LogFormat? = null
 ): TangemSdkLogger = object : TangemSdkLogger {
 
     val dateFormatter: DateFormat = SimpleDateFormat("HH:mm:ss:SSS", Locale.getDefault())
