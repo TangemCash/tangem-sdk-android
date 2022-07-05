@@ -5,7 +5,7 @@
     <string name="common_retry" translatable="false">Retry</string>
     <string name="error_no_space_for_new_wallet" translatable="false">Max number of wallets already created</string>
     <string name="error_wallet_index_exceeds_max_value" translatable="false">Wallet index exceeds max value</string>
-    <string name="error_wallet_not_found" translatable="false">The operation can\'t be completed. There is no wallet on the card.</string>
+    <string name="error_wallet_not_found" translatable="false">This card does not contain the specified wallet</string>
     <string name="error_card_read_wrong_wallet" translatable="false">Card read wrong wallet</string>
     <string name="error_old_firmware" translatable="false">The command requires a card with a different firmware version</string>
     <string name="error_wrong_pin1" translatable="false">Wrong access code</string>

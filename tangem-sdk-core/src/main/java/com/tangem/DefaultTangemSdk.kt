@@ -92,7 +92,7 @@ class DefaultTangemSdk(
     override fun sign(
             hash: ByteArray,
             walletPublicKey: ByteArray,
-            cardId: String,
+            cardId: String?,
             derivationPath: DerivationPath?,
             initialMessage: Message?,
             callback: CompletionCallback<SignHashResponse>
@@ -126,7 +126,7 @@ class DefaultTangemSdk(
     override fun sign(
             hashes: Array<ByteArray>,
             walletPublicKey: ByteArray,
-            cardId: String,
+            cardId: String?,
             derivationPath: DerivationPath?,
             initialMessage: Message?,
             callback: CompletionCallback<SignResponse>

@@ -62,7 +62,7 @@ interface TangemSdk {
     fun sign(
         hash: ByteArray,
         walletPublicKey: ByteArray,
-        cardId: String,
+        cardId: String?,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignHashResponse>
@@ -93,7 +93,7 @@ interface TangemSdk {
     fun sign(
         hashes: Array<ByteArray>,
         walletPublicKey: ByteArray,
-        cardId: String,
+        cardId: String?,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<SignResponse>
