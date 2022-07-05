@@ -1,7 +1,10 @@
 package com.tangem.common.core
 
 import com.tangem.*
-import com.tangem.common.*
+import com.tangem.common.CardIdFormatter
+import com.tangem.common.CompletionResult
+import com.tangem.common.UserCode
+import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
@@ -13,14 +16,16 @@ import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
-import com.tangem.operations.*
+import com.tangem.operations.OpenSessionCommand
+import com.tangem.operations.PreflightReadMode
+import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.resetcode.ResetCodesController
 import com.tangem.operations.resetcode.ResetPinService
-import java.io.PrintWriter
-import java.io.StringWriter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.io.PrintWriter
+import java.io.StringWriter
 
 /**
  * Allows interaction with Tangem cards. Should be opened before sending commands.
@@ -319,9 +324,9 @@ class CardSession(
         }
 
         val encryptionHelper = EncryptionHelper.create(environment.encryptionMode)
-            ?: return CompletionResult.Failure(
-                TangemSdkError.CryptoUtilsError("Failed to establish encryption")
-            )
+                ?: return CompletionResult.Failure(
+                    TangemSdkError.CryptoUtilsError("Failed to establish encryption")
+                )
 
         val openSessionCommand = OpenSessionCommand(encryptionHelper.keyA)
         val apdu = openSessionCommand.serialize(environment)
@@ -336,11 +341,11 @@ class CardSession(
 
                 val uid = result.uid
                 val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, 50)
-                    ?: return CompletionResult.Failure(
-                        TangemSdkError.CryptoUtilsError(
-                            "Failed to establish encryption"
+                        ?: return CompletionResult.Failure(
+                            TangemSdkError.CryptoUtilsError(
+                                "Failed to establish encryption"
+                            )
                         )
-                    )
 
                 val secret = encryptionHelper.generateSecret(result.sessionKeyB)
                 val sessionKey = (secret + protocolKey).calculateSha256()
