@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clipToPadding="false"
@@ -33,37 +32,6 @@
         android:orientation="vertical"
         android:visibility="visible">
 
-        <LinearLayout
-            android:id="@+id/walletIndexesContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone"
-            tools:visibility="visible">
-
-            <com.google.android.material.slider.Slider
-                android:id="@+id/sliderWallet"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/tvWalletIndex"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp" />
-
-            <Button
-                android:id="@+id/btnPurgeWallet"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="Purge" />
-
-        </LinearLayout>
-
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -80,36 +48,36 @@
                 android:background="?android:windowBackground"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:text="Create"
+                android:text="Create wallet with curve"
                 android:translationX="10dp" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:padding="10dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:layout_height="wrap_content">
+                android:padding="10dp">
 
                 <Button
                     android:id="@+id/btnCreateWalletSecpK1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Secp_K1"
                     android:layout_marginEnd="4dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
+                    android:text="Secp_K1"
                     app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletEdwards"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <Button
                     android:id="@+id/btnCreateWalletEdwards"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Ed"
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp"
+                    android:text="Ed"
                     app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletSecpR1"
-                    app:layout_constraintStart_toEndOf="@+id/btnCreateWalletSecpK1"
                     app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toEndOf="@+id/btnCreateWalletSecpK1"
                     app:layout_constraintTop_toTopOf="@+id/btnCreateWalletSecpK1" />
 
                 <Button
@@ -119,24 +87,30 @@
                     android:layout_marginStart="4dp"
                     android:text="Secp_R1"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/btnCreateWalletEdwards"
                     app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toEndOf="@+id/btnCreateWalletEdwards"
                     app:layout_constraintTop_toTopOf="@+id/btnCreateWalletEdwards" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </FrameLayout>
 
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btnPurgeWallet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="Purge selected wallet" />
 
             <Button
                 android:id="@+id/btnPurgeAllWallet"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Purge all wallets" />

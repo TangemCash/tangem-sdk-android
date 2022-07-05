@@ -10,17 +10,15 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <include layout="@layout/scan_card" />
-
-        <include layout="@layout/personalization_backup" />
+        <include layout="@layout/card" />
 
         <include layout="@layout/attestation" />
 
-        <include layout="@layout/hd_wallet" />
+        <include layout="@layout/wallet" />
 
         <include layout="@layout/sign" />
 
-        <include layout="@layout/wallet" />
+        <include layout="@layout/hd_wallet" />
 
         <include layout="@layout/backup" />
 

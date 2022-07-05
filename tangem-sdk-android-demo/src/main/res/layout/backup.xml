@@ -19,7 +19,7 @@
         android:background="?android:windowBackground"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="Backup"
+        android:text="Cards Backup"
         android:translationX="10dp"
         android:translationY="-10dp" />
 
@@ -39,7 +39,31 @@
                 android:id="@+id/btnStartBackup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Backup" />
+                android:text="To Backup" />
+
+            <Button
+                android:id="@+id/btnPersonalizePrimary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Personalize Primary" />
+
+            <Button
+                android:id="@+id/btnPersonalizeBackup1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Personalize 1 backup card" />
+
+            <Button
+                android:id="@+id/btnPersonalizeBackup2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Personalize 2 backup card" />
+
+            <Button
+                android:id="@+id/btnDepersonalize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Depersonalize" />
 
         </LinearLayout>
 
