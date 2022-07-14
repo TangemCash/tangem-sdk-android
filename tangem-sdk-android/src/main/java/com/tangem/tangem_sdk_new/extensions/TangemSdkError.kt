@@ -131,26 +131,19 @@ fun TangemSdkError.localizedDescription(context: Context): String {
             context.getString(R.string.error_backup_card_already_added)
         is TangemSdkError.BackupCardRequired ->
             context.getString(R.string.error_backup_card_already_added)
-        is TangemSdkError.BackupFailedEmptyWallets ->
-            context.getString(R.string.error_backup_wrong_card)
-        is TangemSdkError.BackupFailedHDWalletSettings ->
-            context.getString(R.string.error_backup_wrong_card)
         is TangemSdkError.BackupFailedNotEmptyWallets ->
             context.getString(R.string.error_backup_not_empty_wallets)
-        is TangemSdkError.BackupFailedNotEnoughCurves ->
-            context.getString(R.string.error_backup_wrong_card)
-        is TangemSdkError.BackupFailedNotEnoughWallets ->
-            context.getString(R.string.error_backup_wrong_card)
-        is TangemSdkError.BackupFailedWrongIssuer ->
-            context.getString(R.string.error_backup_wrong_card)
-        is TangemSdkError.BackupNotAllowed ->
-            context.getString(R.string.error_backup_wrong_card)
-        is TangemSdkError.BackupFailedFirmware ->
-            context.getString(R.string.error_backup_wrong_card)
+        is TangemSdkError.BackupFailedEmptyWallets,
+        is TangemSdkError.BackupFailedHDWalletSettings,
+        is TangemSdkError.BackupFailedNotEnoughCurves,
+        is TangemSdkError.BackupFailedNotEnoughWallets,
+        is TangemSdkError.BackupFailedWrongIssuer,
+        is TangemSdkError.BackupNotAllowed,
+        is TangemSdkError.BackupFailedFirmware,
         is TangemSdkError.BackupFailedIncompatibleBatch ->
-            context.getString(R.string.error_backup_wrong_card)
+            context.getString(R.string.error_backup_wrong_card, code)
         is TangemSdkError.ResetPinWrongCard ->
-            context.getString(R.string.error_reset_wrong_card)
+            context.getString(R.string.error_reset_wrong_card, code)
         is TangemSdkError.WrongInteractionMode ->
             context.getString(R.string.error_wrong_interaction_mode)
         is TangemSdkError.EncodingFailedTypeMismatch,

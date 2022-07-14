@@ -18,8 +18,8 @@
     <string name="error_wallet_cannot_be_created" translatable="false">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
     <string name="error_wrong_interaction_mode" translatable="false">Unsupported interaction mode</string>
     <string name="error_backup_card_already_added" translatable="false">This card has already been added to the list</string>
-    <string name="error_backup_wrong_card" translatable="false">This card can\'t be used for backup process.</string>
-    <string name="error_reset_wrong_card" translatable="false">This card can’t be used for code recovery.</string>
+    <string name="error_backup_wrong_card" translatable="false">This card can’t be used as a backup card. Error code: %d.</string>
+    <string name="error_reset_wrong_card" translatable="false">This card can’t be used for code recovery. Error code: %d.</string>
 
 
     <string name="dialog_attestation_did_failed_title" translatable="false">Card verification failed</string>
