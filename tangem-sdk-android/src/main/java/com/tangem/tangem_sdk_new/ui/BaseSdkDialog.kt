@@ -43,7 +43,10 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
     protected fun performHapticFeedback() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             llHeader?.isHapticFeedbackEnabled = true
-            llHeader?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            llHeader?.performHapticFeedback(
+                HapticFeedbackConstants.VIRTUAL_KEY,
+                HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            )
         }
     }
 
