@@ -147,22 +147,26 @@ class NfcSessionDialog(
     }
 
     private fun onPinRequested(state: SessionViewDelegateState.PinRequested) {
-        enableBottomSheetAnimation()
-        headerWidget.onClose = {
-            dismissWithAnimation = false
-            cancel()
-        }
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        val delayMs = if (currentState is SessionViewDelegateState.SecurityDelay) 950L else 0L
 
-        pinCodeRequestWidget.onContinue = {
+        postUI(delayMs) {
             enableBottomSheetAnimation()
-            pinCodeRequestWidget.onContinue = null
-            setStateAndShow(getEmptyOnReadyEvent(), headerWidget, touchCardWidget, messageWidget)
-            postUI(200) { state.callback(it) }
-        }
+            headerWidget.onClose = {
+                dismissWithAnimation = false
+                cancel()
+            }
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-        setStateAndShow(state, headerWidget, pinCodeRequestWidget)
-        performHapticFeedback()
+            pinCodeRequestWidget.onContinue = {
+                enableBottomSheetAnimation()
+                pinCodeRequestWidget.onContinue = null
+                setStateAndShow(getEmptyOnReadyEvent(), headerWidget, touchCardWidget, messageWidget)
+                postUI(200) { state.callback(it) }
+            }
+
+            setStateAndShow(state, headerWidget, pinCodeRequestWidget)
+            performHapticFeedback()
+        }
     }
 
     private fun onPinChangeRequested(state: SessionViewDelegateState.PinChangeRequested) {
