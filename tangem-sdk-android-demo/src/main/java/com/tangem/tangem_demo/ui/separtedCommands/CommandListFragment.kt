@@ -48,7 +48,6 @@ import kotlinx.android.synthetic.main.wallet.*
  * Created by Anton Zhilenkov on 23/12/2020.
  */
 class CommandListFragment : BaseFragment() {
-
     override fun getLayoutId(): Int = R.layout.fg_command_list
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -83,7 +82,7 @@ class CommandListFragment : BaseFragment() {
             "m/44'/0'/0'/1/0"
         ))
         etDerivePublicKey.setAdapter(adapter)
-        etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it!!.toString() }
+        etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it.toString() }
         btnDerivePublicKey.setOnClickListener { derivePublicKey() }
 
         btnPasteHashes.setOnClickListener { etHashesToSign.setTextFromClipboard() }

@@ -1,6 +1,5 @@
 package com.tangem.common.core
 
-import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.operations.PreflightReadMode
 

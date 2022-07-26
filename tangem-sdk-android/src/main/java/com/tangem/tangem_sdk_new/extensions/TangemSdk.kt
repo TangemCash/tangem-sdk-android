@@ -1,60 +1,79 @@
+@file:Suppress("unused")
+
 package com.tangem.tangem_sdk_new.extensions
 
+import android.os.Build
 import androidx.activity.ComponentActivity
-import com.tangem.*
+import androidx.fragment.app.FragmentActivity
+import com.tangem.Log
+import com.tangem.LogFormat
+import com.tangem.SessionViewDelegate
+import com.tangem.TangemSdk
+import com.tangem.TangemSdkLogger
+import com.tangem.common.biometric.BiometricManager
+import com.tangem.common.biometric.DummyBiometricManager
+import com.tangem.common.core.AccessCodeRequestPolicy.AlwaysWithBiometrics
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
 import com.tangem.tangem_sdk_new.NfcLifecycleObserver
+import com.tangem.tangem_sdk_new.biometrics.AndroidBiometricManager
 import com.tangem.tangem_sdk_new.nfc.NfcManager
 import com.tangem.tangem_sdk_new.storage.create
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
-fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Config()): TangemSdk {
+fun TangemSdk.init(activity: FragmentActivity, config: Config = Config()): TangemSdk {
+    val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
+    val authManager = TangemSdk.initBiometricAuthManager(activity, config, secureStorage)
 
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
     viewDelegate.sdkConfig = config
 
-    return DefaultTangemSdk(
+    return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
-        secureStorage = SecureStorage.create(activity),
+        biometricManager = authManager,
+        secureStorage = secureStorage,
         config = config,
     )
 }
 
-fun TangemSdk.Companion.customDelegate(
-    activity: ComponentActivity,
+fun TangemSdk.customDelegate(
+    activity: FragmentActivity,
     viewDelegate: SessionViewDelegate? = null,
-    config: Config = Config()
+    config: Config = Config(),
 ): TangemSdk {
+    val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
+    val authManager = TangemSdk.initBiometricAuthManager(activity, config, secureStorage)
 
-    val viewDelegate =
-            viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
-                this.sdkConfig = config
-            }
+    val safeViewDelegate = viewDelegate
+        ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
+            this.sdkConfig = config
+        }
 
 
-    return DefaultTangemSdk(
+    return TangemSdk(
         nfcManager.reader,
-        viewDelegate,
-        secureStorage = SecureStorage.create(activity),
+        safeViewDelegate,
+        secureStorage = secureStorage,
         config = config,
+        biometricManager = authManager,
     )
 }
 
-fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager {
+fun TangemSdk.initNfcManager(activity: ComponentActivity): NfcManager {
     val nfcManager = NfcManager()
     nfcManager.setCurrentActivity(activity)
     activity.lifecycle.addObserver(NfcLifecycleObserver(nfcManager))
     return nfcManager
 }
 
-fun TangemSdk.Companion.createLogger(
+fun TangemSdk.createLogger(
     formatter: LogFormat? = null
 ): TangemSdkLogger = object : TangemSdkLogger {
 
@@ -75,5 +94,21 @@ fun TangemSdk.Companion.createLogger(
             Log.Level.Error -> android.util.Log.e(tag, logMessage)
             else -> android.util.Log.v(tag, logMessage)
         }
+    }
+}
+fun TangemSdk.initBiometricAuthManager(
+    activity: FragmentActivity,
+    config: Config,
+    secureStorage: SecureStorage,
+): BiometricManager {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+        config.accessCodeRequestPolicy is AlwaysWithBiometrics
+    ) {
+        val keyTimeoutSeconds = (config.accessCodeRequestPolicy as AlwaysWithBiometrics).secretKeyTimeoutSeconds
+
+        AndroidBiometricManager(keyTimeoutSeconds, secureStorage, activity)
+            .also { activity.lifecycle.addObserver(it) }
+    } else {
+        DummyBiometricManager()
     }
 }

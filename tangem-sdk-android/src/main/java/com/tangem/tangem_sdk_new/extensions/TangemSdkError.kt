@@ -96,6 +96,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.WrongInteractionMode -> R.string.error_wrong_interaction_mode
         is TangemSdkError.IssuerSignatureLoadingFailed -> null
         is TangemSdkError.UserForgotTheCode -> null
+        is TangemSdkError.BiometricsAuthenticationFailed -> null
+        is TangemSdkError.BiometricsUnavailable -> null
     }
 
     return if (resId != null) {

@@ -279,6 +279,13 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
 
     class WrongInteractionMode : TangemSdkError(50027)
 
+    class BiometricsUnavailable : TangemSdkError(50015)
+
+    class BiometricsAuthenticationFailed(
+        val biometricsErrorCode: Int?,
+        override var customMessage: String,
+    ) : TangemSdkError(50016)
+
     /**
      * Get error according to the pin type
      * @param userCodeType: Specific user code type

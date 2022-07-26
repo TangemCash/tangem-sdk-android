@@ -1,33 +1,86 @@
 package com.tangem
 
+import com.tangem.TangemSdk.config
+import com.tangem.TangemSdk.reader
+import com.tangem.TangemSdk.viewDelegate
+import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
+import com.tangem.common.accesscode.AccessCodeRepository
+import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.common.json.JSONRPCConverter
+import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.services.Result
 import com.tangem.common.services.secure.SecureStorage
-import com.tangem.operations.attestation.CardVerifyAndGetInfo.Response.Item
+import com.tangem.common.services.toTangemSdkError
+import com.tangem.crypto.CryptoUtils
+import com.tangem.operations.*
+import com.tangem.operations.attestation.CardVerifyAndGetInfo
+import com.tangem.operations.attestation.OnlineCardVerifier
+import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
+import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.*
-import com.tangem.operations.issuerAndUserData.ReadIssuerDataResponse
-import com.tangem.operations.issuerAndUserData.ReadIssuerExtraDataResponse
-import com.tangem.operations.issuerAndUserData.ReadUserDataResponse
+import com.tangem.operations.issuerAndUserData.*
+import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
-import com.tangem.operations.personalization.entities.Acquirer
-import com.tangem.operations.personalization.entities.CardConfig
-import com.tangem.operations.personalization.entities.Issuer
-import com.tangem.operations.personalization.entities.Manufacturer
-import com.tangem.operations.sign.SignHashResponse
-import com.tangem.operations.sign.SignResponse
-import com.tangem.operations.wallet.CreateWalletResponse
+import com.tangem.operations.personalization.PersonalizeCommand
+import com.tangem.operations.personalization.entities.*
+import com.tangem.operations.pins.SetUserCodeCommand
+import com.tangem.operations.sign.*
+import com.tangem.operations.wallet.*
+import kotlinx.coroutines.*
 
-interface TangemSdk {
-    val secureStorage: SecureStorage
-    var config: Config
+/**
+ * The main interface of Tangem SDK that allows your app to communicate with Tangem cards.
+ *
+ * @property reader is an interface that is responsible for NFC connection and
+ * transfer of data to and from the Tangem Card.
+ * Its default implementation, NfcCardReader, is in our tangem-sdk module.
+ * @property viewDelegate An interface that allows interaction with users and shows relevant UI.
+ * Its default implementation, DefaultCardSessionViewDelegate, is in our tangem-sdk module.
+ * @property config allows to change a number of parameters for communication with Tangem cards.
+ * Do not change the default values unless you know what you are doing.
+ */
+object TangemSdk {
+    var config: Config = Config()
 
+    private lateinit var reader: CardReader
+    private lateinit var viewDelegate: SessionViewDelegate
+    lateinit var biometricManager: BiometricManager
+        private set
+    lateinit var secureStorage: SecureStorage
+        private set
+
+    private var cardSession: CardSession? = null
+    private val onlineCardVerifier = OnlineCardVerifier()
+    private val jsonRpcConverter: JSONRPCConverter by lazy { JSONRPCConverter.shared() }
+
+    operator fun invoke(
+        reader: CardReader,
+        viewDelegate: SessionViewDelegate,
+        biometricManager: BiometricManager,
+        secureStorage: SecureStorage,
+        config: Config = Config(),
+    ): TangemSdk {
+        return TangemSdk.apply {
+            this.reader = reader
+            this.viewDelegate = viewDelegate
+            this.biometricManager = biometricManager
+            this.secureStorage = secureStorage
+            this.config = config
+        }
+    }
+
+    init {
+        CryptoUtils.initCrypto()
+    }
+
+    // region Card operations
     /**
      * This method launches a [ScanTask] on a new thread.
      *
@@ -41,7 +94,9 @@ interface TangemSdk {
      * @param callback is triggered on the completion of the [ScanTask] and provides card response
      * in the form of [Card] if the task was performed successfully or [TangemSdkError] in case of an error.
      */
-    fun scanCard(initialMessage: Message? = null, callback: CompletionCallback<Card>)
+    fun scanCard(initialMessage: Message? = null, callback: CompletionCallback<Card>) {
+        startSessionWithRunnable(ScanTask(), null, initialMessage, callback)
+    }
 
     /**
      * This method allows you to sign one hash and will return a corresponding signature.
@@ -65,8 +120,11 @@ interface TangemSdk {
         cardId: String?,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SignHashResponse>
-    )
+        callback: CompletionCallback<SignHashResponse>,
+    ) {
+        val command = SignHashCommand(hash, walletPublicKey, derivationPath)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [SignCommand] on a new thread.
@@ -96,8 +154,11 @@ interface TangemSdk {
         cardId: String?,
         derivationPath: DerivationPath? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SignResponse>
-    )
+        callback: CompletionCallback<SignResponse>,
+    ) {
+        val command = SignCommand(hashes, walletPublicKey, derivationPath)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * Derive public key according to BIP32 (Private parent key → public child key)
@@ -117,8 +178,11 @@ interface TangemSdk {
         walletPublicKey: ByteArray,
         derivationPath: DerivationPath,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ExtendedPublicKey>
-    )
+        callback: CompletionCallback<ExtendedPublicKey>,
+    ) {
+        val command = DeriveWalletPublicKeyTask(walletPublicKey, derivationPath)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * Derive multiple wallet public keys according to BIP32 (Private parent key → public child key)
@@ -138,8 +202,11 @@ interface TangemSdk {
         walletPublicKey: ByteArray,
         derivationPaths: List<DerivationPath>,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ExtendedPublicKeysMap>
-    )
+        callback: CompletionCallback<ExtendedPublicKeysMap>,
+    ) {
+        val command = DeriveWalletPublicKeysTask(walletPublicKey, derivationPaths)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [CreateWalletTask] on a new thread.
@@ -164,8 +231,10 @@ interface TangemSdk {
         curve: EllipticCurve,
         cardId: String,
         initialMessage: Message? = null,
-        callback: CompletionCallback<CreateWalletResponse>
-    )
+        callback: CompletionCallback<CreateWalletResponse>,
+    ) {
+        startSessionWithRunnable(CreateWalletTask(curve), cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [PurgeWalletCommand] on a new thread.
@@ -184,8 +253,10 @@ interface TangemSdk {
         walletPublicKey: ByteArray,
         cardId: String,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        startSessionWithRunnable(PurgeWalletCommand(walletPublicKey), cardId, initialMessage, callback)
+    }
 
     /**
      *  Get the card info and verify with Tangem backend. Do not use for developer cards
@@ -197,8 +268,15 @@ interface TangemSdk {
     fun loadCardInfo(
         cardPublicKey: ByteArray,
         cardId: String,
-        callback: CompletionCallback<Item>
-    )
+        callback: CompletionCallback<CardVerifyAndGetInfo.Response.Item>,
+    ) {
+        onlineCardVerifier.scope.launch {
+            when (val result = onlineCardVerifier.getCardInfo(cardId, cardPublicKey)) {
+                is Result.Success -> callback(CompletionResult.Success(result.data))
+                is Result.Failure -> callback(CompletionResult.Failure(result.toTangemSdkError()))
+            }
+        }
+    }
 
     /**
      * This method launches a [PersonalizeCommand] on a new thread.
@@ -226,8 +304,11 @@ interface TangemSdk {
         manufacturer: Manufacturer,
         acquirer: Acquirer? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<Card>
-    )
+        callback: CompletionCallback<Card>,
+    ) {
+        val command = PersonalizeCommand(config, issuer, manufacturer, acquirer)
+        startSessionWithRunnable(command, null, initialMessage, callback)
+    }
 
     /**
      * This method launches a [DepersonalizeCommand] on a new thread.
@@ -243,8 +324,10 @@ interface TangemSdk {
      * */
     fun depersonalize(
         initialMessage: Message? = null,
-        callback: CompletionCallback<DepersonalizeResponse>
-    )
+        callback: CompletionCallback<DepersonalizeResponse>,
+    ) {
+        startSessionWithRunnable(DepersonalizeCommand(), null, initialMessage, callback)
+    }
 
     /**
      * This method launches a [SetUserCodeCommand] on a new thread.
@@ -263,8 +346,11 @@ interface TangemSdk {
         accessCode: String? = null,
         cardId: String,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        val command = SetUserCodeCommand.changeAccessCode(accessCode)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [SetUserCodeCommand] on a new thread.
@@ -283,8 +369,11 @@ interface TangemSdk {
         passcode: String? = null,
         cardId: String,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        val command = SetUserCodeCommand.changePasscode(passcode)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [SetUserCodeCommand] on a new thread.
@@ -301,8 +390,10 @@ interface TangemSdk {
     fun resetUserCodes(
         cardId: String,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        startSessionWithRunnable(SetUserCodeCommand.resetUserCodes(), cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [ReadFilesTask] on a new thread.
@@ -328,8 +419,12 @@ interface TangemSdk {
         walletPublicKey: ByteArray? = null,
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<List<File>>
-    )
+        callback: CompletionCallback<List<File>>,
+    ) {
+        val task = ReadFilesTask(fileName, walletPublicKey)
+        task.shouldReadPrivateFiles = readPrivateFiles
+        startSessionWithRunnable(task, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [ChangeFileSettingsTask] on a new thread.
@@ -352,8 +447,11 @@ interface TangemSdk {
         changes: Map<Int, FileVisibility>,
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        val task = ChangeFileSettingsTask(changes)
+        startSessionWithRunnable(task, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [WriteFilesTask] on a new thread.
@@ -374,8 +472,10 @@ interface TangemSdk {
         files: List<FileToWrite>,
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<WriteFilesResponse>
-    )
+        callback: CompletionCallback<WriteFilesResponse>,
+    ) {
+        startSessionWithRunnable(WriteFilesTask(files), cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [DeleteFilesTask] on a new thread.
@@ -399,8 +499,10 @@ interface TangemSdk {
         indices: List<Int>? = null,
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        startSessionWithRunnable(DeleteFilesTask(indices), cardId, initialMessage, callback)
+    }
 
     /**
      * Creates hashes and signatures for files that signed by issuer
@@ -418,8 +520,10 @@ interface TangemSdk {
         fileData: ByteArray,
         fileCounter: Int,
         fileName: String? = null,
-        privateKey: ByteArray? = null
-    ): FileHashData
+        privateKey: ByteArray? = null,
+    ): FileHashData {
+        return FileHashHelper.prepareHashes(cardId, fileData, fileCounter, fileName, privateKey)
+    }
 
     /**
      * This method launches a [ReadIssuerDataCommand] on a new thread.
@@ -440,8 +544,11 @@ interface TangemSdk {
     fun readIssuerData(
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ReadIssuerDataResponse>
-    )
+        callback: CompletionCallback<ReadIssuerDataResponse>,
+    ) {
+        val command = ReadIssuerDataCommand(config.issuerPublicKey)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [WriteIssuerDataCommand] on a new thread.
@@ -468,8 +575,16 @@ interface TangemSdk {
         issuerDataSignature: ByteArray,
         issuerDataCounter: Int? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        val command = WriteIssuerDataCommand(
+            issuerData,
+            issuerDataSignature,
+            issuerDataCounter,
+            config.issuerPublicKey
+        )
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [ReadIssuerExtraDataCommand] on a new thread.
@@ -491,8 +606,11 @@ interface TangemSdk {
     fun readIssuerExtraData(
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ReadIssuerExtraDataResponse>
-    )
+        callback: CompletionCallback<ReadIssuerExtraDataResponse>,
+    ) {
+        val command = ReadIssuerExtraDataCommand(config.issuerPublicKey)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [WriteIssuerExtraDataCommand] on a new thread.
@@ -527,8 +645,16 @@ interface TangemSdk {
         finalizingSignature: ByteArray,
         issuerDataCounter: Int? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        val command = WriteIssuerExtraDataCommand(
+            issuerData,
+            startingSignature, finalizingSignature,
+            issuerDataCounter,
+            config.issuerPublicKey
+        )
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [ReadUserDataCommand] on a new thread.
@@ -553,8 +679,11 @@ interface TangemSdk {
     fun readUserData(
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<ReadUserDataResponse>
-    )
+        callback: CompletionCallback<ReadUserDataResponse>,
+    ) {
+        val command = ReadUserDataCommand()
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [WriteUserDataCommand] on a new thread, writing  UserData and UserCounter fields.
@@ -586,8 +715,11 @@ interface TangemSdk {
         userCounter: Int? = null,
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        val command = WriteUserDataCommand(userData = userData, userCounter = userCounter)
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * This method launches a [WriteUserDataCommand] on a new thread,
@@ -621,8 +753,14 @@ interface TangemSdk {
         userProtectedCounter: Int? = null,
         cardId: String? = null,
         initialMessage: Message? = null,
-        callback: CompletionCallback<SuccessResponse>
-    )
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        val command = WriteUserDataCommand(
+            userProtectedData = userProtectedData,
+            userProtectedCounter = userProtectedCounter
+        )
+        startSessionWithRunnable(command, cardId, initialMessage, callback)
+    }
 
     /**
      * Allows running a custom bunch of commands in one [CardSession] by creating a custom task.
@@ -645,9 +783,20 @@ interface TangemSdk {
         cardId: String? = null,
         initialMessage: Message? = null,
         accessCode: String? = null,
-        callback: CompletionCallback<T>
-    )
+        callback: CompletionCallback<T>,
+    ) {
+        if (checkSession()) {
+            callback(CompletionResult.Failure(TangemSdkError.Busy()))
+            return
+        }
 
+        configure()
+        cardSession = makeSession(cardId, initialMessage)
+        Thread().run { cardSession?.startWithRunnable(runnable, callback) }
+    }
+    // endregion Card operations
+
+    // region Session start
     /**
      * Allows running  a custom bunch of commands in one [CardSession] with lightweight closure syntax.
      * Tangem SDK will start a card session and perform preflight [ReadCommand].
@@ -666,8 +815,17 @@ interface TangemSdk {
         cardId: String? = null,
         initialMessage: Message? = null,
         accessCode: String? = null,
-        callback: (session: CardSession, error: TangemError?) -> Unit
-    )
+        callback: (session: CardSession, error: TangemError?) -> Unit,
+    ) {
+        if (checkSession()) {
+            callback(cardSession!!, TangemSdkError.Busy())
+            return
+        }
+
+        configure()
+        cardSession = makeSession(cardId, initialMessage)
+        Thread().run { cardSession?.start(onSessionStarted = callback) }
+    }
 
     /**
      * Allows running a custom bunch of commands in one NFC Session by creating a custom task. Tangem SDK will start
@@ -683,19 +841,104 @@ interface TangemSdk {
         cardId: String? = null,
         initialMessage: String? = null,
         accessCode: String? = null,
-        callback: (String) -> Unit
-    )
-
-    companion object {
-        fun makeSessionBuilder(
-            viewDelegate: SessionViewDelegate,
-            secureStorage: SecureStorage,
-            reader: CardReader,
-            jsonRpcConverter: JSONRPCConverter,
-        ): SessionBuilder {
-            return SessionBuilder(
-                viewDelegate, secureStorage, reader, jsonRpcConverter
-            )
+        callback: (String) -> Unit,
+    ) {
+        val converter = MoshiJsonConverter.INSTANCE
+        val linkersList: List<JSONRPCLinker> = try {
+            JSONRPCLinker.parse(jsonRequest, converter)
+        } catch (ex: JSONRPCException) {
+            callback(JSONRPCResponse(null, ex.jsonRpcError, id = null).toJson())
+            return
         }
+
+        linkersList.forEach { it.initRunnable(jsonRpcConverter) }
+        if (linkersList.any { it.hasError() }) {
+            callback(linkersList.createResult(converter))
+            return
+        }
+
+        try {
+            if (checkSession()) throw TangemSdkError.Busy()
+
+            configure()
+            val message: Message? = initialMessage?.let { converter.fromJson(it) }
+
+            if (linkersList.size == 1) {
+                val jsonrpcLinker = linkersList[0]
+                cardSession = makeSession(cardId, message)
+                Thread().run {
+                    cardSession?.startWithRunnable(jsonrpcLinker.runnable!!) {
+                        jsonrpcLinker.linkResult(it)
+                        callback(jsonrpcLinker.response.toJson())
+                    }
+                }
+            } else {
+                val task = RunnablesTask(linkersList)
+                cardSession = makeSession(cardId, message)
+                cardSession!!.startWithRunnable(task) { result ->
+                    when (result) {
+                        is CompletionResult.Success -> callback(converter.toJson(result.data.responses))
+                        is CompletionResult.Failure -> {
+                            linkersList.forEach { it.linkError(result.error) }
+                            callback(linkersList.createResult(converter))
+                        }
+                    }
+                }
+            }
+        } catch (ex: TangemSdkError) {
+            linkersList.forEach { it.linkError(ex) }
+            callback(linkersList.createResult(converter))
+        }
+    }
+    // endregion Session start
+
+    /**
+     * Register custom task, that supported JSONRPC
+     *
+     * @param handler, that conforms [JSONRPCHandler]
+     */
+    fun registerJSONRPCTask(handler: JSONRPCHandler<*>) {
+        jsonRpcConverter.register(handler)
+    }
+
+    private fun configure() {
+        viewDelegate.setConfig(config)
+    }
+
+    private fun createAccessCodeRepository(
+        config: Config,
+    ): AccessCodeRepository? {
+        return if (biometricManager.canAuthenticate &&
+            config.accessCodeRequestPolicy is AccessCodeRequestPolicy.AlwaysWithBiometrics
+        ) {
+            AccessCodeRepository(
+                biometricManager = biometricManager,
+                secureStorage = secureStorage,
+                jsonConverter = MoshiJsonConverter.INSTANCE,
+            )
+        } else null
+    }
+
+    internal fun makeSession(
+        cardId: String? = null,
+        initialMessage: Message? = null,
+        config: Config = TangemSdk.config,
+    ): CardSession {
+        val environment = SessionEnvironment(config, secureStorage)
+
+        return CardSession(
+            viewDelegate = viewDelegate,
+            environment = environment,
+            reader = reader,
+            accessCodeRepository = createAccessCodeRepository(config),
+            jsonRpcConverter = jsonRpcConverter,
+            cardId = cardId,
+            initialMessage = initialMessage,
+        )
+    }
+
+    private fun checkSession(): Boolean {
+        val session = cardSession ?: return false
+        return session.state == CardSession.CardSessionState.Active
     }
 }

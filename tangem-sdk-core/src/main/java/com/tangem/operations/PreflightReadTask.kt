@@ -62,6 +62,7 @@ class PreflightReadTask(
                         return@run
                     }
 
+                    session.updateAccessCodeIfNeeded()
                     updateEnvironmentIfNeeded(result.data.card, session)
                     finalizeRead(session, result.data.card, callback)
                 }

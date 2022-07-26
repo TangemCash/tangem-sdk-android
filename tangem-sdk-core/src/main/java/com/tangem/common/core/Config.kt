@@ -61,7 +61,12 @@ class Config(
      * All derived keys will be stored in [com.tangem.common.card.CardWallet.derivedKeys].
      * Only `secp256k1` and `ed25519` supported.
      */
-    var defaultDerivationPaths: MutableMap<EllipticCurve, List<DerivationPath>> = mutableMapOf()
+    var defaultDerivationPaths: MutableMap<EllipticCurve, List<DerivationPath>> = mutableMapOf(),
+
+    /*
+    * Access codes request policy.
+    * */
+    var accessCodeRequestPolicy: AccessCodeRequestPolicy = AccessCodeRequestPolicy.Default,
 )
 
 sealed class CardIdDisplayFormat {
@@ -79,4 +84,22 @@ sealed class CardIdDisplayFormat {
 
     ///n numbers from the end except last
     data class LastLuhn(val numbers: Int) : CardIdDisplayFormat()
+}
+
+sealed interface AccessCodeRequestPolicy {
+    /*
+    * User code will be requested before card scan. Biometrics will be used if enabled and there are any saved codes.
+    * Requires Android SDK >= 23
+    * */
+    class AlwaysWithBiometrics(val secretKeyTimeoutSeconds: Int = 60) : AccessCodeRequestPolicy
+
+    /*
+    * User code will be requested before card scan.
+    * */
+    object Always : AccessCodeRequestPolicy
+
+    /*
+    * User code will be requested only if set on the card. Need scan the card twice.
+    * */
+    object Default : AccessCodeRequestPolicy
 }

@@ -48,6 +48,6 @@ fun String.splitCamelCase(): String {
 }
 
 fun EditText.asFlow(): Flow<String> = callbackFlow {
-    val watcher = addTextChangedListener { editable -> offer(editable?.toString() ?: "") }
+    val watcher = addTextChangedListener { editable -> trySend(editable?.toString() ?: "").isSuccess }
     awaitClose { removeTextChangedListener(watcher) }
 }
