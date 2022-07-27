@@ -63,21 +63,21 @@ class ProgressbarStateWidget(mainView: View) : BaseSessionDelegateStateWidget(ma
     }
 
     private fun handleSuccessState() {
-        upadteWidgetIntonation(R.color.sdk_progress_bar_success, doneView, exclamationView)
+        updateWidgetIntonation(R.color.sdk_progress_bar_success, doneView, exclamationView)
     }
 
     private fun handleWarningState() {
-        upadteWidgetIntonation(R.color.sdk_progress_bar_warning, exclamationView, doneView)
+        updateWidgetIntonation(R.color.sdk_progress_bar_warning, exclamationView, doneView)
     }
 
     private fun handleErrorState() {
         val delay = if (prevState is SessionViewDelegateState.TagConnected) 500L else 0L
         postUI(delay) {
-            upadteWidgetIntonation(R.color.sdk_progress_bar_error, exclamationView, doneView)
+            updateWidgetIntonation(R.color.sdk_progress_bar_error, exclamationView, doneView)
         }
     }
 
-    private fun upadteWidgetIntonation(@ColorRes color: Int, toShow: ImageView, toHide: ImageView) {
+    private fun updateWidgetIntonation(@ColorRes color: Int, toShow: ImageView, toHide: ImageView) {
         hideViews(tvProgressValue, progressIndicator, toHide)
 
         progressIndicator.applyProgressColor(color)
