@@ -63,6 +63,6 @@ class ResponseApdu(private val data: ByteArray) {
     }
 
     override fun toString(): String {
-        return "<-- RECEIVED [${data.size + 2} bytes]: ${data.toHexString()} $sw1 $sw2 (SW: $statusWord)"
+        return "<<<< [${data.size + 2} bytes]: ${data.toHexString()} $sw1 $sw2 (SW: $statusWord)"
     }
 }

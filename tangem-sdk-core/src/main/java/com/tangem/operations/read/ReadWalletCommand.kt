@@ -50,8 +50,8 @@ class ReadWalletCommand(
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadWalletResponse>) {
-        Log.debug { "Attempt to read wallet with index: $walletIndex" }
-        super.run(session, callback)
+        Log.command(this) { " attempt to read wallet with index: $walletIndex" }
+        transceive(session, callback)
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {

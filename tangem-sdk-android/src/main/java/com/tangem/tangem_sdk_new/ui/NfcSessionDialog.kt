@@ -210,7 +210,7 @@ class NfcSessionDialog(
     }
 
     private fun onWrongCard(state: SessionViewDelegateState.WrongCard) {
-        Log.view { "Showing wrong card. Type: ${state.wrongValueType}" }
+        Log.view { "showing wrong card. Type: ${state.wrongValueType}" }
         if (currentState !is SessionViewDelegateState.WrongCard) {
             performHapticFeedback()
             setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
@@ -222,7 +222,7 @@ class NfcSessionDialog(
     }
 
     private fun howToTap(state: SessionViewDelegateState) {
-        Log.view { "Showing how to tap" }
+        Log.view { "showing how to tap" }
         enableBottomSheetAnimation()
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         taskContainer.hide()

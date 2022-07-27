@@ -16,7 +16,7 @@ suspend fun <T> retryIO(
         try {
             return block()
         } catch (ex: IOException) {
-            Log.network { "Request error: ${ex.localizedMessage}" }
+            Log.network { "request ERROR: ${ex.localizedMessage}" }
         }
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
@@ -41,7 +41,7 @@ suspend fun <T> performRequest(block: suspend () -> T): Result<T> {
         val result = retryIO { block() }
         Result.Success(result)
     } catch (ex: Exception) {
-        Log.network { "Perform request error: ${ex.localizedMessage}" }
+        Log.network { "performRequest ERROR: ${ex.localizedMessage}" }
         Result.Failure(TangemSdkError.NetworkError("Network error. Cause: ${ex.localizedMessage}"))
     }
 }
