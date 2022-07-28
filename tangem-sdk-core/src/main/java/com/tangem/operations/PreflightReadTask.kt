@@ -44,7 +44,7 @@ class PreflightReadTask(
 ) : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
-        Log.debug { "================ Perform preflight check with settings: $readMode) ================" }
+        Log.command(this) { " [mode - $readMode]" }
         ReadCommand().run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {

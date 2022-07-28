@@ -87,7 +87,7 @@
     <string name="common_retry">Повторить попытку</string>
     <string name="error_no_space_for_new_wallet">Создано максимальное количество кошельков</string>
     <string name="error_wallet_index_exceeds_max_value">Индекс кошелька превышает максимальное значение</string>
-    <string name="error_wallet_not_found">Эта карта не содержит указанный кошелек</string>
+    <string name="error_wallet_not_found">Эта карта не содержит текущий кошелек</string>
     <string name="error_card_read_wrong_wallet">Карта считывает неправильный кошелек</string>
     <string name="error_old_firmware">Для команды требуется карта с другой версией прошивки</string>
     <string name="error_wrong_pin1">Неверный код доступа</string>
