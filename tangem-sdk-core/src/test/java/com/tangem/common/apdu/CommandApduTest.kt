@@ -3,15 +3,14 @@ package com.tangem.common.apdu
 import com.google.common.truth.Truth.assertThat
 import com.tangem.common.core.Config
 import com.tangem.common.core.SessionEnvironment
-import com.tangem.common.services.secure.UnsafeInMemoryStorage
+import com.tangem.common.services.InMemoryStorage
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvTag
 import org.junit.jupiter.api.Test
 
 
 class CommandApduTest {
-
-    private val environment = SessionEnvironment(Config(), UnsafeInMemoryStorage())
+    private val environment = SessionEnvironment(Config(), InMemoryStorage())
 
     @Test
     fun `simple READ command to bytes`() {
