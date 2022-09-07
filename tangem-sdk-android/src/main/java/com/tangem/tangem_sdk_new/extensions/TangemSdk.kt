@@ -12,7 +12,6 @@ import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
 import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.biometric.DummyBiometricManager
-import com.tangem.common.core.AccessCodeRequestPolicy.AlwaysWithBiometrics
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
@@ -28,7 +27,7 @@ import java.util.Locale
 fun TangemSdk.init(activity: FragmentActivity, config: Config = Config()): TangemSdk {
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
-    val authManager = TangemSdk.initBiometricAuthManager(activity, config, secureStorage)
+    val authManager = TangemSdk.initBiometricAuthManager(activity, secureStorage)
 
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
     viewDelegate.sdkConfig = config
@@ -49,7 +48,7 @@ fun TangemSdk.customDelegate(
 ): TangemSdk {
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
-    val authManager = TangemSdk.initBiometricAuthManager(activity, config, secureStorage)
+    val authManager = TangemSdk.initBiometricAuthManager(activity, secureStorage)
 
     val safeViewDelegate = viewDelegate
         ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
@@ -98,15 +97,10 @@ fun TangemSdk.createLogger(
 }
 fun TangemSdk.initBiometricAuthManager(
     activity: FragmentActivity,
-    config: Config,
     secureStorage: SecureStorage,
 ): BiometricManager {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-        config.accessCodeRequestPolicy is AlwaysWithBiometrics
-    ) {
-        val keyTimeoutSeconds = (config.accessCodeRequestPolicy as AlwaysWithBiometrics).secretKeyTimeoutSeconds
-
-        AndroidBiometricManager(keyTimeoutSeconds, secureStorage, activity)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        AndroidBiometricManager(secureStorage, activity)
             .also { activity.lifecycle.addObserver(it) }
     } else {
         DummyBiometricManager()

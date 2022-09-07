@@ -26,13 +26,12 @@ import androidx.biometric.BiometricManager as SystemBiometricManager
 
 @RequiresApi(Build.VERSION_CODES.M)
 internal class AndroidBiometricManager(
-    keyTimeoutSeconds: Int,
     secureStorage: SecureStorage,
     private val activity: FragmentActivity,
 ) : BiometricManager,
     DefaultLifecycleObserver,
     LifecycleOwner by activity {
-    private val cryptoManager = CryptoManager(keyTimeoutSeconds, secureStorage)
+    private val cryptoManager = CryptoManager(secureStorage)
 
     private val biometricPromptInfo by lazy(mode = LazyThreadSafetyMode.NONE) {
         BiometricPrompt.PromptInfo.Builder()

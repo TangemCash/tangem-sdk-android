@@ -242,7 +242,7 @@ class CardSession(
         }
 
         when (environment.config.accessCodeRequestPolicy) {
-            is AccessCodeRequestPolicy.AlwaysWithBiometrics -> {
+            AccessCodeRequestPolicy.AlwaysWithBiometrics -> {
                 scope.launch(Dispatchers.Main) {
                     if (shouldRequestBiometrics()) {
                         accessCodeRepository?.unlock()
@@ -256,10 +256,10 @@ class CardSession(
                     }
                 }
             }
-            is AccessCodeRequestPolicy.Always -> {
+            AccessCodeRequestPolicy.Always -> {
                 requestAccessCode()
             }
-            is AccessCodeRequestPolicy.Default -> {
+            AccessCodeRequestPolicy.Default -> {
                 runnable.prepare(this, callback)
             }
         }

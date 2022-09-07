@@ -86,20 +86,20 @@ sealed class CardIdDisplayFormat {
     data class LastLuhn(val numbers: Int) : CardIdDisplayFormat()
 }
 
-sealed interface AccessCodeRequestPolicy {
+enum class AccessCodeRequestPolicy {
     /*
     * User code will be requested before card scan. Biometrics will be used if enabled and there are any saved codes.
     * Requires Android SDK >= 23
     * */
-    class AlwaysWithBiometrics(val secretKeyTimeoutSeconds: Int = 60) : AccessCodeRequestPolicy
+    AlwaysWithBiometrics,
 
     /*
     * User code will be requested before card scan.
     * */
-    object Always : AccessCodeRequestPolicy
+    Always,
 
     /*
     * User code will be requested only if set on the card. Need scan the card twice.
     * */
-    object Default : AccessCodeRequestPolicy
+    Default,
 }

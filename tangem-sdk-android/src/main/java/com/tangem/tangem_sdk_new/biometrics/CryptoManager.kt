@@ -13,7 +13,6 @@ import javax.crypto.spec.IvParameterSpec
 
 @RequiresApi(Build.VERSION_CODES.M)
 class CryptoManager(
-    private val keyTimeoutSeconds: Int,
     private val secureStorage: SecureStorage,
 ) {
     private val keyGenSpecBuilder = KeyGenParameterSpec.Builder(
@@ -24,20 +23,7 @@ class CryptoManager(
         .setBlockModes(blockMode)
         .setEncryptionPaddings(encryptionPadding)
         .setUserAuthenticationRequired(true)
-        .let {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                it.setUserAuthenticationParameters(
-                    keyTimeoutSeconds,
-                    KeyProperties.AUTH_BIOMETRIC_STRONG
-                )
-            } else {
-                it.setUserAuthenticationValidityDurationSeconds(keyTimeoutSeconds)
-            }
-        }
-        .let {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) it
-            else it.setInvalidatedByBiometricEnrollment(true)
-        }
+        .setUserAuthenticationParameters()
     private val keyStore: KeyStore by lazy {
         KeyStore.getInstance(keyStoreProvider)
             .also { it.load(null) }
@@ -68,9 +54,7 @@ class CryptoManager(
             .also { it.init(Cipher.ENCRYPT_MODE, secretKey) }
             .doFinal(data)
             .also {
-                if (cipher.iv != null && secureStorage.get(STORAGE_KEY_IV) == null) {
-                    secureStorage.store(cipher.iv, STORAGE_KEY_IV)
-                }
+                secureStorage.store(cipher.iv, STORAGE_KEY_IV)
             }
     }
 
@@ -82,7 +66,24 @@ class CryptoManager(
         }
     }
 
+    private fun KeyGenParameterSpec.Builder.setUserAuthenticationParameters(): KeyGenParameterSpec.Builder {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            this.setUserAuthenticationParameters(
+                keyTimeoutSeconds,
+                KeyProperties.AUTH_BIOMETRIC_STRONG
+            )
+        } else {
+            val builder = this.setUserAuthenticationValidityDurationSeconds(keyTimeoutSeconds)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                builder.setInvalidatedByBiometricEnrollment(true)
+            } else {
+                builder
+            }
+        }
+    }
+
     companion object {
+        private const val keyTimeoutSeconds = 60
         private const val secretKeyAlias = "secret_key"
         private const val keyStoreProvider = "AndroidKeyStore"
         private const val algorithm = KeyProperties.KEY_ALGORITHM_AES

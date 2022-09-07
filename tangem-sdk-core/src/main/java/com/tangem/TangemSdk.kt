@@ -909,7 +909,7 @@ object TangemSdk {
         config: Config,
     ): AccessCodeRepository? {
         return if (biometricManager.canAuthenticate &&
-            config.accessCodeRequestPolicy is AccessCodeRequestPolicy.AlwaysWithBiometrics
+            config.accessCodeRequestPolicy == AccessCodeRequestPolicy.AlwaysWithBiometrics
         ) {
             AccessCodeRepository(
                 biometricManager = biometricManager,

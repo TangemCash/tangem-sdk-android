@@ -12,7 +12,6 @@ import com.tangem.LogFormat
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
 import com.tangem.common.card.FirmwareVersion
-import com.tangem.common.core.AccessCodeRequestPolicy
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_demo.ui.separtedCommands.CommandListFragment
@@ -72,11 +71,11 @@ class DemoActivity : AppCompatActivity() {
             linkedTerminal = false
             allowUntrustedCards = true
             filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
-            accessCodeRequestPolicy = AccessCodeRequestPolicy.AlwaysWithBiometrics()
+            accessCodeRequestPolicy = AccessCodeRequestPolicy.AlwaysWithBiometrics
         }
         val secureStorage = SecureStorage.create(this)
         val nfcManager = TangemSdk.initNfcManager(this)
-        val authManager = TangemSdk.initBiometricAuthManager(this, config, secureStorage)
+        val authManager = TangemSdk.initBiometricAuthManager(this, secureStorage)
 
         val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, this)
         viewDelegate.sdkConfig = config
