@@ -498,6 +498,7 @@ class CardSession(
     }
 
     private fun saveAccessCodeIfNeeded() {
+        if (!environment.isUserCodeSet(UserCodeType.AccessCode)) return
         val cardId = environment.card?.cardId ?: return
         val code = environment.accessCode.value ?: return
 
