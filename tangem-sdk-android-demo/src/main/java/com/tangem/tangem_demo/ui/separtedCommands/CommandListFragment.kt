@@ -11,9 +11,11 @@ import com.tangem.Message
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.AccessCodeRequestPolicy
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.toHexString
 import com.tangem.operations.PreflightReadMode
@@ -53,7 +55,15 @@ class CommandListFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        btnScanCard.setOnClickListener { scanCard() }
+        btnScanCard.setOnClickListener {
+            val policy = when (chipGroupAccessCodeRequestPolicy.checkedChipId) {
+                R.id.chipPolicyDefault -> AccessCodeRequestPolicy.Default
+                R.id.chipPolicyAlways -> AccessCodeRequestPolicy.Always
+                R.id.chipPolicyAlwaysWithBiometrics -> AccessCodeRequestPolicy.AlwaysWithBiometrics
+                else -> Config().accessCodeRequestPolicy
+            }
+            scanCard(policy)
+        }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
 
         btnPersonalizePrimary.setOnClickListener { personalize(Personalization.Backup.primaryCardConfig()) }

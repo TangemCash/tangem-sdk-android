@@ -17,9 +17,16 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.AccessCodeRequestPolicy
+import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDataDeserializer
-import com.tangem.common.extensions.*
+import com.tangem.common.extensions.VoidCallback
+import com.tangem.common.extensions.guard
+import com.tangem.common.extensions.hexToBytes
+import com.tangem.common.extensions.ifNotNullOr
+import com.tangem.common.extensions.toByteArray
+import com.tangem.common.extensions.toHexString
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.Tlv
@@ -34,10 +41,18 @@ import com.tangem.operations.files.FileToWrite
 import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
-import com.tangem.tangem_demo.*
+import com.tangem.tangem_demo.DemoActivity
+import com.tangem.tangem_demo.DemoApplication
+import com.tangem.tangem_demo.Personalization
+import com.tangem.tangem_demo.PurgeAllWalletsTask
+import com.tangem.tangem_demo.R
+import com.tangem.tangem_demo.Utils
+import com.tangem.tangem_demo.post
+import com.tangem.tangem_demo.postUi
 import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
 import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
+import kotlin.collections.set
 
 abstract class BaseFragment : Fragment() {
 
@@ -101,7 +116,8 @@ abstract class BaseFragment : Fragment() {
         }
     }
 
-    protected fun scanCard() {
+    protected fun scanCard(accessCodeRequestPolicy: AccessCodeRequestPolicy = Config().accessCodeRequestPolicy) {
+        sdk.config.accessCodeRequestPolicy = accessCodeRequestPolicy
         sdk.scanCard(initialMessage) { handleResult(it) }
     }
 
@@ -395,7 +411,7 @@ abstract class BaseFragment : Fragment() {
 
     private fun handleResult(result: CompletionResult<*>, rescan: Boolean = false) {
         when (result) {
-            is CompletionResult.Success -> postUi() { setCard(result, rescan) { handleCommandResult(result) } }
+            is CompletionResult.Success -> postUi { setCard(result, rescan) { handleCommandResult(result) } }
             is CompletionResult.Failure -> handleCommandResult(result)
         }
     }
@@ -412,7 +428,7 @@ abstract class BaseFragment : Fragment() {
                 post(delay) {
                     val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
                     sdk.startSessionWithRunnable(command) {
-                        postUi() { setCard(it, false, callback = callback) }
+                        postUi { setCard(it, false, callback = callback) }
                     }
                 }
             }
@@ -439,7 +455,7 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun showToast(message: String) {
-        postUi() { activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() } }
+        postUi { activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() } }
     }
 
     protected fun prepareHashesToSign(count: Int): Array<ByteArray> {

@@ -71,7 +71,6 @@ class DemoActivity : AppCompatActivity() {
             linkedTerminal = false
             allowUntrustedCards = true
             filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
-            accessCodeRequestPolicy = AccessCodeRequestPolicy.AlwaysWithBiometrics
         }
         val secureStorage = SecureStorage.create(this)
         val nfcManager = TangemSdk.initNfcManager(this)
