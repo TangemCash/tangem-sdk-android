@@ -60,7 +60,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.NotSupportedFirmwareVersion -> R.string.error_old_firmware
         is TangemSdkError.MaxNumberOfWalletsCreated -> R.string.error_no_space_for_new_wallet
         is TangemSdkError.CardReadWrongWallet -> R.string.error_card_read_wrong_wallet
-        is TangemSdkError.UnsupportedCurve -> R.string.error_wallet_index_exceeds_max_value
+        is TangemSdkError.UnsupportedCurve -> R.string.generic_error_code
         is TangemSdkError.WalletNotFound -> R.string.error_wallet_not_found
         is TangemSdkError.WrongAccessCode -> R.string.error_wrong_pin1
         is TangemSdkError.WrongPasscode -> R.string.error_wrong_pin2
