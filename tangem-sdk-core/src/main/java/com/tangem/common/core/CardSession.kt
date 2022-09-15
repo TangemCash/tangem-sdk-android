@@ -8,7 +8,6 @@ import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
-import com.tangem.common.accesscode.AccessCodeRepository
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
@@ -19,6 +18,7 @@ import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.json.JSONRPCConverter
 import com.tangem.common.json.JSONRPCLinker
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
 import com.tangem.operations.OpenSessionCommand
@@ -62,12 +62,12 @@ import java.io.StringWriter
  * If null, a default header and text body will be used.
  */
 class CardSession(
+    cardId: String? = null,
     val viewDelegate: SessionViewDelegate,
     val environment: SessionEnvironment,
-    val accessCodeRepository: AccessCodeRepository?,
+    val userCodeRepository: UserCodeRepository?,
     private val reader: CardReader,
     private val jsonRpcConverter: JSONRPCConverter,
-    cardId: String? = null,
     private var initialMessage: Message? = null,
 ) {
 
@@ -129,9 +129,11 @@ class CardSession(
                             when (result) {
                                 is CompletionResult.Success -> {
                                     stop()
-                                    session.saveAccessCodeIfNeeded()
+                                    session.saveUserCodeIfNeeded()
                                 }
-                                is CompletionResult.Failure -> stopWithError(result.error)
+                                is CompletionResult.Failure -> {
+                                    stopWithError(result.error)
+                                }
                             }
                             callback(result)
                         }
@@ -220,19 +222,26 @@ class CardSession(
     }
 
     private suspend fun shouldRequestBiometrics(): Boolean {
-        if (accessCodeRepository == null) return false
-        cardId?.let { if (accessCodeRepository.hasSavedAccessCode(it)) return false }
-        return accessCodeRepository.hasSavedAccessCodes()
+        if (userCodeRepository == null) return false
+        cardId?.let { if (userCodeRepository.hasSavedUserCode(it)) return false }
+        return userCodeRepository.hasSavedUserCodes()
     }
 
     private fun <T : CardSessionRunnable<*>> prepareSession(runnable: T, callback: CompletionCallback<Unit>) {
         Log.session { "prepare card session" }
         preflightReadMode = runnable.preflightReadMode()
 
-        val requestAccessCode = {
-            environment.accessCode = UserCode(UserCodeType.AccessCode, null)
+        val requestUserCode = { codeType: UserCodeType ->
+            when (codeType) {
+                UserCodeType.AccessCode -> {
+                    environment.accessCode = UserCode(codeType, null)
+                }
+                UserCodeType.Passcode -> {
+                    environment.passcode = UserCode(codeType, null)
+                }
+            }
             requestUserCodeIfNeeded(
-                type = UserCodeType.AccessCode,
+                type = codeType,
                 isFirstAttempt = true
             ) { userCodeResult ->
                 userCodeResult
@@ -241,25 +250,25 @@ class CardSession(
             }
         }
 
-        when (environment.config.accessCodeRequestPolicy) {
-            AccessCodeRequestPolicy.AlwaysWithBiometrics -> {
+        when (val policy = environment.config.userCodeRequestPolicy) {
+            is UserCodeRequestPolicy.AlwaysWithBiometrics -> {
                 scope.launch(Dispatchers.Main) {
                     if (shouldRequestBiometrics()) {
-                        accessCodeRepository?.unlock()
+                        userCodeRepository?.unlock()
                             ?.doOnSuccess { runnable.prepare(this@CardSession, callback) }
                             ?.doOnFailure { e ->
-                                Log.error { "Access codes could not be unlocked: $e" }
-                                requestAccessCode()
+                                Log.error { "User codes storage could not be unlocked: $e" }
+                                requestUserCode(policy.codeType)
                             }
                     } else {
-                        requestAccessCode()
+                        requestUserCode(policy.codeType)
                     }
                 }
             }
-            AccessCodeRequestPolicy.Always -> {
-                requestAccessCode()
+            is UserCodeRequestPolicy.Always -> {
+                requestUserCode(policy.codeType)
             }
-            AccessCodeRequestPolicy.Default -> {
+            is UserCodeRequestPolicy.Default -> {
                 runnable.prepare(this, callback)
             }
         }
@@ -330,6 +339,7 @@ class CardSession(
         state = CardSessionState.Inactive
         preflightReadMode = PreflightReadMode.FullCardRead
 //        environmentService.saveEnvironmentValues(environment, cardId)
+        userCodeRepository?.lock()
         reader.stopSession()
         scope.cancel()
     }
@@ -486,28 +496,42 @@ class CardSession(
         }
     }
 
-    fun updateAccessCodeIfNeeded() {
+    fun updateUserCodeIfNeeded() {
         val card = environment.card ?: return
-        val accessCode = accessCodeRepository?.get(card.cardId)
-        if (card.isAccessCodeSet && accessCode != null) {
-            environment.accessCode = UserCode(
-                type = UserCodeType.AccessCode,
-                value = accessCode,
-            )
+        val userCode = userCodeRepository?.get(card.cardId)
+        when {
+            userCode?.type == UserCodeType.AccessCode && card.isAccessCodeSet -> {
+                environment.accessCode = userCode
+            }
+            userCode?.type == UserCodeType.Passcode && card.isPasscodeSet == true -> {
+                environment.passcode = userCode
+            }
         }
     }
 
-    private fun saveAccessCodeIfNeeded() {
-        if (!environment.isUserCodeSet(UserCodeType.AccessCode)) return
-        val cardId = environment.card?.cardId ?: return
-        val code = environment.accessCode.value ?: return
-
-        GlobalScope.launch {
-            accessCodeRepository?.save(cardId, code)
-                ?.doOnFailure {
+    private fun saveUserCodeIfNeeded() {
+        if (userCodeRepository == null) return
+        val saveCode: suspend (String, UserCode) -> Unit = { cardId, code ->
+            userCodeRepository
+                .save(cardId, code)
+                .doOnFailure {
                     Log.error { "Access code saving failed: $it" }
                 }
-            accessCodeRepository?.lock()
+        }
+
+        GlobalScope.launch {
+            val card = environment.card
+            when {
+                card == null -> Unit
+                environment.accessCode.value != null && card.isAccessCodeSet -> {
+                    saveCode(card.cardId, environment.accessCode)
+                }
+                environment.passcode.value != null && card.isPasscodeSet == true -> {
+                    saveCode(card.cardId, environment.passcode)
+                }
+            }
+
+            userCodeRepository.lock()
         }
     }
 
@@ -521,7 +545,7 @@ class CardSession(
 
     private fun restoreUserCode(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
         val config = environment.config.apply {
-            accessCodeRequestPolicy = AccessCodeRequestPolicy.Default
+            userCodeRequestPolicy = UserCodeRequestPolicy.Default
         }
         val resetService = ResetPinService(
             stringsLocator = viewDelegate.resetCodesViewDelegate.stringsLocator,

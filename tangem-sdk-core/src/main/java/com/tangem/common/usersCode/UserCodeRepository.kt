@@ -1,14 +1,13 @@
-package com.tangem.common.accesscode
+package com.tangem.common.usersCode
 
 import com.tangem.common.CompletionResult
-import com.tangem.common.UserCodeType
+import com.tangem.common.UserCode
 import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.biometric.BiometricStorage
 import com.tangem.common.catching
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.doOnSuccess
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.mapNotNullValues
 import com.tangem.common.flatMap
 import com.tangem.common.json.MoshiJsonConverter
@@ -17,17 +16,15 @@ import com.tangem.common.services.secure.SecureStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class AccessCodeRepository(
+class UserCodeRepository(
     private val biometricManager: BiometricManager,
     private val secureStorage: SecureStorage,
     private val jsonConverter: MoshiJsonConverter,
 ) {
     private val biometricStorage = BiometricStorage(biometricManager, secureStorage)
-
-    private val cardIdToAccessCode: HashMap<String, ByteArray> = hashMapOf()
-
+    private val cardIdToUserCode: HashMap<String, UserCode> = hashMapOf()
     fun lock(): CompletionResult<Unit> {
-        cardIdToAccessCode.clear()
+        cardIdToUserCode.clear()
         return CompletionResult.Success(Unit)
     }
 
@@ -35,70 +32,72 @@ class AccessCodeRepository(
         if (!biometricManager.canAuthenticate)
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
 
-        return biometricStorage.get(StorageKey.AccessCodes.name)
+        return biometricStorage.get(StorageKey.UserCodes.name)
             .map { data ->
-                cardIdToAccessCode.clear()
+                cardIdToUserCode.clear()
                 data
                     ?.decodeToString(throwOnInvalidSequence = true)
                     ?.let(jsonConverter::toMap)
                     ?.mapNotNullValues { (_, value) ->
-                        (value as? String)?.hexToBytes()
+                        jsonConverter.fromJson<UserCode>(value as String)
                     }
-                    ?.also(cardIdToAccessCode::putAll)
+                    ?.also(cardIdToUserCode::putAll)
             }
     }
 
     suspend fun save(
         cardId: String,
-        accessCode: ByteArray,
+        userCode: UserCode,
     ): CompletionResult<Unit> {
-        return save(listOf(cardId), accessCode)
+        return save(listOf(cardId), userCode)
     }
 
-    fun get(cardId: String): ByteArray? {
-        return cardIdToAccessCode[cardId]
+    fun get(cardId: String): UserCode? {
+        return cardIdToUserCode[cardId]
     }
 
-    suspend fun hasSavedAccessCodes(): Boolean = getCards().isNotEmpty()
-    suspend fun hasSavedAccessCode(cardId: String): Boolean = getCards().contains(cardId)
+    suspend fun hasSavedUserCodes(): Boolean = getCards().isNotEmpty()
+    suspend fun hasSavedUserCode(cardId: String): Boolean = getCards().contains(cardId)
     suspend fun clear(): CompletionResult<Unit> {
-        return biometricStorage.delete(StorageKey.AccessCodes.name)
-            .doOnSuccess { cardIdToAccessCode.clear() }
+        return biometricStorage.delete(StorageKey.UserCodes.name)
+            .doOnSuccess { cardIdToUserCode.clear() }
             .map { CompletionResult.Success(Unit) }
     }
 
-    private suspend fun save(cardIds: List<String>, accessCode: ByteArray): CompletionResult<Unit> {
+    private suspend fun save(cardIds: List<String>, userCode: UserCode): CompletionResult<Unit> {
         if (!biometricManager.canAuthenticate)
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
 
-        if (!updateCodesIfNeeded(cardIds, accessCode))
+        if (!updateCodesIfNeeded(cardIds, userCode))
             return CompletionResult.Success(Unit) // Nothing changed. Return
+
         return catching {
-            cardIdToAccessCode
+            cardIdToUserCode
+                .mapValues { jsonConverter.toJson(it.value) }
                 .let { jsonConverter.toJson(it) }
                 .encodeToByteArray(throwOnInvalidSequence = true)
         }
-            .flatMap { data -> biometricStorage.store(StorageKey.AccessCodes.name, data) }
+            .flatMap { data -> biometricStorage.store(StorageKey.UserCodes.name, data) }
             .doOnSuccess { saveCards() }
     }
 
-    private fun updateCodesIfNeeded(cardIds: List<String>, accessCode: ByteArray): Boolean {
+    private fun updateCodesIfNeeded(cardIds: List<String>, userCode: UserCode): Boolean {
         var hasChanges = false
 
         for (cardId in cardIds) {
-            val existingCode = cardIdToAccessCode[cardId]
-            when (accessCode) {
+            val existingCode = cardIdToUserCode[cardId]?.value
+            when (userCode.value) {
                 existingCode -> continue // We already know this code. Ignoring
-                UserCodeType.AccessCode.defaultValue.calculateSha256() -> if (existingCode == null) {
+                userCode.type.defaultValue.calculateSha256() -> if (existingCode == null) {
                     continue // Ignore default code
                 } else {
                     // User deleted the code. We should update the storage
-                    cardIdToAccessCode.remove(cardId)
+                    cardIdToUserCode.remove(cardId)
                     hasChanges = true
                 }
                 else -> {
                     // Save a new code
-                    cardIdToAccessCode[cardId] = accessCode
+                    cardIdToUserCode[cardId] = userCode
                     hasChanges = true
                 }
             }
@@ -117,7 +116,7 @@ class AccessCodeRepository(
     }
 
     private suspend fun saveCards() = withContext(Dispatchers.IO) {
-        cardIdToAccessCode.keys
+        cardIdToUserCode.keys
             .let(jsonConverter::toJson)
             .let(String::toByteArray)
             .also {
@@ -128,6 +127,6 @@ class AccessCodeRepository(
     }
 
     enum class StorageKey {
-        AccessCodes, CardsWithSavedAccessCode
+        UserCodes, CardsWithSavedAccessCode
     }
 }

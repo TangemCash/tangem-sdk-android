@@ -5,18 +5,20 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
+import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
 import com.tangem.Message
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.core.AccessCodeRequestPolicy
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.core.UserCodeRequestPolicy
 import com.tangem.common.extensions.toHexString
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
@@ -55,12 +57,24 @@ class CommandListFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        chipGroupUserCodeRequestPolicy.fitChipsByGroupWidth()
+        chipGroupUserCodeRequestPolicy.setOnCheckedChangeListener { _, checkedId ->
+            val showTypeSelector = checkedId == R.id.chipPolicyAlways ||
+                checkedId ==  R.id.chipPolicyAlwaysWithBiometrics
+            chipGroupUserCodeType.isVisible = showTypeSelector
+            userCodeRequestPolicyDivider.isVisible = showTypeSelector
+        }
         btnScanCard.setOnClickListener {
-            val policy = when (chipGroupAccessCodeRequestPolicy.checkedChipId) {
-                R.id.chipPolicyDefault -> AccessCodeRequestPolicy.Default
-                R.id.chipPolicyAlways -> AccessCodeRequestPolicy.Always
-                R.id.chipPolicyAlwaysWithBiometrics -> AccessCodeRequestPolicy.AlwaysWithBiometrics
-                else -> Config().accessCodeRequestPolicy
+            val type = when (chipGroupUserCodeType.checkedChipId) {
+                R.id.chipTypeAccessCode -> UserCodeType.AccessCode
+                R.id.chipTypePasscode -> UserCodeType.Passcode
+                else -> UserCodeType.AccessCode
+            }
+            val policy = when (chipGroupUserCodeRequestPolicy.checkedChipId) {
+                R.id.chipPolicyDefault -> UserCodeRequestPolicy.Default
+                R.id.chipPolicyAlways -> UserCodeRequestPolicy.Always(type)
+                R.id.chipPolicyAlwaysWithBiometrics -> UserCodeRequestPolicy.AlwaysWithBiometrics(type)
+                else -> Config().userCodeRequestPolicy
             }
             scanCard(policy)
         }

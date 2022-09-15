@@ -5,7 +5,6 @@ import com.tangem.TangemSdk.reader
 import com.tangem.TangemSdk.viewDelegate
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
-import com.tangem.common.accesscode.AccessCodeRepository
 import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
@@ -17,6 +16,7 @@ import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
+import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.*
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
@@ -905,13 +905,13 @@ object TangemSdk {
         viewDelegate.setConfig(config)
     }
 
-    private fun createAccessCodeRepository(
+    private fun createUserCodeRepository(
         config: Config,
-    ): AccessCodeRepository? {
+    ): UserCodeRepository? {
         return if (biometricManager.canAuthenticate &&
-            config.accessCodeRequestPolicy == AccessCodeRequestPolicy.AlwaysWithBiometrics
+            config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics
         ) {
-            AccessCodeRepository(
+            UserCodeRepository(
                 biometricManager = biometricManager,
                 secureStorage = secureStorage,
                 jsonConverter = MoshiJsonConverter.INSTANCE,
@@ -930,7 +930,7 @@ object TangemSdk {
             viewDelegate = viewDelegate,
             environment = environment,
             reader = reader,
-            accessCodeRepository = createAccessCodeRepository(config),
+            userCodeRepository = createUserCodeRepository(config),
             jsonRpcConverter = jsonRpcConverter,
             cardId = cardId,
             initialMessage = initialMessage,

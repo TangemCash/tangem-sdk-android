@@ -46,24 +46,26 @@ class PreflightReadTask(
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         Log.command(this) { " [mode - $readMode]" }
-        ReadCommand().run(session) { result ->
+        ReadCommand().run(session) readCommand@{ result ->
             when (result) {
                 is CompletionResult.Success -> {
                     if (session.environment.config.handleErrors) {
                         if (cardId != null && !cardId.equals(result.data.card.cardId, true)) {
                             callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
-                            return@run
+                            return@readCommand
                         }
                     }
                     try {
                         session.environment.config.filter.verifyCard(result.data.card)
                     } catch (error: TangemSdkError) {
                         callback(CompletionResult.Failure(error))
-                        return@run
+                        return@readCommand
                     }
 
+                    session.updateUserCodeIfNeeded()
                     session.updateAccessCodeIfNeeded()
                     updateEnvironmentIfNeeded(result.data.card, session)
+
                     finalizeRead(session, result.data.card, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))

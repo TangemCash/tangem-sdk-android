@@ -17,9 +17,9 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.core.AccessCodeRequestPolicy
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.core.UserCodeRequestPolicy
 import com.tangem.common.deserialization.WalletDataDeserializer
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.guard
@@ -116,8 +116,8 @@ abstract class BaseFragment : Fragment() {
         }
     }
 
-    protected fun scanCard(accessCodeRequestPolicy: AccessCodeRequestPolicy = Config().accessCodeRequestPolicy) {
-        sdk.config.accessCodeRequestPolicy = accessCodeRequestPolicy
+    protected fun scanCard(userCodeRequestPolicy: UserCodeRequestPolicy = Config().userCodeRequestPolicy) {
+        sdk.config.userCodeRequestPolicy = userCodeRequestPolicy
         sdk.scanCard(initialMessage) { handleResult(it) }
     }
 

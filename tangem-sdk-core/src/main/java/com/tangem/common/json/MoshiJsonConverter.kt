@@ -1,9 +1,20 @@
 package com.tangem.common.json
 
-import com.squareup.moshi.*
+import com.squareup.moshi.FromJson
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.JsonWriter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.ToJson
+import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.tangem.common.MaskBuilder
-import com.tangem.common.card.*
+import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.EncryptionMode
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
@@ -19,7 +30,8 @@ import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.personalization.entities.ProductMask
 import java.lang.reflect.ParameterizedType
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 import kotlin.reflect.KClass
 
 class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Class<*>, JsonAdapter<*>> = mapOf()) {
@@ -231,7 +243,7 @@ class TangemSdkAdapter {
 
         @ToJson
         override fun toJson(writer: JsonWriter, value: FirmwareVersion?) {
-            writer.beginObject();
+            writer.beginObject()
             value?.major?.let { writer.name("major").value(it) }
             value?.minor?.let { writer.name("minor").value(it) }
             value?.patch?.let { writer.name("patch").value(it) }
@@ -512,9 +524,13 @@ class TangemSdkAdapter {
 
     private class EnumConverter {
         companion object {
-            inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(json.capitalize())
+            inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(json.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(
+                    Locale.getDefault()
+                ) else it.toString()
+            })
 
-            fun toJson(enum: Enum<*>): String = enum.name.decapitalize()
+            fun toJson(enum: Enum<*>): String = enum.name.replaceFirstChar { it.lowercase(Locale.getDefault()) }
         }
     }
 }
