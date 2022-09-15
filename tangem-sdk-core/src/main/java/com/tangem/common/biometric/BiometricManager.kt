@@ -7,6 +7,8 @@ interface BiometricManager {
 
     suspend fun authenticate(mode: AuthenticationMode): CompletionResult<ByteArray>
 
+    fun unauthenticate()
+
     sealed interface AuthenticationMode {
         val data: ByteArray
 

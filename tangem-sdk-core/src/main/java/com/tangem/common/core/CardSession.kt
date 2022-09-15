@@ -117,7 +117,7 @@ class CardSession(
         prepareSession(runnable) { prepareResult ->
             when (prepareResult) {
                 is CompletionResult.Success -> {
-                    start { session, error ->
+                    start { _, error ->
                         if (error != null) {
                             Log.error { "$error" }
                             callback(CompletionResult.Failure(error))
@@ -129,7 +129,6 @@ class CardSession(
                             when (result) {
                                 is CompletionResult.Success -> {
                                     stop()
-                                    session.saveUserCodeIfNeeded()
                                 }
                                 is CompletionResult.Failure -> {
                                     stopWithError(result.error)
@@ -338,8 +337,7 @@ class CardSession(
         Log.session { "stop session" }
         state = CardSessionState.Inactive
         preflightReadMode = PreflightReadMode.FullCardRead
-//        environmentService.saveEnvironmentValues(environment, cardId)
-        userCodeRepository?.lock()
+        saveUserCodeIfNeeded()
         reader.stopSession()
         scope.cancel()
     }
@@ -510,28 +508,26 @@ class CardSession(
     }
 
     private fun saveUserCodeIfNeeded() {
-        if (userCodeRepository == null) return
-        val saveCode: suspend (String, UserCode) -> Unit = { cardId, code ->
+        val saveCodeAndLock: suspend (String, UserCode) -> Unit = { cardId, code ->
             userCodeRepository
-                .save(cardId, code)
-                .doOnFailure {
+                ?.save(cardId, code)
+                ?.doOnFailure {
                     Log.error { "Access code saving failed: $it" }
                 }
+            userCodeRepository?.lock()
         }
 
         GlobalScope.launch {
             val card = environment.card
             when {
-                card == null -> Unit
+                card == null -> userCodeRepository?.lock()
                 environment.accessCode.value != null && card.isAccessCodeSet -> {
-                    saveCode(card.cardId, environment.accessCode)
+                    saveCodeAndLock(card.cardId, environment.accessCode)
                 }
                 environment.passcode.value != null && card.isPasscodeSet == true -> {
-                    saveCode(card.cardId, environment.passcode)
+                    saveCodeAndLock(card.cardId, environment.passcode)
                 }
             }
-
-            userCodeRepository.lock()
         }
     }
 

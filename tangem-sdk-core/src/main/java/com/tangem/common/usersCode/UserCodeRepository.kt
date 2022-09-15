@@ -23,6 +23,7 @@ class UserCodeRepository(
 ) {
     private val biometricStorage = BiometricStorage(biometricManager, secureStorage)
     private val cardIdToUserCode: HashMap<String, UserCode> = hashMapOf()
+
     fun lock(): CompletionResult<Unit> {
         cardIdToUserCode.clear()
         return CompletionResult.Success(Unit)

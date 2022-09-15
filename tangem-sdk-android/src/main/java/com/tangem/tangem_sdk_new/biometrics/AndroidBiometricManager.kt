@@ -55,6 +55,9 @@ internal class AndroidBiometricManager(
         return if (canAuthenticate) tryToProceedData(mode)
         else CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
     }
+    override fun unauthenticate() {
+        cryptoManager.unauthenticateKey()
+    }
 
     private suspend fun tryToProceedData(
         mode: BiometricManager.AuthenticationMode,

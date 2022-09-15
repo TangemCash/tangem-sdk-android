@@ -9,4 +9,7 @@ class DummyBiometricManager : BiometricManager {
     override suspend fun authenticate(mode: BiometricManager.AuthenticationMode): CompletionResult<ByteArray> {
         return CompletionResult.Success(byteArrayOf())
     }
+    override fun unauthenticate() {
+        /* no-op */
+    }
 }
