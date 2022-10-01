@@ -40,7 +40,7 @@ sealed class PreflightReadMode {
 
 class PreflightReadTask(
     private val readMode: PreflightReadMode,
-    private val cardId: String? = null
+    private val cardId: String? = null,
 ) : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
@@ -54,10 +54,13 @@ class PreflightReadTask(
                             return@run
                         }
                     }
-                    if (!session.environment.config.filter.isCardAllowed(result.data.card)) {
-                        callback(CompletionResult.Failure(TangemSdkError.WrongCardType()))
+                    try {
+                        session.environment.config.filter.verifyCard(result.data.card)
+                    } catch (error: TangemSdkError) {
+                        callback(CompletionResult.Failure(error))
                         return@run
                     }
+
                     finalizeRead(session, result.data.card, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
