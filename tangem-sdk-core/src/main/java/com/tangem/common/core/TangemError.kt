@@ -248,7 +248,9 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
      * This error is returned when a user scans a card of a [com.tangem.common.extensions.CardType]
      * that is not specified in [Config.cardFilter].
      */
-    class WrongCardType : TangemSdkError(50006)
+    class WrongCardType(customMessage: String? = null) : TangemSdkError(50006) {
+        override var customMessage: String = customMessage ?: "50006"
+    }
 
     /**
      * This error is returned when a [ScanTask] returns a [Card] without some of the essential fields.
