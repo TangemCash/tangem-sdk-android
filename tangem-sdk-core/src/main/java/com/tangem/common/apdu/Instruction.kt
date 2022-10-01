@@ -34,6 +34,7 @@ enum class Instruction(var code: Int) {
     ManageFileOwners(0xD2),
     Authorize(0xD3),
     BackupReset(0xEE),
+    GenerateOTP(0xE2),
     ;
 
     companion object {
