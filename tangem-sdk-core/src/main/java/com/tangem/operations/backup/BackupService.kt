@@ -37,8 +37,7 @@ class BackupService(
     val currentStateAsFlow: StateFlow<State> get() = _currentStateFlow
 
     val canAddBackupCards: Boolean
-        get() = addedBackupCardsCount < MAX_BACKUP_CARDS_COUNT &&
-                repo.data.primaryCard?.linkingKey != null
+        get() = addedBackupCardsCount < MAX_BACKUP_CARDS_COUNT && repo.data.primaryCard?.linkingKey != null
 
     val hasIncompletedBackup: Boolean
         get() = when (currentState) {
@@ -49,15 +48,19 @@ class BackupService(
         }
 
     val addedBackupCardsCount: Int get() = repo.data.backupCards.size
+
     val canProceed: Boolean
-        get() =
-            (currentState != State.Preparing) &&
-                    (currentState != State.Finished)
+        get() = (currentState != State.Preparing) && (currentState != State.Finished)
     val accessCodeIsSet: Boolean get() = repo.data.accessCode != null
     val passcodeIsSet: Boolean get() = repo.data.passcode != null
     val primaryCardIsSet: Boolean get() = repo.data.primaryCard != null
     val primaryCardId: String? get() = repo.data.primaryCard?.cardId
     val backupCardIds: List<String> get() = repo.data.backupCards.map { it.cardId }
+
+    /**
+     * Perform additional compatibility checks while adding backup cards. Change this setting only if you understand what you do.
+     */
+    var skipCompatibilityChecks: Boolean = false
 
     private val handleErrors = sdk.config.handleErrors
 
@@ -219,11 +222,13 @@ class BackupService(
     ) {
         sdk.startSessionWithRunnable(
             runnable = StartBackupCardLinkingTask(
-                primaryCard,
-                repo.data.backupCards.map { it.cardId }
+                primaryCard = primaryCard,
+                addedBackupCards = repo.data.backupCards.map { it.cardId },
+                skipCompatibilityChecks = skipCompatibilityChecks,
             ),
-            initialMessage = Message(header =
-            stringsLocator.getString(StringsLocator.ID.backup_add_backup_card_message))
+            initialMessage = Message(
+                header = stringsLocator.getString(StringsLocator.ID.backup_add_backup_card_message),
+            )
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -394,7 +399,7 @@ class RawPrimaryCard(
     val isHDWalletAllowed: Boolean,
     val issuer: Card.Issuer,
     val walletCurves: List<EllipticCurve>,
-    val batchId: String? //for compatibility with interrupted backups
+    val batchId: String?, //for compatibility with interrupted backups
 ) : CommandResponse
 
 @JsonClass(generateAdapter = true)
@@ -408,7 +413,7 @@ class PrimaryCard(
     val isHDWalletAllowed: Boolean,
     val issuer: Card.Issuer,
     val walletCurves: List<EllipticCurve>,
-    val batchId: String? //for compatibility with interrupted backups
+    val batchId: String?, //for compatibility with interrupted backups
 ) : CertificateProvider {
     constructor(
         rawPrimaryCard: RawPrimaryCard, issuerSignature: ByteArray,
@@ -468,7 +473,6 @@ data class BackupServiceData(
     val shouldSave: Boolean
         get() = attestSignature != null || backupData.isNotEmpty()
 }
-
 
 class BackupRepo(
     private val storage: SecureStorage,
