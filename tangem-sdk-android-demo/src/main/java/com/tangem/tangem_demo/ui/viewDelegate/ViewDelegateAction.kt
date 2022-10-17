@@ -351,7 +351,7 @@ class RequestPinSetup : BaseDelegateAction() {
     override fun getCommandsPool(): suspend () -> Unit = suspend {
         withMainContext { delegate.onSessionStarted(null, null, true) }
         delay(500)
-        withMainContext { delegate.requestUserCodeChange(UserCodeType.Passcode) {} }
+        withMainContext { delegate.requestUserCodeChange(UserCodeType.Passcode, null) {} }
     }
 }
 

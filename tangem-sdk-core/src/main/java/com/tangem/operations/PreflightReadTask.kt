@@ -4,6 +4,7 @@ import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.core.CardIdDisplayFormat
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
@@ -61,6 +62,7 @@ class PreflightReadTask(
                         return@run
                     }
 
+                    updateEnvironmentIfNeeded(result.data.card, session)
                     finalizeRead(session, result.data.card, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
@@ -90,6 +92,12 @@ class PreflightReadTask(
                 is CompletionResult.Success -> callback(CompletionResult.Success(card))
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
+        }
+    }
+
+    private fun updateEnvironmentIfNeeded(card: Card, session: CardSession) {
+        if (FirmwareVersion.visaRange.contains(card.firmwareVersion.doubleValue)) {
+            session.environment.config.cardIdDisplayFormat = CardIdDisplayFormat.None
         }
     }
 }
