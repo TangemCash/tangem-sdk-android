@@ -45,13 +45,13 @@ class CardFilter(
         if (!allowedCardTypes.contains(card.firmwareVersion.type)) throw wrongCardError
 
         batchIdFilter?.let {
-            if (it.isAllowed(card.batchId)) throw wrongCardError
+            if (!it.isAllowed(card.batchId)) throw wrongCardError
         }
         issuerFilter?.let {
-            if (it.isAllowed(card.issuer.name)) throw wrongCardError
+            if (!it.isAllowed(card.issuer.name)) throw wrongCardError
         }
         cardIdFilter?.let {
-            if (it.isAllowed(card.cardId)) throw wrongCardError
+            if (!it.isAllowed(card.cardId)) throw wrongCardError
         }
 
         return true
