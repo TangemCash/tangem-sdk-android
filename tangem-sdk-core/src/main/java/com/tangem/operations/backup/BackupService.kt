@@ -9,7 +9,6 @@ import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.core.CardIdDisplayFormat
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
@@ -148,19 +147,14 @@ class BackupService(
     }
 
     fun readPrimaryCard(cardId: String? = null, callback: CompletionCallback<Unit>) {
-        val message = cardId?.let {
+        val formattedCardId = cardId?.let { CardIdFormatter(sdk.config.cardIdDisplayFormat).getFormattedCardId(it) }
+
+        val message = formattedCardId?.let {
             Message(
                 header = null,
-                body = stringsLocator.getString(
-                    StringsLocator.ID.backup_prepare_primary_card_message_format,
-                    cardId
-                )
+                body = stringsLocator.getString(StringsLocator.ID.backup_prepare_primary_card_message_format, it)
             )
-        } ?: Message(
-            header = stringsLocator.getString(
-                StringsLocator.ID.backup_prepare_primary_card_message
-            )
-        )
+        } ?: Message(header = stringsLocator.getString(StringsLocator.ID.backup_prepare_primary_card_message))
 
 
         sdk.startSessionWithRunnable(
@@ -274,27 +268,27 @@ class BackupService(
                 passcode = passcode,
                 readBackupStartIndex = repo.data.backupData.size,
                 attestSignature = repo.data.attestSignature,
-                onLink = { repo.data = repo.data.copy(attestSignature = it) },
+                onLink = {
+                    repo.data = repo.data.copy(attestSignature = it)
+                },
                 onRead = { cardId, data ->
-                    repo.data = repo.data.copy(
-                        backupData = repo.data.backupData.plus(Pair(cardId, data)
-                        ))
+                    repo.data = repo.data.copy(backupData = repo.data.backupData.plus(Pair(cardId, data)))
                 }
             )
-            val formattedCardId = CardIdFormatter(style = CardIdDisplayFormat.LastMasked(4))
+            val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
                 .getFormattedCardId(primaryCard.cardId)
-            val message = Message(
-                header = null,
-                body = stringsLocator.getString(
-                    StringsLocator.ID.backup_finalize_primary_card_message_format,
-                    formattedCardId
+
+            val message = formattedCardId?.let {
+                Message(
+                    header = null,
+                    body = stringsLocator.getString(StringsLocator.ID.backup_finalize_primary_card_message_format, it)
                 )
-            )
+            }
 
             sdk.startSessionWithRunnable(
                 task, primaryCard.cardId,
                 initialMessage = message,
-                callback
+                callback = callback,
             )
         } catch (error: TangemSdkError) {
             callback(CompletionResult.Failure(error))
@@ -344,15 +338,15 @@ class BackupService(
                 passcode = passcode
             )
 
-            val formattedCardId = CardIdFormatter(style = CardIdDisplayFormat.LastMasked(4))
+            val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
                 .getFormattedCardId(backupCard.cardId)
-            val message = Message(
-                header = null,
-                body = stringsLocator.getString(
-                    StringsLocator.ID.backup_finalize_backup_card_message_format,
-                    formattedCardId
+
+            val message = formattedCardId?.let {
+                Message(
+                    header = null,
+                    body = stringsLocator.getString(StringsLocator.ID.backup_finalize_backup_card_message_format, it)
                 )
-            )
+            }
 
             sdk.startSessionWithRunnable(
                 task, backupCard.cardId,

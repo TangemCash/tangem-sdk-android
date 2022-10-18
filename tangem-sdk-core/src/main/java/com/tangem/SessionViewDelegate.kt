@@ -67,7 +67,7 @@ interface SessionViewDelegate {
     /**
      * It is called when a user wants to change pin code.
      */
-    fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>)
+    fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>)
 
     fun setConfig(config: Config)
 

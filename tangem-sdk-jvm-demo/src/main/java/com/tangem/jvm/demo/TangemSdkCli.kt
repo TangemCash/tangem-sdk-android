@@ -78,7 +78,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         }
 
         val command = SignHashesCommand(parseHashes(hashes), publicKey)
-        sdk.startSessionWithRunnable(command, cid, null, callback)
+        sdk.startSessionWithRunnable(command, cid, null, null, callback)
     }
 
     private fun getWalletPublicKey(index: Int): ByteArray? {

@@ -1,6 +1,10 @@
 package com.tangem.common.core
 
-import com.tangem.*
+import com.tangem.Log
+import com.tangem.Message
+import com.tangem.SessionViewDelegate
+import com.tangem.TangemSdk
+import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
@@ -22,8 +26,23 @@ import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.resetcode.ResetCodesController
 import com.tangem.operations.resetcode.ResetPinService
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -393,11 +412,7 @@ class CardSession(
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    val code = UserCode(type, result.data)
-                    when (type) {
-                        UserCodeType.AccessCode -> environment.accessCode = code
-                        UserCodeType.Passcode -> environment.passcode = code
-                    }
+                    updateEnvironment(type, result.data)
                     callback(CompletionResult.Success(Unit))
                 }
                 is CompletionResult.Failure -> {

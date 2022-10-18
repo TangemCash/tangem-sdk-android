@@ -65,6 +65,9 @@ class Config(
 )
 
 sealed class CardIdDisplayFormat {
+
+    object None: CardIdDisplayFormat()
+
     ///Full cardId splitted by 4 numbers
     object Full : CardIdDisplayFormat()
 

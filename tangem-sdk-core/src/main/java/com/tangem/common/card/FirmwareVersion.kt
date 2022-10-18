@@ -110,6 +110,8 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          * HD Wallet
          */
         val HDWalletAvailable = FirmwareVersion(4, 39)
+
+        val visaRange = 5.25..5.30
     }
 
     enum class FirmwareType(val rawValue: String?) {

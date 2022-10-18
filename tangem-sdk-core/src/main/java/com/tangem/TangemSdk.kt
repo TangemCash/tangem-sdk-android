@@ -636,12 +636,15 @@ interface TangemSdk {
      * the [TangemSdkError.WrongCardNumber] otherwise.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
+     * @param accessCode: Access code that will be used for a card session initialization. If null, Tangem SDK will
+     * handle it automatically.
      * @param callback: Standard [TangemSdk] callback.
      */
     fun <T> startSessionWithRunnable(
         runnable: CardSessionRunnable<T>,
         cardId: String? = null,
         initialMessage: Message? = null,
+        accessCode: String? = null,
         callback: CompletionCallback<T>
     )
 
@@ -654,12 +657,15 @@ interface TangemSdk {
      * the [TangemSdkError.WrongCardNumber] otherwise.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
+     * @param accessCode: Access code that will be used for a card session initialization. If null, Tangem SDK will
+     * handle it automatically.
      * @param callback: At first, you should check that the [TangemSdkError] is not null,
      * then you can use the [CardSession] to interact with a card.
      */
     fun startSession(
         cardId: String? = null,
         initialMessage: Message? = null,
+        accessCode: String? = null,
         callback: (session: CardSession, error: TangemError?) -> Unit
     )
 
@@ -676,6 +682,7 @@ interface TangemSdk {
         jsonRequest: String,
         cardId: String? = null,
         initialMessage: String? = null,
+        accessCode: String? = null,
         callback: (String) -> Unit
     )
 

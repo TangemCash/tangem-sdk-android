@@ -1,5 +1,6 @@
 package com.tangem.operations.pins
 
+import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.UserCodeType
@@ -127,9 +128,13 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
             return
         }
 
-        session.viewDelegate.requestUserCodeChange(type) { result ->
+        val formattedCid = session.cardId?.let {
+            CardIdFormatter(session.environment.config.cardIdDisplayFormat).getFormattedCardId(it)
+        }
+
+        session.viewDelegate.requestUserCodeChange(type, formattedCid) { result ->
             when (result) {
-                is CompletionResult.Failure ->  callback(CompletionResult.Failure(result.error))
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 is CompletionResult.Success -> {
                     codes[type] = UserCodeAction.StringValue(result.data)
                     callback(CompletionResult.Success(Unit))
@@ -142,7 +147,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
         fun changeAccessCode(accessCode: String?): SetUserCodeCommand {
             return SetUserCodeCommand().apply {
                 codes[UserCodeType.AccessCode] = accessCode?.let { UserCodeAction.StringValue(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
                 codes[UserCodeType.Passcode] = UserCodeAction.NotChange
             }
         }
@@ -151,7 +156,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
             return SetUserCodeCommand().apply {
                 codes[UserCodeType.AccessCode] = UserCodeAction.NotChange
                 codes[UserCodeType.Passcode] = passcode?.let { UserCodeAction.StringValue(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
             }
         }
 
@@ -162,9 +167,9 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
         fun change(accessCode: ByteArray?, passcode: ByteArray?): SetUserCodeCommand {
             return SetUserCodeCommand().apply {
                 codes[UserCodeType.AccessCode] = accessCode?.let { UserCodeAction.Value(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
                 codes[UserCodeType.Passcode] = passcode?.let { UserCodeAction.Value(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
             }
         }
 

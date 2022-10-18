@@ -97,10 +97,10 @@ class DefaultSessionViewDelegate(
         )
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {
+    override fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
         Log.view { "showing pin change request with type: $type" }
         if (readingDialog == null) createReadingDialog(activity)
-        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, null, callback))
+        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, cardId, callback))
     }
 
     override fun dismiss() {

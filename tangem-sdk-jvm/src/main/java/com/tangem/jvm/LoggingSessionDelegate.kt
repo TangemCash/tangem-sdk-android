@@ -57,7 +57,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
         pin?.let { callback.invoke(CompletionResult.Success(it)) }
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {
+    override fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
         Log.view { "enter new PIN:" }
         val pin = readLine()
         pin?.let { callback.invoke(CompletionResult.Success(it)) }
