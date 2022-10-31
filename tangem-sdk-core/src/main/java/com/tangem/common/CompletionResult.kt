@@ -31,6 +31,11 @@ inline fun <T, D> CompletionResult<T>.map(transform: (T) -> D): CompletionResult
 }
 
 @Suppress("RemoveRedundantQualifierName")
+inline fun <T> CompletionResult<T>.mapFailure(transform: (TangemError) -> TangemError): CompletionResult<T> {
+    return this.flatMapOnFailure { e -> CompletionResult.Failure(transform(e)) }
+}
+
+@Suppress("RemoveRedundantQualifierName")
 inline fun <T, D> CompletionResult<T>.flatMap(
     transform: (T) -> CompletionResult<D>,
 ): CompletionResult<D> {
@@ -77,4 +82,13 @@ inline fun <T> CompletionResult<T>.doOnFailure(
         }
         is CompletionResult.Success -> this
     }
+}
+
+@Suppress("RemoveRedundantQualifierName")
+inline fun <T> CompletionResult<T>.doOnResult(
+    block: () -> Unit,
+): CompletionResult<T> {
+    return this
+        .doOnFailure { block() }
+        .doOnSuccess { block() }
 }
