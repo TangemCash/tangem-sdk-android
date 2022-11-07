@@ -44,7 +44,6 @@ buildscript {
     ext.dokka_version = '0.10.0'
     repositories {
         mavenCentral()
-        jcenter()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
@@ -53,7 +52,6 @@ buildscript {
 }
 repositories {
     mavenCentral()
-    jcenter()
 }
 compileKotlin {
     kotlinOptions {
