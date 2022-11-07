@@ -8,7 +8,11 @@ import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
-import com.tangem.common.core.*
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.ifNotNullOr
@@ -27,14 +31,14 @@ import com.tangem.operations.CommandResponse
 @JsonClass(generateAdapter = true)
 class WriteFileResponse(
     val cardId: String,
-    val fileIndex: Int? = null
+    val fileIndex: Int? = null,
 ) : CommandResponse
 
 /**
  * Command for writing file on card
  */
 class WriteFileCommand private constructor(
-    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier()
+    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier(),
 ) : Command<WriteFileResponse>(), IssuerDataVerifier by verifier {
 
     private lateinit var data: ByteArray
@@ -87,7 +91,7 @@ class WriteFileCommand private constructor(
     constructor(
         data: ByteArray,
         fileVisibility: FileVisibility? = null,
-        walletPublicKey: ByteArray? = null
+        walletPublicKey: ByteArray? = null,
     ) : this() {
         isWritingByUserCodes = true
 
@@ -160,7 +164,7 @@ class WriteFileCommand private constructor(
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
-        tlvBuilder.append(TlvTag.WriteFileMode, mode)
+        tlvBuilder.append(TlvTag.InteractionMode, mode)
 
         when (mode) {
             FileDataMode.InitiateWritingFile -> {
