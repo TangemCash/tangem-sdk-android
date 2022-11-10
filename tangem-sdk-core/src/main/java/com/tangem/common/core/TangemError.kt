@@ -9,17 +9,20 @@ import com.tangem.operations.read.ReadCommand
 /**
  * An interface for any error that may occur when performing Tangem SDK tasks.
  */
-interface TangemError {
-    val code: Int
-    var customMessage: String
-    val messageResId: Int?
+abstract class TangemError(
+    val code: Int,
+) : Exception(code.toString()) {
+    override val cause: Throwable? = null
+    abstract var customMessage: String
+    abstract val messageResId: Int?
+    open val silent = false
 }
 
 /**
  * An error class that represent typical errors that may occur when performing Tangem SDK tasks.
  * Errors are propagated back to the caller in callbacks.
  */
-sealed class TangemSdkError(final override val code: Int) : Exception(code.toString()), TangemError {
+sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     override var customMessage: String = code.toString()
     override val messageResId: Int? = null
@@ -215,8 +218,8 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
 
 
     //SDK Errors
-    class ExceptionError(val throwable: Throwable?) : TangemSdkError(50000) {
-        override var customMessage: String = throwable?.localizedMessage ?: "empty"
+    class ExceptionError(override val cause: Throwable?) : TangemSdkError(50000) {
+        override var customMessage: String = cause?.localizedMessage ?: "empty"
     }
 
     class UnknownError : TangemSdkError(50001)
@@ -224,7 +227,9 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     /**
      * This error is returned when a user manually closes NFC Reading Bottom Sheet Dialog.
      */
-    class UserCancelled : TangemSdkError(50002)
+    class UserCancelled : TangemSdkError(50002) {
+        override val silent: Boolean = true
+    }
 
     /**
      * This error is returned when [com.tangem.TangemSdk] was called with a new [Task],
@@ -284,7 +289,9 @@ sealed class TangemSdkError(final override val code: Int) : Exception(code.toStr
     class BiometricsAuthenticationFailed(
         val biometricsErrorCode: Int?,
         override var customMessage: String,
-    ) : TangemSdkError(50016)
+    ) : TangemSdkError(50016) {
+        override val silent: Boolean = true
+    }
 
     /**
      * Get error according to the pin type

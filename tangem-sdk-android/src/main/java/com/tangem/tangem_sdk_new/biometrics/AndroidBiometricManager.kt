@@ -64,7 +64,7 @@ internal class AndroidBiometricManager(
     ): CompletionResult<ByteArray> {
         return proceedData(mode)
             .flatMapOnFailure { error ->
-                when ((error as? TangemSdkError.ExceptionError)?.throwable) {
+                when ((error as? TangemSdkError.ExceptionError)?.cause) {
                     is UserNotAuthenticatedException -> {
                         Log.debug { "The key's validity timed out" }
                         withContext(Dispatchers.Main) {
