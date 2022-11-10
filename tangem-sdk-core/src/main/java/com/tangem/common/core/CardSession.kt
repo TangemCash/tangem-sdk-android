@@ -12,6 +12,7 @@ import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.doOnFailure
+import com.tangem.common.doOnResult
 import com.tangem.common.doOnSuccess
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.extensions.calculateSha256
@@ -229,6 +230,11 @@ class CardSession(
     private fun <T : CardSessionRunnable<*>> prepareSession(runnable: T, callback: CompletionCallback<Unit>) {
         Log.session { "prepare card session" }
         preflightReadMode = runnable.preflightReadMode()
+
+        if (!runnable.allowsAccessCodeFromRepository) {
+            runnable.prepare(this, callback)
+            return
+        }
 
         val requestUserCode = { codeType: UserCodeType ->
             when (codeType) {
@@ -509,12 +515,13 @@ class CardSession(
 
     private fun saveUserCodeIfNeeded() {
         val saveCodeAndLock: suspend (String, UserCode) -> Unit = { cardId, code ->
-            userCodeRepository
-                ?.save(cardId, code)
+            userCodeRepository?.save(cardId, code)
+                ?.doOnResult {
+                    userCodeRepository.lock()
+                }
                 ?.doOnFailure {
                     Log.error { "Access code saving failed: $it" }
                 }
-            userCodeRepository?.lock()
         }
 
         GlobalScope.launch {

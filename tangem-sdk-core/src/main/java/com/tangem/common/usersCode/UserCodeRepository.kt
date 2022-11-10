@@ -6,7 +6,6 @@ import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.biometric.BiometricStorage
 import com.tangem.common.catching
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.doOnSuccess
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.mapNotNullValues
 import com.tangem.common.flatMap
@@ -59,13 +58,13 @@ class UserCodeRepository(
 
     suspend fun hasSavedUserCodes(): Boolean = getCards().isNotEmpty()
     suspend fun hasSavedUserCode(cardId: String): Boolean = getCards().contains(cardId)
+
     suspend fun clear(): CompletionResult<Unit> {
         return biometricStorage.delete(StorageKey.UserCodes.name)
-            .doOnSuccess { cardIdToUserCode.clear() }
-            .map { CompletionResult.Success(Unit) }
+            .map { cardIdToUserCode.clear() }
     }
 
-    private suspend fun save(cardIds: List<String>, userCode: UserCode): CompletionResult<Unit> {
+    suspend fun save(cardIds: List<String>, userCode: UserCode): CompletionResult<Unit> {
         if (!biometricManager.canAuthenticate)
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
 
@@ -79,7 +78,7 @@ class UserCodeRepository(
                 .encodeToByteArray(throwOnInvalidSequence = true)
         }
             .flatMap { data -> biometricStorage.store(StorageKey.UserCodes.name, data) }
-            .doOnSuccess { saveCards() }
+            .map { saveCards() }
     }
 
     private fun updateCodesIfNeeded(cardIds: List<String>, userCode: UserCode): Boolean {

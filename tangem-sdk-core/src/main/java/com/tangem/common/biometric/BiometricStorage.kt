@@ -16,6 +16,7 @@ class BiometricStorage(
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
 
         val decryptedData = withContext(Dispatchers.IO) { secureStorage.get(key) }
+            ?.takeIf { it.isNotEmpty() }
             ?: return CompletionResult.Success(null)
         val mode = BiometricManager.AuthenticationMode.Decryption(decryptedData)
         return biometricManager.authenticate(mode).map { it }

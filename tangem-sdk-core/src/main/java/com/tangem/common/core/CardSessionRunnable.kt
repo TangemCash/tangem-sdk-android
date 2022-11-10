@@ -8,6 +8,12 @@ import com.tangem.operations.PreflightReadMode
  */
 interface CardSessionRunnable<T> {
     /**
+     * Allows SDK to fetch access code from the local encrypted repository when running the command
+     * */
+    val allowsAccessCodeFromRepository: Boolean
+        get() = true
+
+    /**
      * Mode for preflight read. Change this property only if you understand what to do
      */
     fun preflightReadMode(): PreflightReadMode = PreflightReadMode.FullCardRead

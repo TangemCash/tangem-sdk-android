@@ -63,7 +63,6 @@ class PreflightReadTask(
                     }
 
                     session.updateUserCodeIfNeeded()
-                    session.updateAccessCodeIfNeeded()
                     updateEnvironmentIfNeeded(result.data.card, session)
 
                     finalizeRead(session, result.data.card, callback)
