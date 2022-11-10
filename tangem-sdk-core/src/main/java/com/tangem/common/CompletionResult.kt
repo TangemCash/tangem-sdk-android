@@ -17,7 +17,9 @@ sealed class CompletionResult<T> {
 inline fun <T> catching(block: () -> T): CompletionResult<T> {
     return try {
         CompletionResult.Success(block())
-    } catch (e: Exception) {
+    } catch (e: TangemError) {
+        CompletionResult.Failure(e)
+    } catch (e: Throwable) {
         CompletionResult.Failure(TangemSdkError.ExceptionError(e))
     }
 }
@@ -43,7 +45,9 @@ inline fun <T, D> CompletionResult<T>.flatMap(
         is CompletionResult.Failure -> CompletionResult.Failure(error)
         is CompletionResult.Success -> try {
             transform(data)
-        } catch (e: Exception) {
+        } catch (e: TangemError) {
+            CompletionResult.Failure(e)
+        } catch (e: Throwable) {
             CompletionResult.Failure(TangemSdkError.ExceptionError(e))
         }
     }
