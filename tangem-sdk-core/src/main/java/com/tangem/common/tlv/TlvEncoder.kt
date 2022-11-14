@@ -16,7 +16,8 @@ import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
 import com.tangem.operations.read.ReadMode
 import com.tangem.operations.resetcode.AuthorizeMode
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 /**
  * Encodes information that is to be written on the card from parsed classes into [ByteArray]
@@ -120,21 +121,17 @@ class TlvEncoder {
                 byteArrayOf((value as SigningMethod).rawValue.toByte())
             }
             TlvValueType.InteractionMode -> {
-                    when (T::class) {
-                        IssuerExtraDataMode::class ->
-                            byteArrayOf((value as IssuerExtraDataMode).code)
-                        ReadMode::class -> byteArrayOf((value as ReadMode).rawValue.toByte())
-                        AuthorizeMode::class -> byteArrayOf((value as AuthorizeMode).rawValue.toByte())
-                        else -> {
-                            val error = getEncodingError<T>(tag)
-                            Log.error { error.customMessage }
-                            throw error
-                        }
+                when (T::class) {
+                    IssuerExtraDataMode::class -> byteArrayOf((value as IssuerExtraDataMode).code)
+                    ReadMode::class -> byteArrayOf((value as ReadMode).rawValue.toByte())
+                    AuthorizeMode::class -> byteArrayOf((value as AuthorizeMode).rawValue.toByte())
+                    FileDataMode::class -> byteArrayOf((value as FileDataMode).rawValue.toByte())
+                    else -> {
+                        val error = getEncodingError<T>(tag)
+                        Log.error { error.customMessage }
+                        throw error
                     }
-            }
-            TlvValueType.FileDataMode -> {
-                typeCheck<T, FileDataMode>(tag)
-                byteArrayOf((value as FileDataMode).rawValue.toByte())
+                }
             }
             TlvValueType.DerivationPath -> {
                 typeCheck<T, DerivationPath>(tag)
