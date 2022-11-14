@@ -14,28 +14,32 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 @RequiresApi(Build.VERSION_CODES.M)
-class CryptoManager(
+internal class EncryptionManager(
     private val secureStorage: SecureStorage,
 ) {
     private val keyGenSpecBuilder = KeyGenParameterSpec.Builder(
         authenticationKeyAlias,
         KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
     )
-        .setKeySize(256)
+        .setKeySize(authenticationKeySize)
         .setBlockModes(blockMode)
         .setEncryptionPaddings(encryptionPadding)
         .setUserAuthenticationRequired(true)
         .setUserAuthenticationParameters()
+
     private val keyStore: KeyStore by lazy {
         KeyStore.getInstance(keyStoreProvider)
             .also { it.load(null) }
     }
+
     private val cipher: Cipher by lazy {
         Cipher.getInstance("$algorithm/$blockMode/$encryptionPadding")
     }
+
     private val authenticationKey: SecretKey by lazy {
         keyStore.getKey(authenticationKeyAlias, null) as SecretKey
     }
+
     private var authenticatedKey: SecretKey? = null
 
     init {
@@ -43,7 +47,6 @@ class CryptoManager(
     }
 
     fun encrypt(data: ByteArray): ByteArray {
-        authenticateKeyIfNot()
         return authenticatedKey?.let {
             encryptInternal(
                 decryptedData = data,
@@ -55,7 +58,6 @@ class CryptoManager(
     }
 
     fun decrypt(data: ByteArray): ByteArray {
-        authenticateKeyIfNot()
         return authenticatedKey?.let {
             decryptInternal(
                 encryptedData = data,
@@ -66,11 +68,11 @@ class CryptoManager(
             ?: error("Authenticated key is not initialized")
     }
 
-    fun unauthenticateKey() {
+    fun unauthenticateSecretKey() {
         authenticatedKey = null
     }
 
-    private fun authenticateKeyIfNot() {
+    fun authenticateSecretKeyIfNot() {
         if (authenticatedKey != null) return
         authenticatedKey = when (val key = secureStorage.get(StorageKey.AuthenticatedKey.name)) {
             null -> generateAuthenticatedKey()
@@ -152,7 +154,7 @@ class CryptoManager(
         val name: String
 
         class DataIv(data: ByteArray) : StorageKey {
-            override val name: String = "data_iv_${data.size.hashCode()}"
+            override val name: String = "data_iv_${data.size}"
         }
         object AuthenticatedKeyIv : StorageKey {
             override val name: String = "authenticated_key_iv"
@@ -167,6 +169,7 @@ class CryptoManager(
         private const val keyTimeoutSeconds = 5
         private const val authenticationKeyAlias = "authentication_key"
         private const val keyStoreProvider = "AndroidKeyStore"
+        private const val authenticationKeySize = 256
         private const val algorithm = KeyProperties.KEY_ALGORITHM_AES
         private const val blockMode = KeyProperties.BLOCK_MODE_CBC
         private const val encryptionPadding = KeyProperties.ENCRYPTION_PADDING_PKCS7

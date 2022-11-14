@@ -31,7 +31,8 @@ internal class AndroidBiometricManager(
 ) : BiometricManager,
     DefaultLifecycleObserver,
     LifecycleOwner by activity {
-    private val cryptoManager = CryptoManager(secureStorage)
+
+    private val encryptionManager = EncryptionManager(secureStorage)
 
     private val biometricPromptInfo by lazy(mode = LazyThreadSafetyMode.NONE) {
         BiometricPrompt.PromptInfo.Builder()
@@ -56,7 +57,7 @@ internal class AndroidBiometricManager(
         else CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
     }
     override fun unauthenticate() {
-        cryptoManager.unauthenticateKey()
+        encryptionManager.unauthenticateSecretKey()
     }
 
     private suspend fun tryToProceedData(
@@ -83,9 +84,10 @@ internal class AndroidBiometricManager(
     private fun proceedData(
         mode: BiometricManager.AuthenticationMode,
     ): CompletionResult<ByteArray> = catching {
+        encryptionManager.authenticateSecretKeyIfNot()
         when (mode) {
-            is BiometricManager.AuthenticationMode.Decryption -> cryptoManager.decrypt(mode.data)
-            is BiometricManager.AuthenticationMode.Encryption -> cryptoManager.encrypt(mode.data)
+            is BiometricManager.AuthenticationMode.Decryption -> encryptionManager.decrypt(mode.data)
+            is BiometricManager.AuthenticationMode.Encryption -> encryptionManager.encrypt(mode.data)
         }
     }
 

@@ -223,7 +223,9 @@ class CardSession(
 
     private suspend fun shouldRequestBiometrics(): Boolean {
         if (userCodeRepository == null) return false
-        cardId?.let { if (userCodeRepository.hasSavedUserCode(it)) return false }
+        if (cardId != null) {
+            if (userCodeRepository.hasSavedUserCode(cardId!!)) return true
+        }
         return userCodeRepository.hasSavedUserCodes()
     }
 

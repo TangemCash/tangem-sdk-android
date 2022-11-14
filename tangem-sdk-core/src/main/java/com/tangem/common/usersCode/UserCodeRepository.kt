@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 class UserCodeRepository(
     private val biometricManager: BiometricManager,
     private val secureStorage: SecureStorage,
-    private val jsonConverter: MoshiJsonConverter,
+    private val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.INSTANCE,
 ) {
     private val biometricStorage = BiometricStorage(biometricManager, secureStorage)
     private val cardIdToUserCode: HashMap<String, UserCode> = hashMapOf()

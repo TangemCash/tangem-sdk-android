@@ -1033,26 +1033,6 @@ object TangemSdk {
     }
     // endregion Session start
 
-    // region User codes
-    suspend fun saveAccessCode(accessCode: String, cardIds: List<String>): CompletionResult<Unit> {
-        val userCodesRepository = cardSession?.userCodeRepository ?: createUserCodeRepository(config)
-        val userCode = UserCode(UserCodeType.AccessCode, accessCode)
-        return userCodesRepository?.save(cardIds, userCode)
-            ?: CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
-    }
-
-    suspend fun clearSavedUserCodes(): CompletionResult<Unit> {
-        val userCodesRepository = cardSession?.userCodeRepository ?: createUserCodeRepository(config)
-        return userCodesRepository?.clear()
-            ?: CompletionResult.Success(Unit)
-    }
-
-    suspend fun hasSavedUserCodes(): Boolean {
-        val userCodesRepository = cardSession?.userCodeRepository ?: createUserCodeRepository(config)
-        return userCodesRepository?.hasSavedUserCodes() ?: false
-    }
-    // endregion User codes
-
     /**
      * Register custom task, that supported JSONRPC
      *
@@ -1075,7 +1055,6 @@ object TangemSdk {
             UserCodeRepository(
                 biometricManager = biometricManager,
                 secureStorage = secureStorage,
-                jsonConverter = MoshiJsonConverter.INSTANCE,
             )
         } else null
     }

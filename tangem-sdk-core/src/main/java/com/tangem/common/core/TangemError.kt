@@ -284,7 +284,9 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     class WrongInteractionMode : TangemSdkError(50027)
 
-    class BiometricsUnavailable : TangemSdkError(50015)
+    class BiometricsUnavailable : TangemSdkError(50015) {
+        override var customMessage: String = "Biometrics feature unavailable: $code"
+    }
 
     class BiometricsAuthenticationFailed(
         val biometricsErrorCode: Int?,
