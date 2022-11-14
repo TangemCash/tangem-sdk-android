@@ -32,7 +32,9 @@ internal class AndroidBiometricManager(
     DefaultLifecycleObserver,
     LifecycleOwner by activity {
 
-    private val encryptionManager = EncryptionManager(secureStorage)
+    private val encryptionManager by lazy(mode = LazyThreadSafetyMode.NONE) {
+        EncryptionManager(secureStorage)
+    }
 
     private val biometricPromptInfo by lazy(mode = LazyThreadSafetyMode.NONE) {
         BiometricPrompt.PromptInfo.Builder()
@@ -43,10 +45,14 @@ internal class AndroidBiometricManager(
 
     override var canAuthenticate: Boolean = false
         private set
+    override var canEnrollBiometrics: Boolean = false
+        private set
 
     override fun onResume(owner: LifecycleOwner) {
         lifecycleScope.launch {
-            canAuthenticate = checkBiometricsAvailability()
+            val (available, canBeEnrolled) = checkBiometricsAvailabilityStatus()
+            canAuthenticate = available
+            canEnrollBiometrics = canBeEnrolled
         }
     }
 
@@ -123,7 +129,7 @@ internal class AndroidBiometricManager(
         biometricPrompt.authenticate(biometricPromptInfo)
     }
 
-    private suspend fun checkBiometricsAvailability(): Boolean {
+    private suspend fun checkBiometricsAvailabilityStatus(): BiometricsAvailability {
         val biometricManager = SystemBiometricManager.from(activity)
         val authenticators = SystemBiometricManager.Authenticators.BIOMETRIC_STRONG
 
@@ -131,31 +137,66 @@ internal class AndroidBiometricManager(
             when (biometricManager.canAuthenticate(authenticators)) {
                 SystemBiometricManager.BIOMETRIC_SUCCESS -> {
                     Log.debug { "Biometric features are available" }
-                    continuation.resume(true)
+                    continuation.resume(
+                        BiometricsAvailability(
+                            available = true,
+                            canBeEnrolled = false,
+                        )
+                    )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
                     Log.debug { "No biometric features enrolled" }
-                    continuation.resume(false)
+                    continuation.resume(
+                        BiometricsAvailability(
+                            available = false,
+                            canBeEnrolled = true,
+                        )
+                    )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
                     Log.debug { "No biometric features available on this device" }
-                    continuation.resume(false)
+                    continuation.resume(
+                        BiometricsAvailability(
+                            available = false,
+                            canBeEnrolled = false,
+                        )
+                    )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                     Log.debug { "Biometric features are currently unavailable" }
-                    continuation.resume(false)
+                    continuation.resume(
+                        BiometricsAvailability(
+                            available = false,
+                            canBeEnrolled = false,
+                        )
+                    )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
                     Log.debug { "Biometric features are currently unavailable, security update required" }
-                    continuation.resume(false)
+                    continuation.resume(
+                        BiometricsAvailability(
+                            available = false,
+                            canBeEnrolled = false,
+                        )
+                    )
                 }
                 SystemBiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
                     Log.debug { "Biometric features are in unknown status" }
-                    continuation.resume(false)
+                    continuation.resume(
+                        BiometricsAvailability(
+                            available = false,
+                            canBeEnrolled = false,
+                        )
+                    )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
                     Log.debug { "Biometric features are unsupported" }
-                    continuation.resume(false)
+                    continuation.resume(
+                        BiometricsAvailability(
+                            available = false,
+                            canBeEnrolled = false,
+                        )
+                    )
                 }
             }
         }
@@ -180,6 +221,11 @@ internal class AndroidBiometricManager(
             }
         }
     }
+
+    data class BiometricsAvailability(
+        val available: Boolean,
+        val canBeEnrolled: Boolean,
+    )
 
     sealed interface AuthenticationResult {
         data class Failure(

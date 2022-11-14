@@ -17,26 +17,28 @@ import javax.crypto.spec.SecretKeySpec
 internal class EncryptionManager(
     private val secureStorage: SecureStorage,
 ) {
-    private val keyGenSpecBuilder = KeyGenParameterSpec.Builder(
-        authenticationKeyAlias,
-        KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-    )
-        .setKeySize(authenticationKeySize)
-        .setBlockModes(blockMode)
-        .setEncryptionPaddings(encryptionPadding)
-        .setUserAuthenticationRequired(true)
-        .setUserAuthenticationParameters()
+    private val keyGenSpecBuilder by lazy(mode = LazyThreadSafetyMode.NONE) {
+        KeyGenParameterSpec.Builder(
+            authenticationKeyAlias,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setKeySize(authenticationKeySize)
+            .setBlockModes(blockMode)
+            .setEncryptionPaddings(encryptionPadding)
+            .setUserAuthenticationRequired(true)
+            .setUserAuthenticationParameters()
+    }
 
-    private val keyStore: KeyStore by lazy {
+    private val keyStore: KeyStore by lazy(mode = LazyThreadSafetyMode.NONE) {
         KeyStore.getInstance(keyStoreProvider)
             .also { it.load(null) }
     }
 
-    private val cipher: Cipher by lazy {
+    private val cipher: Cipher by lazy(mode = LazyThreadSafetyMode.NONE) {
         Cipher.getInstance("$algorithm/$blockMode/$encryptionPadding")
     }
 
-    private val authenticationKey: SecretKey by lazy {
+    private val authenticationKey: SecretKey by lazy(mode = LazyThreadSafetyMode.NONE) {
         keyStore.getKey(authenticationKeyAlias, null) as SecretKey
     }
 
