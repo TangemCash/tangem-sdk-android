@@ -19,7 +19,7 @@ import com.tangem.operations.Command
  */
 class ChangeFileSettingsCommand(
     private val fileIndex: Int,
-    private val newPermissions: FileVisibility
+    private val newPermissions: FileVisibility,
 ) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = true
@@ -42,7 +42,7 @@ class ChangeFileSettingsCommand(
         tlvBuilder.append(TlvTag.CardId, card.cardId)
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-        tlvBuilder.append(TlvTag.WriteFileMode, FileDataMode.ChangeFileSettings)
+        tlvBuilder.append(TlvTag.InteractionMode, FileDataMode.ChangeFileSettings)
         tlvBuilder.append(TlvTag.FileIndex, fileIndex)
         tlvBuilder.append(TlvTag.FileSettings, newPermissions.serializeValue(card.firmwareVersion))
 

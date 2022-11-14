@@ -17,7 +17,7 @@ import com.tangem.operations.CommandResponse
 class ReadFileChecksumResponse(
     val cardId: String,
     val checksum: ByteArray,
-    val fileIndex: Int?
+    val fileIndex: Int?,
 ) : CommandResponse
 
 /**
@@ -57,7 +57,7 @@ class ReadFileChecksumCommand private constructor() : Command<ReadFileChecksumRe
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
-        tlvBuilder.append(TlvTag.WriteFileMode, FileDataMode.ReadFileHash)
+        tlvBuilder.append(TlvTag.InteractionMode, FileDataMode.ReadFileHash)
 
         if (shouldReadPrivateFiles) tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.FileTypeName, fileName)
