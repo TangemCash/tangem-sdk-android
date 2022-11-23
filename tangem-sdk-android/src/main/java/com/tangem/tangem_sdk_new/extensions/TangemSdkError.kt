@@ -28,9 +28,9 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.AccessCodeRequired -> R.string.error_operation
         is TangemSdkError.AlreadyCreated -> R.string.error_already_created
         is TangemSdkError.PurgeWalletProhibited -> R.string.error_purge_prohibited
-        is TangemSdkError.AccessCodeCannotBeChanged -> R.string.error_pin1_cannot_be_changed
-        is TangemSdkError.PasscodeCannotBeChanged -> R.string.error_pin2_cannot_be_changed
-        is TangemSdkError.AccessCodeCannotBeDefault -> R.string.error_pin1_cannot_be_default
+        is TangemSdkError.AccessCodeCannotBeChanged -> R.string.error_pin_cannot_be_changed_format
+        is TangemSdkError.PasscodeCannotBeChanged -> R.string.error_pin_cannot_be_changed_format
+        is TangemSdkError.AccessCodeCannotBeDefault -> R.string.error_pin_cannot_be_default_format
         is TangemSdkError.NoRemainingSignatures -> R.string.error_no_remaining_signatures
         is TangemSdkError.EmptyHashes -> R.string.error_empty_hashes
         is TangemSdkError.HashSizeMustBeEqual -> R.string.error_cannot_be_signed
@@ -61,9 +61,9 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.MaxNumberOfWalletsCreated -> R.string.error_no_space_for_new_wallet
         is TangemSdkError.CardReadWrongWallet -> R.string.error_card_read_wrong_wallet
         is TangemSdkError.UnsupportedCurve -> R.string.generic_error_code
-        is TangemSdkError.WalletNotFound -> R.string.error_wallet_not_found
-        is TangemSdkError.WrongAccessCode -> R.string.error_wrong_pin1
-        is TangemSdkError.WrongPasscode -> R.string.error_wrong_pin2
+        is TangemSdkError.WalletNotFound -> R.string.wallet_not_found
+        is TangemSdkError.WrongAccessCode -> R.string.error_wrong_pin_format
+        is TangemSdkError.WrongPasscode -> R.string.error_wrong_pin_format
         is TangemSdkError.CardWithMaxZeroWallets -> R.string.error_card_with_max_zero_wallets
         is TangemSdkError.WalletError -> R.string.error_wallet_error
         is TangemSdkError.UnsupportedWalletConfig -> R.string.error_wallet_index_not_correct

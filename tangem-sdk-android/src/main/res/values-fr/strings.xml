@@ -1,35 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="nfc_session_timeout">Dépassement de temps imparti de la séance. Essayez encore une fois </string>
-    <string name="nfc_alert_default">Tenez votre iPhone à côté de la carte </string>
-    <string name="nfc_alert_sign_completed">Transaction a été signée avec succès </string>
     <string name="view_delegate_security_delay">Tenez la carte fermement </string>
-    <string name="nfc_seconds_left">Il reste %s </string>
-    <string name="nfc_alert_default_done">Exécuté </string>
-    <string name="nfc_stuck_error">Il semble que NFC ne fonctionne pas correctement sur votre iPhone </string>
-    <string name="unknown_status">Status inconnu de la carte </string>
-    <string name="generic_error_code">Une erreur s\'est produite lors de l\'opération. Code : %s</string>
-    <string name="reading_data_progress">Lecture des données : %s%s</string>
-    <string name="writing_data_progress">Enregistrement de données : %s%s</string>
+    <string name="generic_error_code">Une erreur s\'est produite lors de l\'opération. Code : %s.</string>
     <string name="dialog_nfc_enable_title">Activer NFC?</string>
     <string name="dialog_nfc_enable_text">NFC doit être activé pour que cette application fonctionne. Cliquez sur le bouton OK pour accéder aux Paramètres où vous pouvez activer NFC </string>
-    <string name="view_delegate_security_delay_description">Cette carte utilise la fonction du retard d’exécution pour assurer la sécurité. Maintenez la carte jusqu\'à ce que l\'opération soit terminée </string>
+    <string name="view_delegate_security_delay_description">Cette carte utilise la fonction du retard d\'exécution pour assurer la sécurité. Maintenez la carte jusqu\'à ce que l\'opération soit terminée </string>
     <string name="view_delegate_delay">Opération est en cours </string>
     <string name="view_delegate_scan">Prêt pour scanner </string>
     <string name="view_delegate_scan_description">Scannez la carte avec votre téléphone comme indiqué ci-dessus </string>
     <string name="view_delegate_header_card">Carte </string>
-    <string name="view_delegate_header_any_card">Toute carte </string>
     <string name="how_to_unknown_tap_card">Appuyez votre carte au dos de votre téléphone </string>
     <string name="how_to_unknown_move_card">Pour déterminer où se trouve votre antenne NFC, déplacez la carte de haut en bas jusqu\'à ce que la confirmation soit reçue </string>
     <string name="how_to_unknown_nothing_happened">Aucun résultat? Essayez de retirer la carte de votre téléphone, puis de la reappuyer </string>
-    <string name="tap_in_button">Connecter </string>
-    <string name="tap_in_known_info_message">Tenez fermement la carte près du téléphone comme indiqué sur l\'image lorsque vous l\'utilisez pour vous connecter </string>
-    <string name="tap_in_known_show_how_tap_in_button">Montrez-moi comment me connecter </string>
-    <string name="tap_in_unknown_info_message">Regardez la vidéo pour découvrir comment accéder et connecter le NFC de votre téléphone à la carte </string>
-    <string name="tap_in_unknown_how_to_tap_in_button">Comment vous connecter </string>
     <string name="pin_enter">Saisir %s</string>
-    <string name="pin1">Code d’accès </string>
+    <string name="pin1">Code d\'accès </string>
     <string name="pin2">Mot de passe </string>
     <string name="pin_change_new_code_format">Nouveau %s</string>
     <string name="pin_change_new_code_confirm_format">Nouveau %s (Confirmer)</string>
@@ -50,9 +35,6 @@
     <string name="error_cannot_be_depersonalized">Cette carte ne peut pas être dépersonnalisée. </string>
     <string name="error_already_created">Le portefeuille a déjà été créé </string>
     <string name="error_purge_prohibited">La configuration de cette carte ne permet pas d\'effacer le portefeuille </string>
-    <string name="error_pin1_cannot_be_changed">Le code d\'accès PIN1 ne peut pas être modifié </string>
-    <string name="error_pin2_cannot_be_changed">Le mot de passe PIN2 ne peut pas être modifié </string>
-    <string name="error_pin1_cannot_be_default">Le code d\'accès PIN1 ne peut pas être remplacé par la valeur par défaut. Créer un nouveau code d\'accès PIN1 </string>
     <string name="error_no_remaining_signatures">Vous ne pouvez pas signer les données avec ce portefeuille car la carte a atteint sa limite de signatures </string>
     <string name="error_empty_hashes">Il n\'y a rien à signer ici </string>
     <string name="error_cannot_be_signed">Ces données ne peuvent pas être signées </string>
@@ -60,7 +42,6 @@
     <string name="error_not_activated">Cette carte n\'a pas été activée </string>
     <string name="error_verification_failed">Erreur de validation des données </string>
     <string name="error_card_verification_failed">Erreur de validation de la carte </string>
-    <string name="error_card_create_wallet">Failed to create wallet. AllowSelectBlockchain flag must be set to true</string>
     <string name="error_data_size_too_large">La taille des données dépasse la limite maximale de 512 bytes </string>
     <string name="error_data_size_too_large_extended">La taille des données dépasse la limite maximale de 32 kilo-bytes </string>
     <string name="error_missing_counter">Les données ne peuvent pas être écrites sur la carte car il n\'y a pas de compteur </string>
@@ -72,19 +53,17 @@
     <string name="error_wrong_card_number">Vous avez connecté la mauvaise carte. Pour poursuivre ce processus, l\'identificateur de la carte dans l\'application doit correspondre à votre identificateur physique de la carte.</string>
     <string name="error_wrong_card_type">Cette carte est personnalisée pour une autre application. Veuillez lire les informations sur votre carte et télécharger l\'application correspondante.</string>
     <string name="error_card_error">Des données importantes manquent sur votre carte </string>
-    <string name="error_pin1_required">Code d\'accès est requis </string>
-    <string name="error_pin2_required">Mot de passe est requis </string>
     <string name="error_invalid_response">Réponse incorrecte</string>
     <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
-    <string name="error_extended_apdu_not_supported">It looks like your phone doesn\’t fully support NFC protocol. Please try to use another phone for this operation.</string>
+    <string name="error_extended_apdu_not_supported">It looks like your phone doesn\'t fully support NFC protocol. Please try to use another phone for this operation.</string>
 
-    <string name="how_to_nfc_detected">Vous venez de trouver l’emplacement de votre antenne NFC. Veuillez le mémoriser</string>
+    <string name="how_to_nfc_detected">Vous venez de trouver l\'emplacement de votre antenne NFC. Veuillez le mémoriser</string>
     <string name="how_to_known_here_how_to_use">Ici est expliqué comment utiliser les cartes Tangem avec (le téléphone)</string>
     <string name="how_to_known_antenna_is_here">Votre antenne NFC est ici</string>
     <string name="how_to_known_tap_card_to_the_back">Posez votre carte sur le dos du téléphone</string>
-    <string name="how_to_known_tap_card_to_the_front">Posez votre carte sur l’écran du téléphone</string>
+    <string name="how_to_known_tap_card_to_the_front">Posez votre carte sur l\'écran du téléphone</string>
     <string name="how_to_button">Consigne</string>
-    <string name="how_to_got_it_button">OK, j’ai compris !</string>
+    <string name="how_to_got_it_button">OK, j\'ai compris !</string>
     <string name="how_to_try_other_way_button">Ceci ne fonctionne toujours pas</string>
     <string name="how_to_show_again_button">Montrer encore une fois</string>
 
