@@ -21,6 +21,9 @@ interface StringsLocator {
         reset_codes_message_body_backup,
         reset_codes_success_message,
 
-        common_success
+        common_success,
+
+        pin1,
+        pin2
     }
 }

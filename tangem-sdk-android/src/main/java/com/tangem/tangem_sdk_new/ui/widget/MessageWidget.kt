@@ -36,12 +36,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setText(tvTaskTitle, null, R.string.common_error)
 
                 val errorMessage = getErrorString(params.error)
-                val formattedErrorMessage = mainView.context.getString(
-                    R.string.error_message,
-                    params.error.code.toString(),
-                    errorMessage
-                )
-                setText(tvTaskMessage, formattedErrorMessage)
+                setText(tvTaskMessage, errorMessage)
             }
             is SessionViewDelegateState.SecurityDelay -> {
                 setText(tvTaskTitle, message?.header, R.string.view_delegate_security_delay)
@@ -69,9 +64,9 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
                 setText(tvTaskTitle, null, R.string.common_error)
                 val bodyMessage = mainView.context.getString(
-                    R.string.error_message,
-                    getString(R.string.error_wrong_card),
-                    description
+                        R.string.error_message,
+                        getString(R.string.error_wrong_card),
+                        description
                 )
 
                 setText(tvTaskMessage, bodyMessage)
@@ -100,7 +95,30 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     private fun getErrorString(error: TangemError): String {
         return if (error is TangemSdkError) {
-            error.localizedDescription(mainView.context)
+            val message = error.localizedDescription(mainView.context)
+            when (error) {
+                is TangemSdkError.BackupFailedEmptyWallets,
+                is TangemSdkError.BackupFailedHDWalletSettings,
+                is TangemSdkError.BackupFailedNotEnoughCurves,
+                is TangemSdkError.BackupFailedNotEnoughWallets,
+                is TangemSdkError.BackupFailedWrongIssuer,
+                is TangemSdkError.BackupNotAllowed,
+                is TangemSdkError.BackupFailedFirmware,
+                is TangemSdkError.BackupFailedIncompatibleBatch,
+                is TangemSdkError.ResetPinWrongCard -> String.format(message, error.code.toString())
+                is TangemSdkError.AccessCodeCannotBeChanged,
+                is TangemSdkError.AccessCodeCannotBeDefault,
+                is TangemSdkError.WrongAccessCode -> String.format(
+                        message,
+                        mainView.context.getString(R.string.pin1)
+                )
+                is TangemSdkError.PasscodeCannotBeChanged,
+                is TangemSdkError.WrongPasscode -> String.format(
+                        message,
+                        mainView.context.getString(R.string.pin2)
+                )
+                else -> message
+            }
         } else {
             val localizedMessage = error.messageResId?.let { mainView.context.getString(it) }
             localizedMessage ?: error.customMessage

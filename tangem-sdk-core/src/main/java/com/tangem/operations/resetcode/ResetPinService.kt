@@ -90,18 +90,26 @@ class ResetPinService(
 
 
     private fun scanResetPinCard(resetCardId: String?, callback: CompletionCallback<Unit>) {
+        val pinType = when {
+            repo.accessCode != null -> stringsLocator.getString(StringsLocator.ID.pin1)
+            repo.passcode != null -> stringsLocator.getString(StringsLocator.ID.pin2)
+            else -> {
+                callback(CompletionResult.Failure(TangemSdkError.UnknownError()))
+                return
+            }
+        }
+
         val command = GetResetPinTokenCommand()
         sessionBuilder.build(
             config = config,
             cardId = resetCardId,
             initialMessage = Message(
                 header = stringsLocator.getString(
-                    StringsLocator.ID.reset_codes_scan_first_card
+                    StringsLocator.ID.reset_codes_scan_first_card,
+                    pinType
                 )
             )
-        ).startWithRunnable(
-            runnable = command,
-        ) { result ->
+        ).startWithRunnable(runnable = command) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     repo = repo.copy(resetPinCard = result.data)
