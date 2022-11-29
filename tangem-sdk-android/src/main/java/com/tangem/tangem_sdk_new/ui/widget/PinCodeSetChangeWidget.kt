@@ -12,7 +12,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.core.os.postDelayed
 import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.tangem.common.UserCodeType
@@ -46,43 +48,22 @@ class PinCodeModificationWidget(
 
     private var isPasswordEnabled = true
     private var userCodeType: UserCodeType = UserCodeType.AccessCode
+    private val pinName: String
+        get() = when (userCodeType) {
+            UserCodeType.AccessCode -> getString(R.string.pin1)
+            UserCodeType.Passcode -> getString(R.string.pin2)
+        }
 
     init {
-        modifyUiByMode()
-        attachCodesCheck(getEtForCodeChecks())
-        attachCodesCheck(etPinCodeConfirm)
-        btnSave.isEnabled = false
-
-        tilPinCode.setEndIconOnClickListener {
-            isPasswordEnabled = !isPasswordEnabled
-            togglePasswordInputType(etPinCode)
-            togglePasswordInputType(etNewPinCode)
-            togglePasswordInputType(etPinCodeConfirm)
-        }
-
-        btnSave.setOnClickListener {
-            when (checkCodes()) {
-                CheckCodesState.NOT_MATCH -> {
-                    updateErrorsVisibility(errorIsVisible = true)
-                    btnSave.isEnabled = false
-                }
-                CheckCodesState.MATCH -> {
-                    mainView.requestFocus()
-                    mainView.hideSoftKeyboard()
-                    postUI(250) { onSave?.invoke(etPinCodeConfirm.text?.toString() ?: "") }
-                }
-                CheckCodesState.UNDEFINED,
-                CheckCodesState.TOO_SHORT -> { /* no-op */ }
-            }
-        }
+        setStateByMode()
+        setupInnerLogic()
     }
 
     override fun setState(params: SessionViewDelegateState) {
         when (params) {
             is SessionViewDelegateState.PinChangeRequested -> {
                 userCodeType = params.type
-                resetPinCodes()
-                modifyUiByMode()
+                setStateByMode()
                 postUI(1000) { etPinCode.showSoftKeyboard() }
             }
         }
@@ -90,14 +71,11 @@ class PinCodeModificationWidget(
 
     fun switchModeTo(mode: Mode) {
         this.mode = mode
-        modifyUiByMode()
+        setStateByMode()
     }
 
-    private fun modifyUiByMode() {
-        val nameOfPin = when (userCodeType) {
-            UserCodeType.AccessCode -> getString(R.string.pin1)
-            UserCodeType.Passcode -> getString(R.string.pin2)
-        }
+    private fun setStateByMode() {
+        val nameOfPin = pinName
         when (mode) {
             Mode.SET -> {
                 tvScreenTitle.text = getFormattedString(R.string.pin_set_code_format, nameOfPin)
@@ -123,65 +101,100 @@ class PinCodeModificationWidget(
                 btnSave.text = getString(R.string.common_continue)
             }
         }
-
     }
 
-    private fun resetPinCodes() {
-        etPinCode.setText("")
-        etNewPinCode.setText("")
-        etPinCodeConfirm.setText("")
-    }
+    private fun setupInnerLogic() {
+        getEtForCodeChecks().debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
+            setErrorStateVisibility(getInputFieldsState())
+        }
+        etPinCodeConfirm.debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
+            setErrorStateVisibility(getInputFieldsState())
+        }
 
-    private fun attachCodesCheck(et: TextInputEditText) {
-        DebounceAfterTextChanged(et) {
-            updateErrorsVisibility(errorIsVisible = false)
-            val state = checkCodes()
-            btnSave.isEnabled = state.isSaveButtonEnabled
+        tilPinCode.setEndIconOnClickListener { onPasswordToggleClicked() }
+        tilPinCodeConfirm.setEndIconOnClickListener { onPasswordToggleClicked() }
+
+        btnSave.isEnabled = false
+        btnSave.setOnClickListener {
+            mainView.requestFocus()
+            mainView.hideSoftKeyboard()
+            onSave?.let { onSaveClicked ->
+                postUI(msTime = 250) {
+                    onSaveClicked(requireNotNull(etPinCodeConfirm.text?.toString()))
+                }
+            }
         }
     }
 
-    private fun getTilForCodeChecks(): TextInputLayout =
-        if (mode == Mode.CHANGE) tilNewPinCode else tilPinCode
+    private fun TextInputEditText.debounce(delay: Long, action: (Editable?) -> Unit) {
+        doAfterTextChanged { text ->
+            var counter = getTag(id) as? Int ?: 0
+            handler.removeCallbacksAndMessages(counter)
+            handler.postDelayed(delay, ++counter) { action(text) }
+            setTag(id, counter)
+        }
+    }
 
     private fun getEtForCodeChecks(): TextInputEditText =
         if (mode == Mode.CHANGE) etNewPinCode else etPinCode
 
-    private fun checkCodes(): CheckCodesState {
+    private fun setErrorStateVisibility(state: CheckCodesState) {
+        val errorMessage = when (state) {
+            CheckCodesState.TOO_SHORT -> getFormattedString(
+                R.string.error_pin_too_short_format,
+                pinName,
+                PIN_CODE_MIN_LENGTH
+            )
+            CheckCodesState.NOT_MATCH -> getString(R.string.pin_confirm_error_format)
+            else -> ""
+        }
+
+        TransitionManager.beginDelayedTransition(mainView as ViewGroup, AutoTransition())
+        when (state) {
+            CheckCodesState.TOO_SHORT, CheckCodesState.NOT_MATCH -> {
+                tilPinCodeConfirm.error = errorMessage
+                btnSave.isEnabled = false
+            }
+            CheckCodesState.MATCH -> {
+                tilPinCodeConfirm.error = null
+                tilPinCodeConfirm.isErrorEnabled = false
+                btnSave.isEnabled = true
+            }
+            else -> {
+                tilPinCodeConfirm.error = null
+                tilPinCodeConfirm.isErrorEnabled = false
+            }
+        }
+    }
+
+    private fun getInputFieldsState(): CheckCodesState {
         val code1 = getEtForCodeChecks().text?.toString() ?: ""
         val code2 = etPinCodeConfirm.text?.toString() ?: ""
 
         if (code1.isEmpty() || code2.isEmpty()) return CheckCodesState.UNDEFINED
-        if (code1.length < 4 || code2.length < 4) return CheckCodesState.TOO_SHORT
+        if (code1.length < PIN_CODE_MIN_LENGTH || code2.length < PIN_CODE_MIN_LENGTH)
+            return CheckCodesState.TOO_SHORT
 
         return if (code1 == code2) CheckCodesState.MATCH else CheckCodesState.NOT_MATCH
     }
 
-    private fun updateErrorsVisibility(errorIsVisible: Boolean) {
-        val til1 = getTilForCodeChecks()
-        val til2 = tilPinCodeConfirm
-
-        TransitionManager.beginDelayedTransition(mainView as ViewGroup, AutoTransition())
-        if (errorIsVisible) {
-            val errorMessage = getString(R.string.pin_confirm_error_format)
-            til1.error = errorMessage
-            til2.error = errorMessage
-        } else {
-            til1.error = null
-            til2.error = null
-            til1.isErrorEnabled = false
-            til2.isErrorEnabled = false
-        }
+    private fun onPasswordToggleClicked() {
+        isPasswordEnabled = !isPasswordEnabled
+        getEtForCodeChecks().togglePasswordInputType()
+        etPinCodeConfirm.togglePasswordInputType()
     }
 
-    private fun togglePasswordInputType(et: TextInputEditText) {
+    private fun TextInputEditText.togglePasswordInputType() {
         val hiddenPassword = (InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
-        et.inputType = if (isPasswordEnabled) hiddenPassword else InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-        if (et.isFocused) et.setSelection(et.text?.length ?: 0)
+        inputType = if (isPasswordEnabled) {
+            hiddenPassword
+        } else {
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        }
+        setSelection(text?.length ?: 0)
     }
 
-    enum class CheckCodesState(
-        val isSaveButtonEnabled: Boolean = false
-    ) {
+    enum class CheckCodesState(val isSaveButtonEnabled: Boolean = false) {
         NOT_MATCH(isSaveButtonEnabled = true),
         UNDEFINED,
         TOO_SHORT,
@@ -190,6 +203,11 @@ class PinCodeModificationWidget(
 
     enum class Mode {
         SET, CHANGE, RESET
+    }
+
+    companion object {
+        private const val INPUT_FIELD_DEBOUNCE_DELAY = 400L
+        private const val PIN_CODE_MIN_LENGTH = 4
     }
 }
 
