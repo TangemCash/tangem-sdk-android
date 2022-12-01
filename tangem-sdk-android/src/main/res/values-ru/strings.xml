@@ -7,7 +7,7 @@
     <string name="view_delegate_security_delay_description">В целях безопасности удерживайте карту до завершения операции</string>
     <string name="view_delegate_delay">Операция в процессе</string>
     <string name="view_delegate_scan">Готово к сканированию</string>
-    <string name="view_delegate_scan_description">Поднесите карту к телефону в точности, как показано выше</string>
+    <string name="view_delegate_scan_description">Пожалуйста, не убирайте карту от телефона, пока процесс сканирования не завершится</string>
     <string name="view_delegate_header_card">Карта</string>
     <string name="pin_enter">Введите %s</string>
     <string name="pin1">Код доступа</string>

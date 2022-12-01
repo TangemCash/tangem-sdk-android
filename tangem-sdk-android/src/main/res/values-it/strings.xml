@@ -9,7 +9,6 @@
     <string name="view_delegate_security_delay_description">Questa carta è dotata di un ritardo di sicurezza forzato. Mantenere la carta ben ferma fino al completamento dell\'operazione.</string>
     <string name="view_delegate_delay">Operazione in corso</string>
     <string name="view_delegate_scan">Pronta alla scansione</string>
-    <string name="view_delegate_scan_description">Scansionare la carta tramite il telefono, come mostrato sopra</string>
     <string name="view_delegate_header_card">Carta</string>
     <string name="how_to_unknown_tap_card">Avvicina la tua carta al pannello posteriore del telefono</string>
     <string name="how_to_unknown_move_card">Per determinare dove si trova la tua antenna NFC, sposta la carta su e giù fino a quando non si riceve la conferma.</string>

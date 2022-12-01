@@ -25,7 +25,7 @@
     <string name="view_delegate_delay_description" translatable="false">Please hold the card firmly until the operation is completed</string>
     <!-- Label. Shows that the app is ready to scan the card. -->
     <string name="view_delegate_scan">Ready to scan</string>
-    <string name="view_delegate_scan_description">Connect your phone and the card exactly as it shown above</string>
+    <string name="view_delegate_scan_description" translatable="false">Please do not remove the card from the phone until the scanning process is completed</string>
     <!-- Label. Shows card number. Card 1234 5678 1234 5678 or any card if number is not important. -->
     <string name="view_delegate_header_card">Card</string>
 

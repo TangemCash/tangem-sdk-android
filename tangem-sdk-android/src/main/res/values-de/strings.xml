@@ -7,7 +7,6 @@
     <string name="view_delegate_security_delay_description">Diese Karte hat Sicherheitsverzögerungen initiiert. Bitte halten Sie die Karte fest, bis der Vorgang abgeschlossen ist.</string>
     <string name="view_delegate_delay">Der Vorgang läuft</string>
     <string name="view_delegate_scan">Bereit zum Scannen</string>
-    <string name="view_delegate_scan_description">Scannen Sie die Karte mit Ihrem Handy wie oben gezeigt</string>
     <string name="view_delegate_header_card">Karte</string>
     <string name="how_to_unknown_tap_card">Halten Sie die Karte hinter dem Handy und scannen Sie sie</string>
     <string name="how_to_unknown_move_card">Um festzustellen, wo die Ihre NFC-Antenne ist, bewegen Sie die Karte nach oben und nach unten, bis eine Bestätigung erscheint.</string>

@@ -8,7 +8,6 @@
     <string name="view_delegate_security_delay_description">Cette carte utilise la fonction du retard d\'exécution pour assurer la sécurité. Maintenez la carte jusqu\'à ce que l\'opération soit terminée </string>
     <string name="view_delegate_delay">Opération est en cours </string>
     <string name="view_delegate_scan">Prêt pour scanner </string>
-    <string name="view_delegate_scan_description">Scannez la carte avec votre téléphone comme indiqué ci-dessus </string>
     <string name="view_delegate_header_card">Carte </string>
     <string name="how_to_unknown_tap_card">Appuyez votre carte au dos de votre téléphone </string>
     <string name="how_to_unknown_move_card">Pour déterminer où se trouve votre antenne NFC, déplacez la carte de haut en bas jusqu\'à ce que la confirmation soit reçue </string>
