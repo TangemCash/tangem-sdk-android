@@ -68,6 +68,11 @@ class Config(
      * User code request policy.
      */
     var userCodeRequestPolicy: UserCodeRequestPolicy = UserCodeRequestPolicy.Default,
+
+    /**
+     * Cipher key alias for [com.tangem.common.biometric.BiometricStorage]
+     * */
+    var userCodesBiometricKeyName: String = "user_codes",
 )
 
 sealed class CardIdDisplayFormat {
@@ -86,6 +91,7 @@ sealed class CardIdDisplayFormat {
     ///n numbers from the end except last
     data class LastLuhn(val numbers: Int) : CardIdDisplayFormat()
 }
+
 sealed class UserCodeRequestPolicy {
     /**
      * Defines which type of user code was requested before card scan. Has no effect on [UserCodeRequestPolicy.Default]

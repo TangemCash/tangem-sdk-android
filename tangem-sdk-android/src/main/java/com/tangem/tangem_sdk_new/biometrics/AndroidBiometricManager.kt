@@ -56,8 +56,9 @@ internal class AndroidBiometricManager(
         return if (canAuthenticate) tryToProceedData(mode)
         else CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
     }
-    override fun unauthenticate() {
-        encryptionManager.unauthenticateSecretKey()
+
+    override fun unauthenticate(keyName: String?) {
+        encryptionManager.unauthenticateSecretKey(keyName)
     }
 
     private suspend fun tryToProceedData(
@@ -84,10 +85,11 @@ internal class AndroidBiometricManager(
     private fun proceedData(
         mode: BiometricManager.AuthenticationMode,
     ): CompletionResult<ByteArray> = catching {
-        encryptionManager.authenticateSecretKeyIfNot()
+        encryptionManager.authenticateSecretKeysIfNot(mode.keys)
         when (mode) {
-            is BiometricManager.AuthenticationMode.Decryption -> encryptionManager.decrypt(mode.data)
-            is BiometricManager.AuthenticationMode.Encryption -> encryptionManager.encrypt(mode.data)
+            is BiometricManager.AuthenticationMode.Decryption -> encryptionManager.decrypt(mode.keyName, mode.data)
+            is BiometricManager.AuthenticationMode.Encryption -> encryptionManager.encrypt(mode.keyName, mode.data)
+            is BiometricManager.AuthenticationMode.Keys -> byteArrayOf()
         }
     }
 

@@ -40,43 +40,47 @@ internal class EncryptionManager(
         keyStore.getKey(authenticationKeyAlias, null) as SecretKey
     }
 
-    private var authenticatedKey: SecretKey? = null
+    private val authenticatedKeys: HashMap<String, SecretKey> = hashMapOf()
 
-    init {
-        generateAuthenticationKeyIfNeeded(keyGenSpecBuilder.build())
-    }
-
-    fun encrypt(data: ByteArray): ByteArray {
-        return authenticatedKey?.let {
+    fun encrypt(keyName: String, data: ByteArray): ByteArray {
+        return authenticatedKeys[keyName]?.let {
             encryptInternal(
                 decryptedData = data,
                 key = it,
                 getIvStorageKey = { encryptedData -> StorageKey.DataIv(encryptedData) },
             )
         }
-            ?: error("Authenticated key is not initialized")
+            ?: error("Authenticated key $keyName is not initialized")
     }
 
-    fun decrypt(data: ByteArray): ByteArray {
-        return authenticatedKey?.let {
+    fun decrypt(keyName: String, data: ByteArray): ByteArray {
+        return authenticatedKeys[keyName]?.let {
             decryptInternal(
                 encryptedData = data,
                 key = it,
                 getIvStorageKey = { encryptedData -> StorageKey.DataIv(encryptedData) },
             )
         }
-            ?: error("Authenticated key is not initialized")
+            ?: error("Authenticated key $keyName is not initialized")
     }
 
-    fun unauthenticateSecretKey() {
-        authenticatedKey = null
+    fun unauthenticateSecretKey(keyName: String?) {
+        if (keyName == null) {
+            authenticatedKeys.clear()
+        } else {
+            authenticatedKeys.remove(keyName)
+        }
     }
 
-    fun authenticateSecretKeyIfNot() {
-        if (authenticatedKey != null) return
-        authenticatedKey = when (val key = secureStorage.get(StorageKey.AuthenticatedKey.name)) {
-            null -> generateAuthenticatedKey()
-            else -> decryptAuthenticatedKey(key)
+    fun authenticateSecretKeysIfNot(names: List<String>) {
+        names.forEach { keyName ->
+            val authenticatedKey = authenticatedKeys[keyName]
+            if (authenticatedKey != null) return
+            generateAuthenticationKeyIfNeeded(keyGenSpecBuilder.build())
+            authenticatedKeys[keyName] = when (val key = secureStorage.get(StorageKey.AuthenticatedKey(keyName).name)) {
+                null -> generateAuthenticatedKey(keyName)
+                else -> decryptAuthenticatedKey(keyName, key)
+            }
         }
     }
 
@@ -114,26 +118,26 @@ internal class EncryptionManager(
         }
     }
 
-    private fun decryptAuthenticatedKey(key: ByteArray): SecretKey {
+    private fun decryptAuthenticatedKey(keyName: String, key: ByteArray): SecretKey {
         return SecretKeySpec(
             decryptInternal(
                 encryptedData = key,
                 key = authenticationKey,
-                getIvStorageKey = { StorageKey.AuthenticatedKeyIv }
+                getIvStorageKey = { StorageKey.AuthenticatedKeyIv(keyName) }
             ),
             algorithm
         )
     }
 
-    private fun generateAuthenticatedKey(): SecretKey {
+    private fun generateAuthenticatedKey(keyName: String): SecretKey {
         val key = CryptoUtils.generateRandomBytes(32)
             .also { key ->
                 val encryptedKey = encryptInternal(
                     decryptedData = key,
                     key = authenticationKey,
-                    getIvStorageKey = { StorageKey.AuthenticatedKeyIv }
+                    getIvStorageKey = { StorageKey.AuthenticatedKeyIv(keyName) }
                 )
-                secureStorage.store(encryptedKey, StorageKey.AuthenticatedKey.name)
+                secureStorage.store(encryptedKey, StorageKey.AuthenticatedKey(keyName).name)
             }
 
         return SecretKeySpec(key, algorithm)
@@ -156,17 +160,17 @@ internal class EncryptionManager(
         class DataIv(data: ByteArray) : StorageKey {
             override val name: String = "data_iv_${data.size}"
         }
-        object AuthenticatedKeyIv : StorageKey {
-            override val name: String = "authenticated_key_iv"
+        class AuthenticatedKeyIv(name: String) : StorageKey {
+            override val name: String = "authenticated_key_iv_$name"
         }
-        object AuthenticatedKey : StorageKey {
-            override val name: String = "authenticated_key"
+        class AuthenticatedKey(name: String) : StorageKey {
+            override val name: String = "authenticated_key_$name"
         }
     }
 
     companion object {
         @androidx.annotation.IntRange(from = 1)
-        private const val keyTimeoutSeconds = 5
+        private const val keyTimeoutSeconds = 1
         private const val authenticationKeyAlias = "authentication_key"
         private const val keyStoreProvider = "AndroidKeyStore"
         private const val authenticationKeySize = 256

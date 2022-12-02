@@ -50,6 +50,7 @@ import kotlinx.coroutines.*
  */
 object TangemSdk {
     var config: Config = Config()
+        private set
 
     private lateinit var reader: CardReader
     private lateinit var viewDelegate: SessionViewDelegate

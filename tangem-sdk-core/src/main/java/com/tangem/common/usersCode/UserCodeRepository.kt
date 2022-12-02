@@ -1,5 +1,6 @@
 package com.tangem.common.usersCode
 
+import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
 import com.tangem.common.biometric.BiometricManager
@@ -20,11 +21,17 @@ class UserCodeRepository(
     private val secureStorage: SecureStorage,
     private val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.INSTANCE,
 ) {
-    private val biometricStorage = BiometricStorage(biometricManager, secureStorage)
+    private val biometricsKeyName = TangemSdk.config.userCodesBiometricKeyName
+    private val biometricStorage = BiometricStorage(
+        biometricKeyName = biometricsKeyName,
+        biometricManager = biometricManager,
+        secureStorage = secureStorage
+    )
     private val cardIdToUserCode: HashMap<String, UserCode> = hashMapOf()
 
     fun lock(): CompletionResult<Unit> {
         cardIdToUserCode.clear()
+        biometricManager.unauthenticate(biometricsKeyName)
         return CompletionResult.Success(Unit)
     }
 
@@ -49,7 +56,7 @@ class UserCodeRepository(
         cardId: String,
         userCode: UserCode,
     ): CompletionResult<Unit> {
-        return save(listOf(cardId), userCode)
+        return save(setOf(cardId), userCode)
     }
 
     fun get(cardId: String): UserCode? {
@@ -64,7 +71,7 @@ class UserCodeRepository(
             .map { cardIdToUserCode.clear() }
     }
 
-    suspend fun save(cardIds: List<String>, userCode: UserCode): CompletionResult<Unit> {
+    suspend fun save(cardIds: Set<String>, userCode: UserCode): CompletionResult<Unit> {
         if (!biometricManager.canAuthenticate)
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
 
@@ -81,7 +88,7 @@ class UserCodeRepository(
             .map { saveCards() }
     }
 
-    private fun updateCodesIfNeeded(cardIds: List<String>, userCode: UserCode): Boolean {
+    private fun updateCodesIfNeeded(cardIds: Set<String>, userCode: UserCode): Boolean {
         var hasChanges = false
 
         for (cardId in cardIds) {
@@ -127,6 +134,7 @@ class UserCodeRepository(
     }
 
     enum class StorageKey {
-        UserCodes, CardsWithSavedAccessCode
+        UserCodes,
+        CardsWithSavedAccessCode,
     }
 }
