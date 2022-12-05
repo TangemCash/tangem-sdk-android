@@ -83,7 +83,7 @@
     <string name="error_reset_wrong_card">Эту карту нельзя использовать для восстановления кода. Код ошибки: %s.</string>
     <string name="error_backup_not_empty_wallets">На этой карте уже создан кошелёк. Если вы хотите продолжить, сбросьте карту к заводским настройкам.</string>
     <string name="error_extended_apdu_not_supported">Похоже, что ваш телефон не полностью поддерживает NFC. Пожалуйста, попробуйте использовать другой телефон для этой операции.</string>
-
+    <string name="error_pin_too_short_format">%s должен состоять не менее чем из %d символов.</string>
 
     <string name="dialog_attestation_did_failed_title">Проверка карты не удалась</string>
     <string name="dialog_attestation_did_failed_message">Эта карта может быть серийным образцом или подделкой. Вы можете продолжить на свой страх и риск.</string>

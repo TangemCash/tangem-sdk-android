@@ -78,6 +78,7 @@
     <string name="error_invalid_response">Invalid Response</string>
     <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
     <string name="error_extended_apdu_not_supported">It looks like your phone doesn\'t fully support NFC protocol. Please try to use another phone for this operation.</string>
+    <string name="error_pin_too_short_format" translatable="false">%s must be at least %d characters long</string>
 
     <!-- This is a tutorial how to scan (tap) the card with the phone -->
     <string name="how_to_unknown_empty" translatable="false"></string>
