@@ -53,8 +53,11 @@ internal class AndroidBiometricManager(
     override suspend fun authenticate(
         mode: BiometricManager.AuthenticationMode,
     ): CompletionResult<ByteArray> {
-        return if (canAuthenticate) tryToProceedData(mode)
-        else CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
+        return if (canAuthenticate) {
+            tryToProceedData(mode)
+        } else {
+            CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
+        }
     }
 
     override fun unauthenticate(keyName: String?) {

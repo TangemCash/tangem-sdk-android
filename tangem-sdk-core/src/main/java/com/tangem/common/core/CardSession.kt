@@ -222,11 +222,11 @@ class CardSession(
     }
 
     private suspend fun shouldRequestBiometrics(): Boolean {
-        if (userCodeRepository == null) return false
-        if (cardId != null) {
-            if (userCodeRepository.hasSavedUserCode(cardId!!)) return true
+        return when {
+            userCodeRepository == null -> false
+            cardId != null && userCodeRepository.hasSavedUserCode(cardId!!) -> true
+            else -> userCodeRepository.hasSavedUserCodes()
         }
-        return userCodeRepository.hasSavedUserCodes()
     }
 
     private fun <T : CardSessionRunnable<*>> prepareSession(runnable: T, callback: CompletionCallback<Unit>) {
