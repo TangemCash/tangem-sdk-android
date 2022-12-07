@@ -86,6 +86,7 @@ class DefaultSessionViewDelegate(
         callback: CompletionCallback<String>
     ) {
         Log.view { "showing pin request with type: $type" }
+        if (readingDialog == null) createReadingDialog(activity)
         readingDialog?.show(
             SessionViewDelegateState.PinRequested(
                 type = type,

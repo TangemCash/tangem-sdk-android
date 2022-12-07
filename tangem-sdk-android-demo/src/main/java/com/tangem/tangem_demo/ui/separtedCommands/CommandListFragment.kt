@@ -5,16 +5,20 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
+import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
 import com.tangem.Message
 import com.tangem.common.CompletionResult
+import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.core.UserCodeRequestPolicy
 import com.tangem.common.extensions.toHexString
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
@@ -48,13 +52,32 @@ import kotlinx.android.synthetic.main.wallet.*
  * Created by Anton Zhilenkov on 23/12/2020.
  */
 class CommandListFragment : BaseFragment() {
-
     override fun getLayoutId(): Int = R.layout.fg_command_list
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        btnScanCard.setOnClickListener { scanCard() }
+        chipGroupUserCodeRequestPolicy.fitChipsByGroupWidth()
+        chipGroupUserCodeRequestPolicy.setOnCheckedChangeListener { _, checkedId ->
+            val showTypeSelector = checkedId == R.id.chipPolicyAlways ||
+                checkedId ==  R.id.chipPolicyAlwaysWithBiometrics
+            chipGroupUserCodeType.isVisible = showTypeSelector
+            userCodeRequestPolicyDivider.isVisible = showTypeSelector
+        }
+        btnScanCard.setOnClickListener {
+            val type = when (chipGroupUserCodeType.checkedChipId) {
+                R.id.chipTypeAccessCode -> UserCodeType.AccessCode
+                R.id.chipTypePasscode -> UserCodeType.Passcode
+                else -> UserCodeType.AccessCode
+            }
+            val policy = when (chipGroupUserCodeRequestPolicy.checkedChipId) {
+                R.id.chipPolicyDefault -> UserCodeRequestPolicy.Default
+                R.id.chipPolicyAlways -> UserCodeRequestPolicy.Always(type)
+                R.id.chipPolicyAlwaysWithBiometrics -> UserCodeRequestPolicy.AlwaysWithBiometrics(type)
+                else -> Config().userCodeRequestPolicy
+            }
+            scanCard(policy)
+        }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
 
         btnPersonalizePrimary.setOnClickListener { personalize(Personalization.Backup.primaryCardConfig()) }
@@ -83,7 +106,7 @@ class CommandListFragment : BaseFragment() {
             "m/44'/0'/0'/1/0"
         ))
         etDerivePublicKey.setAdapter(adapter)
-        etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it!!.toString() }
+        etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it.toString() }
         btnDerivePublicKey.setOnClickListener { derivePublicKey() }
 
         btnPasteHashes.setOnClickListener { etHashesToSign.setTextFromClipboard() }

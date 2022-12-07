@@ -3,9 +3,13 @@ package com.tangem.tangem_demo.ui.settings
 import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
-import androidx.preference.*
+import androidx.preference.EditTextPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceScreen
+import androidx.preference.SwitchPreferenceCompat
 import com.tangem.tangem_demo.DemoApplication
-
 
 /**
  * Created by Anton Zhilenkov on 24/03/2021.
@@ -81,6 +85,6 @@ class InitialMessageGroup {
 
 }
 
-class EditSummaryPreference(context: Context?) : EditTextPreference(context) {
+class EditSummaryPreference(context: Context) : EditTextPreference(context) {
     override fun getSummary(): CharSequence = text ?: ""
 }

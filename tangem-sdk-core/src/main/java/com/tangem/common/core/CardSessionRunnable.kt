@@ -1,6 +1,5 @@
 package com.tangem.common.core
 
-import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.operations.PreflightReadMode
 
@@ -8,6 +7,12 @@ import com.tangem.operations.PreflightReadMode
  * Basic interface for running tasks and [com.tangem.operations.Command] in a [CardSession]
  */
 interface CardSessionRunnable<T> {
+    /**
+     * Allows SDK to fetch access code from the local encrypted repository when running the command
+     * */
+    val allowsAccessCodeFromRepository: Boolean
+        get() = true
+
     /**
      * Mode for preflight read. Change this property only if you understand what to do
      */

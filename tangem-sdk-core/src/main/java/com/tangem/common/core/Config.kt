@@ -1,6 +1,7 @@
 package com.tangem.common.core
 
 import com.tangem.common.CardFilter
+import com.tangem.common.UserCodeType
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.operations.attestation.AttestationTask
@@ -61,7 +62,17 @@ class Config(
      * All derived keys will be stored in [com.tangem.common.card.CardWallet.derivedKeys].
      * Only `secp256k1` and `ed25519` supported.
      */
-    var defaultDerivationPaths: MutableMap<EllipticCurve, List<DerivationPath>> = mutableMapOf()
+    var defaultDerivationPaths: MutableMap<EllipticCurve, List<DerivationPath>> = mutableMapOf(),
+
+    /**
+     * User code request policy.
+     */
+    var userCodeRequestPolicy: UserCodeRequestPolicy = UserCodeRequestPolicy.Default,
+
+    /**
+     * Cipher key alias for [com.tangem.common.biometric.BiometricStorage]
+     * */
+    var userCodesBiometricKeyName: String = "user_codes",
 )
 
 sealed class CardIdDisplayFormat {
@@ -79,4 +90,27 @@ sealed class CardIdDisplayFormat {
 
     ///n numbers from the end except last
     data class LastLuhn(val numbers: Int) : CardIdDisplayFormat()
+}
+
+sealed class UserCodeRequestPolicy {
+    /**
+     * Defines which type of user code was requested before card scan. Has no effect on [UserCodeRequestPolicy.Default]
+     * */
+    open val codeType: UserCodeType? = null
+
+    /**
+     * User code will be requested before card scan. Biometrics will be used if enabled and there are any saved codes.
+     * Requires Android SDK >= 23
+     * */
+    class AlwaysWithBiometrics(override val codeType: UserCodeType) : UserCodeRequestPolicy()
+
+    /**
+     * User code will be requested before card scan.
+     * */
+    class Always(override val codeType: UserCodeType) : UserCodeRequestPolicy()
+
+    /**
+     * User code will be requested only if set on the card. Need scan the card twice.
+     * */
+    object Default : UserCodeRequestPolicy()
 }

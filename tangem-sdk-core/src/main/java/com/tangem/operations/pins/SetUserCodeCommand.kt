@@ -3,6 +3,7 @@ package com.tangem.operations.pins
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
+import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
@@ -13,6 +14,8 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.doOnFailure
+import com.tangem.common.doOnSuccess
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
@@ -77,7 +80,23 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
             }
         }
 
-        super.run(session, callback)
+        super.run(session) { result ->
+            result
+                .doOnSuccess { response ->
+                    val accessCodeValue = codes[UserCodeType.AccessCode]?.value
+                    if (accessCodeValue != null) {
+                        session.environment.accessCode = UserCode(UserCodeType.AccessCode, accessCodeValue)
+                    }
+
+                    val passcodeValue = codes[UserCodeType.Passcode]?.value
+                    if (passcodeValue != null) {
+                        session.environment.passcode = UserCode(UserCodeType.Passcode, passcodeValue)
+                    }
+
+                    callback(CompletionResult.Success(response))
+                }
+                .doOnFailure { error -> callback(CompletionResult.Failure(error)) }
+        }
     }
 
     private fun isCodeAllowed(type: UserCodeType): Boolean {
