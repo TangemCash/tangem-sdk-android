@@ -24,6 +24,7 @@ interface StringsLocator {
         common_success,
 
         pin1,
-        pin2
+        pin2,
+        pin_reset_code_format
     }
 }

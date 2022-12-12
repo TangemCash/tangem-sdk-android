@@ -15,10 +15,10 @@ class AttestationFailedDialog {
     companion object {
 
         fun didFail(context: Context, isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {
-            val title = context.getString(R.string.dialog_attestation_did_failed_title)
+            val title = context.getString(R.string.error_card_verification_failed)
             val messageResId = when {
-                isDevCard -> R.string.dialog_attestation_did_failed_message_dev_card
-                else -> R.string.dialog_attestation_did_failed_message
+                isDevCard -> R.string.attestation_failed_dev_card
+                else -> R.string.attestation_failed_card
             }
             val message = context.getString(messageResId)
             val dialog = createDialog(context, title, message, positive, negative)
@@ -26,15 +26,15 @@ class AttestationFailedDialog {
         }
 
         fun completedOffline(context: Context, positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {
-            val title = context.getString(R.string.dialog_attestation_completed_offline_title)
-            val message = context.getString(R.string.dialog_attestation_completed_offline_message)
+            val title = context.getString(R.string.attestation_online_failed_title)
+            val message = context.getString(R.string.attestation_online_failed_body)
             val dialog = createDialog(context, title, message, positive, negative, retry)
             postUI { dialog.show() }
         }
 
         fun completedWithWarnings(context: Context, positive: VoidCallback) {
-            val title = context.getString(R.string.dialog_attestation_completed_with_warnings_title)
-            val message = context.getString(R.string.dialog_attestation_completed_with_warnings_message)
+            val title = context.getString(R.string.common_warning)
+            val message = context.getString(R.string.attestation_warning_attest_wallets)
             val dialog = createDialog(context, title, message, positive)
             postUI { dialog.show() }
         }
