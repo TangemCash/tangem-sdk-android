@@ -39,7 +39,6 @@
         android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle"
-        tools:text="@string/lorem_ipsum" />
+        app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle" />
 
 </LinearLayout>

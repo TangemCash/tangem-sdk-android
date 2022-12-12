@@ -4,10 +4,10 @@
     <string name="generic_error_code">Во время операции произошла ошибка. Код: %s.</string>
     <string name="dialog_nfc_enable_title">Включить NFC?</string>
     <string name="dialog_nfc_enable_text">Для работы приложения необходимо включить NFC. Нажмите «ОК», чтобы перейти в «Настройки», где вы можете включить NFC.</string>
-    <string name="view_delegate_security_delay_description">В целях безопасности удерживайте карту до завершения операции</string>
+    <string name="view_delegate_security_delay_description">Пожалуйста, удерживайте карту до завершения операции</string>
     <string name="view_delegate_delay">Операция в процессе</string>
     <string name="view_delegate_scan">Готово к сканированию</string>
-    <string name="view_delegate_scan_description">Поднесите карту к телефону в точности, как показано выше</string>
+    <string name="view_delegate_scan_description">Поднесите карту, как показано выше, и удерживайте до конца операции</string>
     <string name="view_delegate_header_card">Карта</string>
     <string name="pin_enter">Введите %s</string>
     <string name="pin1">Код доступа</string>
@@ -33,7 +33,7 @@
     <string name="error_already_created">Кошелек уже создан</string>
     <string name="error_purge_prohibited">Конфигурация этой карты не позволяет удалить кошелек</string>
     <string name="error_pin_cannot_be_changed_format">%s не может быть изменен</string>
-    <string name="error_pin_cannot_be_default_format">%@ нельзя изменить на это значение. Пожалуйста, введите другое</string>
+    <string name="error_pin_cannot_be_default_format">%s нельзя изменить на это значение. Пожалуйста, введите другое</string>
     <string name="error_no_remaining_signatures">Вы не можете подписывать данные с помощью этого кошелька, так как лимит подписей на карте исчерпан.</string>
     <string name="error_empty_hashes">Здесь нечего подписывать</string>
     <string name="error_cannot_be_signed">Эти данные не могут быть подписаны</string>
@@ -58,7 +58,6 @@
     <string name="how_to_unknown_nothing_happened">Ничего не случилось? Попробуйте отнести карту от телефона и поднести обратно.</string>
     <string name="how_to_known_here_how_to_use">Вот как использовать карты Tangem с (телефоном)</string>
     <string name="how_to_known_antenna_is_here">Ваша NFC антенна здесь</string>
-    <string name="how_to_known_tap_card_to_the_back">Приложите карту к задней панели телефона</string>
     <string name="how_to_known_tap_card_to_the_front">Приложите карту к передней панели телефона</string>
     <string name="how_to_button">Помощь</string>
     <string name="how_to_got_it_button">Хорошо, понял!</string>
@@ -67,9 +66,9 @@
     <string name="how_to_show_again_button">Показать еще раз</string>
     <string name="common_retry">Повторить попытку</string>
     <string name="error_no_space_for_new_wallet">Создано максимальное количество кошельков</string>
-    <string name="wallet_not_found">Эта карта не содержит текущий кошелек</string>
+    <string name="wallet_not_found">Эта карта не содержит указанный кошелек</string>
     <string name="error_card_read_wrong_wallet">Карта считывает неправильный кошелек</string>
-    <string name="error_old_firmware">Для команды требуется карта с другой версией прошивки</string>
+    <string name="error_old_firmware">Эта команда не поддерживается данной картой</string>
     <string name="error_wrong_pin_format">Неверный %s</string>
     <string name="error_wallet_is_not_created">Операция не может быть завершена. Кошелек не создан.</string>
     <string name="error_wallet_is_purged">Операция не может быть завершена. Кошелек очищен и не может быть создан снова.</string>
@@ -81,35 +80,31 @@
     <string name="error_backup_card_already_added">Эта карта уже добавлена в список</string>
     <string name="error_backup_wrong_card">Эту карту нельзя использовать для резервного копирования. Код ошибки: %s.</string>
     <string name="error_reset_wrong_card">Эту карту нельзя использовать для восстановления кода. Код ошибки: %s.</string>
-    <string name="error_backup_not_empty_wallets">На этой карте уже создан кошелёк. Если вы хотите продолжить, сбросьте карту к заводским настройкам.</string>
-    <string name="error_extended_apdu_not_supported">Похоже, что ваш телефон не полностью поддерживает NFC. Пожалуйста, попробуйте использовать другой телефон для этой операции.</string>
-    <string name="error_pin_too_short_format">%s должен состоять не менее чем из %d символов.</string>
-
-    <string name="dialog_attestation_did_failed_title">Проверка карты не удалась</string>
-    <string name="dialog_attestation_did_failed_message">Эта карта может быть серийным образцом или подделкой. Вы можете продолжить на свой страх и риск.</string>
-    <string name="dialog_attestation_did_failed_message_dev_card">Это карта разработчика. Вы можете продолжить на свой страх и риск.</string>
-    <string name="dialog_attestation_completed_offline_title">Онлайн-аттестация не удалась</string>
-    <string name="dialog_attestation_completed_offline_message">В настоящее время мы не можем завершить онлайн-аттестацию карты. Вы можете продолжить на свой страх и риск и повторить попытку позже. Повторить попытку сейчас или отменить операцию.</string>
-    <string name="dialog_attestation_completed_with_warnings_title">Предупреждение</string>
-    <string name="dialog_attestation_completed_with_warnings_message">Слишком большое количество вызовов Attest Wallet или Sign выглядит подозрительно.</string>
-
+    <string name="attestation_failed_card">Эта карта – серийный образец или подделка. Вы можете продолжать на свой страх и риск</string>
+    <string name="attestation_online_failed_title">Онлайн-аттестация не удалась</string>
+    <string name="attestation_online_failed_body">В настоящее время мы не можем завершить онлайн-аттестацию карты. Вы можете продолжить на свой страх и риск и повторить попытку позже. Повторить попытку сейчас или отменить операцию.</string>
+    <string name="common_warning">Предупреждение</string>
+    <string name="attestation_warning_attest_wallets">Слишком большое количество вызовов Attest Wallet или Sign выглядит подозрительно.</string>
     <string name="backup_prepare_primary_card_message">Соедините телефон и основную карту в точности, как показано выше.</string>
     <string name="backup_prepare_primary_card_message_format">Соедините телефон и основную карту с номером %s в точности, как показано выше.</string>
     <string name="backup_add_backup_card_message">Соедините телефон и карту, которую вы хотите использовать в качестве резервной, в точности, как показано выше.</string>
     <string name="backup_finalize_primary_card_message_format">Соедините телефон и основную карту с номером %s в точности, как показано выше.</string>
     <string name="backup_finalize_backup_card_message_format">Соедините телефон и резервную карту с номером %s в точности, как показано выше.</string>
-
     <string name="reset_codes_scan_first_card">Отсканируйте карту, на которой вы хотите сбросить %s</string>
     <string name="reset_codes_scan_confirmation_card">Отсканируйте другую привязанную карту</string>
     <string name="reset_codes_scan_to_reset">Отсканируйте карту для сброса кода</string>
-    <string name="reset_codes_message_title_restore">Приложите карту, которую хотите восстановить</string>
+    <string name="reset_codes_message_title_restore">Отсканируйте карту, которую хотите восстановить</string>
     <string name="reset_codes_message_body_restore">Сначала подготовьте карту к процессу восстановления</string>
-    <string name="reset_codes_message_title_backup">Приложите резервную копию карты</string>
+    <string name="reset_codes_message_title_backup">Приложите резервную карту</string>
     <string name="reset_codes_message_body_backup">Приложите связанную карту</string>
-    <string name="reset_codes_message_body_restore_final">Приложите восстанавливаемую карту еще раз</string>
+    <string name="reset_codes_message_body_restore_final">Приложите еще раз карту, которую хотите восстановить</string>
     <string name="reset_codes_success_message">Код успешно сброшен</string>
-    <string name="reset_codes_reset_access_code">Сбросить код доступа</string>
     <string name="reset_codes_current_card">Текущая карта</string>
     <string name="reset_codes_linked_card">Связанная карта</string>
     <string name="reset_codes_btn_forgot_your_code">Забыли код?</string>
+    <string name="error_extended_apdu_not_supported">Похоже, что ваш телефон не полностью поддерживает NFC. Пожалуйста, попробуйте использовать другой телефон для этой операции.</string>
+    <string name="error_pin_too_short_format">%s должен состоять не менее чем из %d символов.</string>
+    <string name="pin_reset_code_format">Сбросить %s</string>
+    <string name="error_backup_not_empty_wallets">На этой карте уже создан кошелёк. Если вы хотите продолжить, сбросьте карту к заводским настройкам.</string>
+    <string name="attestation_failed_dev_card">Это карта предназначена для тестовых целей. Её подлинность не может быть проверена. Не принимайте эту карту как средство оплаты.</string>
 </resources>

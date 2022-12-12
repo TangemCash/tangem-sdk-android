@@ -163,7 +163,7 @@ class NfcKnownWidget(
         rippleView.fadeOut(FADE_DURATION) {
             rippleView.stopRippleAnimation()
             if (nfcLocation.isOnTheBack()) {
-                setText(R.string.how_to_known_tap_card_to_the_back)
+                setText(R.string.how_to_unknown_tap_card)
                 phoneFlipAnimator.onAnimationEnd = { touchCardAnimation.animate() }
                 phoneFlipAnimator.animate()
             } else {
