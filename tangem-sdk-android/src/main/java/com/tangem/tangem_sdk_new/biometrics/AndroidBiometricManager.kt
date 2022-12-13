@@ -94,7 +94,7 @@ internal class AndroidBiometricManager(
     private fun proceedData(
         mode: BiometricManager.AuthenticationMode,
     ): CompletionResult<ByteArray> = catching {
-        encryptionManager.authenticateSecretKeysIfNot(mode.keys)
+        encryptionManager.authenticateKeysIfNot(mode.keys)
         when (mode) {
             is BiometricManager.AuthenticationMode.Decryption -> encryptionManager.decrypt(mode.keyName, mode.data)
             is BiometricManager.AuthenticationMode.Encryption -> encryptionManager.encrypt(mode.keyName, mode.data)
