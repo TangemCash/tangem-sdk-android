@@ -233,7 +233,7 @@ class CardSession(
         Log.session { "prepare card session" }
         preflightReadMode = runnable.preflightReadMode()
 
-        if (!runnable.allowsAccessCodeFromRepository) {
+        if (!runnable.allowsRequestAccessCodeFromRepository) {
             runnable.prepare(this, callback)
             return
         }

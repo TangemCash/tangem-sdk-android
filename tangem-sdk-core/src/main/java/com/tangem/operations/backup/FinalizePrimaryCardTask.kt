@@ -20,6 +20,9 @@ class FinalizePrimaryCardTask(
     private val readBackupStartIndex: Int,
 ) : CardSessionRunnable<Card> {
 
+    override val allowsRequestAccessCodeFromRepository: Boolean
+        get() = false
+
     private lateinit var card: Card
 
     override fun run(
@@ -112,4 +115,3 @@ class FinalizePrimaryCardTask(
         RETRY
     }
 }
-

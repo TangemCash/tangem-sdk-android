@@ -10,7 +10,7 @@ interface CardSessionRunnable<T> {
     /**
      * Allows SDK to fetch access code from the local encrypted repository when running the command
      * */
-    val allowsAccessCodeFromRepository: Boolean
+    val allowsRequestAccessCodeFromRepository: Boolean
         get() = true
 
     /**

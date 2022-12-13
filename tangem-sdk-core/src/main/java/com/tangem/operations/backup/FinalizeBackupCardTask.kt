@@ -18,6 +18,9 @@ class FinalizeBackupCardTask(
     private val passcode: ByteArray,
 ) : CardSessionRunnable<Card> {
 
+    override val allowsRequestAccessCodeFromRepository: Boolean
+        get() = false
+
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
