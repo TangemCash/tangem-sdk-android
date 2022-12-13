@@ -68,11 +68,6 @@ class Config(
      * User code request policy.
      */
     var userCodeRequestPolicy: UserCodeRequestPolicy = UserCodeRequestPolicy.Default,
-
-    /**
-     * Cipher key alias for [com.tangem.common.biometric.BiometricStorage]
-     * */
-    var userCodesBiometricKeyName: String = "user_codes",
 )
 
 sealed class CardIdDisplayFormat {
