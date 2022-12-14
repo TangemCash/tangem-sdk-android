@@ -32,14 +32,14 @@ internal class AndroidBiometricManager(
     DefaultLifecycleObserver,
     LifecycleOwner by activity {
 
-    private val encryptionManager by lazy(mode = LazyThreadSafetyMode.NONE) {
+    private val encryptionManager by lazy {
         EncryptionManager(secureStorage)
     }
 
-    private val biometricPromptInfo by lazy(mode = LazyThreadSafetyMode.NONE) {
+    private val biometricPromptInfo by lazy {
         BiometricPrompt.PromptInfo.Builder()
-            .setTitle(activity.getString(R.string.biometric_auth_title))
-            .setNegativeButtonText(activity.getString(R.string.biometric_auth_negative_text))
+            .setTitle(activity.getString(R.string.biometric_prompt_title))
+            .setNegativeButtonText(activity.getString(R.string.common_cancel))
             .build()
     }
 
@@ -66,10 +66,6 @@ internal class AndroidBiometricManager(
         }
     }
 
-    override fun unauthenticate(keyName: String?) {
-        encryptionManager.unauthenticateSecretKey(keyName)
-    }
-
     private suspend fun tryToProceedData(
         mode: BiometricManager.AuthenticationMode,
     ): CompletionResult<ByteArray> {
@@ -94,11 +90,9 @@ internal class AndroidBiometricManager(
     private fun proceedData(
         mode: BiometricManager.AuthenticationMode,
     ): CompletionResult<ByteArray> = catching {
-        encryptionManager.authenticateSecretKeysIfNot(mode.keys)
         when (mode) {
             is BiometricManager.AuthenticationMode.Decryption -> encryptionManager.decrypt(mode.keyName, mode.data)
             is BiometricManager.AuthenticationMode.Encryption -> encryptionManager.encrypt(mode.keyName, mode.data)
-            is BiometricManager.AuthenticationMode.Keys -> byteArrayOf()
         }
     }
 

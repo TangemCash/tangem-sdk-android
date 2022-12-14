@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class BiometricStorage(
-    private val biometricKeyName: String,
     private val biometricManager: BiometricManager,
     private val secureStorage: SecureStorage,
 ) {
@@ -19,7 +18,7 @@ class BiometricStorage(
         val decryptedData = withContext(Dispatchers.IO) { secureStorage.get(key) }
             ?.takeIf { it.isNotEmpty() }
             ?: return CompletionResult.Success(null)
-        val mode = BiometricManager.AuthenticationMode.Decryption(biometricKeyName, decryptedData)
+        val mode = BiometricManager.AuthenticationMode.Decryption(key, decryptedData)
         return biometricManager.authenticate(mode).map { it }
     }
 
@@ -27,7 +26,7 @@ class BiometricStorage(
         if (!biometricManager.canAuthenticate)
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
 
-        val mode = BiometricManager.AuthenticationMode.Encryption(biometricKeyName, data)
+        val mode = BiometricManager.AuthenticationMode.Encryption(key, data)
         return biometricManager.authenticate(mode = mode)
             .map { encryptedData ->
                 withContext(Dispatchers.IO) {

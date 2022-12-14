@@ -6,9 +6,11 @@ import android.security.keystore.KeyProperties
 import androidx.annotation.RequiresApi
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.CryptoUtils
+import java.security.KeyPairGenerator
 import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.PublicKey
 import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -17,132 +19,120 @@ import javax.crypto.spec.SecretKeySpec
 internal class EncryptionManager(
     private val secureStorage: SecureStorage,
 ) {
-    private val keyGenSpecBuilder by lazy(mode = LazyThreadSafetyMode.NONE) {
-        KeyGenParameterSpec.Builder(
-            authenticationKeyAlias,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setKeySize(authenticationKeySize)
-            .setBlockModes(blockMode)
-            .setEncryptionPaddings(encryptionPadding)
-            .setUserAuthenticationRequired(true)
-            .setUserAuthenticationParameters()
-    }
-
-    private val keyStore: KeyStore by lazy(mode = LazyThreadSafetyMode.NONE) {
+    private val keyStore: KeyStore by lazy {
         KeyStore.getInstance(keyStoreProvider)
             .also { it.load(null) }
     }
 
-    private val cipher: Cipher by lazy(mode = LazyThreadSafetyMode.NONE) {
-        Cipher.getInstance("$algorithm/$blockMode/$encryptionPadding")
+    /**
+     * Cipher used for data keys encryption/decryption with [masterPublicKey] and [masterPrivateKey]
+     * */
+    private val masterCipher: Cipher by lazy {
+        Cipher.getInstance("$masterKeyAlgorithm/$masterKeyBlockMode/$masterKeyPadding")
     }
 
-    private val authenticationKey: SecretKey by lazy(mode = LazyThreadSafetyMode.NONE) {
-        keyStore.getKey(authenticationKeyAlias, null) as SecretKey
+    /**
+     * Cipher used for provided data encryption/decryption with data keys
+     * */
+    private val dataCipher: Cipher by lazy {
+        Cipher.getInstance("$dataKeyAlgorithm/$dataKeyBlockMode/$dataKeyPadding")
     }
 
-    private val authenticatedKeys: HashMap<String, SecretKey> = hashMapOf()
-
-    fun encrypt(keyName: String, data: ByteArray): ByteArray {
-        return authenticatedKeys[keyName]?.let {
-            encryptInternal(
-                decryptedData = data,
-                key = it,
-                getIvStorageKey = { encryptedData -> StorageKey.DataIv(encryptedData) },
-            )
-        }
-            ?: error("Authenticated key $keyName is not initialized")
+    /**
+     * Public key used for data keys encryption, not requires user authentication
+     * */
+    private val masterPublicKey: PublicKey by lazy {
+        generateMasterKeyIfNeeded()
+        keyStore.getCertificate(masterKeyAlias).publicKey
     }
 
-    fun decrypt(keyName: String, data: ByteArray): ByteArray {
-        return authenticatedKeys[keyName]?.let {
-            decryptInternal(
-                encryptedData = data,
-                key = it,
-                getIvStorageKey = { encryptedData -> StorageKey.DataIv(encryptedData) },
-            )
-        }
-            ?: error("Authenticated key $keyName is not initialized")
+    /**
+     * Private key used for data keys decryption, requires user authentication (Biometry)
+     * */
+    private val masterPrivateKey: PrivateKey by lazy {
+        generateMasterKeyIfNeeded()
+        keyStore.getKey(masterKeyAlias, null) as PrivateKey
     }
 
-    fun unauthenticateSecretKey(keyName: String?) {
-        if (keyName == null) {
-            authenticatedKeys.clear()
-        } else {
-            authenticatedKeys.remove(keyName)
-        }
-    }
-
-    fun authenticateSecretKeysIfNot(names: List<String>) {
-        names.forEach { keyName ->
-            val authenticatedKey = authenticatedKeys[keyName]
-            if (authenticatedKey != null) return
-            generateAuthenticationKeyIfNeeded(keyGenSpecBuilder.build())
-            authenticatedKeys[keyName] = when (val key = secureStorage.get(StorageKey.AuthenticatedKey(keyName).name)) {
-                null -> generateAuthenticatedKey(keyName)
-                else -> decryptAuthenticatedKey(keyName, key)
-            }
-        }
-    }
-
-    private fun encryptInternal(
-        decryptedData: ByteArray,
-        key: SecretKey,
-        getIvStorageKey: (ByteArray) -> StorageKey,
-    ): ByteArray {
-        return cipher
+    /**
+     * Generate new secret key with provided [keyAlias] and encrypt [decryptedData] with it
+     * */
+    fun encrypt(keyAlias: String, decryptedData: ByteArray): ByteArray {
+        val key = generateAndStoreDataKey(keyAlias)
+        val encryptedData = dataCipher
             .also { it.init(Cipher.ENCRYPT_MODE, key) }
             .doFinal(decryptedData)
-            .also { encryptedData ->
-                secureStorage.store(cipher.iv, getIvStorageKey(encryptedData).name)
-            }
+
+        secureStorage.store(dataCipher.iv, StorageKey.DataIv(keyAlias).name)
+
+        return encryptedData
     }
 
-    private fun decryptInternal(
-        encryptedData: ByteArray,
-        key: SecretKey,
-        getIvStorageKey: (ByteArray) -> StorageKey,
-    ): ByteArray {
-        val iv = secureStorage.get(getIvStorageKey(encryptedData).name)
-            ?: error("IV must not be null on decrypting")
-        val ivParam = IvParameterSpec(iv)
-        return cipher
-            .also { it.init(Cipher.DECRYPT_MODE, key, ivParam) }
+    /**
+     * Find secret key with provided [keyAlias] and cipher IV, then decrypt [encryptedData]
+     * */
+    fun decrypt(keyAlias: String, encryptedData: ByteArray): ByteArray {
+        val key = getDataKey(keyAlias)
+        val iv = secureStorage.get(StorageKey.DataIv(keyAlias).name)
+            ?: error("IV for key $keyAlias is null")
+
+        return dataCipher
+            .also { it.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(iv)) }
             .doFinal(encryptedData)
+
     }
 
-    private fun generateAuthenticationKeyIfNeeded(keyGenParameterSpec: KeyGenParameterSpec) {
-        if (!keyStore.containsAlias(authenticationKeyAlias)) {
-            KeyGenerator.getInstance(algorithm, keyStoreProvider)
-                .also { it.init(keyGenParameterSpec) }
-                .generateKey()
+    /**
+     * Generate new asymmetric master key which uses for data keys encryption/decryption if it has not already been
+     * generated
+     * */
+    private fun generateMasterKeyIfNeeded() {
+        if (!keyStore.containsAlias(masterKeyAlias)) {
+            KeyPairGenerator.getInstance(masterKeyAlgorithm, keyStoreProvider)
+                .also { it.initialize(createMasterKeyGenParameterSpec()) }
+                .generateKeyPair()
         }
     }
 
-    private fun decryptAuthenticatedKey(keyName: String, key: ByteArray): SecretKey {
-        return SecretKeySpec(
-            decryptInternal(
-                encryptedData = key,
-                key = authenticationKey,
-                getIvStorageKey = { StorageKey.AuthenticatedKeyIv(keyName) }
-            ),
-            algorithm
-        )
+    /**
+     * Find data key in [secureStorage] with provided [keyAlias] and decrypt it with [masterPrivateKey]
+     * */
+    private fun getDataKey(keyAlias: String): SecretKey {
+        val encryptedKeyBytes = secureStorage.get(StorageKey.DataKey(keyAlias).name)
+            ?: error("Key $keyAlias has not been generated")
+        val decryptedKeyBytes = masterCipher
+            .also { it.init(Cipher.DECRYPT_MODE, masterPrivateKey) }
+            .doFinal(encryptedKeyBytes)
+
+        return SecretKeySpec(decryptedKeyBytes, dataKeyAlgorithm)
     }
 
-    private fun generateAuthenticatedKey(keyName: String): SecretKey {
-        val key = CryptoUtils.generateRandomBytes(32)
-            .also { key ->
-                val encryptedKey = encryptInternal(
-                    decryptedData = key,
-                    key = authenticationKey,
-                    getIvStorageKey = { StorageKey.AuthenticatedKeyIv(keyName) }
-                )
-                secureStorage.store(encryptedKey, StorageKey.AuthenticatedKey(keyName).name)
-            }
+    /**
+     * Generate random data key with [keyAlias], encrypt it with [masterPublicKey] and store in [secureStorage]
+     * */
+    private fun generateAndStoreDataKey(keyAlias: String): SecretKey {
+        val keyBytes = CryptoUtils.generateRandomBytes(length = dataKeySize / 8)
+        val encryptedKeyBytes = masterCipher
+            .also { it.init(Cipher.ENCRYPT_MODE, masterPublicKey) }
+            .doFinal(keyBytes)
 
-        return SecretKeySpec(key, algorithm)
+        secureStorage.store(encryptedKeyBytes, StorageKey.DataKey(keyAlias).name)
+
+        return SecretKeySpec(keyBytes, dataKeyAlgorithm)
+    }
+
+    private fun createMasterKeyGenParameterSpec(): KeyGenParameterSpec {
+        return KeyGenParameterSpec.Builder(
+            masterKeyAlias,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setKeySize(masterKeySize)
+            .setBlockModes(masterKeyBlockMode)
+            .setEncryptionPaddings(masterKeyPadding)
+            .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA1)
+            .setUserAuthenticationRequired(true)
+            .setUserAuthenticationParameters()
+            .build()
     }
 
     private fun KeyGenParameterSpec.Builder.setUserAuthenticationParameters(): KeyGenParameterSpec.Builder {
@@ -159,25 +149,28 @@ internal class EncryptionManager(
     sealed interface StorageKey {
         val name: String
 
-        class DataIv(data: ByteArray) : StorageKey {
-            override val name: String = "data_iv_${data.size}"
+        class DataIv(keyAlias: String) : StorageKey {
+            override val name: String = "data_iv_$keyAlias"
         }
-        class AuthenticatedKeyIv(name: String) : StorageKey {
-            override val name: String = "authenticated_key_iv_$name"
-        }
-        class AuthenticatedKey(name: String) : StorageKey {
-            override val name: String = "authenticated_key_$name"
+        class DataKey(keyAlias: String) : StorageKey {
+            override val name: String = "data_key_$keyAlias"
         }
     }
 
     companion object {
         @androidx.annotation.IntRange(from = 1)
         private const val keyTimeoutSeconds = 1
-        private const val authenticationKeyAlias = "authentication_key"
         private const val keyStoreProvider = "AndroidKeyStore"
-        private const val authenticationKeySize = 256
-        private const val algorithm = KeyProperties.KEY_ALGORITHM_AES
-        private const val blockMode = KeyProperties.BLOCK_MODE_CBC
-        private const val encryptionPadding = KeyProperties.ENCRYPTION_PADDING_PKCS7
+
+        private const val masterKeyAlias = "master_key"
+        private const val masterKeySize = 1024
+        private const val masterKeyAlgorithm = KeyProperties.KEY_ALGORITHM_RSA
+        private const val masterKeyBlockMode = KeyProperties.BLOCK_MODE_ECB
+        private const val masterKeyPadding = KeyProperties.ENCRYPTION_PADDING_RSA_OAEP
+
+        private const val dataKeySize = 256
+        private const val dataKeyAlgorithm = KeyProperties.KEY_ALGORITHM_AES
+        private const val dataKeyBlockMode = KeyProperties.BLOCK_MODE_CBC
+        private const val dataKeyPadding = KeyProperties.ENCRYPTION_PADDING_PKCS7
     }
 }

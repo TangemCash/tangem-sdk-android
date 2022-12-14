@@ -107,4 +107,5 @@
     <string name="pin_reset_code_format">Сбросить %s</string>
     <string name="error_backup_not_empty_wallets">На этой карте уже создан кошелёк. Если вы хотите продолжить, сбросьте карту к заводским настройкам.</string>
     <string name="attestation_failed_dev_card">Это карта предназначена для тестовых целей. Её подлинность не может быть проверена. Не принимайте эту карту как средство оплаты.</string>
+    <string name="biometric_prompt_title">Разблокировка хранилища</string>
 </resources>
