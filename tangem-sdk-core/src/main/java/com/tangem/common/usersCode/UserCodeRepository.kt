@@ -1,6 +1,5 @@
 package com.tangem.common.usersCode
 
-import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
 import com.tangem.common.biometric.BiometricManager
@@ -21,9 +20,7 @@ class UserCodeRepository(
     private val secureStorage: SecureStorage,
     private val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.INSTANCE,
 ) {
-    private val biometricsKeyName = TangemSdk.config.userCodesBiometricKeyName
     private val biometricStorage = BiometricStorage(
-        biometricKeyName = biometricsKeyName,
         biometricManager = biometricManager,
         secureStorage = secureStorage
     )
@@ -31,7 +28,6 @@ class UserCodeRepository(
 
     fun lock(): CompletionResult<Unit> {
         cardIdToUserCode.clear()
-        biometricManager.unauthenticate(biometricsKeyName)
         return CompletionResult.Success(Unit)
     }
 

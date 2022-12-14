@@ -20,6 +20,9 @@ class StartBackupCardLinkingTask(
     private val skipCompatibilityChecks: Boolean = false,
 ) : CardSessionRunnable<BackupCard> {
 
+    override val allowsRequestAccessCodeFromRepository: Boolean
+        get() = false
+
     private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
     override fun run(session: CardSession, callback: CompletionCallback<BackupCard>) {

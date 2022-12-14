@@ -8,29 +8,15 @@ interface BiometricManager {
 
     suspend fun authenticate(mode: AuthenticationMode): CompletionResult<ByteArray>
 
-    fun unauthenticate(keyName: String? = null)
-
     sealed interface AuthenticationMode {
-        val keys: List<String>
-
-        class Keys(
-            vararg keys: String
-        ) : AuthenticationMode {
-            override val keys: List<String> = keys.toList()
-        }
-
         class Encryption(
             val keyName: String,
             val data: ByteArray,
-        ) : AuthenticationMode {
-            override val keys: List<String> = listOf(keyName)
-        }
+        ) : AuthenticationMode
 
         class Decryption(
             val keyName: String,
             val data: ByteArray,
-        ) : AuthenticationMode {
-            override val keys: List<String> = listOf(keyName)
-        }
+        ) : AuthenticationMode
     }
 }
