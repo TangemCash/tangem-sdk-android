@@ -32,14 +32,14 @@ internal class AndroidBiometricManager(
     DefaultLifecycleObserver,
     LifecycleOwner by activity {
 
-    private val encryptionManager by lazy(mode = LazyThreadSafetyMode.NONE) {
+    private val encryptionManager by lazy {
         EncryptionManager(secureStorage)
     }
 
-    private val biometricPromptInfo by lazy(mode = LazyThreadSafetyMode.NONE) {
+    private val biometricPromptInfo by lazy {
         BiometricPrompt.PromptInfo.Builder()
-            .setTitle(activity.getString(R.string.biometric_auth_title))
-            .setNegativeButtonText(activity.getString(R.string.biometric_auth_negative_text))
+            .setTitle(activity.getString(R.string.biometric_prompt_title))
+            .setNegativeButtonText(activity.getString(R.string.common_cancel))
             .build()
     }
 
