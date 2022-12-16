@@ -40,6 +40,7 @@ internal class AndroidBiometricManager(
         BiometricPrompt.PromptInfo.Builder()
             .setTitle(activity.getString(R.string.biometric_prompt_title))
             .setNegativeButtonText(activity.getString(R.string.common_cancel))
+            .setAllowedAuthenticators(SystemBiometricManager.Authenticators.BIOMETRIC_STRONG)
             .build()
     }
 
