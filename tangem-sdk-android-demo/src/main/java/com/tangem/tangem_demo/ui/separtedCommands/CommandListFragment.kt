@@ -132,6 +132,18 @@ class CommandListFragment : BaseFragment() {
         btnSetAccessCode.setOnClickListener { setAccessCode() }
         btnSetPasscode.setOnClickListener { setPasscode() }
         btnResetUserCodes.setOnClickListener { resetUserCodes() }
+        btnClearUserCodes.setOnClickListener {
+            clearUserCodes()
+            userCodeRepositoryContainer.isVisible = hasSavedUserCodes()
+        }
+        btnDeleteUserCode.setOnClickListener {
+            deleteUserCodeForScannedCard()
+            if (hasSavedUserCodes()) {
+                btnDeleteUserCode.isVisible = hasSavedUserCodeForScannedCard()
+            } else {
+                userCodeRepositoryContainer.isVisible = false
+            }
+        }
 
         btnReadAllFiles.setOnClickListener { readFiles(true) }
         btnReadPublicFiles.setOnClickListener { readFiles(false) }
@@ -178,6 +190,14 @@ class CommandListFragment : BaseFragment() {
             is CompletionResult.Success -> {
                 val json = jsonConverter.prettyPrint(result.data)
                 showDialog(json)
+
+                if (hasSavedUserCodes()) {
+                    userCodeRepositoryContainer.isVisible = true
+                    btnDeleteUserCode.isVisible = hasSavedUserCodeForScannedCard()
+                } else {
+                    userCodeRepositoryContainer.isVisible = false
+                }
+
             }
             is CompletionResult.Failure -> {
                 if (result.error is TangemSdkError.UserCancelled) {
