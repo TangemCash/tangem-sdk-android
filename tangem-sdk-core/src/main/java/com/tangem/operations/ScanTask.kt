@@ -17,7 +17,9 @@ import com.tangem.operations.pins.CheckUserCodesCommand
  * Returns data from a Tangem card after successful completion of [ReadCommand]
  * and [AttestWalletKeyCommand], subsequently.
  */
-class ScanTask : CardSessionRunnable<Card> {
+class ScanTask(
+    override val allowsRequestAccessCodeFromRepository: Boolean = false,
+) : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         val card = session.environment.card.guard {

@@ -127,7 +127,7 @@ abstract class BaseFragment : Fragment() {
 
     protected fun scanCard(userCodeRequestPolicy: UserCodeRequestPolicy = Config().userCodeRequestPolicy) {
         sdk.config.userCodeRequestPolicy = userCodeRequestPolicy
-        sdk.scanCard(initialMessage) { handleResult(it) }
+        sdk.scanCard(initialMessage, allowRequestUserCodeFromRepository = true) { handleResult(it) }
     }
 
     protected fun personalize(config: CardConfig) {

@@ -92,14 +92,20 @@ object TangemSdk {
      * it obtains the card data. Optionally, if the card contains a wallet (private and public key pair),
      * it proves that the wallet owns a private key that corresponds to a public one.
      *
-     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * @param initialMessage A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used.
+     * @param allowRequestUserCodeFromRepository Allow access code or password request from [UserCodeRepository],
+     * If [Config.userCodeRequestPolicy] is set to [UserCodeRequestPolicy.AlwaysWithBiometrics], the code will still be saved
      * @param callback is triggered on the completion of the [ScanTask] and provides card response
      * in the form of [Card] if the task was performed successfully or [TangemSdkError] in case of an error.
      */
-    fun scanCard(initialMessage: Message? = null, callback: CompletionCallback<Card>) {
+    fun scanCard(
+        initialMessage: Message? = null,
+        allowRequestUserCodeFromRepository: Boolean = false,
+        callback: CompletionCallback<Card>,
+    ) {
         startSessionWithRunnable(
-            runnable = ScanTask(),
+            runnable = ScanTask(allowRequestUserCodeFromRepository),
             cardId = null,
             initialMessage = initialMessage,
             accessCode = null,
