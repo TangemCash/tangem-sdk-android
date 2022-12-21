@@ -128,10 +128,12 @@ class PinCodeModificationWidget(
 
     private fun TextInputEditText.debounce(delay: Long, action: (Editable?) -> Unit) {
         doAfterTextChanged { text ->
-            var counter = getTag(id) as? Int ?: 0
-            handler.removeCallbacksAndMessages(counter)
-            handler.postDelayed(delay, ++counter) { action(text) }
-            setTag(id, counter)
+            handler?.let {
+                var counter = getTag(id) as? Int ?: 0
+                it.removeCallbacksAndMessages(counter)
+                it.postDelayed(delay, ++counter) { action(text) }
+                setTag(id, counter)
+            }
         }
     }
 
