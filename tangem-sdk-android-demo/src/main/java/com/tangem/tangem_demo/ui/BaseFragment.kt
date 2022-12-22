@@ -31,6 +31,7 @@ import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder
+import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.PreflightReadMode
@@ -52,6 +53,7 @@ import com.tangem.tangem_demo.postUi
 import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
 import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
+import kotlinx.coroutines.runBlocking
 import kotlin.collections.set
 
 abstract class BaseFragment : Fragment() {
@@ -81,6 +83,13 @@ abstract class BaseFragment : Fragment() {
     protected var derivationPath: String? = null
     protected var initialMessage: Message? = null
         private set
+
+    private val userCodeRepository: UserCodeRepository by lazy {
+        UserCodeRepository(
+            biometricManager = sdk.biometricManager,
+            secureStorage = sdk.secureStorage,
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,7 +127,7 @@ abstract class BaseFragment : Fragment() {
 
     protected fun scanCard(userCodeRequestPolicy: UserCodeRequestPolicy = Config().userCodeRequestPolicy) {
         sdk.config.userCodeRequestPolicy = userCodeRequestPolicy
-        sdk.scanCard(initialMessage) { handleResult(it) }
+        sdk.scanCard(initialMessage, allowRequestUserCodeFromRepository = true) { handleResult(it) }
     }
 
     protected fun personalize(config: CardConfig) {
@@ -462,6 +471,35 @@ abstract class BaseFragment : Fragment() {
         val listOfData = MutableList(count) { Utils.randomString(32) }
         val listOfHashes = listOfData.map { it.toByteArray() }
         return listOfHashes.toTypedArray()
+    }
+
+    protected fun hasSavedUserCodeForScannedCard(): Boolean {
+        return card?.let {
+            runBlocking {
+                userCodeRepository.hasSavedUserCode(it.cardId)
+            }
+        }
+            ?: false
+    }
+
+    protected fun hasSavedUserCodes(): Boolean {
+        return runBlocking {
+            userCodeRepository.hasSavedUserCodes()
+        }
+    }
+
+    protected fun deleteUserCodeForScannedCard() {
+        card?.let {
+            runBlocking {
+                userCodeRepository.delete(setOf(it.cardId))
+            }
+        }
+    }
+
+    protected fun clearUserCodes() {
+        runBlocking {
+            userCodeRepository.clear()
+        }
     }
 
     private fun createDerivationPath(): DerivationPath? {
