@@ -159,7 +159,7 @@ internal class EncryptionManager(
 
     companion object {
         @androidx.annotation.IntRange(from = 1)
-        private const val keyTimeoutSeconds = 1
+        private const val keyTimeoutSeconds = 5
         private const val keyStoreProvider = "AndroidKeyStore"
 
         private const val masterKeyAlias = "master_key"
