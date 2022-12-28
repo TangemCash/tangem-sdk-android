@@ -16,6 +16,14 @@ import java.security.Signature
 
 object Secp256k1 {
 
+    fun sum(firstPublicKeyArray: ByteArray, secondPublicKeyArray: ByteArray): ByteArray {
+        val ecSpec = createECSpec()
+        val q1 = ecSpec.curve.decodePoint(firstPublicKeyArray)
+        val q2 = ecSpec.curve.decodePoint(secondPublicKeyArray)
+
+        return q1.add(q2).getEncoded(true)
+    }
+
     internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
         val privateKeySpec = ECPrivateKeySpec(BigInteger(1, privateKeyArray), createECSpec())
         val privateKey = createKeyFactory().generatePrivate(privateKeySpec)
