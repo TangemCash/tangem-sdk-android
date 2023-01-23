@@ -74,7 +74,7 @@ abstract class BaseFragment : Fragment() {
 
     private val userCodeRepository: UserCodeRepository by lazy {
         UserCodeRepository(
-            biometricManager = sdk.biometricManager,
+            biometricManager = sdk.biometricManager!!,
             secureStorage = sdk.secureStorage,
         )
     }
