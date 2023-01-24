@@ -542,6 +542,7 @@ class CardSession(
 
     private fun updateEnvironment(type: UserCodeType, code: String) {
         val userCode = UserCode(type, code)
+        environment.encryptionKey = null // we need to reset encryption key with new userCode
         when (type) {
             UserCodeType.AccessCode -> environment.accessCode = userCode
             UserCodeType.Passcode -> environment.passcode = userCode
