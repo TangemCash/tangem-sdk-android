@@ -108,4 +108,5 @@
     <string name="view_delegate_security_delay">Tenez la carte fermement </string>
     <string name="view_delegate_security_delay_description">To ensure security please hold the card until the operation complete</string>
     <string name="wallet_not_found">This card does not contain the current wallet</string>
+    <string name="sign_multiple_chunks_part">Signing part %d of %d</string>
 </resources>

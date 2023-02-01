@@ -108,4 +108,5 @@
     <string name="view_delegate_security_delay">Удерживайте карту</string>
     <string name="view_delegate_security_delay_description">Пожалуйста, удерживайте карту до завершения операции</string>
     <string name="wallet_not_found">Эта карта не содержит текущий кошелек</string>
+    <string name="sign_multiple_chunks_part">Подпись части %d из %d</string>
 </resources>

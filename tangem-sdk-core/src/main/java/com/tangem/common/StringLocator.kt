@@ -1,7 +1,7 @@
 package com.tangem.common
 
 interface StringsLocator {
-    fun getString(stringId: ID, vararg formatArgs: String): String
+    fun getString(stringId: ID, vararg formatArgs: Any): String
 
     enum class ID {
         backup_prepare_primary_card_message_format,
@@ -25,6 +25,8 @@ interface StringsLocator {
 
         pin1,
         pin2,
-        pin_reset_code_format
+        pin_reset_code_format,
+
+        sign_multiple_chunks_part,
     }
 }
