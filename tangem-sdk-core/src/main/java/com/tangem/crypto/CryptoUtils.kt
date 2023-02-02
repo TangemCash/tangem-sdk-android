@@ -16,7 +16,13 @@ import javax.crypto.spec.SecretKeySpec
 
 object CryptoUtils {
 
+    var isInitialized = false
+        private set
+
     fun initCrypto() {
+        if (isInitialized) return
+        isInitialized = true
+
         Security.addProvider(BouncyCastleProvider())
         Security.addProvider(EdDSASecurityProvider())
     }
@@ -149,7 +155,6 @@ fun ByteArray.decrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
 fun ByteArray.pbkdf2Hash(salt: ByteArray, iterations: Int): ByteArray {
     return Pbkdf2().deriveKey(this, salt, iterations)
 }
-
 
 fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
     val key = this
