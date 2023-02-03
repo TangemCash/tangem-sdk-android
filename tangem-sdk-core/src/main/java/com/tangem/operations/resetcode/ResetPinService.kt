@@ -1,12 +1,12 @@
 package com.tangem.operations.resetcode
 
 import com.tangem.Message
-import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
+import com.tangem.common.core.SessionBuilder
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class ResetPinService(
+    private val sessionBuilder: SessionBuilder,
     private val stringsLocator: StringsLocator,
     private val config: Config
 ) {
@@ -103,7 +104,7 @@ class ResetPinService(
         }
 
         val command = GetResetPinTokenCommand()
-        TangemSdk.makeSession(
+        sessionBuilder.build(
             config = config,
             cardId = resetCardId,
             initialMessage = Message(
@@ -129,7 +130,7 @@ class ResetPinService(
             return
         }
         val command = SignResetPinTokenCommand(resetPinCard)
-        TangemSdk.makeSession(
+        sessionBuilder.build(
             config = config,
             initialMessage = Message(
                 header = stringsLocator.getString(
@@ -185,7 +186,7 @@ class ResetPinService(
 
 
         val command = ResetPinTask(confirmationCard, accessCodeUnwrapped, passcodeUnwrapped)
-        TangemSdk.makeSession(
+        sessionBuilder.build(
             config = config,
             cardId = resetPinCard.cardId,
             initialMessage = Message(

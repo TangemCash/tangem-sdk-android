@@ -55,7 +55,6 @@ class DemoActivity : AppCompatActivity() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = fragmentPages[position].simpleName.replace("Fragment", "")
         }.attach()
-
     }
 
     fun listenPageChanges(callback: (Int) -> Unit) {
@@ -83,9 +82,9 @@ class DemoActivity : AppCompatActivity() {
         return TangemSdk(
             reader = nfcManager.reader,
             viewDelegate = viewDelegate,
-            biometricManager = authManager,
             secureStorage = secureStorage,
             config = config,
+            biometricManager = authManager,
         )
     }
 
