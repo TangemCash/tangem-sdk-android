@@ -19,7 +19,7 @@ import com.tangem.tangem_demo.ui.settings.SettingsFragment
 import com.tangem.tangem_demo.ui.viewDelegate.ViewDelegateFragment
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
 import com.tangem.tangem_sdk_new.extensions.createLogger
-import com.tangem.tangem_sdk_new.extensions.initBiometricAuthManager
+import com.tangem.tangem_sdk_new.extensions.initBiometricManager
 import com.tangem.tangem_sdk_new.extensions.initNfcManager
 import com.tangem.tangem_sdk_new.storage.create
 import kotlinx.android.synthetic.main.activity_demo.*
@@ -73,7 +73,7 @@ class DemoActivity : AppCompatActivity() {
         }
         val secureStorage = SecureStorage.create(this)
         val nfcManager = TangemSdk.initNfcManager(this)
-        val authManager = TangemSdk.initBiometricAuthManager(this, secureStorage)
+        val authManager = TangemSdk.initBiometricManager(this, secureStorage)
 
         val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, this)
         viewDelegate.sdkConfig = config
