@@ -86,16 +86,18 @@ class DefaultSessionViewDelegate(
         callback: CompletionCallback<String>
     ) {
         Log.view { "showing pin request with type: $type" }
-        if (readingDialog == null) createReadingDialog(activity)
-        readingDialog?.show(
-            SessionViewDelegateState.PinRequested(
-                type = type,
-                isFirstAttempt = isFirstAttempt,
-                showForgotButton = showForgotButton,
-                cardId = cardId,
-                callback = callback
+        postUI(msTime = 200) {
+            if (readingDialog == null) createReadingDialog(activity)
+            readingDialog?.show(
+                SessionViewDelegateState.PinRequested(
+                    type = type,
+                    isFirstAttempt = isFirstAttempt,
+                    showForgotButton = showForgotButton,
+                    cardId = cardId,
+                    callback = callback
+                )
             )
-        )
+        }
     }
 
     override fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
