@@ -157,6 +157,11 @@ class NfcSessionDialog(
             }
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
+            // pincode entering failed if an user dismiss the dialog from any moment
+            pinCodeSetChangeWidget.onBottomSheetDismiss = {
+                state.callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+            }
+
             pinCodeRequestWidget.onContinue = {
                 enableBottomSheetAnimation()
                 pinCodeRequestWidget.onContinue = null
