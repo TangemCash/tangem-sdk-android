@@ -12,6 +12,7 @@ import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.catching
+import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.flatMapOnFailure
 import com.tangem.common.services.secure.SecureStorage
@@ -105,14 +106,7 @@ internal class AndroidBiometricManager(
             createAuthenticationCallback { result ->
                 when (result) {
                     is AuthenticationResult.Failure -> {
-                        continuation.resume(
-                            CompletionResult.Failure(
-                                TangemSdkError.BiometricsAuthenticationFailed(
-                                    biometricsErrorCode = result.errorCode,
-                                    customMessage = result.errorString.orEmpty(),
-                                )
-                            )
-                        )
+                        continuation.resume(CompletionResult.Failure(result.error))
                     }
                     is AuthenticationResult.Success -> {
                         continuation.resume(proceedData(mode))
@@ -202,8 +196,22 @@ internal class AndroidBiometricManager(
     ): BiometricPrompt.AuthenticationCallback {
         return object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                Log.error { "Biometric authentication error: $errString" }
-                result(AuthenticationResult.Failure(errorCode, errString.toString()))
+                Log.error {
+                    """
+                        Biometric authentication error
+                        |- Code: $errorCode 
+                        |- Message: $errString
+                    """.trimIndent()
+                }
+                val error = when (errorCode) {
+                    BiometricPrompt.ERROR_LOCKOUT -> TangemSdkError.BiometricsAuthenticationLockout()
+                    BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> TangemSdkError.BiometricsAuthenticationPermanentLockout()
+                    BiometricPrompt.ERROR_USER_CANCELED,
+                    BiometricPrompt.ERROR_NEGATIVE_BUTTON,
+                    -> TangemSdkError.UserCanceledBiometricsAuthentication()
+                    else -> TangemSdkError.BiometricsAuthenticationFailed(errorCode, errString.toString())
+                }
+                result(AuthenticationResult.Failure(error))
             }
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -224,8 +232,7 @@ internal class AndroidBiometricManager(
 
     sealed interface AuthenticationResult {
         data class Failure(
-            val errorCode: Int? = null,
-            val errorString: String? = null,
+            val error: TangemError,
         ) : AuthenticationResult
 
         data class Success(

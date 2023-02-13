@@ -11,7 +11,6 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.DecodingFailed, is TangemSdkError.CryptoUtilsError, is TangemSdkError.NetworkError,
         is TangemSdkError.ExceptionError, is TangemSdkError.HDWalletDisabled, is TangemSdkError.FileSettingsUnsupported,
         is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty -> null
-
         is TangemSdkError.TagLost -> R.string.error_tag_lost
         is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_extended_apdu_not_supported
         is TangemSdkError.SerializeCommandError -> R.string.error_operation
@@ -98,6 +97,9 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.UserForgotTheCode -> null
         is TangemSdkError.BiometricsAuthenticationFailed -> null
         is TangemSdkError.BiometricsUnavailable -> null
+        is TangemSdkError.BiometricsAuthenticationLockout -> null
+        is TangemSdkError.BiometricsAuthenticationPermanentLockout -> null
+        is TangemSdkError.UserCanceledBiometricsAuthentication -> null
     }
 
     return if (resId != null) {

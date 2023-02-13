@@ -288,10 +288,39 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
         override var customMessage: String = "Biometrics feature unavailable: $code"
     }
 
+    /**
+     * Generic biometric authentication error
+     *
+     * @param errorCode Biometric operation error code.
+     * For android see [androidx.biometric.BiometricPrompt] errors.
+     * @param customMessage Biometric operation error message.
+     *
+     * @see BiometricsAuthenticationLockout
+     * @see BiometricsAuthenticationPermanentLockout
+     * @see UserCanceledBiometricsAuthentication
+     */
     class BiometricsAuthenticationFailed(
-        val biometricsErrorCode: Int?,
+        val errorCode: Int,
         override var customMessage: String,
-    ) : TangemSdkError(50016) {
+    ) : TangemSdkError(50016)
+
+    /**
+     * The operation was canceled because the API is locked out due to too many attempts. This
+     * occurs after 5 failed attempts, and lasts for 30 seconds
+     */
+    class BiometricsAuthenticationLockout : TangemSdkError(50017)
+
+    /**
+     * The operation was canceled because [BiometricsAuthenticationLockout] occurred too many times. Biometric
+     * authentication is disabled until the user unlocks with their device credential (i.e. PIN,
+     * pattern, or password).
+     */
+    class BiometricsAuthenticationPermanentLockout : TangemSdkError(50018)
+
+    /**
+     * The user canceled the operation.
+     */
+    class UserCanceledBiometricsAuthentication : TangemSdkError(50019) {
         override val silent: Boolean = true
     }
 
