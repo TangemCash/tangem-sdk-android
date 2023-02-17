@@ -1,13 +1,11 @@
 package com.tangem
 
-import com.tangem.TangemSdk.config
-import com.tangem.TangemSdk.reader
-import com.tangem.TangemSdk.viewDelegate
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.biometric.BiometricManager
+import com.tangem.common.biometric.DummyBiometricManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
@@ -48,36 +46,18 @@ import kotlinx.coroutines.*
  * @property config allows to change a number of parameters for communication with Tangem cards.
  * Do not change the default values unless you know what you are doing.
  */
-object TangemSdk {
-    var config: Config = Config()
-        private set
-
-    private lateinit var reader: CardReader
-    private lateinit var viewDelegate: SessionViewDelegate
-    lateinit var biometricManager: BiometricManager
-        private set
-    lateinit var secureStorage: SecureStorage
-        private set
+class TangemSdk(
+    private val reader: CardReader,
+    private val viewDelegate: SessionViewDelegate,
+    val secureStorage: SecureStorage,
+    val biometricManager: BiometricManager = DummyBiometricManager(),
+    var config: Config = Config(),
+) {
 
     private var cardSession: CardSession? = null
+
     private val onlineCardVerifier = OnlineCardVerifier()
     private val jsonRpcConverter: JSONRPCConverter by lazy { JSONRPCConverter.shared() }
-
-    operator fun invoke(
-        reader: CardReader,
-        viewDelegate: SessionViewDelegate,
-        biometricManager: BiometricManager,
-        secureStorage: SecureStorage,
-        config: Config = Config(),
-    ): TangemSdk {
-        return TangemSdk.apply {
-            this.reader = reader
-            this.viewDelegate = viewDelegate
-            this.biometricManager = biometricManager
-            this.secureStorage = secureStorage
-            this.config = config
-        }
-    }
 
     init {
         CryptoUtils.initCrypto()
@@ -1054,23 +1034,28 @@ object TangemSdk {
     }
 
     private fun createUserCodeRepository(
+        secureStorage: SecureStorage,
         config: Config,
     ): UserCodeRepository? {
-        return if (biometricManager.canAuthenticate &&
+        val safeBiometricsManager = biometricManager ?: return null
+
+        return if (safeBiometricsManager.canAuthenticate &&
             config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics
         ) {
             UserCodeRepository(
-                biometricManager = biometricManager,
+                biometricManager = safeBiometricsManager,
                 secureStorage = secureStorage,
             )
-        } else null
+        } else {
+            null
+        }
     }
 
-    internal fun makeSession(
+    private fun makeSession(
         cardId: String? = null,
         initialMessage: Message? = null,
         accessCode: String? = null,
-        config: Config = TangemSdk.config,
+        config: Config = this.config,
     ): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
 
@@ -1079,12 +1064,13 @@ object TangemSdk {
         }
 
         return CardSession(
+            cardId = cardId,
             viewDelegate = viewDelegate,
             environment = environment,
+            userCodeRepository = createUserCodeRepository(secureStorage, config),
             reader = reader,
-            userCodeRepository = createUserCodeRepository(config),
             jsonRpcConverter = jsonRpcConverter,
-            cardId = cardId,
+            secureStorage = secureStorage,
             initialMessage = initialMessage,
         )
     }
@@ -1093,4 +1079,6 @@ object TangemSdk {
         val session = cardSession ?: return false
         return session.state == CardSession.CardSessionState.Active
     }
+
+    companion object
 }

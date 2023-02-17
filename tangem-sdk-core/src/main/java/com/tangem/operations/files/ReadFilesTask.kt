@@ -36,7 +36,7 @@ class ReadFilesTask(
                     val file = File(result.data)
                     if (file != null) {
                         files.add(file)
-                        readAllFiles(file.fileIndex + 1, session, callback)
+                        readAllFiles(file.index + 1, session, callback)
                     } else {
                         callback(CompletionResult.Success(files))
                     }

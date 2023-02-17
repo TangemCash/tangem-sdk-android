@@ -13,9 +13,11 @@ import com.tangem.common.tlv.TlvTag
 @JsonClass(generateAdapter = true)
 data class File(
     val name: String?,
-    val fileData: ByteArray,
-    val fileIndex: Int,
-    val fileSettings: FileSettings?
+    val data: ByteArray,
+    val index: Int,
+    val settings: FileSettings,
+    val counter: Int?,
+    val signature: ByteArray?
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -23,31 +25,54 @@ data class File(
         if (javaClass != other?.javaClass) return false
 
         other as File
-        if (fileIndex != other.fileIndex) return false
-        if (fileSettings != other.fileSettings) return false
-        if (!fileData.contentEquals(other.fileData)) return false
+
+        if (name != other.name) return false
+        if (!data.contentEquals(other.data)) return false
+        if (index != other.index) return false
+        if (settings != other.settings) return false
+        if (counter != other.counter) return false
+        if (signature != null) {
+            if (other.signature == null) return false
+            if (!signature.contentEquals(other.signature)) return false
+        } else if (other.signature != null) return false
 
         return true
     }
 
     override fun hashCode(): Int = calculateHashCode(
-        fileData.contentHashCode(),
-        fileIndex.hashCode(),
-        fileSettings?.hashCode() ?: 0
+        name?.hashCode() ?: 0,
+        data.contentHashCode(),
+        index,
+        settings.hashCode(),
+        counter ?: 0,
+        signature?.contentHashCode() ?: 0,
     )
 
     companion object {
         operator fun invoke(response: ReadFileResponse): File? {
-            if (response.size == null || response.settings == null) return null
+            val settings = response.settings
+            if (response.size == null || settings == null) return null
 
             val namedFile = NamedFile(tlvData = response.fileData)
-            val (name, fileData) = if (namedFile == null) {
-                null to response.fileData
+            return if (namedFile == null) {
+                File(
+                    name = null,
+                    data = response.fileData,
+                    counter = null,
+                    signature = null,
+                    index = response.fileIndex,
+                    settings = settings
+                )
             } else {
-                namedFile.name to namedFile.payload
+                File(
+                    name = namedFile.name,
+                    data = namedFile.payload,
+                    counter = namedFile.counter,
+                    signature = namedFile.signature,
+                    index = response.fileIndex,
+                    settings = settings
+                )
             }
-
-            return File(name, fileData, response.fileIndex, response.settings)
         }
     }
 }
@@ -121,14 +146,14 @@ sealed class FileToWrite {
 
     private val data: ByteArray
         get() = when (this) {
-            is ByFileOwner -> (this as ByFileOwner).data
-            is ByUser -> (this as ByUser).data
+            is ByFileOwner -> this.data
+            is ByUser -> this.data
         }
 
     private val fileName: String?
         get() = when (this) {
-            is ByFileOwner -> (this as ByFileOwner).fileName
-            is ByUser -> (this as ByUser).fileName
+            is ByFileOwner -> this.fileName
+            is ByUser -> this.fileName
         }
 
 

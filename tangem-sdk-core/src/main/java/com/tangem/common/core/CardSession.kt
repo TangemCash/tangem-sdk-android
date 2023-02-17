@@ -19,6 +19,7 @@ import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.json.JSONRPCConverter
 import com.tangem.common.json.JSONRPCLinker
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.EncryptionHelper
 import com.tangem.crypto.pbkdf2Hash
@@ -69,6 +70,7 @@ class CardSession(
     val userCodeRepository: UserCodeRepository?,
     private val reader: CardReader,
     private val jsonRpcConverter: JSONRPCConverter,
+    private val secureStorage: SecureStorage,
     private var initialMessage: Message? = null,
 ) {
 
@@ -80,7 +82,6 @@ class CardSession(
         private set
 
     private var resetCodesController: ResetCodesController? = null
-
 
     val scope = CoroutineScope(Dispatchers.IO) + CoroutineExceptionHandler { _, throwable ->
         val sw = StringWriter()
@@ -542,6 +543,7 @@ class CardSession(
 
     private fun updateEnvironment(type: UserCodeType, code: String) {
         val userCode = UserCode(type, code)
+        environment.encryptionKey = null // we need to reset encryption key with new userCode
         when (type) {
             UserCodeType.AccessCode -> environment.accessCode = userCode
             UserCodeType.Passcode -> environment.passcode = userCode
@@ -549,10 +551,18 @@ class CardSession(
     }
 
     private fun restoreUserCode(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
+        val sessionBuilder = SessionBuilder(
+            viewDelegate = viewDelegate,
+            secureStorage = secureStorage,
+            userCodeRepository = userCodeRepository,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter,
+        )
         val config = environment.config.apply {
             userCodeRequestPolicy = UserCodeRequestPolicy.Default
         }
         val resetService = ResetPinService(
+            sessionBuilder = sessionBuilder,
             stringsLocator = viewDelegate.resetCodesViewDelegate.stringsLocator,
             config = config
         )
@@ -580,4 +590,29 @@ typealias SessionStartedCallback = (session: CardSession, error: TangemError?) -
 enum class TagType {
     Nfc,
     Slix
+}
+
+class SessionBuilder(
+    val viewDelegate: SessionViewDelegate,
+    val secureStorage: SecureStorage,
+    val userCodeRepository: UserCodeRepository?,
+    val reader: CardReader,
+    val jsonRpcConverter: JSONRPCConverter,
+) {
+    fun build(
+        config: Config,
+        cardId: String? = null,
+        initialMessage: Message? = null,
+    ): CardSession {
+        return CardSession(
+            cardId = cardId,
+            viewDelegate = viewDelegate,
+            environment = SessionEnvironment(config, secureStorage),
+            userCodeRepository = userCodeRepository,
+            reader = reader,
+            jsonRpcConverter = jsonRpcConverter,
+            secureStorage = secureStorage,
+            initialMessage = initialMessage,
+        )
+    }
 }
