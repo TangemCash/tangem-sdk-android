@@ -101,6 +101,7 @@
     <string name="reset_codes_scan_first_card">Scan the card on which you want to reset the %s</string>
     <string name="reset_codes_scan_to_reset">Scan card to reset user codes</string>
     <string name="reset_codes_success_message">Code was reset successfully</string>
+    <string name="sign_multiple_chunks_part">Signing part %1$d of %2$d</string>
     <string name="view_delegate_delay">Operation is in progress</string>
     <string name="view_delegate_header_card">Card</string>
     <string name="view_delegate_scan">Ready to scan</string>
@@ -108,5 +109,4 @@
     <string name="view_delegate_security_delay">Long tap</string>
     <string name="view_delegate_security_delay_description">To ensure security please hold the card until the operation complete</string>
     <string name="wallet_not_found">This card does not contain the current wallet</string>
-    <string name="sign_multiple_chunks_part">Signing part %d of %d</string>
 </resources>
