@@ -8,6 +8,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.tangem.Log
+import com.tangem.LogFormat
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
 import com.tangem.common.card.FirmwareVersion
@@ -18,14 +19,15 @@ import com.tangem.tangem_demo.ui.settings.SettingsFragment
 import com.tangem.tangem_demo.ui.viewDelegate.ViewDelegateFragment
 import com.tangem.tangem_sdk_new.DefaultSessionViewDelegate
 import com.tangem.tangem_sdk_new.extensions.createLogger
+import com.tangem.tangem_sdk_new.extensions.initBiometricAuthManager
 import com.tangem.tangem_sdk_new.extensions.initNfcManager
 import com.tangem.tangem_sdk_new.storage.create
 import kotlinx.android.synthetic.main.activity_demo.*
 
 class DemoActivity : AppCompatActivity() {
 
+    val logger = TangemSdk.createLogger(LogFormat.StairsFormatter())
 
-    val logger = TangemSdk.createLogger()
     lateinit var sdk: TangemSdk
         private set
     lateinit var viewDelegate: SessionViewDelegate
@@ -53,7 +55,6 @@ class DemoActivity : AppCompatActivity() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = fragmentPages[position].simpleName.replace("Fragment", "")
         }.attach()
-
     }
 
     fun listenPageChanges(callback: (Int) -> Unit) {
@@ -70,23 +71,26 @@ class DemoActivity : AppCompatActivity() {
             allowUntrustedCards = true
             filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
         }
+        val secureStorage = SecureStorage.create(this)
         val nfcManager = TangemSdk.initNfcManager(this)
+        val authManager = TangemSdk.initBiometricAuthManager(this, secureStorage)
 
         val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, this)
         viewDelegate.sdkConfig = config
         this.viewDelegate = viewDelegate
 
         return TangemSdk(
-            nfcManager.reader,
-            viewDelegate,
-            SecureStorage.create(this),
-            config,
+            reader = nfcManager.reader,
+            viewDelegate = viewDelegate,
+            secureStorage = secureStorage,
+            config = config,
+            biometricManager = authManager,
         )
     }
 
     class ViewPagerAdapter(
         private val fgList: List<Class<out Fragment>>,
-        fgActivity: FragmentActivity
+        fgActivity: FragmentActivity,
     ) : FragmentStateAdapter(fgActivity) {
 
         override fun getItemCount(): Int = fgList.size

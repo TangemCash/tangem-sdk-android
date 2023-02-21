@@ -59,9 +59,15 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
                     null
                 } else {
                     when (params.type) {
-                        UserCodeType.AccessCode -> TangemSdkError.WrongAccessCode()
-                        UserCodeType.Passcode -> TangemSdkError.WrongPasscode()
-                    }.localizedDescription(mainView.context)
+                        UserCodeType.AccessCode -> String.format(
+                            TangemSdkError.WrongAccessCode().localizedDescription(mainView.context),
+                            mainView.context.getString(R.string.pin1)
+                        )
+                        UserCodeType.Passcode -> String.format(
+                            TangemSdkError.WrongPasscode().localizedDescription(mainView.context),
+                            mainView.context.getString(R.string.pin2)
+                        )
+                    }
                 }
 
                 etPinCode.setText("")

@@ -48,17 +48,17 @@ class LoggingSessionDelegate : SessionViewDelegate {
         callback: CompletionCallback<String>
     ) {
         if (isFirstAttempt) {
-            Log.view { "TAG: Enter PIN:" }
+            Log.view { "enter PIN:" }
         } else {
-            Log.view { "TAG: Wrong Pin. Enter correct PIN:" }
+            Log.view { "wrong PIN. Enter correct PIN:" }
         }
 
         val pin = readLine()
         pin?.let { callback.invoke(CompletionResult.Success(it)) }
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {
-        Log.view { "TAG: Enter new PIN:" }
+    override fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
+        Log.view { "enter new PIN:" }
         val pin = readLine()
         pin?.let { callback.invoke(CompletionResult.Success(it)) }
     }

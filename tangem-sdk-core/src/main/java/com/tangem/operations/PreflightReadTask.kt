@@ -4,6 +4,7 @@ import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.core.CardIdDisplayFormat
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
@@ -40,24 +41,30 @@ sealed class PreflightReadMode {
 
 class PreflightReadTask(
     private val readMode: PreflightReadMode,
-    private val cardId: String? = null
+    private val cardId: String? = null,
 ) : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
-        Log.debug { "================ Perform preflight check with settings: $readMode) ================" }
-        ReadCommand().run(session) { result ->
+        Log.command(this) { " [mode - $readMode]" }
+        ReadCommand().run(session) readCommand@{ result ->
             when (result) {
                 is CompletionResult.Success -> {
                     if (session.environment.config.handleErrors) {
                         if (cardId != null && !cardId.equals(result.data.card.cardId, true)) {
                             callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
-                            return@run
+                            return@readCommand
                         }
                     }
-                    if (!session.environment.config.filter.isCardAllowed(result.data.card)) {
-                        callback(CompletionResult.Failure(TangemSdkError.WrongCardType()))
-                        return@run
+                    try {
+                        session.environment.config.filter.verifyCard(result.data.card)
+                    } catch (error: TangemSdkError) {
+                        callback(CompletionResult.Failure(error))
+                        return@readCommand
                     }
+
+                    session.updateUserCodeIfNeeded()
+                    updateEnvironmentIfNeeded(result.data.card, session)
+
                     finalizeRead(session, result.data.card, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
@@ -87,6 +94,12 @@ class PreflightReadTask(
                 is CompletionResult.Success -> callback(CompletionResult.Success(card))
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
+        }
+    }
+
+    private fun updateEnvironmentIfNeeded(card: Card, session: CardSession) {
+        if (FirmwareVersion.visaRange.contains(card.firmwareVersion.doubleValue)) {
+            session.environment.config.cardIdDisplayFormat = CardIdDisplayFormat.None
         }
     }
 }

@@ -14,11 +14,16 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-
 object CryptoUtils {
 
+    var isInitialized = false
+        private set
+
     fun initCrypto() {
-        Security.insertProviderAt(BouncyCastleProvider(), 1)
+        if (isInitialized) return
+        isInitialized = true
+
+        Security.addProvider(BouncyCastleProvider())
         Security.addProvider(EdDSASecurityProvider())
     }
 
@@ -46,8 +51,10 @@ object CryptoUtils {
      *
      * @return Result of a verification
      */
-    fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray,
-               curve: EllipticCurve = EllipticCurve.Secp256k1): Boolean {
+    fun verify(
+        publicKey: ByteArray, message: ByteArray, signature: ByteArray,
+        curve: EllipticCurve = EllipticCurve.Secp256k1,
+    ): Boolean {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.verify(publicKey, message, signature)
             EllipticCurve.Secp256r1 -> Secp256r1.verify(publicKey, message, signature)
@@ -65,7 +72,7 @@ object CryptoUtils {
      */
     fun generatePublicKey(
         privateKeyArray: ByteArray,
-        curve: EllipticCurve = EllipticCurve.Secp256k1
+        curve: EllipticCurve = EllipticCurve.Secp256k1,
     ): ByteArray {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKeyArray)
@@ -76,7 +83,7 @@ object CryptoUtils {
 
     fun loadPublicKey(
         publicKey: ByteArray,
-        curve: EllipticCurve = EllipticCurve.Secp256k1
+        curve: EllipticCurve = EllipticCurve.Secp256k1,
     ): PublicKey {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.loadPublicKey(publicKey)
@@ -149,7 +156,6 @@ fun ByteArray.pbkdf2Hash(salt: ByteArray, iterations: Int): ByteArray {
     return Pbkdf2().deriveKey(this, salt, iterations)
 }
 
-
 fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
     val key = this
     val hMac = HMac(SHA512Digest())
@@ -162,7 +168,3 @@ fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
 
 private const val ENCRYPTION_SPEC_PKCS7 = "AES/CBC/PKCS7PADDING"
 private const val ENCRYPTION_SPEC_NO_PADDING = "AES/CBC/NOPADDING"
-
-
-
-

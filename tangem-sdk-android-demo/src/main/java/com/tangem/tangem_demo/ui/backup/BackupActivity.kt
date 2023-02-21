@@ -2,7 +2,7 @@ package com.tangem.tangem_demo.ui.backup
 
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.tangem.TangemSdk
 import com.tangem.common.CompletionResult
 import com.tangem.operations.backup.BackupService
@@ -24,8 +24,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import kotlin.coroutines.CoroutineContext
 
-
-class BackupActivity : ComponentActivity() {
+class BackupActivity : AppCompatActivity() {
 
     lateinit var backupService: BackupService
     lateinit var tangemSdk: TangemSdk
@@ -46,7 +45,7 @@ class BackupActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_backup);
+        setContentView(R.layout.activity_backup)
 
         tangemSdk = TangemSdk.init(this)
         backupService = BackupService.init(tangemSdk, this)
@@ -110,8 +109,5 @@ class BackupActivity : ComponentActivity() {
             }
 
         }
-
-
-
     }
 }

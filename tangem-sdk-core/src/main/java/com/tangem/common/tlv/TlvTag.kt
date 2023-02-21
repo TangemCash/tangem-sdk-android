@@ -19,7 +19,6 @@ enum class TlvValueType {
     Status,
     SigningMethod,
     InteractionMode,
-    FileDataMode,
     DerivationPath,
     BackupStatus
 }
@@ -48,8 +47,8 @@ enum class TlvTag(val code: Int) {
     Pin2(0x11),
     NewPin(0x12),
     NewPin2(0x13),
-    NewPinHash(0x14),
-    NewPin2Hash(0x15),
+    PublicKeyChallenge(0x14),
+    PublicKeySalt(0x15),
     Challenge(0x16),
     Salt(0x17),
     ValidationCounter(0x18),
@@ -135,7 +134,6 @@ enum class TlvTag(val code: Int) {
     UserCounter(0x2C),
     UserProtectedCounter(0x2D),
 
-    WriteFileMode(0x23),
     FileIndex(0x26),
     FileSettings(0x27),
 
@@ -175,7 +173,6 @@ enum class TlvTag(val code: Int) {
             Status -> TlvValueType.Status
             SigningMethod -> TlvValueType.SigningMethod
             InteractionMode -> TlvValueType.InteractionMode
-            WriteFileMode -> TlvValueType.FileDataMode
             WalletHDPath -> TlvValueType.DerivationPath
             BackupStatus -> TlvValueType.BackupStatus
             else -> TlvValueType.ByteArray

@@ -25,7 +25,6 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
     var type: FirmwareType
         private set
 
-
     constructor(version: String) {
         this.stringValue = version
 
@@ -49,10 +48,10 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         this.type = type
 
         this.stringValue = StringBuilder()
-                .append("$major.$minor")
-                .append(if (patch != 0) ".$patch" else "")
-                .append(type.rawValue)
-                .toString()
+            .append("$major.$minor")
+            .append(if (patch != 0) ".$patch" else "")
+            .append(type.rawValue)
+            .toString()
     }
 
     override fun compareTo(other: FirmwareVersion): Int = when {
@@ -71,6 +70,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
     companion object {
         val Min = FirmwareVersion(0, 0)
         val Max = FirmwareVersion(Int.MAX_VALUE, 0)
+
+        /**
+         * Wallet ownership confirmation available
+         */
+        val WalletOwnershipConfirmationAvailable = FirmwareVersion(2, 1)
 
         /**
          * Read-write files
@@ -93,11 +97,6 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         val CreateWalletResponseAvailable = FirmwareVersion(4, 25)
 
         /**
-         * HD Wallet
-         */
-        val HDWalletAvailable = FirmwareVersion(4, 39)
-
-        /**
          * Field on card that describes is accessCode is default value or not
          */
         val IsAccessCodeStatusAvailable = FirmwareVersion(4, 33)
@@ -106,6 +105,13 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          * Backup
          */
         val BackupAvailable = FirmwareVersion(4, 43)
+
+        /**
+         * HD Wallet
+         */
+        val HDWalletAvailable = FirmwareVersion(4, 39)
+
+        val visaRange = 5.25..5.30
     }
 
     enum class FirmwareType(val rawValue: String?) {
@@ -122,5 +128,4 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
             }
         }
     }
-
 }

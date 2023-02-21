@@ -20,7 +20,7 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
         state: SessionViewDelegateState,
         vararg views: StateWidget<SessionViewDelegateState>
     ) {
-        Log.debug { "setStateAndShow: state: $state" }
+        Log.view { "setStateAndShow: state: $state" }
         views.forEach { it.setState(state) }
 
         val toHide = stateWidgets.filter { !views.contains(it) && it.isVisible() }
@@ -43,7 +43,10 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
     protected fun performHapticFeedback() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             llHeader?.isHapticFeedbackEnabled = true
-            llHeader?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            llHeader?.performHapticFeedback(
+                HapticFeedbackConstants.VIRTUAL_KEY,
+                HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            )
         }
     }
 

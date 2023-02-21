@@ -17,7 +17,11 @@ import kotlinx.coroutines.launch
 class StartBackupCardLinkingTask(
     private val primaryCard: PrimaryCard,
     private val addedBackupCards: List<String>,
+    private val skipCompatibilityChecks: Boolean = false,
 ) : CardSessionRunnable<BackupCard> {
+
+    override val allowsRequestAccessCodeFromRepository: Boolean
+        get() = false
 
     private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
@@ -30,14 +34,21 @@ class StartBackupCardLinkingTask(
         val primaryWalletCurves = primaryCard.walletCurves
         val backupCardSupportedCurves = card.supportedCurves
 
-        if (!card.issuer.publicKey.contentEquals(primaryCard.issuer.publicKey)) {
-            callback(CompletionResult.Failure(TangemSdkError.BackupFailedWrongIssuer()))
-            return
-        }
+        if (!skipCompatibilityChecks) {
+            if (!card.issuer.publicKey.contentEquals(primaryCard.issuer.publicKey)) {
+                callback(CompletionResult.Failure(TangemSdkError.BackupFailedWrongIssuer()))
+                return
+            }
 
-        if (card.settings.isHDWalletAllowed != primaryCard.isHDWalletAllowed) {
-            callback(CompletionResult.Failure(TangemSdkError.BackupFailedHDWalletSettings()))
-            return
+            if (card.settings.isHDWalletAllowed != primaryCard.isHDWalletAllowed) {
+                callback(CompletionResult.Failure(TangemSdkError.BackupFailedHDWalletSettings()))
+                return
+            }
+
+            if (!isBatchIdCompatible(card.batchId)) {
+                callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleBatch()))
+                return
+            }
         }
 
         if (!backupCardSupportedCurves.containsAll(primaryWalletCurves)) {
@@ -47,11 +58,6 @@ class StartBackupCardLinkingTask(
 
         if (primaryCard.existingWalletsCount > card.settings.maxWalletsCount) {
             callback(CompletionResult.Failure(TangemSdkError.BackupFailedNotEnoughWallets()))
-            return
-        }
-
-        if (!isBatchIdCompatible(card.batchId)) {
-            callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleBatch()))
             return
         }
 

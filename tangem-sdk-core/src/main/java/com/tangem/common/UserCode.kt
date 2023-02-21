@@ -1,11 +1,13 @@
 package com.tangem.common
 
+import com.squareup.moshi.JsonClass
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.extensions.calculateSha256
 
+@JsonClass(generateAdapter = true)
 class UserCode constructor(
     val type: UserCodeType,
-    val value: ByteArray?
+    val value: ByteArray?,
 ) {
     constructor(type: UserCodeType) : this(type, type.defaultValue)
 
@@ -22,11 +24,10 @@ enum class UserCodeType(val defaultValue: String) {
     Passcode(UserCode.DefaultPasscode);
 
     fun isWrongPinEntered(environment: SessionEnvironment?): Boolean {
-        val environment = environment ?: return false
+        environment ?: return false
         return when (this) {
             AccessCode -> !environment.isUserCodeSet(AccessCode)
             Passcode -> !environment.isUserCodeSet(Passcode)
         }
     }
 }
-

@@ -1,6 +1,5 @@
 package com.tangem.common.deserialization
 
-import com.tangem.common.card.Token
 import com.tangem.common.card.WalletData
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -16,16 +15,16 @@ class WalletDataDeserializer {
             return WalletData(blockchain, deserializeToken(decoder))
         }
 
-        private fun deserializeToken(decoder: TlvDecoder): Token? {
+        private fun deserializeToken(decoder: TlvDecoder): WalletData.Token? {
             val tokenName: String? = decoder.decodeOptional(TlvTag.TokenName)
             val tokenSymbol: String = decoder.decodeOptional(TlvTag.TokenSymbol)
-                    ?: return null
+                ?: return null
             val tokenContractAddress: String = decoder.decodeOptional(TlvTag.TokenContractAddress)
-                    ?: return null
+                ?: return null
             val tokenDecimals: Int = decoder.decodeOptional(TlvTag.TokenDecimal)
-                    ?: return null
+                ?: return null
 
-            return Token(tokenName ?: tokenSymbol,
+            return WalletData.Token(tokenName ?: tokenSymbol,
                 tokenSymbol,
                 tokenContractAddress,
                 tokenDecimals)

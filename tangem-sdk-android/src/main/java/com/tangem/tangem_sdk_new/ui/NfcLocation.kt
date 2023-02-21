@@ -387,5 +387,6 @@ enum class NfcLocation(val codename: String, val fullName: String, val orientati
     model384("P855A01", "ZTE Axon 10 Pro", 0, 0.55f, 0.25f, 0),
     model385("P855A02", "ZTE Axon 10 Pro", 0, 0.55f, 0.25f, 0),
     model386("P855A03_NA", "ZTE Axon 10 Pro", 0, 0.55f, 0.25f, 0),
-    model387("P855A03", "ZTE Axon 10 Pro", 0, 0.55f, 0.25f, 0)
+    model387("P855A03", "ZTE Axon 10 Pro", 0, 0.55f, 0.25f, 0),
+    model388("a50", "Samsung Galaxy A50", 0, 0.6f, 0.25f, 0),
 }

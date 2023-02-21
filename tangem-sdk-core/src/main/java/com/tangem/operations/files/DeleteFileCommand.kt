@@ -13,7 +13,6 @@ import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.Command
 
-
 /**
  * This command allows to delete data written to the card with [WriteFileCommand].
  * Passcode (PIN2) is required to delete the files.
@@ -21,7 +20,7 @@ import com.tangem.operations.Command
  * @property fileIndex index of a file to be deleted.
  */
 class DeleteFileCommand(
-    private val fileIndex: Int
+    private val fileIndex: Int,
 ) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = true
@@ -42,7 +41,7 @@ class DeleteFileCommand(
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-        tlvBuilder.append(TlvTag.WriteFileMode, FileDataMode.DeleteFile)
+        tlvBuilder.append(TlvTag.InteractionMode, FileDataMode.DeleteFile)
         tlvBuilder.append(TlvTag.FileIndex, fileIndex)
 
         return CommandApdu(Instruction.WriteFileData, tlvBuilder.serialize())

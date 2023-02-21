@@ -15,14 +15,18 @@ import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.core.UserCodeRequestPolicy
 import com.tangem.common.deserialization.WalletDataDeserializer
 import com.tangem.common.extensions.*
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder
+import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.PreflightReadMode
@@ -37,6 +41,8 @@ import com.tangem.tangem_demo.*
 import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.settings.SettingsFragment
 import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
+import kotlinx.coroutines.runBlocking
+import kotlin.collections.set
 
 abstract class BaseFragment : Fragment() {
 
@@ -46,20 +52,32 @@ abstract class BaseFragment : Fragment() {
 
     protected lateinit var shPrefs: SharedPreferences
     protected var bshDlg: BottomSheetDialog? = null
-    protected var card: Card? = null
-    protected var derivationPath: String? = null
-    protected var initialMessage: Message? = null
-        private set
 
+    protected var card: Card? = null
     protected var selectedIndexOfWallet = -1
-    protected val selectedWalletPubKey: ByteArray?
+
+    protected val walletsCount: Int
+        get() = card?.wallets?.size ?: 0
+
+    protected val selectedWallet: CardWallet?
         get() {
             if (selectedIndexOfWallet == -1) return null
             val card = card ?: return null
             if (card.wallets.isEmpty() || selectedIndexOfWallet >= card.wallets.size) return null
 
-            return card.wallets[selectedIndexOfWallet].publicKey
+            return card.wallets[selectedIndexOfWallet]
         }
+
+    protected var derivationPath: String? = null
+    protected var initialMessage: Message? = null
+        private set
+
+    private val userCodeRepository: UserCodeRepository by lazy {
+        UserCodeRepository(
+            biometricManager = sdk.biometricManager!!,
+            secureStorage = sdk.secureStorage,
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,8 +113,9 @@ abstract class BaseFragment : Fragment() {
         }
     }
 
-    protected fun scanCard() {
-        sdk.scanCard(initialMessage) { handleResult(it) }
+    protected fun scanCard(userCodeRequestPolicy: UserCodeRequestPolicy = Config().userCodeRequestPolicy) {
+        sdk.config.userCodeRequestPolicy = userCodeRequestPolicy
+        sdk.scanCard(initialMessage, allowRequestUserCodeFromRepository = true) { handleResult(it) }
     }
 
     protected fun personalize(config: CardConfig) {
@@ -127,7 +146,7 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId required. Scan your card before proceeding")
             return
         }
-        val walletPublicKey = selectedWalletPubKey.guard {
+        val walletPublicKey = selectedWallet?.publicKey.guard {
             showToast("Wallet publicKey required. Scan your card before proceeding")
             return
         }
@@ -144,8 +163,8 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        val publicKey = selectedWalletPubKey.guard {
-            showToast("Wallet publicKey is null")
+        val publicKey = selectedWallet?.publicKey.guard {
+            showToast("Wallet not found")
             return
         }
         val path = createDerivationPath()
@@ -161,8 +180,8 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        val publicKey = selectedWalletPubKey.guard {
-            showToast("Wallet publicKey is null")
+        val publicKey = selectedWallet?.publicKey.guard {
+            showToast("Wallet not found")
             return
         }
         val path = createDerivationPath()
@@ -186,8 +205,8 @@ abstract class BaseFragment : Fragment() {
             showToast("CardId & walletPublicKey required. Scan your card before proceeding")
             return
         }
-        val publicKey = selectedWalletPubKey.guard {
-            showToast("Wallet publicKey is null")
+        val publicKey = selectedWallet?.publicKey.guard {
+            showToast("Wallet not found")
             return
         }
         sdk.purgeWallet(publicKey, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
@@ -299,9 +318,9 @@ abstract class BaseFragment : Fragment() {
                         result.data.forEach { file ->
                             val detailInfo = mutableMapOf<String, Any>()
                             detailInfo["name"] = file.name ?: ""
-                            detailInfo["fileData"] = file.fileData.toHexString()
-                            detailInfo["fileIndex"] = file.fileIndex
-                            Tlv.deserialize(file.fileData)?.let {
+                            detailInfo["fileData"] = file.data.toHexString()
+                            detailInfo["fileIndex"] = file.index
+                            Tlv.deserialize(file.data)?.let {
                                 val decoder = TlvDecoder(it)
                                 WalletDataDeserializer.deserialize(decoder)?.let { walletData ->
                                     detailInfo["walletData"] = jsonConverter.toMap(walletData)
@@ -389,7 +408,7 @@ abstract class BaseFragment : Fragment() {
 
     private fun handleResult(result: CompletionResult<*>, rescan: Boolean = false) {
         when (result) {
-            is CompletionResult.Success -> postUi() { setCard(result, rescan) { handleCommandResult(result) } }
+            is CompletionResult.Success -> postUi { setCard(result, rescan) { handleCommandResult(result) } }
             is CompletionResult.Failure -> handleCommandResult(result)
         }
     }
@@ -406,7 +425,7 @@ abstract class BaseFragment : Fragment() {
                 post(delay) {
                     val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
                     sdk.startSessionWithRunnable(command) {
-                        postUi() { setCard(it, false, callback = callback) }
+                        postUi { setCard(it, false, callback = callback) }
                     }
                 }
             }
@@ -433,13 +452,42 @@ abstract class BaseFragment : Fragment() {
     }
 
     protected fun showToast(message: String) {
-        postUi() { activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() } }
+        postUi { activity?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() } }
     }
 
     protected fun prepareHashesToSign(count: Int): Array<ByteArray> {
         val listOfData = MutableList(count) { Utils.randomString(32) }
         val listOfHashes = listOfData.map { it.toByteArray() }
         return listOfHashes.toTypedArray()
+    }
+
+    protected fun hasSavedUserCodeForScannedCard(): Boolean {
+        return card?.let {
+            runBlocking {
+                userCodeRepository.hasSavedUserCode(it.cardId)
+            }
+        }
+            ?: false
+    }
+
+    protected fun hasSavedUserCodes(): Boolean {
+        return runBlocking {
+            userCodeRepository.hasSavedUserCodes()
+        }
+    }
+
+    protected fun deleteUserCodeForScannedCard() {
+        card?.let {
+            runBlocking {
+                userCodeRepository.delete(setOf(it.cardId))
+            }
+        }
+    }
+
+    protected fun clearUserCodes() {
+        runBlocking {
+            userCodeRepository.clear()
+        }
     }
 
     private fun createDerivationPath(): DerivationPath? {

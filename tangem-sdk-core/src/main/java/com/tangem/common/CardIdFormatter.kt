@@ -5,8 +5,9 @@ import com.tangem.common.core.CardIdDisplayFormat
 class CardIdFormatter(
     var style: CardIdDisplayFormat
 ) {
-    fun getFormattedCardId(cardId: String): String {
+    fun getFormattedCardId(cardId: String): String? {
         return when (val style = style) {
+            CardIdDisplayFormat.None -> null
             CardIdDisplayFormat.Full -> {
                 cardId.splitBySpace()
             }

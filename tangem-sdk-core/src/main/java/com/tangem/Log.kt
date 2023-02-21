@@ -2,14 +2,20 @@ package com.tangem
 
 import com.tangem.common.extensions.titleFormatted
 
+interface TangemSdkLogger {
+    fun log(message: () -> String, level: Log.Level)
+}
+
 object Log {
 
     private val loggers: MutableList<TangemSdkLogger> = mutableListOf()
 
     fun command(any: Any, message: (() -> String)? = null) {
         val commandName = any::class.java.simpleName
-        val message = message ?: { "Send" }
-        logInternal({ "$commandName: ${message()}".titleFormatted() }, Level.Command)
+        logInternal({
+            val messageBody = "run: $commandName${message?.invoke() ?: ""}"
+            messageBody.titleFormatted(maxLength = 80)
+        }, Level.Command)
     }
 
     fun tlv(message: () -> String) {
@@ -21,7 +27,7 @@ object Log {
     }
 
     fun apduCommand(message: () -> String) {
-        logInternal({ message().titleFormatted("-") }, Level.Apdu)
+        logInternal(message, Level.ApduCommand)
     }
 
     fun session(message: () -> String) {
@@ -71,17 +77,18 @@ object Log {
     }
 
     enum class Level(val prefix: String) {
-        Tlv(""),
-        Apdu(""),
-        Nfc("NFCReader"),
-        Command(""),
-        Session("CardSession"),
-        View("ViewDelegate"),
-        Network(""),
-        Debug("Debug"),
-        Info("Info"),
+        Info("Info: "),
+        Debug("Debug: "),
         Warning(""),
         Error(""),
+        Network("Network: "),
+        View("ViewDelegate: "),
+        Session("CardSession: "),
+        Command(""),
+        ApduCommand(""),
+        Apdu(""),
+        Nfc("NFCReader: "),
+        Tlv(""),
     }
 
     enum class Config(val levels: List<Level>) {
@@ -91,6 +98,29 @@ object Log {
     }
 }
 
-interface TangemSdkLogger {
-    fun log(message: () -> String, level: Log.Level)
+interface LogFormat {
+    fun format(message: () -> String, level: Log.Level): String
+
+    class StairsFormatter(
+        private val stepSpace: String = "    ",
+        private val stepLength: Map<Log.Level, Int> = defaultStepLength()
+    ) : LogFormat {
+
+        override fun format(message: () -> String, level: Log.Level): String {
+            val stepSpace = stepLength[level]?.let { stepSpace.repeat(it) } ?: ""
+            return "$stepSpace${level.prefix}${message()}"
+        }
+
+        companion object {
+            fun defaultStepLength(): Map<Log.Level, Int> {
+                return mapOf(
+                    Log.Level.Session to 1,
+                    Log.Level.Nfc to 2,
+                    Log.Level.Apdu to 2,
+                    Log.Level.ApduCommand to 4,
+                    Log.Level.Tlv to 5,
+                )
+            }
+        }
+    }
 }

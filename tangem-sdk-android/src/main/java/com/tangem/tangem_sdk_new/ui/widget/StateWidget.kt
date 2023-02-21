@@ -4,11 +4,11 @@ import android.view.View
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.show
 
-interface StateConsumer<T>{
+interface StateConsumer<T> {
     fun setState(params: T)
 }
 
-interface StateWidget<T> :StateConsumer<T>{
+interface StateWidget<T> : StateConsumer<T> {
     fun isVisible(): Boolean
     fun showWidget(show: Boolean, withAnimation: Boolean = true)
     fun onBottomSheetDismiss()
@@ -31,7 +31,11 @@ abstract class BaseStateWidget<T>(protected val mainView: View) : StateWidget<T>
 
     protected fun getString(id: Int): String = mainView.context.getString(id)
 
-    protected fun getFormattedString(id: Int, name: String): String = mainView.context.getString(id, name)
+    protected fun getFormattedString(id: Int, name: String): String =
+        mainView.context.getString(id, name)
+
+    protected fun getFormattedString(id: Int, vararg args: Any): String =
+        mainView.context.getString(id, *args)
 
 }
 

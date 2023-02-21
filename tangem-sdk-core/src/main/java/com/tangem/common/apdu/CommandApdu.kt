@@ -77,9 +77,8 @@ class CommandApdu(
     }
 
     override fun toString(): String {
-        val instruction = Instruction.byCode(ins)
         val lc = apduData.size.toByte()
-        return "SEND --> $instruction [${apduData.size + 4}  bytes]: $cla $ins $p1 $p2 $lc ${apduData.toHexString()}"
+        return ">>>> [${apduData.size + 4}  bytes]: $cla $ins $p1 $p2 $lc ${apduData.toHexString()}"
     }
 
     companion object {

@@ -39,7 +39,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
         }
     }
 
-
     /**
      * Finds [Tlv] by its [TlvTag].
      * Throws [TaskError.MissingTag] if [Tlv] is not found,
@@ -59,8 +58,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             } else {
                 if (logError) {
                     Log.error { "TLV $tag not found" }
-                } else {
-                    Log.warning { "TLV $tag not found, but it is not required" }
                 }
                 throw TangemSdkError.DecodingFailedMissingTag("TLV $tag not found")
             }
@@ -129,24 +126,27 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             }
             TlvValueType.SettingsMask -> {
                 try {
-                    typeCheck<T, Card.SettingsMask>(tag)
+                    typeCheck<T, Card.SettingsMask>(tag, false)
                     Card.SettingsMask(tlvValue.toInt()) as T
                 } catch (ex: TangemSdkError.DecodingFailedTypeMismatch) {
+                    Log.warning { "Type of SettingsMask is not Card.SettingsMask type. " +
+                            "Trying to check CardWallet.SettingsMask" }
                     typeCheck<T, CardWallet.SettingsMask>(tag)
                     CardWallet.SettingsMask(tlvValue.toInt()) as T
                 }
             }
             TlvValueType.Status -> {
                 try {
-                    typeCheck<T, Card.Status>(tag)
+                    typeCheck<T, Card.Status>(tag, false)
                     Card.Status.byCode(tlvValue.toInt()) as T
-                } catch (exception: Exception) {
-                    Log.warning { "Status is not Card.Status type. Trying to check CardWallet.Status" }
+                } catch (ex: TangemSdkError.DecodingFailedTypeMismatch) {
                     try {
+                        Log.warning { "Type of Status is not Card.Status type. " +
+                                "Trying to check CardWallet.Status" }
                         typeCheck<T, CardWallet.Status>(tag)
                         CardWallet.Status.byCode(tlvValue.toInt()) as T
                     } catch (ex: Exception) {
-                        logException(tag, tlvValue.toInt().toString(), exception)
+                        logException(tag, tlvValue.toInt().toString(), ex)
                         throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                     }
                 }
@@ -172,25 +172,14 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             TlvValueType.InteractionMode -> {
                 try {
                     when (T::class) {
-                        IssuerExtraDataMode::class ->
-                            IssuerExtraDataMode.byCode(tlvValue.toInt().toByte()) as T
-                        ReadMode::class ->
-                            ReadMode.byRawValue(tlvValue.toInt()) as T
-                        AuthorizeMode::class ->
-                            AuthorizeMode.byRawValue(tlvValue.toInt()) as T
+                        IssuerExtraDataMode::class -> IssuerExtraDataMode.byCode(tlvValue.toInt().toByte()) as T
+                        ReadMode::class -> ReadMode.byRawValue(tlvValue.toInt()) as T
+                        AuthorizeMode::class -> AuthorizeMode.byRawValue(tlvValue.toInt()) as T
+                        FileDataMode::class -> FileDataMode.byRawValue(tlvValue.toInt()) as T
                         else -> throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                     }
                 } catch (ex: Exception) {
                     logException(tag, tlvValue.toInt().toString(), ex)
-                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
-                }
-            }
-            TlvValueType.FileDataMode -> {
-                typeCheck<T, FileDataMode>(tag)
-                try {
-                    FileDataMode.byRawValue(tlvValue.toInt()) as T
-                } catch (exception: Exception) {
-                    logException(tag, tlvValue.toInt().toString(), exception)
                     throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
                 }
             }
@@ -207,18 +196,20 @@ class TlvDecoder(val tlvList: List<Tlv>) {
     }
 
     fun provideDecodingFailedMessage(tag: TlvTag): String =
-            "Decoding failed. Failed to convert $tag to ${tag.valueType()}"
+        "Decoding failed. Failed to convert $tag to ${tag.valueType()}"
 
     fun logException(tag: TlvTag, value: String, exception: Exception) {
         Log.error { "Unknown ${tag.name} with value of: $value, \n${exception.message}" }
     }
 
-    inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
+    inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag, logError: Boolean = true) {
         if (T::class != ExpectedT::class) {
+
             val error = TangemSdkError.DecodingFailedTypeMismatch(
-                "Decoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+                "Decoder: type check failed for tag: " +
+                    "$tag must be ${tag.valueType()}. It is ${T::class}"
             )
-            Log.error { error.customMessage }
+            if (logError) Log.error { error.customMessage }
             throw error
         }
     }

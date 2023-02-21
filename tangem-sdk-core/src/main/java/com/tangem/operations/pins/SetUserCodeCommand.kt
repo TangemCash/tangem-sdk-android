@@ -1,7 +1,9 @@
 package com.tangem.operations.pins
 
+import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
+import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
@@ -12,6 +14,8 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.doOnFailure
+import com.tangem.common.doOnSuccess
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
@@ -76,7 +80,23 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
             }
         }
 
-        super.run(session, callback)
+        super.run(session) { result ->
+            result
+                .doOnSuccess { response ->
+                    val accessCodeValue = codes[UserCodeType.AccessCode]?.value
+                    if (accessCodeValue != null) {
+                        session.environment.accessCode = UserCode(UserCodeType.AccessCode, accessCodeValue)
+                    }
+
+                    val passcodeValue = codes[UserCodeType.Passcode]?.value
+                    if (passcodeValue != null) {
+                        session.environment.passcode = UserCode(UserCodeType.Passcode, passcodeValue)
+                    }
+
+                    callback(CompletionResult.Success(response))
+                }
+                .doOnFailure { error -> callback(CompletionResult.Failure(error)) }
+        }
     }
 
     private fun isCodeAllowed(type: UserCodeType): Boolean {
@@ -127,9 +147,13 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
             return
         }
 
-        session.viewDelegate.requestUserCodeChange(type) { result ->
+        val formattedCid = session.cardId?.let {
+            CardIdFormatter(session.environment.config.cardIdDisplayFormat).getFormattedCardId(it)
+        }
+
+        session.viewDelegate.requestUserCodeChange(type, formattedCid) { result ->
             when (result) {
-                is CompletionResult.Failure ->  callback(CompletionResult.Failure(result.error))
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 is CompletionResult.Success -> {
                     codes[type] = UserCodeAction.StringValue(result.data)
                     callback(CompletionResult.Success(Unit))
@@ -142,7 +166,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
         fun changeAccessCode(accessCode: String?): SetUserCodeCommand {
             return SetUserCodeCommand().apply {
                 codes[UserCodeType.AccessCode] = accessCode?.let { UserCodeAction.StringValue(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
                 codes[UserCodeType.Passcode] = UserCodeAction.NotChange
             }
         }
@@ -151,7 +175,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
             return SetUserCodeCommand().apply {
                 codes[UserCodeType.AccessCode] = UserCodeAction.NotChange
                 codes[UserCodeType.Passcode] = passcode?.let { UserCodeAction.StringValue(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
             }
         }
 
@@ -162,9 +186,9 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
         fun change(accessCode: ByteArray?, passcode: ByteArray?): SetUserCodeCommand {
             return SetUserCodeCommand().apply {
                 codes[UserCodeType.AccessCode] = accessCode?.let { UserCodeAction.Value(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
                 codes[UserCodeType.Passcode] = passcode?.let { UserCodeAction.Value(it) }
-                        ?: UserCodeAction.Request
+                    ?: UserCodeAction.Request
             }
         }
 

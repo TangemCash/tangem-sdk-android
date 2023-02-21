@@ -18,6 +18,9 @@ class StartBackupCardLinkingCommand(
     private val primaryCardLinkingKey: ByteArray,
 ) : Command<RawBackupCard>() {
 
+    override val allowsRequestAccessCodeFromRepository: Boolean
+        get() = false
+
     override fun requiresPasscode(): Boolean = false
 
     override fun performPreCheck(card: Card): TangemSdkError? {
@@ -58,4 +61,3 @@ class StartBackupCardLinkingCommand(
         )
     }
 }
-

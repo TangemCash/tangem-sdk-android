@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
-import java.util.*
 
 class AttestationTask(
     private val mode: Mode,
@@ -30,7 +29,7 @@ class AttestationTask(
 ) : CardSessionRunnable<Attestation> {
 
     /**
-     * If `true`, AttestationTask will not pause nfc session after all card operations complete. Useful
+     * If `true`, AttestationTask will not pause NFC session after all card operations complete. Useful
      * for chaining  tasks after AttestationTask. False by default
      */
     var shouldKeepSessionOpened = false

@@ -99,8 +99,8 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
     override fun transceiveApdu(apdu: CommandApdu, callback: (response: CompletionResult<ResponseApdu>) -> Unit) {
         val channel = channel ?: throw IOException()
 
-        Log.nfc { "Sending data to the card, size is ${apdu.apduData.size}" }
-        Log.nfc { "Raw data that is to be sent to the card: ${apdu.apduData.toHexString()}" }
+        Log.nfc { "sending data to the card, size is ${apdu.apduData.size}" }
+        Log.nfc { "raw data that is to be sent to the card: ${apdu.apduData.toHexString()}" }
 
         val rawResponse: ByteArray? = try {
             val rspAPDU = channel.transmit(CommandAPDU(apdu.apduData))
@@ -118,8 +118,8 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
         }
 
         if (rawResponse != null) {
-            Log.nfc { "Data from the card was received" }
-            Log.nfc { "Raw data that was received from the card: ${rawResponse.toHexString()}" }
+            Log.nfc { "data from the card was received" }
+            Log.nfc { "raw data that was received from the card: ${rawResponse.toHexString()}" }
             callback.invoke(CompletionResult.Success(ResponseApdu(rawResponse)))
         }
     }

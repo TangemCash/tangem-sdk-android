@@ -199,9 +199,11 @@ class JSONRPCTests {
             "files/ReadFiles", listOf(
                 File(
                     name = null,
-                    fileData = "00AABBCCDD".hexToBytes(),
-                    fileIndex = 0,
-                    fileSettings = FileSettings(false, FileVisibility.Public)
+                    data = "00AABBCCDD".hexToBytes(),
+                    index = 0,
+                    settings = FileSettings(false, FileVisibility.Public),
+                    null,
+                    null
                 )
             )
         )

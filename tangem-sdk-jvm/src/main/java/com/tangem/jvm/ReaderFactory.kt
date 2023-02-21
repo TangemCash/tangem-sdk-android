@@ -15,7 +15,7 @@ class ReaderFactory {
         val index = indexOfTerminal ?: 0
         val terminal = terminals.getOrNull(index) ?: return null
 
-        Log.nfc { "Using reader #${terminal.name}}" }
+        Log.nfc { "using reader #${terminal.name}}" }
 
         val reader = SmartCardReader(terminal)
         reader.logException = true

@@ -40,38 +40,38 @@ class DefaultSessionViewDelegate(
     private var stoppedBySession: Boolean = false
 
     override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
-        Log.view { "Session started" }
+        Log.view { "session started" }
         createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message)
     }
 
     override fun onSessionStopped(message: Message?) {
-        Log.view { "Session stopped" }
+        Log.view { "session stopped" }
         stoppedBySession = true
         readingDialog?.show(SessionViewDelegateState.Success(message))
     }
 
     override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {
-        Log.view { "Showing security delay: $ms, $totalDurationSeconds" }
+        Log.view { "showing security delay: $ms, $totalDurationSeconds" }
         readingDialog?.show(SessionViewDelegateState.SecurityDelay(ms, totalDurationSeconds))
     }
 
     override fun onDelay(total: Int, current: Int, step: Int) {
-        Log.view { "Showing delay" }
+        Log.view { "showing delay" }
         readingDialog?.show(SessionViewDelegateState.Delay(total, current, step))
     }
 
     override fun onTagLost() {
-        Log.view { "Tag lost" }
+        Log.view { "tag lost" }
         readingDialog?.show(SessionViewDelegateState.TagLost)
     }
 
     override fun onTagConnected() {
-        Log.view { "Tag connected" }
+        Log.view { "tag connected" }
         readingDialog?.show(SessionViewDelegateState.TagConnected)
     }
 
     override fun onWrongCard(wrongValueType: WrongValueType) {
-        Log.view { "Wrong card detected" }
+        Log.view { "wrong card detected" }
         readingDialog?.show(SessionViewDelegateState.WrongCard(wrongValueType))
     }
 
@@ -85,7 +85,8 @@ class DefaultSessionViewDelegate(
         cardId: String?,
         callback: CompletionCallback<String>
     ) {
-        Log.view { "Showing pin request with type: $type" }
+        Log.view { "showing pin request with type: $type" }
+        if (readingDialog == null) createReadingDialog(activity)
         readingDialog?.show(
             SessionViewDelegateState.PinRequested(
                 type = type,
@@ -97,10 +98,10 @@ class DefaultSessionViewDelegate(
         )
     }
 
-    override fun requestUserCodeChange(type: UserCodeType, callback: CompletionCallback<String>) {
-        Log.view { "Showing pin change request with type: $type" }
+    override fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
+        Log.view { "showing pin change request with type: $type" }
         if (readingDialog == null) createReadingDialog(activity)
-        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, null, callback))
+        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, cardId, callback))
     }
 
     override fun dismiss() {
@@ -112,7 +113,7 @@ class DefaultSessionViewDelegate(
     }
 
     override fun setMessage(message: Message?) {
-        Log.view { "Set message with header: ${message?.header}, and body: ${message?.body}" }
+        Log.view { "set message with header: ${message?.header}, and body: ${message?.body}" }
         postUI { readingDialog?.setMessage(message) }
     }
 

@@ -29,7 +29,6 @@
             android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/reset_codes_reset_access_code"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -110,8 +109,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:textColor="@color/sdk_message_body"
-                android:textSize="15sp"
-                tools:text="@string/lorem_ipsum" />
+                android:textSize="15sp" />
         </LinearLayout>
 
 
