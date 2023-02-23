@@ -11,6 +11,7 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TagType
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.toHexString
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.nfc.ReadingActiveListener
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.resume
-
 
 data class NfcTag(val type: TagType, val isoDep: IsoDep?, val nfcV: NfcV? = null)
 
@@ -86,15 +86,38 @@ class NfcReader : CardReader {
     }
 
     override suspend fun transceiveApdu(apdu: CommandApdu): CompletionResult<ResponseApdu> =
-            suspendCancellableCoroutine { continuation ->
-                transceiveApdu(apdu) { result ->
-                    if (continuation.isActive) continuation.resume(result)
-                }
+        suspendCancellableCoroutine { continuation ->
+            transceiveApdu(apdu) { result ->
+                if (continuation.isActive) continuation.resume(result)
             }
+        }
 
     override fun transceiveApdu(apdu: CommandApdu, callback: CompletionCallback<ResponseApdu>) {
+        transceiveRaw(apdu.apduData) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    result.data?.let {
+                        val rApdu = ResponseApdu(it)
+                        Log.nfc { rApdu.toString() }
+                        callback.invoke(CompletionResult.Success(rApdu))
+                    }
+                }
+                is CompletionResult.Failure -> callback.invoke(CompletionResult.Failure(result.error))
+            }
+        }
+    }
+
+    override suspend fun transceiveRaw(apduData: ByteArray): CompletionResult<ByteArray?> =
+        suspendCancellableCoroutine { continuation ->
+            transceiveRaw(apduData) { result ->
+                if (continuation.isActive) continuation.resume(result)
+            }
+        }
+
+    override fun transceiveRaw(apduData: ByteArray, callback: CompletionCallback<ByteArray?>) {
         val rawResponse: ByteArray? = try {
-            transcieveAndLog(apdu)
+            Log.nfc { apduData.toHexString() }
+            transcieveAndLog(apduData)
         } catch (exception: TagLostException) {
             Log.nfc { "ERROR transceiving data: ${exception.localizedMessage}" }
             callback.invoke(CompletionResult.Failure(TangemSdkError.TagLost()))
@@ -106,24 +129,19 @@ class NfcReader : CardReader {
             nfcTag = null
             return
         }
-        rawResponse?.let {
-            val rApdu = ResponseApdu(it)
-            Log.nfc { rApdu.toString() }
-            callback.invoke(CompletionResult.Success(rApdu))
-        }
+        callback.invoke(CompletionResult.Success(rawResponse))
     }
 
-    private fun transcieveAndLog(apdu: CommandApdu): ByteArray? {
+    private fun transcieveAndLog(apduData: ByteArray): ByteArray? {
         Log.nfc { "transcieve..." }
-        Log.nfc { apdu.toString() }
         val startTime = System.currentTimeMillis()
-        val rawResponse = nfcTag?.isoDep?.transceive(apdu.apduData)
+        val rawResponse = nfcTag?.isoDep?.transceive(apduData)
         val finishTime = System.currentTimeMillis()
         Log.nfc { "transcieve success: [${finishTime - startTime}] ms" }
         return rawResponse
     }
 
-    private fun tryHandleNfcError(exception: Exception, callback: (response: CompletionResult<ResponseApdu>) -> Unit) {
+    private fun tryHandleNfcError(exception: Exception, callback: (response: CompletionResult<ByteArray?>) -> Unit) {
         // The messages of errors can vary on different Android devices,
         // but we try to identify it by parsing the message.
         if (exception.message?.contains("length") == true) {
