@@ -30,18 +30,20 @@ class ResetCodesWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView
     override fun setState(params: SessionViewDelegateState) {
         val state = params as? SessionViewDelegateState.ResetCodes ?: return
 
-        tvTitle.text = AndroidStringLocator(mainView.context).getString(
+        val stringLocator = AndroidStringLocator(mainView.context)
+
+        val pinId = when (state.type) {
+            UserCodeType.AccessCode -> StringsLocator.ID.pin1
+            UserCodeType.Passcode -> StringsLocator.ID.pin2
+        }
+
+        tvTitle.text = stringLocator.getString(
             StringsLocator.ID.pin_reset_code_format,
-            AndroidStringLocator(mainView.context).getString(
-                when (state.type) {
-                    UserCodeType.AccessCode -> StringsLocator.ID.pin1
-                    UserCodeType.Passcode -> StringsLocator.ID.pin2
-                }
-            ).lowercase()
+            stringLocator.getString(pinId).lowercase()
         )
 
-        tvMessageTitle.text = state.state.getMessageTitle(AndroidStringLocator(mainView.context))
-        tvMessageBody.text = state.state.getMessageBody(AndroidStringLocator(mainView.context))
+        tvMessageTitle.text = state.state.getMessageTitle(stringLocator)
+        tvMessageBody.text = state.state.getMessageBody(stringLocator)
 
         btnContinue.setOnClickListener { state.callback(CompletionResult.Success(true)) }
 

@@ -101,6 +101,7 @@
     <string name="reset_codes_scan_first_card">掃描您要重置 %s 的卡</string>
     <string name="reset_codes_scan_to_reset">掃卡重置用戶密碼</string>
     <string name="reset_codes_success_message">密碼重置成功</string>
+    <string name="sign_multiple_chunks_part">簽署第 %1$d 部分，共 %2$d</string>
     <string name="view_delegate_delay">操作進行中</string>
     <string name="view_delegate_header_card">卡片</string>
     <string name="view_delegate_scan">已準備好掃描</string>

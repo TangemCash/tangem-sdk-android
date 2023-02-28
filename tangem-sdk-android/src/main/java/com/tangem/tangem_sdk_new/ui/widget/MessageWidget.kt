@@ -2,10 +2,13 @@ package com.tangem.tangem_sdk_new.ui.widget
 
 import android.view.View
 import android.widget.TextView
-import com.tangem.Message
+import com.tangem.LocatorMessage
+import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
+import com.tangem.common.StringsLocator
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
+import com.tangem.tangem_sdk_new.AndroidStringLocator
 import com.tangem.tangem_sdk_new.R
 import com.tangem.tangem_sdk_new.SessionViewDelegateState
 import com.tangem.tangem_sdk_new.extensions.localizedDescription
@@ -15,11 +18,13 @@ import com.tangem.tangem_sdk_new.extensions.localizedDescription
  */
 class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
+    private val stringLocator: StringsLocator = AndroidStringLocator(mainView.context)
+
     private val tvTaskTitle: TextView = mainView.findViewById(R.id.tvTaskTitle)
     private val tvTaskMessage: TextView = mainView.findViewById(R.id.tvTaskMessage)
 
-    private var initialMessage: Message? = null
-    private var externalMessage: Message? = null
+    private var initialMessage: ViewDelegateMessage? = null
+    private var externalMessage: ViewDelegateMessage? = null
 
     override fun setState(params: SessionViewDelegateState) {
         val message = getMessage(params)
@@ -64,9 +69,9 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
                 setText(tvTaskTitle, null, R.string.common_error)
                 val bodyMessage = mainView.context.getString(
-                        R.string.error_message,
-                        getString(R.string.error_wrong_card),
-                        description
+                    R.string.error_message,
+                    getString(R.string.error_wrong_card),
+                    description
                 )
 
                 setText(tvTaskMessage, bodyMessage)
@@ -74,22 +79,24 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
         }
     }
 
-    fun setInitialMessage(message: Message?) {
+    fun setInitialMessage(message: ViewDelegateMessage?) {
         this.initialMessage = message
     }
 
-    fun setMessage(message: Message?) {
+    fun setMessage(message: ViewDelegateMessage?) {
         this.externalMessage = message
         setText(tvTaskTitle, message?.header)
         setText(tvTaskMessage, message?.body)
     }
 
-    private fun getMessage(params: SessionViewDelegateState): Message? {
+    private fun getMessage(params: SessionViewDelegateState): ViewDelegateMessage? {
         return when (params) {
             is SessionViewDelegateState.Ready -> initialMessage
             is SessionViewDelegateState.TagLost -> initialMessage
             is SessionViewDelegateState.Success -> params.message
             else -> externalMessage
+        }.apply {
+            if (this is LocatorMessage) this.fetchMessages(stringLocator)
         }
     }
 
@@ -105,17 +112,20 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 is TangemSdkError.BackupNotAllowed,
                 is TangemSdkError.BackupFailedFirmware,
                 is TangemSdkError.BackupFailedIncompatibleBatch,
-                is TangemSdkError.ResetPinWrongCard -> String.format(message, error.code.toString())
+                is TangemSdkError.ResetPinWrongCard,
+                -> String.format(message, error.code.toString())
                 is TangemSdkError.AccessCodeCannotBeChanged,
                 is TangemSdkError.AccessCodeCannotBeDefault,
-                is TangemSdkError.WrongAccessCode -> String.format(
-                        message,
-                        mainView.context.getString(R.string.pin1)
+                is TangemSdkError.WrongAccessCode,
+                -> String.format(
+                    message,
+                    mainView.context.getString(R.string.pin1)
                 )
                 is TangemSdkError.PasscodeCannotBeChanged,
-                is TangemSdkError.WrongPasscode -> String.format(
-                        message,
-                        mainView.context.getString(R.string.pin2)
+                is TangemSdkError.WrongPasscode,
+                -> String.format(
+                    message,
+                    mainView.context.getString(R.string.pin2)
                 )
                 else -> message
             }

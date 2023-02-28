@@ -1,9 +1,11 @@
 package com.tangem.operations.sign
 
 import com.squareup.moshi.JsonClass
+import com.tangem.LocatorMessage
 import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.KeyPair
+import com.tangem.common.StringsLocator
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -47,7 +49,7 @@ class SignResponse(
 internal class SignCommand(
     private val hashes: Array<ByteArray>,
     private val walletPublicKey: ByteArray,
-    private val derivationPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null,
 ) : Command<SignResponse>() {
 
     private var terminalKeys: KeyPair? = null
@@ -109,6 +111,8 @@ internal class SignCommand(
 
     private fun sign(session: CardSession, callback: CompletionCallback<SignResponse>) {
         environment = session.environment
+        if (hashesChunked.size > 1) setSignedChunksMessage(session)
+
         transceive(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -134,6 +138,17 @@ internal class SignCommand(
                 is CompletionResult.Failure -> callback(result)
             }
         }
+    }
+
+    private fun setSignedChunksMessage(session: CardSession) {
+        val message = LocatorMessage(
+            headerSource = LocatorMessage.Source(
+                id = StringsLocator.ID.sign_multiple_chunks_part,
+                formatArgs = arrayOf(currentChunkNumber + 1, hashesChunked.size)
+            ),
+            bodySource = null,
+        )
+        session.setMessage(message)
     }
 
     /**
@@ -211,13 +226,12 @@ internal class SignCommand(
     }
 
     private fun retrieveTerminalKeys(card: Card, environment: SessionEnvironment): KeyPair? {
-        if (!card.settings.isLinkedTerminalEnabled || card.firmwareVersion >= FirmwareVersion.HDWalletAvailable){
+        if (!card.settings.isLinkedTerminalEnabled || card.firmwareVersion >= FirmwareVersion.HDWalletAvailable) {
             return null
         }
 
         return environment.terminalKeys
     }
-
 
     companion object {
         const val CHUNK_SIZE = 10

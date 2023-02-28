@@ -3,6 +3,7 @@ package com.tangem.common.core
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
+import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
@@ -71,7 +72,7 @@ class CardSession(
     private val reader: CardReader,
     private val jsonRpcConverter: JSONRPCConverter,
     private val secureStorage: SecureStorage,
-    private var initialMessage: Message? = null,
+    private var initialMessage: ViewDelegateMessage? = null,
 ) {
 
     var cardId: String? = cardId
@@ -93,11 +94,11 @@ class CardSession(
 
     private var preflightReadMode: PreflightReadMode = PreflightReadMode.FullCardRead
 
-    fun setInitialMessage(message: Message?) {
+    fun setInitialMessage(message: ViewDelegateMessage?) {
         initialMessage = message
     }
 
-    fun setMessage(message: Message?) {
+    fun setMessage(message: ViewDelegateMessage?) {
         viewDelegate.setMessage(message)
     }
 

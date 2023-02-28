@@ -3,6 +3,7 @@ package com.tangem.jvm
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
+import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CompletionResult
 import com.tangem.common.StringsLocator
@@ -36,7 +37,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
         Log.session { "Tag has been connected!" }
     }
 
-    override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
+    override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {
         Log.session { "Session started" }
     }
 
@@ -78,7 +79,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
     override fun setConfig(config: Config) {
     }
 
-    override fun setMessage(message: Message?) {
+    override fun setMessage(message: ViewDelegateMessage?) {
     }
 
     override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {
@@ -109,5 +110,5 @@ class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {
 }
 
 class MockStringLocator: StringsLocator {
-    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: String) = ""
+    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any) = ""
 }

@@ -5,6 +5,7 @@ import android.os.Build
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
+import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.UserCodeType
@@ -28,18 +29,17 @@ import com.tangem.tangem_sdk_new.ui.NfcSessionDialog
 class DefaultSessionViewDelegate(
     private val nfcManager: NfcManager,
     private val reader: CardReader,
-    private val activity: Activity
+    private val activity: Activity,
 ) : SessionViewDelegate {
 
     var sdkConfig: Config? = null
 
-    override val resetCodesViewDelegate: ResetCodesViewDelegate =
-        AndroidResetCodesViewDelegate(activity)
+    override val resetCodesViewDelegate: ResetCodesViewDelegate = AndroidResetCodesViewDelegate(activity)
 
     private var readingDialog: NfcSessionDialog? = null
     private var stoppedBySession: Boolean = false
 
-    override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
+    override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {
         Log.view { "session started" }
         createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message)
     }
@@ -83,7 +83,7 @@ class DefaultSessionViewDelegate(
         type: UserCodeType, isFirstAttempt: Boolean,
         showForgotButton: Boolean,
         cardId: String?,
-        callback: CompletionCallback<String>
+        callback: CompletionCallback<String>,
     ) {
         Log.view { "showing pin request with type: $type" }
         postUI(msTime = 200) {
@@ -114,11 +114,10 @@ class DefaultSessionViewDelegate(
         sdkConfig = config
     }
 
-    override fun setMessage(message: Message?) {
+    override fun setMessage(message: ViewDelegateMessage?) {
         Log.view { "set message with header: ${message?.header}, and body: ${message?.body}" }
         postUI { readingDialog?.setMessage(message) }
     }
-
 
     override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {
         AttestationFailedDialog.didFail(activity, isDevCard, positive) {
@@ -138,7 +137,11 @@ class DefaultSessionViewDelegate(
         AttestationFailedDialog.completedWithWarnings(activity, positive)
     }
 
-    private fun createAndShowState(state: SessionViewDelegateState, enableHowTo: Boolean, message: Message? = null) {
+    private fun createAndShowState(
+        state: SessionViewDelegateState,
+        enableHowTo: Boolean,
+        message: ViewDelegateMessage? = null,
+    ) {
         postUI {
             if (readingDialog == null) createReadingDialog(activity)
             readingDialog?.showHowTo(enableHowTo)

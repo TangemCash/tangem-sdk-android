@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
+import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CompletionResult
 import com.tangem.common.StringsLocator
@@ -172,7 +173,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
 
     class EmptyViewDelegate : SessionViewDelegate {
         override val resetCodesViewDelegate: ResetCodesViewDelegate = EmptyResetCodesViewDelegate()
-        override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {}
+        override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {}
         override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {}
         override fun onDelay(total: Int, current: Int, step: Int) {}
         override fun onTagLost() {}
@@ -187,7 +188,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         ) {}
         override fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {}
         override fun setConfig(config: Config) {}
-        override fun setMessage(message: Message?) {}
+        override fun setMessage(message: ViewDelegateMessage?) {}
         override fun dismiss() {}
         override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {}
         override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {}
@@ -208,7 +209,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
     }
 
     class MockStringLocator: StringsLocator {
-        override fun getString(stringId: StringsLocator.ID, vararg formatArgs: String) = ""
+        override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any) = ""
     }
 }
 

@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.annotation.UiThread
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.tangem.Log
-import com.tangem.Message
+import com.tangem.ViewDelegateMessage
 import com.tangem.common.CompletionResult
 import com.tangem.common.Timer
 import com.tangem.common.core.SessionEnvironment
@@ -19,7 +19,12 @@ import com.tangem.tangem_sdk_new.extensions.show
 import com.tangem.tangem_sdk_new.nfc.NfcLocationProvider
 import com.tangem.tangem_sdk_new.nfc.NfcManager
 import com.tangem.tangem_sdk_new.postUI
-import com.tangem.tangem_sdk_new.ui.widget.*
+import com.tangem.tangem_sdk_new.ui.widget.HeaderWidget
+import com.tangem.tangem_sdk_new.ui.widget.MessageWidget
+import com.tangem.tangem_sdk_new.ui.widget.PinCodeModificationWidget
+import com.tangem.tangem_sdk_new.ui.widget.PinCodeRequestWidget
+import com.tangem.tangem_sdk_new.ui.widget.StateWidget
+import com.tangem.tangem_sdk_new.ui.widget.TouchCardWidget
 import com.tangem.tangem_sdk_new.ui.widget.howTo.HowToTapWidget
 import com.tangem.tangem_sdk_new.ui.widget.progressBar.ProgressbarStateWidget
 import kotlinx.coroutines.Dispatchers
@@ -86,12 +91,12 @@ class NfcSessionDialog(
     }
 
     @UiThread
-    fun setInitialMessage(message: Message?) {
+    fun setInitialMessage(message: ViewDelegateMessage?) {
         messageWidget.setInitialMessage(message)
     }
 
     @UiThread
-    fun setMessage(message: Message?) {
+    fun setMessage(message: ViewDelegateMessage?) {
         messageWidget.setMessage(message)
     }
 
