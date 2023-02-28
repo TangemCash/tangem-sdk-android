@@ -102,33 +102,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     private fun getErrorString(error: TangemError): String {
         return if (error is TangemSdkError) {
-            val message = error.localizedDescription(mainView.context)
-            when (error) {
-                is TangemSdkError.BackupFailedEmptyWallets,
-                is TangemSdkError.BackupFailedHDWalletSettings,
-                is TangemSdkError.BackupFailedNotEnoughCurves,
-                is TangemSdkError.BackupFailedNotEnoughWallets,
-                is TangemSdkError.BackupFailedWrongIssuer,
-                is TangemSdkError.BackupNotAllowed,
-                is TangemSdkError.BackupFailedFirmware,
-                is TangemSdkError.BackupFailedIncompatibleBatch,
-                is TangemSdkError.ResetPinWrongCard,
-                -> String.format(message, error.code.toString())
-                is TangemSdkError.AccessCodeCannotBeChanged,
-                is TangemSdkError.AccessCodeCannotBeDefault,
-                is TangemSdkError.WrongAccessCode,
-                -> String.format(
-                    message,
-                    mainView.context.getString(R.string.pin1)
-                )
-                is TangemSdkError.PasscodeCannotBeChanged,
-                is TangemSdkError.WrongPasscode,
-                -> String.format(
-                    message,
-                    mainView.context.getString(R.string.pin2)
-                )
-                else -> message
-            }
+            error.localizedDescription(mainView.context)
         } else {
             val localizedMessage = error.messageResId?.let { mainView.context.getString(it) }
             localizedMessage ?: error.customMessage

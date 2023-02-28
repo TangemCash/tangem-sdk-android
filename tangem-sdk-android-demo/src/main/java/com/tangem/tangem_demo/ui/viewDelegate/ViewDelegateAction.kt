@@ -242,8 +242,8 @@ class RequestAccessCode : BaseDelegateAction() {
 
     override fun usedCommandsInfo(): String {
         return "SessionStarted, RequestUserCode(access,true), Dismiss, " +
-                "SessionStarted, RequestUserCode(access,false), Dismiss, " +
-                "SessionStarted, RequestUserCode(access,true), Dismiss"
+            "SessionStarted, RequestUserCode(access,false), Dismiss, " +
+            "SessionStarted, RequestUserCode(access,true), Dismiss"
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
@@ -268,7 +268,7 @@ class RequestAccessCode : BaseDelegateAction() {
 }
 
 class SingleRequestAccessCode(
-    private val showForgotButton: Boolean
+    private val showForgotButton: Boolean,
 ) : BaseDelegateAction() {
 
     override fun info(): String = "Request Access code. Show the Forgot button = $showForgotButton"
@@ -290,8 +290,8 @@ class RequestPasscode : BaseDelegateAction() {
 
     override fun usedCommandsInfo(): String {
         return "SessionStarted, RequestUserCode(passcode,true), Dismiss, " +
-                "SessionStarted, RequestUserCode(passcode,false), Dismiss, " +
-                "SessionStarted, RequestUserCode(passcode,true), Dismiss"
+            "SessionStarted, RequestUserCode(passcode,false), Dismiss, " +
+            "SessionStarted, RequestUserCode(passcode,true), Dismiss"
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
@@ -355,11 +355,34 @@ class RequestPinSetup : BaseDelegateAction() {
     }
 }
 
+class ErrorsWithDifferentFormats : BaseDelegateAction() {
+
+    override fun info(): String = "Shows errors with different formats"
+
+    override fun usedCommandsInfo(): String = """
+        BackupFailedIncompatibleBatch, AccessCodeCannotBeChanged, WrongPasscode, CryptoUtilsError,
+    """.trimIndent()
+
+    override fun getCommandsPool(): suspend () -> Unit = suspend {
+        withMainContext { delegate.onSessionStarted(null, null, true) }
+        delay(2000)
+        withMainContext { delegate.onError(TangemSdkError.BackupFailedIncompatibleBatch()) }
+        delay(5000)
+        withMainContext { delegate.onError(TangemSdkError.AccessCodeCannotBeChanged()) }
+        delay(5000)
+        withMainContext { delegate.onError(TangemSdkError.WrongPasscode()) }
+        delay(5000)
+        withMainContext { delegate.onError(TangemSdkError.CryptoUtilsError("Not displayed to a user")) }
+        delay(4000)
+        withMainContext { delegate.dismiss() }
+    }
+}
+
 private fun createSecurityDelaySliderContainer(
     additionContainer: ViewGroup?,
     step: Float,
     valueTo: Float,
-    value: Float
+    value: Float,
 ): Int {
     additionContainer ?: return View.NO_ID
 
