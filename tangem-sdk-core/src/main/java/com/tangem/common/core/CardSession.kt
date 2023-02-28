@@ -9,6 +9,7 @@ import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
+import com.tangem.common.apdu.Apdu
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
@@ -165,48 +166,54 @@ class CardSession(
 
         scope.launch {
             reader.tag.asFlow()
-                    .filterNotNull()
-                    .take(1)
-                    .collect { tagType ->
-                        if (tagType == TagType.Nfc && preflightReadMode != PreflightReadMode.None) {
-                            preflightCheck(onSessionStarted)
-                        } else {
-                            onSessionStarted(this@CardSession, null)
+                .filterNotNull()
+                .take(1)
+                .collect { tagType ->
+                    selectApplet()
+                        .doOnSuccess {
+                            if (tagType == TagType.Nfc && preflightReadMode != PreflightReadMode.None) {
+                                preflightCheck(onSessionStarted)
+                            } else {
+                                onSessionStarted(this@CardSession, null)
+                            }
                         }
-                    }
+                        .doOnFailure {
+                            onSessionStarted(this@CardSession, it)
+                        }
+                }
         }
 
         scope.launch {
             reader.tag.asFlow()
-                    .drop(1)
-                    .collect {
-                        if (it == null) {
-                            viewDelegate.onTagLost()
-                        } else {
-                            viewDelegate.onTagConnected()
-                            onTagConnectedAfterResume?.invoke()
-                            onTagConnectedAfterResume = null
-                        }
+                .drop(1)
+                .collect {
+                    if (it == null) {
+                        viewDelegate.onTagLost()
+                    } else {
+                        viewDelegate.onTagConnected()
+                        onTagConnectedAfterResume?.invoke()
+                        onTagConnectedAfterResume = null
                     }
+                }
         }
 
         scope.launch {
             reader.tag.asFlow()
-                    .onCompletion {
-                        if (it is CancellationException && it.message == TangemSdkError.UserCancelled().customMessage) {
-                            stopWithError(TangemSdkError.UserCancelled())
-                            viewDelegate.dismiss()
-                            onSessionStarted(this@CardSession, TangemSdkError.UserCancelled())
-                        }
+                .onCompletion {
+                    if (it is CancellationException && it.message == TangemSdkError.UserCancelled().customMessage) {
+                        stopWithError(TangemSdkError.UserCancelled())
+                        viewDelegate.dismiss()
+                        onSessionStarted(this@CardSession, TangemSdkError.UserCancelled())
                     }
-                    .collect {
-                        if (it == null && connectedTag != null && state == CardSessionState.Active) {
-                            environment.encryptionKey = null
-                            connectedTag = null
-                        } else if (it != null) {
-                            connectedTag = it
-                        }
+                }
+                .collect {
+                    if (it == null && connectedTag != null && state == CardSessionState.Active) {
+                        environment.encryptionKey = null
+                        connectedTag = null
+                    } else if (it != null) {
+                        connectedTag = it
                     }
+                }
         }
     }
 
@@ -314,7 +321,6 @@ class CardSession(
                         onSessionStarted(this, result.error)
                         stopWithError(result.error)
                     }
-
                 }
             }
         }
@@ -357,35 +363,35 @@ class CardSession(
         val subscription = reader.tag.openSubscription()
         scope.launch {
             subscription.consumeAsFlow()
-                    .filterNotNull()
-                    .map { establishEncryptionIfNeeded() }
-                    .map { apdu.encrypt(environment.encryptionMode, environment.encryptionKey) }
-                    .map { encryptedApdu -> reader.transceiveApdu(encryptedApdu) }
-                    .map { responseApdu -> decrypt(responseApdu) }
-                    .catch {
-                        if (it is TangemSdkError) {
-                            Log.error { "$it" }
-                            callback(CompletionResult.Failure(it))
-                        }
+                .filterNotNull()
+                .map { establishEncryptionIfNeeded() }
+                .map { apdu.encrypt(environment.encryptionMode, environment.encryptionKey) }
+                .map { encryptedApdu -> reader.transceiveApdu(encryptedApdu) }
+                .map { responseApdu -> decrypt(responseApdu) }
+                .catch {
+                    if (it is TangemSdkError) {
+                        Log.error { "$it" }
+                        callback(CompletionResult.Failure(it))
                     }
-                    .collect { result ->
-                        when (result) {
-                            is CompletionResult.Success -> {
-                                subscription.cancel()
-                                callback(result)
-                            }
-                            is CompletionResult.Failure -> {
-                                when (result.error) {
-                                    is TangemSdkError.TagLost -> Log.session { "tag lost. Waiting for tag..." }
-                                    else -> {
-                                        Log.error { "${result.error}" }
-                                        subscription.cancel()
-                                        callback(result)
-                                    }
+                }
+                .collect { result ->
+                    when (result) {
+                        is CompletionResult.Success -> {
+                            subscription.cancel()
+                            callback(result)
+                        }
+                        is CompletionResult.Failure -> {
+                            when (result.error) {
+                                is TangemSdkError.TagLost -> Log.session { "tag lost. Waiting for tag..." }
+                                else -> {
+                                    Log.error { "${result.error}" }
+                                    subscription.cancel()
+                                    callback(result)
                                 }
                             }
                         }
                     }
+                }
         }
     }
 
@@ -400,6 +406,11 @@ class CardSession(
         reader.resumeSession()
     }
 
+    private suspend fun selectApplet(): CompletionResult<ByteArray?> {
+        Log.session { "select the Wallet applet" }
+        return reader.transceiveRaw(Apdu.build(Apdu.SELECT, Apdu.TANGEM_WALLET_AID))
+    }
+
     private suspend fun establishEncryptionIfNeeded(): CompletionResult<Boolean> {
         Log.session { "establish encryption if needed" }
         if (environment.encryptionMode == EncryptionMode.None || environment.encryptionKey != null) {
@@ -407,9 +418,9 @@ class CardSession(
         }
 
         val encryptionHelper = EncryptionHelper.create(environment.encryptionMode)
-                ?: return CompletionResult.Failure(
-                    TangemSdkError.CryptoUtilsError("Failed to establish encryption")
-                )
+            ?: return CompletionResult.Failure(
+                TangemSdkError.CryptoUtilsError("Failed to establish encryption")
+            )
 
         val openSessionCommand = OpenSessionCommand(encryptionHelper.keyA)
         val apdu = openSessionCommand.serialize(environment)
@@ -424,11 +435,11 @@ class CardSession(
 
                 val uid = result.uid
                 val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, 50)
-                        ?: return CompletionResult.Failure(
-                            TangemSdkError.CryptoUtilsError(
-                                "Failed to establish encryption"
-                            )
+                    ?: return CompletionResult.Failure(
+                        TangemSdkError.CryptoUtilsError(
+                            "Failed to establish encryption"
                         )
+                    )
 
                 val secret = encryptionHelper.generateSecret(result.sessionKeyB)
                 val sessionKey = (secret + protocolKey).calculateSha256()

@@ -36,6 +36,10 @@ interface CardReader {
      */
     fun transceiveApdu(apdu: CommandApdu, callback: CompletionCallback<ResponseApdu>)
 
+    suspend fun transceiveRaw(apduData: ByteArray): CompletionResult<ByteArray?>
+
+    fun transceiveRaw(apduData: ByteArray, callback: CompletionCallback<ByteArray?>)
+
     /**
      * Signals to [CardReader] to become ready to transceive data.
      */
