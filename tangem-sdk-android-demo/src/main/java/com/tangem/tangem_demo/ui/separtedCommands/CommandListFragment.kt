@@ -8,23 +8,16 @@ import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
-import com.tangem.Message
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.core.CardSession
-import com.tangem.common.core.CardSessionRunnable
-import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.core.UserCodeRequestPolicy
 import com.tangem.common.extensions.toHexString
-import com.tangem.operations.PreflightReadMode
-import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.files.FileVisibility
-import com.tangem.operations.sign.SignHashResponse
 import com.tangem.tangem_demo.Personalization
 import com.tangem.tangem_demo.R
 import com.tangem.tangem_demo.postUi
@@ -34,6 +27,8 @@ import com.tangem.tangem_demo.ui.extension.beginDelayedTransition
 import com.tangem.tangem_demo.ui.extension.copyToClipboard
 import com.tangem.tangem_demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.tangem_demo.ui.extension.setTextFromClipboard
+import com.tangem.tangem_demo.ui.separtedCommands.task.MultiMessageTask
+import com.tangem.tangem_demo.ui.separtedCommands.task.ResetToFactorySettingsTask
 import kotlinx.android.synthetic.main.attestation.*
 import kotlinx.android.synthetic.main.backup.*
 import kotlinx.android.synthetic.main.card.*
@@ -42,10 +37,10 @@ import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
 import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.json_rpc.*
-import kotlinx.android.synthetic.main.set_message.*
 import kotlinx.android.synthetic.main.set_pin.*
 import kotlinx.android.synthetic.main.sign.*
 import kotlinx.android.synthetic.main.user_data.*
+import kotlinx.android.synthetic.main.utils.*
 import kotlinx.android.synthetic.main.wallet.*
 
 /**
@@ -60,7 +55,7 @@ class CommandListFragment : BaseFragment() {
         chipGroupUserCodeRequestPolicy.fitChipsByGroupWidth()
         chipGroupUserCodeRequestPolicy.setOnCheckedChangeListener { _, checkedId ->
             val showTypeSelector = checkedId == R.id.chipPolicyAlways ||
-                checkedId ==  R.id.chipPolicyAlwaysWithBiometrics
+                checkedId == R.id.chipPolicyAlwaysWithBiometrics
             chipGroupUserCodeType.isVisible = showTypeSelector
             userCodeRequestPolicyDivider.isVisible = showTypeSelector
         }
@@ -160,8 +155,15 @@ class CommandListFragment : BaseFragment() {
         btnPasteJsonRpc.setOnClickListener { etJsonRpc.setTextFromClipboard() }
         btnLaunchJsonRpc.setOnClickListener { launchJSONRPC(etJsonRpc.text.toString().trim()) }
 
+        btnResetToFactory.setOnClickListener {
+            sdk.startSessionWithRunnable(ResetToFactorySettingsTask()) {
+                postUi { handleCommandResult(it) }
+            }
+        }
         btnCheckSetMessage.setOnClickListener {
-            sdk.startSessionWithRunnable(MultiMessageTask(), card?.cardId, initialMessage) { handleCommandResult(it) }
+            sdk.startSessionWithRunnable(MultiMessageTask(),
+                card?.cardId,
+                initialMessage) { postUi { handleCommandResult(it) } }
         }
 
         sliderWallet.stepSize = 1f
@@ -197,7 +199,6 @@ class CommandListFragment : BaseFragment() {
                 } else {
                     userCodeRepositoryContainer.isVisible = false
                 }
-
             }
             is CompletionResult.Failure -> {
                 if (result.error is TangemSdkError.UserCancelled) {
@@ -303,31 +304,3 @@ class CommandListFragment : BaseFragment() {
     """.trim()
 }
 
-class MultiMessageTask : CardSessionRunnable<SignHashResponse> {
-
-    val message1 = Message("Header - 1", "Body - 1")
-    val message2 = Message("Header - 2", "Body - 2")
-
-    override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
-        session.setMessage(message1)
-        Thread.sleep(2000)
-        session.setMessage(message2)
-        Thread.sleep(2000)
-        PreflightReadTask(PreflightReadMode.None).run(session) {
-            when (it) {
-                is CompletionResult.Success -> {
-                    session.setMessage(Message("Success", "SignHashCommand"))
-                    Thread.sleep(2000)
-                    callback(CompletionResult.Failure(TangemSdkError.ExceptionError(
-                        Throwable("Test error message")
-                    )))
-                }
-                is CompletionResult.Failure -> {
-                    session.setMessage(Message("Success", "SignHashCommand"))
-                    Thread.sleep(2000)
-                    callback(CompletionResult.Failure(it.error))
-                }
-            }
-        }
-    }
-}

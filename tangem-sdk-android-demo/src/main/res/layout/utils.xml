@@ -19,7 +19,7 @@
         android:background="?android:windowBackground"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="Custom task with messages"
+        android:text="Helpers, utils and tests"
         android:translationX="10dp"
         android:translationY="-10dp" />
 
@@ -36,10 +36,16 @@
             android:orientation="vertical">
 
             <Button
+                android:id="@+id/btnResetToFactory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Reset to factory settings" />
+
+            <Button
                 android:id="@+id/btnCheckSetMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Start task" />
+                android:text="Check setup multi message" />
 
         </LinearLayout>
 
