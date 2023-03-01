@@ -10,7 +10,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.DecodingFailedMissingTag, is TangemSdkError.DecodingFailedTypeMismatch,
         is TangemSdkError.DecodingFailed, is TangemSdkError.CryptoUtilsError, is TangemSdkError.NetworkError,
         is TangemSdkError.ExceptionError, is TangemSdkError.HDWalletDisabled, is TangemSdkError.FileSettingsUnsupported,
-        is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty -> null
+        is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty,
+        -> null
         is TangemSdkError.TagLost -> R.string.error_tag_lost
         is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_extended_apdu_not_supported
         is TangemSdkError.SerializeCommandError -> R.string.error_operation
@@ -102,9 +103,28 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.UserCanceledBiometricsAuthentication -> null
     }
 
-    return if (resId != null) {
-        context.getString(resId)
+    return if (resId == null) {
+        context.getString(R.string.generic_error_code, code.toString())
     } else {
-        context.getString(R.string.error_operation)
+        when (this) {
+            is TangemSdkError.BackupFailedEmptyWallets,
+            is TangemSdkError.BackupFailedHDWalletSettings,
+            is TangemSdkError.BackupFailedNotEnoughCurves,
+            is TangemSdkError.BackupFailedNotEnoughWallets,
+            is TangemSdkError.BackupFailedWrongIssuer,
+            is TangemSdkError.BackupNotAllowed,
+            is TangemSdkError.BackupFailedFirmware,
+            is TangemSdkError.BackupFailedIncompatibleBatch,
+            is TangemSdkError.ResetPinWrongCard,
+            -> context.getString(resId, code.toString())
+            is TangemSdkError.AccessCodeCannotBeChanged,
+            is TangemSdkError.AccessCodeCannotBeDefault,
+            is TangemSdkError.WrongAccessCode,
+            -> context.getString(resId, context.getString(R.string.pin1))
+            is TangemSdkError.PasscodeCannotBeChanged,
+            is TangemSdkError.WrongPasscode,
+            -> context.getString(resId, context.getString(R.string.pin2))
+            else -> context.getString(resId)
+        }
     }
 }

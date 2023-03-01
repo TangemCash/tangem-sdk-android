@@ -62,6 +62,7 @@ class ViewDelegateFragment : BaseFragment() {
             RequestPinSetup(),
             SingleRequestAccessCode(false),
             SingleRequestAccessCode(true),
+            ErrorsWithDifferentFormats(),
         )
 
         actionsList.forEach {
