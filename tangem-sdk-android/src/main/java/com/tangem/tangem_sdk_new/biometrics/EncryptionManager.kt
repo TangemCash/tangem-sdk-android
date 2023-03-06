@@ -41,18 +41,20 @@ internal class EncryptionManager(
     /**
      * Public key used for data keys encryption, not requires user authentication
      * */
-    private val masterPublicKey: PublicKey by lazy {
-        generateMasterKeyIfNeeded()
-        keyStore.getCertificate(masterKeyAlias).publicKey
-    }
+    private val masterPublicKey: PublicKey
+        get() {
+            generateMasterKeyIfNeeded()
+            return keyStore.getCertificate(masterKeyAlias).publicKey
+        }
 
     /**
      * Private key used for data keys decryption, requires user authentication (Biometry)
      * */
-    private val masterPrivateKey: PrivateKey by lazy {
-        generateMasterKeyIfNeeded()
-        keyStore.getKey(masterKeyAlias, null) as PrivateKey
-    }
+    private val masterPrivateKey: PrivateKey
+        get() {
+            generateMasterKeyIfNeeded()
+            return keyStore.getKey(masterKeyAlias, null) as PrivateKey
+        }
 
     /**
      * Generate new secret key with provided [keyAlias] and encrypt [decryptedData] with it
@@ -83,15 +85,32 @@ internal class EncryptionManager(
     }
 
     /**
+     * Generate new asymmetric master key which uses for data keys encryption/decryption
+     *
+     * Attention, this will make all encrypted data inaccessible
+     * */
+    fun regenerateMasterKey() {
+        keyStore.deleteEntry(masterKeyAlias)
+        generateMasterKey()
+    }
+
+    /**
      * Generate new asymmetric master key which uses for data keys encryption/decryption if it has not already been
      * generated
      * */
     private fun generateMasterKeyIfNeeded() {
         if (!keyStore.containsAlias(masterKeyAlias)) {
-            KeyPairGenerator.getInstance(masterKeyAlgorithm, keyStoreProvider)
-                .also { it.initialize(createMasterKeyGenParameterSpec()) }
-                .generateKeyPair()
+            generateMasterKey()
         }
+    }
+
+    /**
+     * Generate new asymmetric master key which uses for data keys encryption/decryption
+     * */
+    private fun generateMasterKey() {
+        KeyPairGenerator.getInstance(masterKeyAlgorithm, keyStoreProvider)
+            .also { it.initialize(createMasterKeyGenParameterSpec()) }
+            .generateKeyPair()
     }
 
     /**
@@ -137,10 +156,12 @@ internal class EncryptionManager(
 
     private fun KeyGenParameterSpec.Builder.setUserAuthenticationParameters(): KeyGenParameterSpec.Builder {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            this.setUserAuthenticationParameters(
-                keyTimeoutSeconds,
-                KeyProperties.AUTH_BIOMETRIC_STRONG
-            )
+            this
+                .setInvalidatedByBiometricEnrollment(true)
+                .setUserAuthenticationParameters(
+                    keyTimeoutSeconds,
+                    KeyProperties.AUTH_BIOMETRIC_STRONG
+                )
         } else {
             this.setUserAuthenticationValidityDurationSeconds(keyTimeoutSeconds)
         }
