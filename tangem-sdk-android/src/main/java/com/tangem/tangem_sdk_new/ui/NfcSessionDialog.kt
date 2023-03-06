@@ -162,8 +162,10 @@ class NfcSessionDialog(
             }
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
+            // FIXME: This callback is called after the session is closed, if the bottom sheet closure was not caused
+            //  by the user. Which leads to the re-closing of an already closed session
             // pincode entering failed if an user dismiss the dialog from any moment
-            pinCodeSetChangeWidget.onBottomSheetDismiss = {
+            pinCodeRequestWidget.onBottomSheetDismiss = {
                 state.callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
             }
 

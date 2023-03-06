@@ -331,7 +331,7 @@ class CardSession(
      * @param message If null, the default message will be shown.
      */
     fun stop(message: Message? = null) {
-        stopSession()
+        stopSessionIfActive()
         viewDelegate.onSessionStopped(message)
     }
 
@@ -340,7 +340,7 @@ class CardSession(
      * @param error An error that will be shown.
      */
     fun stopWithError(error: TangemError) {
-        stopSession()
+        stopSessionIfActive()
         if (error !is TangemSdkError.UserCancelled) {
             Log.error { "Finishing with error: ${error.code}" }
             viewDelegate.onError(error)
@@ -349,7 +349,9 @@ class CardSession(
         }
     }
 
-    private fun stopSession() {
+    private fun stopSessionIfActive() {
+        if (state == CardSessionState.Inactive) return
+
         Log.session { "stop session" }
         state = CardSessionState.Inactive
         preflightReadMode = PreflightReadMode.FullCardRead
@@ -579,7 +581,7 @@ class CardSession(
             config = config
         )
         viewDelegate.resetCodesViewDelegate.stopSessionCallback = {
-            stopSession()
+            stopSessionIfActive()
             callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
         }
         resetCodesController = ResetCodesController(
