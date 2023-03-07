@@ -1,0 +1,40 @@
+apply plugin: io.gitlab.arturbosch.detekt.DetektPlugin
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath classpaths.detektPlugin
+    }
+}
+
+detekt {
+    parallel = true
+    ignoreFailures = false
+    autoCorrect = true
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+}
+
+tasks.withType(io.gitlab.arturbosch.detekt.Detekt) {
+    setSource(file(projectDir))
+    include("**/*.kt")
+    exclude("**/resources/**", "**/build/**")
+    reports {
+        sarif {
+            enabled = false
+        }
+        txt {
+            enabled = true
+        }
+    }
+}
+
+dependencies {
+    detektPlugins(libraries.formattingDetektRules)
+    detektPlugins(libraries.composeDetektRules)
+}
