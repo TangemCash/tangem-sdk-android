@@ -39,6 +39,7 @@ class TlvEncoder {
         }
     }
 
+    @Suppress("LongMethod", "ComplexMethod")
     inline fun <reified T> encodeValue(tag: TlvTag, value: T): ByteArray {
         return when (tag.valueType()) {
             TlvValueType.HexString -> {
@@ -80,7 +81,7 @@ class TlvEncoder {
             }
             TlvValueType.DateTime -> {
                 typeCheck<T, Date>(tag)
-                val calendar = Calendar.getInstance().apply { time = (value as Date) }
+                val calendar = Calendar.getInstance().apply { time = value as Date }
                 val year = calendar.get(Calendar.YEAR)
                 val month = calendar.get(Calendar.MONTH) + 1
                 val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -99,7 +100,7 @@ class TlvEncoder {
                     Log.warning { "Type of mask is not CardSettingsMask. Trying to check CardWalletSettingsMask" }
                     typeCheck<T, CardWallet.SettingsMask>(tag)
                     val rawValue = (value as CardWallet.SettingsMask).rawValue
-                    rawValue.toByteArray(4)
+                    rawValue.toByteArray(size = 4)
                 }
             }
             TlvValueType.Status -> {
@@ -140,9 +141,10 @@ class TlvEncoder {
         }
     }
 
+    @Suppress("MagicNumber")
     fun determineByteArraySize(value: Int): Int {
         val mask = 0xFFFF0000.toInt()
-        return if ((value and mask) != 0) 4 else 2
+        return if (value and mask != 0) 4 else 2
     }
 
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {

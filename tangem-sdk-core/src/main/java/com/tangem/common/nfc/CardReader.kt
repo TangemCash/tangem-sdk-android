@@ -54,7 +54,6 @@ interface CardReader {
     fun resumeSession()
 
     fun readSlixTag(callback: CompletionCallback<ResponseApdu>)
-
 }
 
 interface ReadingActiveListener {

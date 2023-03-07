@@ -14,7 +14,7 @@ import com.tangem.operations.CommandResponse
 @JsonClass(generateAdapter = true)
 class ExtendedPublicKey(
     val publicKey: ByteArray,
-    val chainCode: ByteArray
+    val chainCode: ByteArray,
 ) : CommandResponse {
 
     /**
@@ -22,14 +22,15 @@ class ExtendedPublicKey(
      * the parent extended public key.
      * It is only defined for non-hardened child keys. `secp256k1` only
      */
+    @Suppress("MagicNumber")
     @Throws(HDWalletError::class)
     fun derivePublicKey(node: DerivationNode): ExtendedPublicKey {
-        if (publicKey.size != 33) { //secp256k1 only
+        if (publicKey.size != 33) { // secp256k1 only
             throw HDWalletError.UnsupportedCurve
         }
         val index = node.index
 
-        //We can derive only non-hardened keys
+        // We can derive only non-hardened keys
         if (index >= BIP32.hardenedOffset) throw HDWalletError.HardenedNotSupported
 
         val data = publicKey + index.toByteArray(4)
@@ -60,8 +61,8 @@ class ExtendedPublicKey(
     override fun equals(other: Any?): Boolean {
         val other = other as? ExtendedPublicKey ?: return false
 
-        return publicKey.contentEquals(other.publicKey)
-                && chainCode.contentEquals(other.chainCode)
+        return publicKey.contentEquals(other.publicKey) &&
+            chainCode.contentEquals(other.chainCode)
     }
 
     override fun hashCode(): Int = calculateHashCode(

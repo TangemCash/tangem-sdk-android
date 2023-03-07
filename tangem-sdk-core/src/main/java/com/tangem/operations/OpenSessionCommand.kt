@@ -34,7 +34,7 @@ class OpenSessionCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): OpenSessionResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return OpenSessionResponse(decoder.decode(TlvTag.SessionKeyB), decoder.decode(TlvTag.Uid))

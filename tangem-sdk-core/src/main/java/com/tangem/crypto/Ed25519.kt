@@ -31,7 +31,6 @@ object Ed25519 {
     }
 
     internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
-
         val dataSha512 = data.calculateSha512()
         val spec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519)
         val signatureInstance = EdDSAEngine(MessageDigest.getInstance(spec.hashAlgorithm))

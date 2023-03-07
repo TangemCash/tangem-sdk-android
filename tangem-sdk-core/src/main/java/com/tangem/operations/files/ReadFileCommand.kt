@@ -19,6 +19,7 @@ import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
 
+@Suppress("LongParameterList")
 @JsonClass(generateAdapter = true)
 class ReadFileResponse(
     var cardId: String,
@@ -64,7 +65,6 @@ class ReadFileResponse(
             null,
             null
         )
-
     }
 }
 
@@ -139,6 +139,7 @@ internal class ReadFileCommand(
         }
     }
 
+    @Suppress("MagicNumber")
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
@@ -161,9 +162,9 @@ internal class ReadFileCommand(
 
     override fun deserialize(
         environment: SessionEnvironment,
-        apdu: ResponseApdu
+        apdu: ResponseApdu,
     ): ReadFileResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         val settings: FileSettings? = decoder.decodeOptional<ByteArray>(TlvTag.FileSettings)?.let { FileSettings(it) }

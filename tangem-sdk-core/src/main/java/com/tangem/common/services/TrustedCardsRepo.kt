@@ -19,7 +19,7 @@ class TrustedCardsRepo internal constructor(
     private val maxCards = 1000
     private val secureService = SecureService(storage)
 
-    //Key is Hash of card's public key
+    // Key is Hash of card's public key
     private val data = mutableMapOf<String, Attestation>()
 
     init {

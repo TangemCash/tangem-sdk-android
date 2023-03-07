@@ -52,11 +52,10 @@ class ReadBackupDataCommand(
     private val accessCode: ByteArray,
 ) : Command<ReadBackupDataResponse>() {
 
-    override fun requiresPasscode(): Boolean = false
-
-    private var aggregatedResponse: InternalReadBackupDataResponse =
-        InternalReadBackupDataResponse()
+    private var aggregatedResponse: InternalReadBackupDataResponse = InternalReadBackupDataResponse()
     private var readIndex: Int = 0
+
+    override fun requiresPasscode(): Boolean = false
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
@@ -96,7 +95,7 @@ class ReadBackupDataCommand(
                         )
                     ))
                 }
-                is CompletionResult.Failure ->  callback(CompletionResult.Failure(result.error))
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
     }
@@ -135,7 +134,7 @@ class ReadBackupDataCommand(
         environment: SessionEnvironment,
         apdu: ResponseApdu,
     ): ReadBackupDataResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -150,4 +149,3 @@ class ReadBackupDataCommand(
         )
     }
 }
-

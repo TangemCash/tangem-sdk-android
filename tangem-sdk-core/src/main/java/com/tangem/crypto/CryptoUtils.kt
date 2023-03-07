@@ -52,7 +52,9 @@ object CryptoUtils {
      * @return Result of a verification
      */
     fun verify(
-        publicKey: ByteArray, message: ByteArray, signature: ByteArray,
+        publicKey: ByteArray,
+        message: ByteArray,
+        signature: ByteArray,
         curve: EllipticCurve = EllipticCurve.Secp256k1,
     ): Boolean {
         return when (curve) {
@@ -115,7 +117,7 @@ object CryptoUtils {
 }
 
 fun Secp256k1.generateKeyPair(): KeyPair {
-    val privateKey = CryptoUtils.generateRandomBytes(32)
+    val privateKey = CryptoUtils.generateRandomBytes(length = 32)
     val publicKey = CryptoUtils.generatePublicKey(privateKey)
     return KeyPair(publicKey, privateKey)
 }
@@ -136,6 +138,7 @@ fun ByteArray.sign(privateKeyArray: ByteArray, curve: EllipticCurve = EllipticCu
     }
 }
 
+@Suppress("MagicNumber")
 fun ByteArray.encrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     val spec = if (usePkcs7) ENCRYPTION_SPEC_PKCS7 else ENCRYPTION_SPEC_NO_PADDING
     val secretKeySpec = SecretKeySpec(key, spec)
@@ -144,6 +147,7 @@ fun ByteArray.encrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     return cipher.doFinal(this)
 }
 
+@Suppress("MagicNumber")
 fun ByteArray.decrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     val spec = if (usePkcs7) ENCRYPTION_SPEC_PKCS7 else ENCRYPTION_SPEC_NO_PADDING
     val secretKeySpec = SecretKeySpec(key, spec)
@@ -159,10 +163,13 @@ fun ByteArray.pbkdf2Hash(salt: ByteArray, iterations: Int): ByteArray {
 fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
     val key = this
     val hMac = HMac(SHA512Digest())
+
     hMac.init(KeyParameter(key))
     hMac.update(input, 0, input.size)
-    val out = ByteArray(64)
+
+    val out = ByteArray(size = 64)
     hMac.doFinal(out, 0)
+
     return out
 }
 

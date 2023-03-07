@@ -24,5 +24,5 @@ class CardIdFormatter(
         }
     }
 
-    private fun String.splitBySpace() = reversed().chunked(4).joinToString(separator = " ").reversed()
+    private fun String.splitBySpace() = reversed().chunked(size = 4).joinToString(separator = " ").reversed()
 }

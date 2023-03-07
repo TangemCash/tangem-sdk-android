@@ -59,7 +59,8 @@ interface SessionViewDelegate {
      * It is called when a user is expected to enter pin code.
      */
     fun requestUserCode(
-        type: UserCodeType, isFirstAttempt: Boolean,
+        type: UserCodeType,
+        isFirstAttempt: Boolean,
         showForgotButton: Boolean,
         cardId: String?,
         callback: CompletionCallback<String>,

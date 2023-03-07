@@ -8,7 +8,11 @@ import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.WalletData
-import com.tangem.common.core.*
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.CardDeserializer
 import com.tangem.common.deserialization.WalletDataDeserializer
 import com.tangem.common.tlv.TlvBuilder
@@ -68,8 +72,8 @@ class ReadCommand : Command<ReadResponse>() {
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadResponse {
-        val decoder = CardDeserializer.getDecoder(environment, apdu)
-        val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
+        val decoder = CardDeserializer.getDecoder(apdu)
+        val cardDataDecoder = CardDeserializer.getCardDataDecoder(decoder.tlvList)
 
         val isAccessCodeSetLegacy = environment.isUserCodeSet(UserCodeType.AccessCode)
         val card = CardDeserializer.deserialize(isAccessCodeSetLegacy, decoder, cardDataDecoder)

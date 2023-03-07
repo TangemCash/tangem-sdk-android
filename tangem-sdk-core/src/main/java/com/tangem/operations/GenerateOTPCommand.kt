@@ -45,7 +45,7 @@ class GenerateOTPCommand : Command<GenerateOTPResponse>() {
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): GenerateOTPResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return GenerateOTPResponse(

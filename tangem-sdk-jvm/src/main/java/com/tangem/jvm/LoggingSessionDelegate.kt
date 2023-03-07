@@ -46,7 +46,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
         isFirstAttempt: Boolean,
         showForgotButton: Boolean,
         cardId: String?,
-        callback: CompletionCallback<String>
+        callback: CompletionCallback<String>,
     ) {
         if (isFirstAttempt) {
             Log.view { "enter PIN:" }
@@ -73,7 +73,10 @@ class LoggingSessionDelegate : SessionViewDelegate {
     }
 
     override fun onWrongCard(wrongValueType: WrongValueType) {
-        Log.warning { "You tapped a different card. Please match the in-app Card ID to the your physical Card ID to continue this process." }
+        Log.warning {
+            "You tapped a different card. Please match the in-app Card ID to the your physical Card ID to continue " +
+                "this process."
+        }
     }
 
     override fun setConfig(config: Config) {
@@ -109,6 +112,6 @@ class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {
     override fun showAlert(title: String, message: String, onContinue: VoidCallback) {}
 }
 
-class MockStringLocator: StringsLocator {
+class MockStringLocator : StringsLocator {
     override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any) = ""
 }

@@ -38,7 +38,7 @@ object Secp256k1 {
         val res = toByte64(enc)
 
         if (!verify(generatePublicKey(privateKeyArray), data, res)) {
-            throw Exception("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
+            error("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
         }
 
         return res
@@ -71,6 +71,7 @@ object Secp256k1 {
         return createKeyFactory().generatePublic(publicKeySpec)
     }
 
+    @Suppress("MagicNumber")
     internal fun compressPublicKey(key: ByteArray): ByteArray = if (key.size == 65) {
         val publicKeyPoint = createECSpec().curve.decodePoint(key)
         publicKeyPoint.getEncoded(true)
@@ -78,6 +79,7 @@ object Secp256k1 {
         key
     }
 
+    @Suppress("MagicNumber")
     internal fun decompressPublicKey(key: ByteArray): ByteArray = if (key.size == 33) {
         val publicKeyPoint = createECSpec().curve.decodePoint(key)
         publicKeyPoint.getEncoded(false)
@@ -99,8 +101,9 @@ object Secp256k1 {
         return ecSpec.g.multiply(BigInteger(1, privateKeyArray))
     }
 
+    @Suppress("MagicNumber")
     internal fun normalize(signature: ByteArray): ByteArray {
-        if (signature.size != 64) throw Exception("Invalid signature length")
+        if (signature.size != 64) error("Invalid signature length")
         fun isCanonical(s: BigInteger, halfCurveOrder: BigInteger): Boolean = s <= halfCurveOrder
 
         val s = BigInteger(1, signature.copyOfRange(32, 64))
@@ -121,22 +124,24 @@ object Secp256k1 {
     private fun createKeyFactory(): KeyFactory = KeyFactory.getInstance("EC", "SC")
 
     private fun calculateR(signature: ByteArray, size: Int): ASN1Integer =
-            ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
+        ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
 
     private fun calculateS(signature: ByteArray, size: Int): ASN1Integer =
-            ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
+        ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
 
+    @Suppress("MagicNumber")
     private fun checkSignatureForErrors(enc: ByteArray) {
-        if (enc[0].toInt() != 0x30) throw Exception("bad encoding 1")
-        if (enc[1].toInt() and 0x80 != 0) throw Exception("unsupported length encoding 1")
-        if (enc[2].toInt() != 0x02) throw Exception("bad encoding 2")
-        if (enc[3].toInt() and 0x80 != 0) throw Exception("unsupported length encoding 2")
-        var rLength = enc[3].toInt()
-        if (enc[4 + rLength].toInt() != 0x02) throw Exception("bad encoding 3")
-        if (enc[5 + rLength].toInt() and 0x80 != 0)
-            throw Exception("unsupported length encoding 3")
+        if (enc[0].toInt() != 0x30) error("bad encoding 1")
+        if (enc[1].toInt() and 0x80 != 0) error("unsupported length encoding 1")
+        if (enc[2].toInt() != 0x02) error("bad encoding 2")
+        if (enc[3].toInt() and 0x80 != 0) error("unsupported length encoding 2")
+
+        val rLength = enc[3].toInt()
+        if (enc[4 + rLength].toInt() != 0x02) error("bad encoding 3")
+        if (enc[5 + rLength].toInt() and 0x80 != 0) error("unsupported length encoding 3")
     }
 
+    @Suppress("MagicNumber")
     private fun toByte64(enc: ByteArray): ByteArray {
         var rLength = enc[3].toInt()
         var sLength = enc[5 + rLength].toInt()
@@ -150,7 +155,10 @@ object Secp256k1 {
             rLength--
             System.arraycopy(enc, 5, res, 0, rLength)
         } else {
-            throw Exception("unsupported r-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() + ",enc:" + enc.toHexString())
+            error(
+                "unsupported r-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
+                    ",enc:" + enc.toHexString()
+            )
         }
         if (sLength <= 32) {
             System.arraycopy(enc, sPos, res, rLength + 32 - sLength, sLength)
@@ -158,7 +166,10 @@ object Secp256k1 {
         } else if (sLength == 33 && enc[sPos].toInt() == 0) {
             System.arraycopy(enc, sPos + 1, res, rLength, sLength - 1)
         } else {
-            throw Exception("unsupported s-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() + ",enc:" + enc.toHexString())
+            error(
+                "unsupported s-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
+                    ",enc:" + enc.toHexString()
+            )
         }
 
         return res

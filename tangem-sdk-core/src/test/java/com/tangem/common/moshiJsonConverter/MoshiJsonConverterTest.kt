@@ -9,7 +9,10 @@ import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.crypto.CryptoUtils
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.personalization.entities.ProductMask
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MoshiJsonConverterTest {
@@ -71,10 +74,10 @@ class MoshiJsonConverterTest {
     @Test
     fun attestation() {
         val attestation = Attestation(
-                Attestation.Status.Verified,
-                Attestation.Status.Failed,
-                Attestation.Status.Warning,
-                Attestation.Status.VerifiedOffline,
+            Attestation.Status.Verified,
+            Attestation.Status.Failed,
+            Attestation.Status.Warning,
+            Attestation.Status.VerifiedOffline,
         )
 
         val json = moshi.toJson(attestation)
@@ -99,21 +102,20 @@ class MoshiJsonConverterTest {
         resultMap = moshi.toMap("sdknfdjn")
         assertTrue(resultMap.isEmpty())
 
-        val jsonMap = "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"SCAN_TASK\",\"params\":{}}";
+        val jsonMap = "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"SCAN_TASK\",\"params\":{}}"
         resultMap = moshi.toMap(jsonMap)
         assertEquals(resultMap["id"], 1.0)
         assertEquals(resultMap["jsonrpc"], "2.0")
         assertTrue((resultMap["params"] as Map<*, *>).isEmpty())
 
-
-        val jsonMapWithNull = "{\"id\":null,\"jsonrpc\":\"2.0\"}";
+        val jsonMapWithNull = "{\"id\":null,\"jsonrpc\":\"2.0\"}"
         resultMap = moshi.toMap(jsonMapWithNull)
         assertTrue(resultMap.isNotEmpty())
         assertFalse(resultMap.containsKey("id"))
         assertEquals(resultMap["id"], null)
         assertEquals(resultMap["jsonrpc"], "2.0")
 
-        val jsonArray = "[1, 2, 4]";
+        val jsonArray = "[1, 2, 4]"
         resultMap = moshi.toMap(jsonArray)
         assertTrue(resultMap.isEmpty())
     }

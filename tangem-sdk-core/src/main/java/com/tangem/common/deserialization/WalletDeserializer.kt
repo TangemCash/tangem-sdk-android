@@ -49,7 +49,7 @@ internal class WalletDeserializer(
         val settings = if (walletSettingsMask != null) {
             CardWallet.Settings(walletSettingsMask)
         } else {
-            //Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
+            // Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
             CardWallet.Settings(isDefaultPermanentWallet)
         }
 

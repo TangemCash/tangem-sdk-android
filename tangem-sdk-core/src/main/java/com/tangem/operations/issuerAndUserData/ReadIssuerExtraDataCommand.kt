@@ -28,20 +28,20 @@ enum class IssuerExtraDataMode(val code: Byte) {
      * This mode is required to read issuer extra data from the card. This mode is required to initiate
      * writing issuer extra data to the card.
      */
-    ReadOrStartWrite(1),
+    ReadOrStartWrite(code = 1),
 
     /**
      * With this mode, the command writes part of issuer extra data
      * (block of a size [WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE]) to the card.
      */
-    WritePart(2),
+    WritePart(code = 2),
 
     /**
      * This mode is used after the issuer extra data was fully written to the card.
      * Under this mode the command provides the issuer signature
      * to confirm the validity of data that was written to card.
      */
-    FinalizeWrite(3);
+    FinalizeWrite(code = 3);
 
     companion object {
         private val values = values()
@@ -82,9 +82,8 @@ class ReadIssuerExtraDataResponse(
      * When flag [Settings.ProtectIssuerDataAgainstReplay] set in [SettingsMask]
      * then this value is mandatory and must increase on each execution of [WriteIssuerDataCommand].
      */
-    val issuerDataCounter: Int?
+    val issuerDataCounter: Int?,
 ) : CommandResponse
-
 
 /**
  * This command retrieves Issuer Extra Data field and its issuer’s signature.
@@ -96,7 +95,7 @@ class ReadIssuerExtraDataResponse(
 @Deprecated(message = "Use files instead")
 class ReadIssuerExtraDataCommand(
     private var issuerPublicKey: ByteArray? = null,
-    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier()
+    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier(),
 ) : Command<ReadIssuerExtraDataResponse>(), IssuerDataVerifier by verifier {
 
     private val issuerData = ByteArrayOutputStream()
@@ -123,7 +122,7 @@ class ReadIssuerExtraDataCommand(
 
     private fun readData(
         session: CardSession,
-        callback: CompletionCallback<ReadIssuerExtraDataResponse>
+        callback: CompletionCallback<ReadIssuerExtraDataResponse>,
     ) {
         if (issuerDataSize != 0) {
             session.viewDelegate.onDelay(issuerDataSize, offset, WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE)
@@ -155,16 +154,16 @@ class ReadIssuerExtraDataCommand(
 
     private fun completeTask(
         data: ReadIssuerExtraDataResponse,
-        callback: CompletionCallback<ReadIssuerExtraDataResponse>
+        callback: CompletionCallback<ReadIssuerExtraDataResponse>,
     ) {
         val dataToVerify = IssuerDataToVerify(data.cardId, issuerData.toByteArray(), data.issuerDataCounter)
         if (verify(issuerPublicKey!!, data.issuerDataSignature!!, dataToVerify)) {
             val finalResult = ReadIssuerExtraDataResponse(
-                    data.cardId,
-                    issuerDataSize,
-                    issuerData.toByteArray(),
-                    data.issuerDataSignature,
-                    data.issuerDataCounter
+                data.cardId,
+                issuerDataSize,
+                issuerData.toByteArray(),
+                data.issuerDataSignature,
+                data.issuerDataCounter
             )
             callback(CompletionResult.Success(finalResult))
         } else {
@@ -183,17 +182,17 @@ class ReadIssuerExtraDataCommand(
 
     override fun deserialize(
         environment: SessionEnvironment,
-        apdu: ResponseApdu
+        apdu: ResponseApdu,
     ): ReadIssuerExtraDataResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return ReadIssuerExtraDataResponse(
-                cardId = decoder.decode(TlvTag.CardId),
-                size = decoder.decodeOptional(TlvTag.Size),
-                issuerData = decoder.decodeOptional(TlvTag.IssuerData) ?: byteArrayOf(),
-                issuerDataSignature = decoder.decodeOptional(TlvTag.IssuerDataSignature),
-                issuerDataCounter = decoder.decodeOptional(TlvTag.IssuerDataCounter)
+            cardId = decoder.decode(TlvTag.CardId),
+            size = decoder.decodeOptional(TlvTag.Size),
+            issuerData = decoder.decodeOptional(TlvTag.IssuerData) ?: byteArrayOf(),
+            issuerDataSignature = decoder.decodeOptional(TlvTag.IssuerDataSignature),
+            issuerDataCounter = decoder.decodeOptional(TlvTag.IssuerDataCounter)
         )
     }
 

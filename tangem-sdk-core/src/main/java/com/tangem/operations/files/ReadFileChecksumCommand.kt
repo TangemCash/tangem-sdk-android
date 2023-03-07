@@ -45,6 +45,7 @@ class ReadFileChecksumCommand private constructor() : Command<ReadFileChecksumRe
 
     override fun requiresPasscode(): Boolean = shouldReadPrivateFiles
 
+    @Suppress("MagicNumber")
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion.doubleValue < 3.34) {
             return TangemSdkError.NotSupportedFirmwareVersion()
@@ -67,7 +68,7 @@ class ReadFileChecksumCommand private constructor() : Command<ReadFileChecksumRe
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadFileChecksumResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return ReadFileChecksumResponse(

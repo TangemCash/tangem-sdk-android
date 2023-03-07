@@ -65,6 +65,7 @@ import java.io.StringWriter
  * @property initialMessage A custom description that will be shown at the beginning of the NFC session.
  * If null, a default header and text body will be used.
  */
+@Suppress("LargeClass")
 class CardSession(
     cardId: String? = null,
     val viewDelegate: SessionViewDelegate,
@@ -94,6 +95,8 @@ class CardSession(
     }
 
     private var preflightReadMode: PreflightReadMode = PreflightReadMode.FullCardRead
+
+    private var onTagConnectedAfterResume: VoidCallback? = null
 
     fun setInitialMessage(message: ViewDelegateMessage?) {
         initialMessage = message
@@ -148,7 +151,6 @@ class CardSession(
                     callback(CompletionResult.Failure(prepareResult.error))
                 }
             }
-
         }
     }
 
@@ -308,7 +310,7 @@ class CardSession(
                         Log.error { "${result.error}" }
                         viewDelegate.onWrongCard(wrongType)
                         scope.launch(scope.coroutineContext) {
-                            delay(3500)
+                            delay(timeMillis = 3500)
                             if (connectedTag == null) {
                                 onSessionStarted(this@CardSession, result.error)
                                 stopWithError(result.error)
@@ -397,11 +399,9 @@ class CardSession(
         }
     }
 
-    fun pause(error: TangemError? = null) {
+    fun pause() {
         reader.pauseSession()
     }
-
-    private var onTagConnectedAfterResume: VoidCallback? = null
 
     fun resume(onTagConnected: VoidCallback? = null) {
         onTagConnectedAfterResume = onTagConnected
@@ -436,7 +436,7 @@ class CardSession(
                 }
 
                 val uid = result.uid
-                val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, 50)
+                val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, iterations = 50)
                     ?: return CompletionResult.Failure(
                         TangemSdkError.CryptoUtilsError(
                             "Failed to establish encryption"
@@ -541,6 +541,7 @@ class CardSession(
                 }
         }
 
+        @Suppress("GlobalCoroutineUsage")
         GlobalScope.launch {
             val card = environment.card
             when {

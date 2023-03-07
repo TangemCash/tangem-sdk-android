@@ -53,4 +53,3 @@ fun Command.generateOptions(): Options {
     }
     return options
 }
-

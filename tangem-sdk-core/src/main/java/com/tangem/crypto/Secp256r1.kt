@@ -33,13 +33,12 @@ object Secp256r1 {
     }
 
     private fun calculateR(signature: ByteArray, size: Int): ASN1Integer =
-            ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
+        ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
 
     private fun calculateS(signature: ByteArray, size: Int): ASN1Integer =
-            ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
+        ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
 
     internal fun loadPublicKey(publicKeyArray: ByteArray): PublicKey {
-
         val spec = ECNamedCurveTable.getParameterSpec("secp256r1")
         val factory = KeyFactory.getInstance("EC", "SC")
 
@@ -71,14 +70,14 @@ object Secp256r1 {
         val res = toByte64(enc)
 
         if (!verify(generatePublicKey(privateKeyArray), data, res)) {
-            throw Exception("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
+            error("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
         }
 
         return res
     }
 
+    @Suppress("MagicNumber")
     private fun toByte64(enc: ByteArray): ByteArray {
-
         var rLength = enc[3].toInt()
         var sLength = enc[5 + rLength].toInt()
 
@@ -91,7 +90,10 @@ object Secp256r1 {
             rLength--
             System.arraycopy(enc, 5, res, 0, rLength)
         } else {
-            throw Exception("unsupported r-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() + ",enc:" + enc.toHexString())
+            error(
+                "unsupported r-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
+                    ",enc:" + enc.toHexString()
+            )
         }
         if (sLength <= 32) {
             System.arraycopy(enc, sPos, res, rLength + 32 - sLength, sLength)
@@ -99,7 +101,10 @@ object Secp256r1 {
         } else if (sLength == 33 && enc[sPos].toInt() == 0) {
             System.arraycopy(enc, sPos + 1, res, rLength, sLength - 1)
         } else {
-            throw Exception("unsupported s-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() + ",enc:" + enc.toHexString())
+            error(
+                "unsupported s-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
+                    ",enc:" + enc.toHexString()
+            )
         }
 
         return res

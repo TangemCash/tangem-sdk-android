@@ -72,18 +72,18 @@ class Config(
 
 sealed class CardIdDisplayFormat {
 
-    object None: CardIdDisplayFormat()
+    object None : CardIdDisplayFormat()
 
-    ///Full cardId splitted by 4 numbers
+    // /Full cardId splitted by 4 numbers
     object Full : CardIdDisplayFormat()
 
-    ///n numbers from the end
+    // /n numbers from the end
     data class Last(val numbers: Int) : CardIdDisplayFormat()
 
-    ///n numbers from the end with mask, e.g.  * * * 1234
+    // /n numbers from the end with mask, e.g.  * * * 1234
     data class LastMasked(val numbers: Int, val mask: String = " * * * ") : CardIdDisplayFormat()
 
-    ///n numbers from the end except last
+    // /n numbers from the end except last
     data class LastLuhn(val numbers: Int) : CardIdDisplayFormat()
 }
 

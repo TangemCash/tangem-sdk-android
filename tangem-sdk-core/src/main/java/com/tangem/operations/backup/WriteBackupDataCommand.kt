@@ -36,9 +36,9 @@ class WriteBackupDataCommand(
     private val passcode: ByteArray,
 ) : Command<WriteBackupDataResponse>() {
 
-    override fun requiresPasscode(): Boolean = false
-
     private var index: Int = 0
+
+    override fun requiresPasscode(): Boolean = false
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
@@ -69,7 +69,8 @@ class WriteBackupDataCommand(
                         if (backupStatus is Card.BackupStatus.CardLinked) {
                             session.environment.card = session.environment.card?.copy(
                                 backupStatus = Card.BackupStatus.from(
-                                    result.data.backupStatus, backupStatus.cardCount
+                                    rawStatus = result.data.backupStatus,
+                                    cardsCount = backupStatus.cardCount
                                 )
                             )
                         }
@@ -99,7 +100,7 @@ class WriteBackupDataCommand(
         environment: SessionEnvironment,
         apdu: ResponseApdu,
     ): WriteBackupDataResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -110,4 +111,3 @@ class WriteBackupDataCommand(
         )
     }
 }
-
