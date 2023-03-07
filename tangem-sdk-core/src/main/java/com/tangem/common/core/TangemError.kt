@@ -5,6 +5,7 @@ import com.tangem.common.apdu.StatusWord
 import com.tangem.common.card.Card
 import com.tangem.operations.ScanTask
 import com.tangem.operations.read.ReadCommand
+import java.security.InvalidKeyException
 
 /**
  * An interface for any error that may occur when performing Tangem SDK tasks.
@@ -323,6 +324,30 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class UserCanceledBiometricsAuthentication : TangemSdkError(50019) {
         override val silent: Boolean = true
     }
+
+    /**
+     * The encryption/decryption operation failed with the [cause]
+     *
+     * @see InvalidKeyException
+     * */
+    class EncryptionOperationFailed(
+        override var customMessage: String,
+        override val cause: Throwable?,
+    ) : TangemSdkError(50020)
+
+    /**
+     * The encryption/decryption operation failed with the invalid key exception
+     * e.g. Key permanently invalidated (may occur after new biometric enrollment),
+     * user not authenticated (authentication failed)
+     * or key expired
+     *
+     * @see EncryptionOperationFailed
+     * */
+    class InvalidEncryptionKey(
+        override var customMessage: String,
+        override val cause: InvalidKeyException?,
+        val isKeyRegenerated: Boolean,
+    ) : TangemSdkError(50021)
 
     /**
      * Get error according to the pin type

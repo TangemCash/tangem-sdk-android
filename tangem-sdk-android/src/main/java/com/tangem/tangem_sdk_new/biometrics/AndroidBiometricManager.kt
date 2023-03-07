@@ -15,6 +15,7 @@ import com.tangem.common.catching
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.flatMapOnFailure
+import com.tangem.common.mapFailure
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.tangem_sdk_new.R
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import androidx.biometric.BiometricManager as SystemBiometricManager
 
+// TODO: Add docs
+// TODO: Refactoring needed
 @RequiresApi(Build.VERSION_CODES.M)
 internal class AndroidBiometricManager(
     secureStorage: SecureStorage,
@@ -73,29 +76,49 @@ internal class AndroidBiometricManager(
     ): CompletionResult<ByteArray> {
         return proceedData(mode)
             .flatMapOnFailure { error ->
-                when ((error as? TangemSdkError.ExceptionError)?.cause) {
+                when (val cause = (error as? TangemSdkError.ExceptionError)?.cause) {
                     is UserNotAuthenticatedException -> {
-                        Log.debug { "The key's validity timed out" }
+                        Log.debug {
+                            """
+                                The key's validity timed out
+                                |- Cause: ${cause.localizedMessage}
+                            """.trimIndent()
+                        }
                         withContext(Dispatchers.Main) {
                             authenticateInternal(mode)
                         }
                     }
                     is InvalidKeyException -> {
-                        Log.error { "Key is invalid" }
-                        CompletionResult.Failure(error)
+                        Log.error {
+                            """
+                                Key is invalid
+                                |- Cause: ${cause.localizedMessage}
+                            """.trimIndent()
+                        }
+                        CompletionResult.Failure(
+                            error = TangemSdkError.InvalidEncryptionKey(
+                                customMessage = cause.localizedMessage.orEmpty(),
+                                cause = cause,
+                                isKeyRegenerated = false,
+                            )
+                        )
                     }
-                    else -> CompletionResult.Failure(error)
+                    else -> {
+                        Log.error {
+                            """
+                                Unable to proceed data encryption/decryption
+                                |- Cause: ${cause?.localizedMessage}
+                            """.trimIndent()
+                        }
+                        CompletionResult.Failure(
+                            error = TangemSdkError.EncryptionOperationFailed(
+                                customMessage = cause?.localizedMessage.orEmpty(),
+                                cause = cause,
+                            )
+                        )
+                    }
                 }
             }
-    }
-
-    private fun proceedData(
-        mode: BiometricManager.AuthenticationMode,
-    ): CompletionResult<ByteArray> = catching {
-        when (mode) {
-            is BiometricManager.AuthenticationMode.Decryption -> encryptionManager.decrypt(mode.keyName, mode.data)
-            is BiometricManager.AuthenticationMode.Encryption -> encryptionManager.encrypt(mode.keyName, mode.data)
-        }
     }
 
     private suspend fun authenticateInternal(
@@ -109,13 +132,56 @@ internal class AndroidBiometricManager(
                         continuation.resume(CompletionResult.Failure(result.error))
                     }
                     is AuthenticationResult.Success -> {
-                        continuation.resume(proceedData(mode))
+                        continuation.resume(proceedDataAfterAuthentication(mode))
                     }
                 }
             }
         )
 
         biometricPrompt.authenticate(biometricPromptInfo)
+    }
+
+    private fun proceedDataAfterAuthentication(
+        mode: BiometricManager.AuthenticationMode,
+    ): CompletionResult<ByteArray> {
+        return proceedData(mode)
+            .mapFailure { error ->
+                when (val cause = (error as? TangemSdkError.ExceptionError)?.cause) {
+                    is InvalidKeyException -> {
+                        Log.error {
+                            """
+                                Key is invalid, regenerating
+                                |- Cause: ${cause.localizedMessage}
+                            """.trimIndent()
+                        }
+                        encryptionManager.regenerateMasterKey()
+                        TangemSdkError.InvalidEncryptionKey(
+                            customMessage = cause.localizedMessage.orEmpty(),
+                            cause = cause,
+                            isKeyRegenerated = true,
+                        )
+                    }
+                    else -> {
+                        Log.error {
+                            """
+                                Unable to proceed data encryption/decryption after authentication
+                                |- Cause: ${cause?.localizedMessage}
+                            """.trimIndent()
+                        }
+                        TangemSdkError.EncryptionOperationFailed(
+                            customMessage = cause?.localizedMessage.orEmpty(),
+                            cause = cause
+                        )
+                    }
+                }
+            }
+    }
+
+    private fun proceedData(mode: BiometricManager.AuthenticationMode): CompletionResult<ByteArray> = catching {
+        when (mode) {
+            is BiometricManager.AuthenticationMode.Decryption -> encryptionManager.decrypt(mode.keyName, mode.data)
+            is BiometricManager.AuthenticationMode.Encryption -> encryptionManager.encrypt(mode.keyName, mode.data)
+        }
     }
 
     private suspend fun checkBiometricsAvailabilityStatus(): BiometricsAvailability {
@@ -200,7 +266,7 @@ internal class AndroidBiometricManager(
                     """
                         Biometric authentication error
                         |- Code: $errorCode 
-                        |- Message: $errString
+                        |- Cause: $errString
                     """.trimIndent()
                 }
                 val error = when (errorCode) {
