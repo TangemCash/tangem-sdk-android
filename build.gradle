@@ -1,3 +1,5 @@
+apply(from: "$rootDir/detekt-convention.gradle")
+
 buildscript {
     apply from: 'dependencies.gradle'
     ext {
