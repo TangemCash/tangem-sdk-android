@@ -12,21 +12,19 @@ import com.tangem.common.services.secure.TerminalKeysService
 import com.tangem.common.services.secure.TerminalKeysStorage
 import java.lang.ref.WeakReference
 
-
 /**
  * Contains data relating to a Tangem card. It is used in constructing all the commands,
  * and commands can return modified `SessionEnvironment`.
  */
 class SessionEnvironment(
     val config: Config,
-    val secureStorage: SecureStorage
+    val secureStorage: SecureStorage,
 ) {
     /**
      * Current card, read by preflight `Read` command
      */
     var card: Card? = null
     var walletData: WalletData? = null
-
 
     var terminalKeysService: WeakReference<TerminalKeysService> = WeakReference(TerminalKeysStorage(secureStorage))
     var encryptionMode: EncryptionMode = EncryptionMode.None
@@ -44,15 +42,15 @@ class SessionEnvironment(
         null
     }
 
+    @Deprecated("Used to fix lack of security delay on cards with firmware version below 1.21")
+    var enableMissingSecurityDelay: Boolean = false
+
     fun isUserCodeSet(type: UserCodeType): Boolean {
         return when (type) {
             UserCodeType.AccessCode -> accessCode.value?.contentEquals(type.defaultValue.calculateSha256()) == false
             UserCodeType.Passcode -> passcode.value?.contentEquals(type.defaultValue.calculateSha256()) == false
         }
     }
-
-    @Deprecated("Used to fix lack of security delay on cards with firmware version below 1.21")
-    var enableMissingSecurityDelay: Boolean = false
 
     companion object {
         @Deprecated("Used to fix lack of security delay on cards with firmware version below 1.21")

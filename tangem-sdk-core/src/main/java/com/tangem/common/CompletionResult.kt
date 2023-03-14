@@ -99,7 +99,7 @@ inline fun <T> CompletionResult<T>.doOnResult(
 
 @Suppress("RedundantUnitExpression")
 fun List<CompletionResult<Unit>>.fold(): CompletionResult<Unit> {
-    return fold(Unit) { _, _ -> Unit }
+    return fold(Unit) { _, _ -> }
 }
 
 @Suppress("UNCHECKED_CAST", "RemoveRedundantQualifierName")

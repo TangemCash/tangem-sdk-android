@@ -79,7 +79,7 @@ internal class SignCommand(
             }
         }
 
-        //Before v4
+        // Before v4
         if (wallet.remainingSignatures == 0) {
             return TangemSdkError.NoRemainingSignatures()
         }
@@ -129,7 +129,8 @@ internal class SignCommand(
                         val finalResponse = SignResponse(
                             result.data.cardId,
                             processSignatures(session.environment, signatures.toList()),
-                            result.data.totalSignedHashes)
+                            result.data.totalSignedHashes
+                        )
                         callback(CompletionResult.Success(finalResponse))
                     } else {
                         sign(session, callback)
@@ -143,7 +144,7 @@ internal class SignCommand(
     private fun setSignedChunksMessage(session: CardSession) {
         val message = LocatorMessage(
             headerSource = LocatorMessage.Source(
-                id = StringsLocator.ID.sign_multiple_chunks_part,
+                id = StringsLocator.ID.SIGN_MULTIPLE_CHUNKS_PART,
                 formatArgs = arrayOf(currentChunkNumber + 1, hashesChunked.size)
             ),
             bodySource = null,
@@ -158,6 +159,7 @@ internal class SignCommand(
      * TerminalTransactionSignature parameter containing a correct signature of raw data to be signed made with
      * TerminalPrivateKey (this key should be generated and security stored by the application).
      */
+    @Suppress("MagicNumber")
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
 

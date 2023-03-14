@@ -1,9 +1,10 @@
 package com.tangem.operations.attestation
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import java.text.SimpleDateFormat
-import java.util.*
-
+import java.util.Date
+import java.util.Locale
 
 class CardVerifyAndGetInfo {
 
@@ -12,8 +13,8 @@ class CardVerifyAndGetInfo {
 
         @JsonClass(generateAdapter = true)
         data class Item(
-            var CID: String = "",
-            var publicKey: String = ""
+            @Json(name = "CID") var cid: String = "",
+            var publicKey: String = "",
         )
     }
 
@@ -23,19 +24,18 @@ class CardVerifyAndGetInfo {
         @JsonClass(generateAdapter = true)
         data class Item(
             var error: String? = null,
-            var CID: String = "",
+            @Json(name = "CID") var cid: String = "",
             var passed: Boolean = false,
             var batch: String = "",
             var artwork: ArtworkInfo? = null,
-            var substitution: SubstitutionInfo? = null
+            var substitution: SubstitutionInfo? = null,
         ) {
 
             @JsonClass(generateAdapter = true)
             data class SubstitutionInfo(
                 var data: String? = null,
-                var signature: String? = null
+                var signature: String? = null,
             )
-
         }
     }
 }
@@ -44,13 +44,12 @@ class CardVerifyAndGetInfo {
 data class ArtworkInfo(
     var id: String = "",
     var hash: String = "",
-    var date: String = ""
+    var date: String = "",
 ) {
     fun getUpdateDate(): Date? {
         return try {
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.US).parse(date)
         } catch (e: Exception) {
-            e.printStackTrace()
             null
         }
     }

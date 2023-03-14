@@ -43,7 +43,6 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
                     card!!.disconnect(false)
                 } catch (e: CardException) {
                     e.message?.let { Log.nfc { it } }
-                    if (logException) e.printStackTrace()
                 }
                 card = null
             } catch (e: CardException) {
@@ -72,7 +71,7 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
     override fun startSession() {
         val terminal = terminal ?: throw CardException("No terminal specified!")
 
-        if (terminal.waitForCardPresent(30000)) {
+        if (terminal.waitForCardPresent(WAIT_CARD_PRESENT_DELAY_MS)) {
             card = terminal.connect("*")
             channel = card?.basicChannel
             getUID()?.let { Log.nfc { "UID: " + it.toHexString() } }
@@ -132,7 +131,7 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
             callback.invoke(CompletionResult.Success(rspAPDU.bytes))
         } catch (e: Exception) {
             callback.invoke(CompletionResult.Failure(TangemSdkError.TagLost()))
-            if (terminal?.waitForCardAbsent(30000) == true) {
+            if (terminal?.waitForCardAbsent(WAIT_CARD_ABSENT_DELAY_MS) == true) {
                 connectedTag = null
                 startSession()
             } else {
@@ -140,5 +139,10 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
                 stopSession()
             }
         }
+    }
+
+    private companion object {
+        const val WAIT_CARD_PRESENT_DELAY_MS = 30_000L
+        const val WAIT_CARD_ABSENT_DELAY_MS = 30_000L
     }
 }

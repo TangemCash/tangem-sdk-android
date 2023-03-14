@@ -14,16 +14,15 @@ class IssuerDataToVerify(
     val cardId: String,
     val issuerData: ByteArray?,
     val issuerDataCounter: Int? = null,
-    val issuerExtraDataSize: Int? = null
+    val issuerExtraDataSize: Int? = null,
 )
 
 class DefaultIssuerDataVerifier : IssuerDataVerifier {
     override fun verify(
         issuerPublicKey: ByteArray,
         signature: ByteArray,
-        issuerDataToVerify: IssuerDataToVerify
+        issuerDataToVerify: IssuerDataToVerify,
     ): Boolean {
-
         val tlvEncoder = TlvEncoder()
         val dataToVerify = ByteArrayOutputStream()
         dataToVerify.write(tlvEncoder.encodeValue(TlvTag.CardId, issuerDataToVerify.cardId))

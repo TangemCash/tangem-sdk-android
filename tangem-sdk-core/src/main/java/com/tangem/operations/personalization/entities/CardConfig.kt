@@ -87,30 +87,20 @@ data class CardConfig(
     fun pin2Sha256(): ByteArray = pin2.calculateSha256()
     fun pin3Sha256(): ByteArray? = pin3?.calculateSha256()
 
-    companion object
-
+    @Suppress("LongParameterList")
     class CardConfigData(
         val date: Date?,
         val batch: String,
         val blockchain: String?,
-        @Json(name = "product_note")
-        val productNote: Boolean?,
-        @Json(name = "product_tag")
-        val productTag: Boolean?,
-        @Json(name = "product_id_card")
-        val productIdCard: Boolean?,
-        @Json(name = "product_id_issuer")
-        val productIdIssuer: Boolean?,
-        @Json(name = "product_authentication")
-        val productAuthentication: Boolean?,
-        @Json(name = "product_twin_card")
-        val productTwin: Boolean?,
-        @Json(name = "token_symbol")
-        val tokenSymbol: String?,
-        @Json(name = "token_contract_address")
-        val tokenContractAddress: String?,
-        @Json(name = "token_decimal")
-        val tokenDecimal: Int?,
+        @Json(name = "product_note") val productNote: Boolean?,
+        @Json(name = "product_tag") val productTag: Boolean?,
+        @Json(name = "product_id_card") val productIdCard: Boolean?,
+        @Json(name = "product_id_issuer") val productIdIssuer: Boolean?,
+        @Json(name = "product_authentication") val productAuthentication: Boolean?,
+        @Json(name = "product_twin_card") val productTwin: Boolean?,
+        @Json(name = "token_symbol") val tokenSymbol: String?,
+        @Json(name = "token_contract_address") val tokenContractAddress: String?,
+        @Json(name = "token_decimal") val tokenDecimal: Int?,
     ) {
 
         internal fun createPersonalizationCardData(): CardData {
@@ -174,7 +164,10 @@ internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     builder.addIf(allowSelectBlockchain, Card.SettingsMask.Code.AllowSelectBlockchain)
     builder.addIf(skipCheckPIN2CVCIfValidatedByIssuer, Card.SettingsMask.Code.SkipCheckPIN2CVCIfValidatedByIssuer)
     builder.addIf(skipSecurityDelayIfValidatedByIssuer, Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByIssuer)
-    builder.addIf(skipSecurityDelayIfValidatedByLinkedTerminal, Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal)
+    builder.addIf(
+        condition = skipSecurityDelayIfValidatedByLinkedTerminal,
+        maskCode = Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal
+    )
     builder.addIf(restrictOverwriteIssuerDataEx, Card.SettingsMask.Code.RestrictOverwriteIssuerExtraData)
     builder.addIf(disableIssuerData, Card.SettingsMask.Code.DisableIssuerData)
     builder.addIf(disableUserData, Card.SettingsMask.Code.DisableUserData)
@@ -190,21 +183,20 @@ private fun MaskBuilder.addIf(condition: Boolean?, maskCode: Mask.Code) {
     if (condition == true) add(maskCode)
 }
 
+@Suppress("ComplexMethod", "ImplicitDefaultLocale", "MagicNumber")
 internal fun CardConfig.createCardId(): String? {
-    if (series == null) return null
-    if (startNumber <= 0 || (series.length != 2 && series.length != 4)) return null
+    if (startNumber <= 0 || series?.length != 2 && series?.length != 4) return null
 
-    val Alf = "ABCDEF0123456789"
+    val alf = "ABCDEF0123456789"
     fun checkSeries(series: String): Boolean {
-        val containsList = series.filter { Alf.contains(it) }
+        val containsList = series.filter { alf.contains(it) }
         return containsList.length == series.length
     }
     if (!checkSeries(series)) return null
 
     val tail = if (series.length == 2) String.format("%013d", startNumber) else String.format("%011d", startNumber)
     var cardId = (series + tail).replace(" ", "")
-    if (cardId.length != 15 || Alf.indexOf(cardId[0]) == -1 || Alf.indexOf(cardId[1]) == -1)
-        return null
+    if (cardId.length != 15 || alf.indexOf(cardId[0]) == -1 || alf.indexOf(cardId[1]) == -1) return null
 
     cardId += "0"
     val length = cardId.length
@@ -220,5 +212,5 @@ internal fun CardConfig.createCardId(): String? {
         sum += if (digit > 9) digit - 9 else digit
     }
     val lunh = (10 - sum % 10) % 10
-    return cardId.substring(0, 15) + String.format("%d", lunh)
+    return cardId.substring(startIndex = 0, endIndex = 15) + String.format("%d", lunh)
 }

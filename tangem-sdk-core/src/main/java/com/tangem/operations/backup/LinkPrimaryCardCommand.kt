@@ -73,13 +73,13 @@ class LinkPrimaryCardCommand(
                                 return@transceive
                             }
                             complete(
-                                LinkPrimaryCardResponse(cardId, Card.BackupRawStatus.CardLinked),
-                                session, callback
+                                response = LinkPrimaryCardResponse(cardId, Card.BackupRawStatus.CardLinked),
+                                session = session,
+                                callback = callback
                             )
                         }
                         else -> callback(result)
                     }
-
                 }
             }
         }
@@ -129,7 +129,7 @@ class LinkPrimaryCardCommand(
         environment: SessionEnvironment,
         apdu: ResponseApdu,
     ): LinkPrimaryCardResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -140,4 +140,3 @@ class LinkPrimaryCardCommand(
         )
     }
 }
-

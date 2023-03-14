@@ -37,7 +37,7 @@ class ReadUserDataResponse(
     /**
      * Counter initialized by user's App (confirmed by PIN2) and increased on every signing of new transaction
      */
-    val userProtectedCounter: Int
+    val userProtectedCounter: Int,
 
 ) : CommandResponse
 
@@ -63,15 +63,15 @@ class ReadUserDataCommand : Command<ReadUserDataResponse>() {
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadUserDataResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return ReadUserDataResponse(
-                cardId = decoder.decode(TlvTag.CardId),
-                userData = decoder.decode(TlvTag.UserData),
-                userProtectedData = decoder.decode(TlvTag.UserProtectedData),
-                userCounter = decoder.decode(TlvTag.UserCounter),
-                userProtectedCounter = decoder.decode(TlvTag.UserProtectedCounter)
+            cardId = decoder.decode(TlvTag.CardId),
+            userData = decoder.decode(TlvTag.UserData),
+            userProtectedData = decoder.decode(TlvTag.UserProtectedData),
+            userCounter = decoder.decode(TlvTag.UserCounter),
+            userProtectedCounter = decoder.decode(TlvTag.UserProtectedCounter)
         )
     }
 }

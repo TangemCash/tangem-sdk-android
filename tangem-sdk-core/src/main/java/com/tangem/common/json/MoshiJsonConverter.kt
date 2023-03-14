@@ -209,7 +209,7 @@ class TangemSdkAdapter {
                 "fullCardRead" -> PreflightReadMode.FullCardRead
                 "readCardOnly" -> PreflightReadMode.ReadCardOnly
                 "none" -> PreflightReadMode.None
-                else -> throw java.lang.IllegalArgumentException()
+                else -> error("PreflightReadMode not found")
             }
         }
     }
@@ -238,7 +238,7 @@ class TangemSdkAdapter {
                 }
             }
             reader.endObject()
-            return version ?: throw java.lang.IllegalArgumentException()
+            return version ?: error("Error")
         }
 
         @ToJson
@@ -271,7 +271,7 @@ class TangemSdkAdapter {
                 }
                 return SigningMethod.build(*methods.toTypedArray())
             } catch (ex: Exception) {
-                //Is not an array... Try parse as rawValue
+                // Is not an array... Try parse as rawValue
             }
 
             return SigningMethod(reader.nextInt())
@@ -431,7 +431,7 @@ class TangemSdkAdapter {
 
         @FromJson
         fun fromJson(json: String): Card.BackupStatus =
-                Card.BackupStatus.from(EnumConverter.toEnum<Card.BackupRawStatus>(json)) ?: Card.BackupStatus.NoBackup
+            Card.BackupStatus.from(EnumConverter.toEnum<Card.BackupRawStatus>(json)) ?: Card.BackupStatus.NoBackup
     }
 
     class CardWalletStatusAdapter {
@@ -522,15 +522,11 @@ class TangemSdkAdapter {
         fun fromJson(json: String): BIP44.Chain = EnumConverter.toEnum(json)
     }
 
-    private class EnumConverter {
-        companion object {
-            inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(json.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(
-                    Locale.getDefault()
-                ) else it.toString()
-            })
+    private object EnumConverter {
+        inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(json.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(locale = Locale.getDefault()) else it.toString()
+        })
 
-            fun toJson(enum: Enum<*>): String = enum.name.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-        }
+        fun toJson(enum: Enum<*>): String = enum.name.replaceFirstChar { it.lowercase(Locale.getDefault()) }
     }
 }

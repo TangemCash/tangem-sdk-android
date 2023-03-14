@@ -19,7 +19,6 @@ import java.io.PrintWriter
 import java.io.StringWriter
 
 class OnlineCardVerifier {
-    private val enableNetworkLogging = true
 
     val scope = CoroutineScope(Dispatchers.IO) + CoroutineExceptionHandler { _, ex ->
         val sw = StringWriter()
@@ -52,7 +51,7 @@ class OnlineCardVerifier {
             listOf(CardVerifyAndGetInfo.Request.Item(cardId, cardPublicKey.toHexString()))
 
         return when (val result =
-            performRequest { tangemVerifyApi.getCardVerifyAndGetInfo(requestsBody) }) {
+                performRequest { tangemVerifyApi.getCardVerifyAndGetInfo(requestsBody) }) {
             is Result.Success -> {
                 val firstResult = result.data.results?.firstOrNull()
                 when {
@@ -74,7 +73,6 @@ class OnlineCardVerifier {
     }
 
     suspend fun getCardData(cardId: String, cardPublicKey: ByteArray): Result<CardDataResponse> {
-
         return try {
             performRequest {
                 tangemCardDataApi.getCardData(
@@ -88,15 +86,15 @@ class OnlineCardVerifier {
     }
 
     companion object {
-        fun getUrlForArtwork(cardId: String, cardPublicKey: String, artworkId: String): String {
-            return TangemApi.Companion.BaseUrl.VERIFY.url + TangemApi.ARTWORK +
-                    "?artworkId=${artworkId}&CID=${cardId}&publicKey=$cardPublicKey"
-        }
-
         private val moshi: Moshi by lazy {
             Moshi.Builder()
                 .add(KotlinJsonAdapterFactory())
                 .build()
+        }
+
+        fun getUrlForArtwork(cardId: String, cardPublicKey: String, artworkId: String): String {
+            return TangemApi.Companion.BaseUrl.VERIFY.url + TangemApi.ARTWORK +
+                "?artworkId=$artworkId&CID=$cardId&publicKey=$cardPublicKey"
         }
     }
 }
@@ -113,7 +111,7 @@ interface TangemApi {
     @GET(ARTWORK)
     suspend fun getArtwork(
         @Query("artworkId") artworkId: String,
-        @Query("CID") CID: String,
+        @Query("CID") cid: String,
         @Query("publicKey") publicKey: String,
     ): ResponseBody
 

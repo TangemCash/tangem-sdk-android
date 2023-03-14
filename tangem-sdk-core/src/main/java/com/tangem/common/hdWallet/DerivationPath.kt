@@ -4,6 +4,7 @@ import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateHashCode
 import com.tangem.common.extensions.remove
 import com.tangem.common.hdWallet.bip.BIP32
+import java.util.Locale
 
 /**
  * BIP32 derivation Path
@@ -50,6 +51,7 @@ class DerivationPath {
 
     companion object {
 
+        @Suppress("MagicNumber")
         @Throws(TangemSdkError::class)
         fun from(data: ByteArray): DerivationPath {
             if (data.size % 4 != 0) {
@@ -64,15 +66,15 @@ class DerivationPath {
 
         @Throws(HDWalletError::class)
         private fun createPath(rawPath: String): List<DerivationNode> {
-            val splittedPath = rawPath.toLowerCase().split(BIP32.separatorSymbol)
+            val splittedPath = rawPath.lowercase(Locale.getDefault()).split(BIP32.separatorSymbol)
             if (splittedPath.size < 2) throw HDWalletError.WrongPath
             if (splittedPath[0].trim() != BIP32.masterKeySymbol) throw HDWalletError.WrongPath
 
             val derivationPath = splittedPath.subList(1, splittedPath.size).map { pathItem ->
-                val isHardened = pathItem.contains(BIP32.hardenedSymbol)
-                        || pathItem.contains(BIP32.alternativeHardenedSymbol)
+                val isHardened = pathItem.contains(BIP32.hardenedSymbol) ||
+                    pathItem.contains(BIP32.alternativeHardenedSymbol)
                 val cleanedPathItem = pathItem.trim()
-                        .remove(BIP32.hardenedSymbol, BIP32.alternativeHardenedSymbol)
+                    .remove(BIP32.hardenedSymbol, BIP32.alternativeHardenedSymbol)
                 val index = cleanedPathItem.toLongOrNull() ?: throw HDWalletError.WrongPath
 
                 if (isHardened) DerivationNode.Hardened(index) else DerivationNode.NonHardened(index)

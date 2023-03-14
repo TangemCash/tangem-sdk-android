@@ -24,12 +24,12 @@ import com.tangem.operations.Command
 
 class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
 
-    override fun requiresPasscode(): Boolean = isPasscodeRequire
-
     internal var shouldRestrictDefaultCodes = true
-    internal var isPasscodeRequire = true
 
+    internal var isPasscodeRequire = true
     private var codes = mutableMapOf<UserCodeType, UserCodeAction>()
+
+    override fun requiresPasscode(): Boolean = isPasscodeRequire
 
     override fun prepare(session: CardSession, callback: CompletionCallback<Unit>) {
         requestIfNeeded(UserCodeType.AccessCode, session) { result ->
@@ -48,12 +48,12 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
     }
 
     override fun run(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        if (codes.values.contains(UserCodeAction.Request)) { //If prepare not called e.g. chaining
+        if (codes.values.contains(UserCodeAction.Request)) { // If prepare not called e.g. chaining
             val error = getPauseError(session.environment)
             if (error == null) {
                 session.pause()
             } else {
-                session.pause(error)
+                session.pause()
             }
 
             prepare(session) { result ->
@@ -68,7 +68,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
     }
 
     private fun runCommand(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
-        //Restrict default codes except reset command
+        // Restrict default codes except reset command
         if (shouldRestrictDefaultCodes) {
             if (!isCodeAllowed(UserCodeType.AccessCode)) {
                 callback(CompletionResult.Failure(TangemSdkError.AccessCodeCannotBeChanged()))
@@ -128,7 +128,7 @@ class SetUserCodeCommand private constructor() : Command<SuccessResponse>() {
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SuccessResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return SuccessResponse(decoder.decode(TlvTag.CardId))

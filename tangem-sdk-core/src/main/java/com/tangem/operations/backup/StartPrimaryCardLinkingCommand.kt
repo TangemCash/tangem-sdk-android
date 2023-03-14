@@ -43,7 +43,7 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
         environment: SessionEnvironment,
         apdu: ResponseApdu,
     ): RawPrimaryCard {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -64,4 +64,3 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
         )
     }
 }
-

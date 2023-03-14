@@ -35,7 +35,6 @@ class ResetBackupCommand : Command<ResetBackupResponse>() {
     override fun requiresPasscode(): Boolean = true
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.FullCardRead
 
-
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
             return TangemSdkError.BackupFailedFirmware()
@@ -85,7 +84,7 @@ class ResetBackupCommand : Command<ResetBackupResponse>() {
         environment: SessionEnvironment,
         apdu: ResponseApdu,
     ): ResetBackupResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)

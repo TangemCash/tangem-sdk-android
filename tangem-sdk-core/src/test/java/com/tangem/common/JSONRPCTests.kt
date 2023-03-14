@@ -7,7 +7,12 @@ import com.tangem.common.card.EllipticCurve
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.hdWallet.DerivationPath
 import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.common.json.*
+import com.tangem.common.json.JSONRPCConverter
+import com.tangem.common.json.JSONRPCLinker
+import com.tangem.common.json.JSONRPCRequest
+import com.tangem.common.json.JSONRPCResponse
+import com.tangem.common.json.MoshiJsonConverter
+import com.tangem.common.json.toJSONRPCError
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.File
 import com.tangem.operations.files.FileSettings
@@ -17,7 +22,9 @@ import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignHashesResponse
 import com.tangem.operations.wallet.CreateWalletResponse
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -58,8 +65,8 @@ class JSONRPCTests {
     fun testJsonRPCRequestParse() {
         JSONRPCRequest("{\"jsonrpc\": \"2.0\", \"method\": \"any\", \"params\": {}}")
 
-        val json =
-                "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, \"minuend\": 42}, \"id\": 3}"
+        val json = "{\"jsonrpc\": \"2.0\", \"method\": \"subtract\", \"params\": {\"subtrahend\": 23, " +
+            "\"minuend\": 42}, \"id\": 3}"
         val request = JSONRPCRequest(json)
         assertEquals(request.method, "subtract")
         assertEquals(request.params["subtrahend"], 23.0)
@@ -79,7 +86,7 @@ class JSONRPCTests {
         val response = SuccessResponse("c000111122223333")
         val result: CompletionResult<SuccessResponse> = CompletionResult.Success(response)
         val testResponse =
-                "{\n \"jsonrpc\" : \"2.0\",\n \"result\" : {\n \"cardId\" : \"c000111122223333\"\n},\n\"id\" : 1\n}"
+            "{\n \"jsonrpc\" : \"2.0\",\n \"result\" : {\n \"cardId\" : \"c000111122223333\"\n},\n\"id\" : 1\n}"
 
         val jsonRpcResponse = when (result) {
             is CompletionResult.Success -> JSONRPCResponse(result.data, null, 1)
@@ -165,7 +172,6 @@ class JSONRPCTests {
         testMethod("SetPasscode", null)
     }
 
-
     @Test
     fun testDerivePublicKey() {
         val response = ExtendedPublicKey(
@@ -196,7 +202,8 @@ class JSONRPCTests {
     @Test
     fun testFiles() {
         testMethod(
-            "files/ReadFiles", listOf(
+            name = "files/ReadFiles",
+            response = listOf(
                 File(
                     name = null,
                     data = "00AABBCCDD".hexToBytes(),
@@ -227,18 +234,18 @@ class JSONRPCTests {
         val jsonMap = converter.toMap(readJson(name))
         val jsonRequest = converter.toJson(jsonMap["request"])
         val request: JSONRPCRequest =
-                assertDoesNotThrow("Json conversion failed to structure for $name") {
-                    JSONRPCRequest(jsonRequest)
-                }
+            assertDoesNotThrow("Json conversion failed to structure for $name") {
+                JSONRPCRequest(jsonRequest)
+            }
 
-        assertDoesNotThrow("Conversion to JSONRPC Failed. File: ${name}") {
+        assertDoesNotThrow("Conversion to JSONRPC Failed. File: $name") {
             jsonRpcConverter.convert(request)
         }
 
         val jsonResponse: JSONRPCResponse? =
-                jsonMap["response"]?.let { converter.toJson(it).let { converter.fromJson(it) } }
+            jsonMap["response"]?.let { converter.toJson(it).let { converter.fromJson(it) } }
         val result: CompletionResult<Any>? =
-                response?.let { CompletionResult.Success(it) }
+            response?.let { CompletionResult.Success(it) }
         if (jsonResponse != null && result != null) {
             val jsonResponseMap = converter.toMap(jsonResponse)
             val resultJsonRpcResponse = when (result) {
@@ -259,10 +266,12 @@ class JSONRPCTests {
         return String(Files.readAllBytes(workingDir))
     }
 
+    @Suppress("ComplexMethod")
     private fun jsonMapVerifier(lMap: Map<String, *>, rMap: Map<String, *>): Boolean {
         val mapKeys = lMap.mapNotNull { if (rMap.containsKey(it.key)) it.key else null }
-        if (lMap.size != mapKeys.size) throw Exception("Property counts not equals (${lMap.size} & ${mapKeys.size})")
+        if (lMap.size != mapKeys.size) error("Property counts not equals (${lMap.size} & ${mapKeys.size})")
 
+        @Suppress("LoopWithTooManyJumpStatements")
         for (key in mapKeys) {
             val lValue = lMap[key]
             val rValue = rMap[key]
@@ -273,12 +282,12 @@ class JSONRPCTests {
             }
 
             if (lValue is List<*> && rValue is List<*>) {
-                if (lValue.size != rValue.size) throw Exception("Arrays [$key] size not equals")
+                if (lValue.size != rValue.size) error("Arrays [$key] size not equals")
 
                 lValue.forEachIndexed { index, lValueByIndex ->
                     val rValueByIndex = rValue[index]
                     if (lValueByIndex != rValueByIndex) {
-                        throw Exception("Value in arrays [$key] not equals ($lValueByIndex & $rValueByIndex)")
+                        error("Value in arrays [$key] not equals ($lValueByIndex & $rValueByIndex)")
                     }
                 }
                 continue
@@ -288,10 +297,10 @@ class JSONRPCTests {
                 if (lValue.contentEquals(rValue)) {
                     continue
                 } else {
-                    throw Exception("Values for [$key] not equals ($lValue & $rValue)")
+                    error("Values for [$key] not equals ($lValue & $rValue)")
                 }
             }
-            if (lValue == rValue) continue else throw Exception("Values for [$key] not equals ($lValue & $rValue)")
+            if (lValue == rValue) continue else error("Values for [$key] not equals ($lValue & $rValue)")
         }
         return true
     }

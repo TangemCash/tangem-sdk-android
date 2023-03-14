@@ -12,10 +12,12 @@ import com.tangem.common.hdWallet.bip.BIP44
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.*
+import java.util.Locale
 
 class HDWalletTests {
 
@@ -135,7 +137,7 @@ class HDWalletTests {
 
     @Test
     fun testPathDerivation1() {
-        //xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8doc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB
+        // xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8doc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB
         val path = DerivationPath("m/0/1")
         val masterKey = ExtendedPublicKey(
             "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),

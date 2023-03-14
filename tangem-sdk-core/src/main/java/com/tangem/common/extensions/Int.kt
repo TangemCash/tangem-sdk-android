@@ -8,12 +8,12 @@ fun Int.toByteArray(size: Int = Int.SIZE_BYTES): ByteArray = when (size) {
         buffer.putInt(this)
         buffer.array()
     }
-    Short.SIZE_BYTES -> byteArrayOf((this ushr 8).toByte(), this.toByte())
+    Short.SIZE_BYTES -> byteArrayOf(this.ushr(bitCount = 8).toByte(), this.toByte())
     1 -> byteArrayOf(this.toByte())
     else -> byteArrayOf()
 }
 
 // For byte comparisons
 fun Int.containsByte(byte: Int): Boolean {
-    return (this and byte) != 0
+    return this and byte != 0
 }

@@ -112,6 +112,7 @@ interface LogFormat {
         }
 
         companion object {
+            @Suppress("MagicNumber")
             fun defaultStepLength(): Map<Log.Level, Int> {
                 return mapOf(
                     Log.Level.Session to 1,

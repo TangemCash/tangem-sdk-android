@@ -12,11 +12,11 @@ class ProductMask(override val rawValue: Int) : BaseMask() {
     override val values: List<Code> = Code.values().toList()
 
     enum class Code(override val value: Int) : Mask.Code {
-        Note(0x01),
-        Tag(0x02),
-        IdCard(0x04),
-        IdIssuer(0x08),
-        Authentication(0x10),
-        TwinCard(0x20);
+        Note(value = 0x01),
+        Tag(value = 0x02),
+        IdCard(value = 0x04),
+        IdIssuer(value = 0x08),
+        Authentication(value = 0x10),
+        TwinCard(value = 0x20);
     }
 }

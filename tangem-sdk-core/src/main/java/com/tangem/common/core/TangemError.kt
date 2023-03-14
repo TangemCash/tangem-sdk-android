@@ -40,45 +40,44 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      * This error is returned when Android  NFC reader loses a tag
      * (e.g. a user detaches card from the phone's NFC module) while the NFC session is in progress.
      */
-    class TagLost : TangemSdkError(10001)
+    class TagLost : TangemSdkError(code = 10001)
 
     /**
      * This error is returned when NFC driver on an Android device does not support sending more than 261 bytes.
      */
-    class ExtendedLengthNotSupported : TangemSdkError(10002)
+    class ExtendedLengthNotSupported : TangemSdkError(code = 10002)
 
-
-    class SerializeCommandError : TangemSdkError(20001)
-    class DeserializeApduFailed : TangemSdkError(20002)
-    class EncodingFailedTypeMismatch(override var customMessage: String) : TangemSdkError(20003)
-    class EncodingFailed(override var customMessage: String) : TangemSdkError(20004)
-    class DecodingFailedMissingTag(override var customMessage: String) : TangemSdkError(20005)
-    class DecodingFailedTypeMismatch(override var customMessage: String) : TangemSdkError(20006)
-    class DecodingFailed(override var customMessage: String) : TangemSdkError(20007)
-    class InvalidResponse : TangemSdkError(20008)
+    class SerializeCommandError : TangemSdkError(code = 20001)
+    class DeserializeApduFailed : TangemSdkError(code = 20002)
+    class EncodingFailedTypeMismatch(override var customMessage: String) : TangemSdkError(code = 20003)
+    class EncodingFailed(override var customMessage: String) : TangemSdkError(code = 20004)
+    class DecodingFailedMissingTag(override var customMessage: String) : TangemSdkError(code = 20005)
+    class DecodingFailedTypeMismatch(override var customMessage: String) : TangemSdkError(code = 20006)
+    class DecodingFailed(override var customMessage: String) : TangemSdkError(code = 20007)
+    class InvalidResponse : TangemSdkError(code = 20008)
 
     /**
      * This error is returned when unknown [StatusWord] is received from a card.
      */
-    class UnknownStatus(val statusWord: String) : TangemSdkError(30001)
+    class UnknownStatus(val statusWord: String) : TangemSdkError(code = 30001)
 
     /**
      * This error is returned when a card's reply is [StatusWord.ErrorProcessingCommand].
      * The card sends this status in case of internal card error.
      */
-    class ErrorProcessingCommand : TangemSdkError(30002)
+    class ErrorProcessingCommand : TangemSdkError(code = 30002)
 
     /**
      * This error is returned when a card's reply is [StatusWord.InvalidState].
      * The card sends this status when command can not be executed in the current state of a card.
      */
-    class InvalidState : TangemSdkError(30003)
+    class InvalidState : TangemSdkError(code = 30003)
 
     /**
      * This error is returned when a card's reply is [StatusWord.InsNotSupported].
      * The card sends this status when the card cannot process the [com.tangem.common.apdu.Instruction].
      */
-    class InsNotSupported : TangemSdkError(30004)
+    class InsNotSupported : TangemSdkError(code = 30004)
 
     /**
      * This error is returned when a card's reply is [StatusWord.InvalidParams].
@@ -87,148 +86,149 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      * The error may be caused, for example, by wrong parameters of the [Task], [CommandSerializer],
      * mapping or serialization errors.
      */
-    class InvalidParams : TangemSdkError(30005)
+    class InvalidParams : TangemSdkError(code = 30005)
 
     /**
      * This error is returned when a card's reply is [StatusWord.NeedEncryption]
      * and the encryption was not established by TangemSdk.
      */
-    class NeedEncryption : TangemSdkError(30006)
-    class FileNotFound : TangemSdkError(30007)
-    class WalletNotFound : TangemSdkError(30008)
+    class NeedEncryption : TangemSdkError(code = 30006)
+    class FileNotFound : TangemSdkError(code = 30007)
+    class WalletNotFound : TangemSdkError(code = 30008)
 
-    //General Errors
-    class NotPersonalized : TangemSdkError(40001)
-    class NotActivated : TangemSdkError(40002)
-    class WalletIsPurged : TangemSdkError(40003)
-    class PasscodeRequired : TangemSdkError(40004)
+    // General Errors
+    class NotPersonalized : TangemSdkError(code = 40001)
+    class NotActivated : TangemSdkError(code = 40002)
+    class WalletIsPurged : TangemSdkError(code = 40003)
+    class PasscodeRequired : TangemSdkError(code = 40004)
 
     /**
      * This error is returned when a [Task] checks unsuccessfully either
      * a card's ability to sign with its private key, or the validity of issuer data.
      */
-    class VerificationFailed : TangemSdkError(40005)
-    class DataSizeTooLarge : TangemSdkError(40006)
+    class VerificationFailed : TangemSdkError(code = 40005)
+    class DataSizeTooLarge : TangemSdkError(code = 40006)
 
     /**
      * This error is returned when [ReadIssuerDataTask] or [ReadIssuerExtraDataTask] expects a counter
      * (when the card's requires it), but the counter is missing.
      */
-    class MissingCounter : TangemSdkError(40007)
-    class OverwritingDataIsProhibited : TangemSdkError(40008)
-    class DataCannotBeWritten : TangemSdkError(40009)
-    class MissingIssuerPubicKey : TangemSdkError(40010)
-    class CardVerificationFailed : TangemSdkError(40011)
+    class MissingCounter : TangemSdkError(code = 40007)
+    class OverwritingDataIsProhibited : TangemSdkError(code = 40008)
+    class DataCannotBeWritten : TangemSdkError(code = 40009)
+    class MissingIssuerPubicKey : TangemSdkError(code = 40010)
+    class CardVerificationFailed : TangemSdkError(code = 40011)
 
     /**
      * User entered wrong Access Code
      */
-    class WrongAccessCode : TangemSdkError(40012)
+    class WrongAccessCode : TangemSdkError(code = 40012)
 
     /**
      * User entered wrong Passcode
      */
-    class WrongPasscode : TangemSdkError(40013)
+    class WrongPasscode : TangemSdkError(code = 40013)
 
-    //Personalization Errors
-    class AlreadyPersonalized : TangemSdkError(40101)
+    // Personalization Errors
+    class AlreadyPersonalized : TangemSdkError(code = 40101)
 
-    //Depersonalization Errors
-    class CannotBeDepersonalized : TangemSdkError(40201)
+    // Depersonalization Errors
+    class CannotBeDepersonalized : TangemSdkError(code = 40201)
 
-    //Read Errors
-    class AccessCodeRequired : TangemSdkError(40401)
-    class CardReadWrongWallet : TangemSdkError(40402)
-    class WalletCannotBeCreated : TangemSdkError(40403)
-    class CardWithMaxZeroWallets : TangemSdkError(40404)
+    // Read Errors
+    class AccessCodeRequired : TangemSdkError(code = 40401)
+    class CardReadWrongWallet : TangemSdkError(code = 40402)
+    class WalletCannotBeCreated : TangemSdkError(code = 40403)
+    class CardWithMaxZeroWallets : TangemSdkError(code = 40404)
 
-    //CreateWallet Errors
-    class AlreadyCreated : TangemSdkError(40501)
-    class UnsupportedCurve : TangemSdkError(40502)
-    class MaxNumberOfWalletsCreated : TangemSdkError(40503)
-    class UnsupportedWalletConfig : TangemSdkError(40504)
+    // CreateWallet Errors
+    class AlreadyCreated : TangemSdkError(code = 40501)
+    class UnsupportedCurve : TangemSdkError(code = 40502)
+    class MaxNumberOfWalletsCreated : TangemSdkError(code = 40503)
+    class UnsupportedWalletConfig : TangemSdkError(code = 40504)
 
-    //PurgeWallet Errors
-    class PurgeWalletProhibited : TangemSdkError(40601)
+    // PurgeWallet Errors
+    class PurgeWalletProhibited : TangemSdkError(code = 40601)
 
-    //SetPin Errors
-    class AccessCodeCannotBeChanged : TangemSdkError(40801)
-    class PasscodeCannotBeChanged : TangemSdkError(40802)
-    class AccessCodeCannotBeDefault : TangemSdkError(40803)
+    // SetPin Errors
+    class AccessCodeCannotBeChanged : TangemSdkError(code = 40801)
+    class PasscodeCannotBeChanged : TangemSdkError(code = 40802)
+    class AccessCodeCannotBeDefault : TangemSdkError(code = 40803)
 
-    //Sign Errors
-    class NoRemainingSignatures : TangemSdkError(40901)
+    // Sign Errors
+    class NoRemainingSignatures : TangemSdkError(code = 40901)
 
     /**
      * This error is returned when a [com.tangem.operations.SignCommand]
      * receives only empty hashes for signature.
      */
-    class EmptyHashes : TangemSdkError(40902)
+    class EmptyHashes : TangemSdkError(code = 40902)
 
     /**
      * This error is returned when a [com.tangem.operations.SignCommand]
      * receives hashes of different lengths for signature.
      */
-    class HashSizeMustBeEqual : TangemSdkError(40903)
-    class WalletIsNotCreated : TangemSdkError(40904)
-    class SignHashesNotAvailable : TangemSdkError(40905)
+    class HashSizeMustBeEqual : TangemSdkError(code = 40903)
+    class WalletIsNotCreated : TangemSdkError(code = 40904)
+    class SignHashesNotAvailable : TangemSdkError(code = 40905)
 
     /**
      * Tangem cards can sign currently up to 10 hashes during one [com.tangem.operations.SignCommand].
      * This error is returned when a [com.tangem.operations.SignCommand] receives more than 10 hashes to sign.
      */
-    class TooManyHashesInOneTransaction : TangemSdkError(40906)
+    class TooManyHashesInOneTransaction : TangemSdkError(code = 40906)
 
-    //Write Extra Issuer Data Errors
-    class ExtendedDataSizeTooLarge : TangemSdkError(41101)
+    // Write Extra Issuer Data Errors
+    class ExtendedDataSizeTooLarge : TangemSdkError(code = 41101)
 
-    class FileSettingsUnsupported : TangemSdkError(42000)
-    class FilesIsEmpty : TangemSdkError(42001)
-    class FilesDisabled : TangemSdkError(42002)
+    class FileSettingsUnsupported : TangemSdkError(code = 42000)
+    class FilesIsEmpty : TangemSdkError(code = 42001)
+    class FilesDisabled : TangemSdkError(code = 42002)
 
     // Backup errors
-    class BackupFailedCardNotLinked : TangemSdkError(41201)
-    class BackupNotAllowed : TangemSdkError(41202)
-    class BackupCardAlreadyAdded : TangemSdkError(41203)
-    class MissingPrimaryCard : TangemSdkError(41204)
-    class MissingPrimaryAttestSignature : TangemSdkError(41205)
-    class TooMuchBackupCards : TangemSdkError(41206)
-    class BackupCardRequired : TangemSdkError(41207)
-    class NoBackupDataForCard : TangemSdkError(41208)
-    class BackupFailedEmptyWallets : TangemSdkError(41209)
-    class BackupFailedNotEmptyWallets : TangemSdkError(41210)
-    class CertificateSignatureRequired : TangemSdkError(41211)
-    class AccessCodeOrPasscodeRequired : TangemSdkError(41212)
-    class NoActiveBackup : TangemSdkError(41220)
-    class ResetBackupFailedHasBackupedWallets : TangemSdkError(41221)
-    class BackupServiceInvalidState : TangemSdkError(4122)
-    class NoBackupCardForIndex : TangemSdkError(41223)
-    class EmptyBackupCards : TangemSdkError(41224)
-    class BackupFailedWrongIssuer : TangemSdkError(41225)
-    class BackupFailedHDWalletSettings : TangemSdkError(41226)
-    class BackupFailedNotEnoughCurves : TangemSdkError(41227)
-    class BackupFailedNotEnoughWallets : TangemSdkError(41228)
-    class IssuerSignatureLoadingFailed: TangemSdkError(41229)
-    class BackupFailedFirmware: TangemSdkError(41230)
-    class BackupFailedIncompatibleBatch: TangemSdkError(41231)
+    class BackupFailedCardNotLinked : TangemSdkError(code = 41201)
+    class BackupNotAllowed : TangemSdkError(code = 41202)
+    class BackupCardAlreadyAdded : TangemSdkError(code = 41203)
+    class MissingPrimaryCard : TangemSdkError(code = 41204)
+    class MissingPrimaryAttestSignature : TangemSdkError(code = 41205)
+    class TooMuchBackupCards : TangemSdkError(code = 41206)
+    class BackupCardRequired : TangemSdkError(code = 41207)
+    class NoBackupDataForCard : TangemSdkError(code = 41208)
+    class BackupFailedEmptyWallets : TangemSdkError(code = 41209)
+    class BackupFailedNotEmptyWallets : TangemSdkError(code = 41210)
+    class CertificateSignatureRequired : TangemSdkError(code = 41211)
+    class AccessCodeOrPasscodeRequired : TangemSdkError(code = 41212)
+    class NoActiveBackup : TangemSdkError(code = 41220)
+    class ResetBackupFailedHasBackupedWallets : TangemSdkError(code = 41221)
+    class BackupServiceInvalidState : TangemSdkError(code = 4122)
+    class NoBackupCardForIndex : TangemSdkError(code = 41223)
+    class EmptyBackupCards : TangemSdkError(code = 41224)
+    class BackupFailedWrongIssuer : TangemSdkError(code = 41225)
+    class BackupFailedHDWalletSettings : TangemSdkError(code = 41226)
+    class BackupFailedNotEnoughCurves : TangemSdkError(code = 41227)
+    class BackupFailedNotEnoughWallets : TangemSdkError(code = 41228)
+    class IssuerSignatureLoadingFailed : TangemSdkError(code = 41229)
+    class BackupFailedFirmware : TangemSdkError(code = 41230)
+    class BackupFailedIncompatibleBatch : TangemSdkError(code = 41231)
 
-    class ResetPinNoCardsToReset : TangemSdkError(41300)
-    class ResetPinWrongCard(internalCode: Int? = null) : TangemSdkError(internalCode ?: 41301)
+    class ResetPinNoCardsToReset : TangemSdkError(code = 41300)
 
-    class HDWalletDisabled : TangemSdkError(42003)
+    @Suppress("MagicNumber")
+    class ResetPinWrongCard(internalCode: Int? = null) : TangemSdkError(code = internalCode ?: 41301)
 
+    class HDWalletDisabled : TangemSdkError(code = 42003)
 
-    //SDK Errors
-    class ExceptionError(override val cause: Throwable?) : TangemSdkError(50000) {
+    // SDK Errors
+    class ExceptionError(override val cause: Throwable?) : TangemSdkError(code = 50000) {
         override var customMessage: String = cause?.localizedMessage ?: "empty"
     }
 
-    class UnknownError : TangemSdkError(50001)
+    class UnknownError : TangemSdkError(code = 50001)
 
     /**
      * This error is returned when a user manually closes NFC Reading Bottom Sheet Dialog.
      */
-    class UserCancelled : TangemSdkError(50002) {
+    class UserCancelled : TangemSdkError(code = 50002) {
         override val silent: Boolean = true
     }
 
@@ -236,56 +236,56 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      * This error is returned when [com.tangem.TangemSdk] was called with a new [Task],
      * while a previous [Task] is still in progress.
      */
-    class Busy : TangemSdkError(50003)
+    class Busy : TangemSdkError(code = 50003)
 
     /**
      * This error is returned when a task (such as [ScanTask]) requires that [ReadCommand]
      * is executed before performing other commands.
      */
-    class MissingPreflightRead : TangemSdkError(50004)
+    class MissingPreflightRead : TangemSdkError(code = 50004)
 
     /**
      * This error is returned when a [Task] expects a user to use a particular card,
      * but the user tries to use a different card.
      */
-    class WrongCardNumber : TangemSdkError(50005)
+    class WrongCardNumber : TangemSdkError(code = 50005)
 
     /**
      * This error is returned when a user scans a card of a [com.tangem.common.extensions.CardType]
      * that is not specified in [Config.cardFilter].
      */
-    class WrongCardType(customMessage: String? = null) : TangemSdkError(50006) {
+    class WrongCardType(customMessage: String? = null) : TangemSdkError(code = 50006) {
         override var customMessage: String = customMessage ?: "50006"
     }
 
     /**
      * This error is returned when a [ScanTask] returns a [Card] without some of the essential fields.
      */
-    class CardError : TangemSdkError(50007)
+    class CardError : TangemSdkError(code = 50007)
 
     /**
      * This error is returned when the [Command] requires a different firmware version than that of the card.
      */
-    class NotSupportedFirmwareVersion : TangemSdkError(50008)
+    class NotSupportedFirmwareVersion : TangemSdkError(code = 50008)
 
     /**
      * This error is returned when the scanned wallet doesn't have some essential fields.
      */
-    class WalletError : TangemSdkError(50009)
+    class WalletError : TangemSdkError(code = 50009)
 
 //    class FailedToGenerateRandomSequence : TangemSdkError(50010)
 
-    class CryptoUtilsError(override var customMessage: String) : TangemSdkError(50011)
+    class CryptoUtilsError(override var customMessage: String) : TangemSdkError(code = 50011)
 
 //    class Underlying : TangemSdkError(50012)
 
-    class UserForgotTheCode : TangemSdkError(50013)
+    class UserForgotTheCode : TangemSdkError(code = 50013)
 
-    class NetworkError(override var customMessage: String) : TangemSdkError(50014)
+    class NetworkError(override var customMessage: String) : TangemSdkError(code = 50014)
 
-    class WrongInteractionMode : TangemSdkError(50027)
+    class WrongInteractionMode : TangemSdkError(code = 50027)
 
-    class BiometricsUnavailable : TangemSdkError(50015) {
+    class BiometricsUnavailable : TangemSdkError(code = 50015) {
         override var customMessage: String = "Biometrics feature unavailable: $code"
     }
 
@@ -303,25 +303,25 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class BiometricsAuthenticationFailed(
         val errorCode: Int,
         override var customMessage: String,
-    ) : TangemSdkError(50016)
+    ) : TangemSdkError(code = 50016)
 
     /**
      * The operation was canceled because the API is locked out due to too many attempts. This
      * occurs after 5 failed attempts, and lasts for 30 seconds
      */
-    class BiometricsAuthenticationLockout : TangemSdkError(50017)
+    class BiometricsAuthenticationLockout : TangemSdkError(code = 50017)
 
     /**
      * The operation was canceled because [BiometricsAuthenticationLockout] occurred too many times. Biometric
      * authentication is disabled until the user unlocks with their device credential (i.e. PIN,
      * pattern, or password).
      */
-    class BiometricsAuthenticationPermanentLockout : TangemSdkError(50018)
+    class BiometricsAuthenticationPermanentLockout : TangemSdkError(code = 50018)
 
     /**
      * The user canceled the operation.
      */
-    class UserCanceledBiometricsAuthentication : TangemSdkError(50019) {
+    class UserCanceledBiometricsAuthentication : TangemSdkError(code = 50019) {
         override val silent: Boolean = true
     }
 
@@ -333,7 +333,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class EncryptionOperationFailed(
         override var customMessage: String,
         override val cause: Throwable?,
-    ) : TangemSdkError(50020)
+    ) : TangemSdkError(code = 50020)
 
     /**
      * The encryption/decryption operation failed with the invalid key exception
@@ -347,7 +347,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
         override var customMessage: String,
         override val cause: InvalidKeyException?,
         val isKeyRegenerated: Boolean,
-    ) : TangemSdkError(50021)
+    ) : TangemSdkError(code = 50021)
 
     /**
      * Get error according to the pin type

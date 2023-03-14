@@ -46,6 +46,7 @@ import kotlinx.coroutines.*
  * @property config allows to change a number of parameters for communication with Tangem cards.
  * Do not change the default values unless you know what you are doing.
  */
+@Suppress("LargeClass", "TooManyFunctions")
 class TangemSdk(
     private val reader: CardReader,
     private val viewDelegate: SessionViewDelegate,
@@ -751,10 +752,11 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>,
     ) {
         val command = WriteIssuerExtraDataCommand(
-            issuerData,
-            startingSignature, finalizingSignature,
-            issuerDataCounter,
-            config.issuerPublicKey
+            issuerData = issuerData,
+            startingSignature = startingSignature,
+            finalizingSignature = finalizingSignature,
+            issuerDataCounter = issuerDataCounter,
+            issuerPublicKey = config.issuerPublicKey
         )
         startSessionWithRunnable(
             runnable = command,
@@ -1037,7 +1039,7 @@ class TangemSdk(
         secureStorage: SecureStorage,
         config: Config,
     ): UserCodeRepository? {
-        val safeBiometricsManager = biometricManager ?: return null
+        val safeBiometricsManager = biometricManager
 
         return if (safeBiometricsManager.canAuthenticate &&
             config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics

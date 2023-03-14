@@ -34,6 +34,7 @@ class WriteUserDataCommand(
 
     override fun requiresPasscode(): Boolean = true
 
+    @Suppress("MagicNumber")
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (2.30 > card.firmwareVersion.doubleValue && card.firmwareVersion.doubleValue < 3.34) {
             return TangemSdkError.NotSupportedFirmwareVersion()
@@ -61,7 +62,7 @@ class WriteUserDataCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SuccessResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         return SuccessResponse(TlvDecoder(tlvData).decode(TlvTag.CardId))
     }

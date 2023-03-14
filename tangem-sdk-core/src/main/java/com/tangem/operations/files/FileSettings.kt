@@ -20,7 +20,7 @@ data class FileSettings(
                 return null
             }
 
-            return if (data.size == 2) { //v3 version
+            return if (data.size == 2) { // v3 version
                 val visibility = if (significantByte == 1.toByte()) FileVisibility.Public else FileVisibility.Private
                 FileSettings(false, visibility)
             } else {
@@ -37,7 +37,6 @@ data class FileSettings(
     }
 }
 
-
 /**
  * File visibility. Private files can be read only with security delay or user code if set
  */
@@ -52,6 +51,13 @@ enum class FileVisibility {
      */
     Private;
 
+    private val permissionsRawValue: Byte
+        get() = when (this) {
+            Public -> FileRawSettings.isPublic.rawValue.toByte()
+            Private -> 0x00
+        }
+
+    @Suppress("MagicNumber")
     fun serializeValue(fwVersion: FirmwareVersion): ByteArray {
         return if (fwVersion.doubleValue < 4) {
             byteArrayOf(0x00, permissionsRawValue)
@@ -59,12 +65,6 @@ enum class FileVisibility {
             byteArrayOf(permissionsRawValue)
         }
     }
-
-    private val permissionsRawValue: Byte
-        get() = when (this) {
-            Public -> FileRawSettings.isPublic.rawValue.toByte()
-            Private -> 0x00
-        }
 }
 
 data class FileRawSettings(val rawValue: Int) {

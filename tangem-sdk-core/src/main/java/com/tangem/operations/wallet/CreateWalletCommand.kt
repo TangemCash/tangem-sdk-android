@@ -6,8 +6,16 @@ import com.tangem.common.MaskBuilder
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
-import com.tangem.common.card.*
-import com.tangem.common.core.*
+import com.tangem.common.card.Card
+import com.tangem.common.card.CardWallet
+import com.tangem.common.card.EllipticCurve
+import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.card.SigningMethod
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDeserializer
 import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
@@ -43,7 +51,7 @@ class CreateWalletResponse(
  *  @property curve: Elliptic curve of the wallet
  */
 internal class CreateWalletCommand(
-    private val curve: EllipticCurve
+    private val curve: EllipticCurve,
 ) : Command<CreateWalletResponse>() {
 
     var walletIndex: Int = 0
@@ -134,22 +142,22 @@ internal class CreateWalletCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): CreateWalletResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
         val card = environment.card ?: throw TangemSdkError.UnknownError()
 
         val decoder = TlvDecoder(tlvData)
         val wallet = when {
             card.firmwareVersion >= FirmwareVersion.CreateWalletResponseAvailable -> {
-                //Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
+                // Newest v4 cards don't have their own wallet settings, so we should take them from the card's settings
                 WalletDeserializer(card.settings.isPermanentWallet).deserializeWallet(decoder)
             }
             card.firmwareVersion >= FirmwareVersion.MultiWalletAvailable -> {
-                //We don't have a wallet response so we use to create it ourselves
+                // We don't have a wallet response so we use to create it ourselves
                 makeWalletLegacy(
                     decoder,
                     decoder.decodeOptional(TlvTag.WalletIndex) ?: walletIndex,
-                    null,  //deprecated
-                    false,  //We don't have a wallet response so we use to create it ourselves
+                    null, // deprecated
+                    false, // We don't have a wallet response so we use to create it ourselves
                 )
             }
             else -> makeWalletLegacy(
@@ -167,7 +175,7 @@ internal class CreateWalletCommand(
         decoder: TlvDecoder,
         index: Int,
         remainingSignatures: Int?,
-        isPermanentWallet: Boolean
+        isPermanentWallet: Boolean,
     ): CardWallet {
         return CardWallet(
             publicKey = decoder.decode(TlvTag.WalletPublicKey),
@@ -181,4 +189,3 @@ internal class CreateWalletCommand(
         )
     }
 }
-

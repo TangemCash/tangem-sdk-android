@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 class ResetPinService(
     private val sessionBuilder: SessionBuilder,
     private val stringsLocator: StringsLocator,
-    private val config: Config
+    private val config: Config,
 ) {
 
     private var repo: ResetPinRepo = ResetPinRepo()
@@ -74,7 +74,6 @@ class ResetPinService(
         return CompletionResult.Success(Unit)
     }
 
-
     fun proceed(resetCardId: String? = null) {
         when (currentState) {
             State.NeedScanResetCard -> scanResetPinCard(resetCardId) { handleCompletion(it) }
@@ -92,11 +91,10 @@ class ResetPinService(
         }
     }
 
-
     private fun scanResetPinCard(resetCardId: String?, callback: CompletionCallback<Unit>) {
         val pinType = when {
-            repo.accessCode != null -> stringsLocator.getString(StringsLocator.ID.pin1)
-            repo.passcode != null -> stringsLocator.getString(StringsLocator.ID.pin2)
+            repo.accessCode != null -> stringsLocator.getString(StringsLocator.ID.PIN_1)
+            repo.passcode != null -> stringsLocator.getString(StringsLocator.ID.PIN_2)
             else -> {
                 callback(CompletionResult.Failure(TangemSdkError.UnknownError()))
                 return
@@ -109,7 +107,7 @@ class ResetPinService(
             cardId = resetCardId,
             initialMessage = Message(
                 header = stringsLocator.getString(
-                    StringsLocator.ID.reset_codes_scan_first_card,
+                    StringsLocator.ID.RESET_CODES_SCAN_FIRST_CARD,
                     pinType
                 )
             )
@@ -134,7 +132,7 @@ class ResetPinService(
             config = config,
             initialMessage = Message(
                 header = stringsLocator.getString(
-                    StringsLocator.ID.reset_codes_scan_confirmation_card
+                    StringsLocator.ID.RESET_CODES_SCAN_CONFIRMATION_CARD
                 )
             )
         ).startWithRunnable(
@@ -147,7 +145,6 @@ class ResetPinService(
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
-
         }
     }
 
@@ -184,14 +181,13 @@ class ResetPinService(
             return
         }
 
-
         val command = ResetPinTask(confirmationCard, accessCodeUnwrapped, passcodeUnwrapped)
         sessionBuilder.build(
             config = config,
             cardId = resetPinCard.cardId,
             initialMessage = Message(
                 header = stringsLocator.getString(
-                    StringsLocator.ID.reset_codes_scan_to_reset
+                    StringsLocator.ID.RESET_CODES_SCAN_TO_RESET
                 )
             )
         ).startWithRunnable(
@@ -201,7 +197,6 @@ class ResetPinService(
                 is CompletionResult.Success -> callback(CompletionResult.Success(Unit))
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
-
         }
     }
 
@@ -227,26 +222,26 @@ class ResetPinService(
 
         fun getMessageTitle(stringsLocator: StringsLocator): String {
             return when (this) {
-                NeedScanResetCard, NeedWriteResetCard -> stringsLocator.getString(StringsLocator.ID.reset_codes_message_title_restore)
-                NeedScanConfirmationCard -> stringsLocator.getString(StringsLocator.ID.reset_codes_message_title_backup)
+                NeedScanResetCard, NeedWriteResetCard -> stringsLocator.getString(
+                    StringsLocator.ID.RESET_CODES_MESSAGE_TITLE_RESTORE
+                )
+                NeedScanConfirmationCard -> stringsLocator.getString(StringsLocator.ID.RESET_CODES_MESSAGE_TITLE_BACKUP)
                 NeedCode -> ""
-                Finished -> stringsLocator.getString(StringsLocator.ID.common_success)
+                Finished -> stringsLocator.getString(StringsLocator.ID.COMMON_SUCCESS)
             }
         }
 
         fun getMessageBody(stringsLocator: StringsLocator): String {
             return when (this) {
-                NeedScanResetCard -> stringsLocator.getString(StringsLocator.ID.reset_codes_message_body_restore)
-                NeedWriteResetCard -> stringsLocator.getString(StringsLocator.ID.reset_codes_message_body_restore_final)
-                NeedScanConfirmationCard -> stringsLocator.getString(StringsLocator.ID.reset_codes_message_body_backup)
+                NeedScanResetCard -> stringsLocator.getString(StringsLocator.ID.RESET_CODES_MESSAGE_BODY_RESTORE)
+                NeedWriteResetCard -> stringsLocator.getString(StringsLocator.ID.RESET_CODES_MESSAGE_BODY_RESTORE_FINAL)
+                NeedScanConfirmationCard -> stringsLocator.getString(StringsLocator.ID.RESET_CODES_MESSAGE_BODY_BACKUP)
                 NeedCode -> ""
-                Finished -> stringsLocator.getString(StringsLocator.ID.reset_codes_success_message)
+                Finished -> stringsLocator.getString(StringsLocator.ID.RESET_CODES_SUCCESS_MESSAGE)
             }
         }
-
     }
 }
-
 
 data class ResetPinRepo(
     val confirmationCard: ConfirmationCard? = null,
@@ -263,7 +258,6 @@ class ResetPinCard(
     val isAccessCodeSet: Boolean,
     val isPasscodeSet: Boolean,
 ) : CommandResponse
-
 
 class ConfirmationCard(
     val cardId: String,

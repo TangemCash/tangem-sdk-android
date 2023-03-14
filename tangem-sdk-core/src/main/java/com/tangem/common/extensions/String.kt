@@ -18,16 +18,14 @@ fun String.calculateSha512(): ByteArray {
     return sha.digest(data)
 }
 
+@Suppress("MagicNumber")
 fun String.hexToBytes(): ByteArray {
-    return ByteArray(this.length / 2)
-    { i ->
+    return ByteArray(this.length / 2) { i ->
         Integer.parseInt(this.substring(2 * i, 2 * i + 2), 16).toByte()
     }
 }
 
 fun String.toSnakeCase(): String = replace("(?<=.)(?=\\p{Upper})".toRegex(), "_")
-
-fun String.toCamelCase(): String = split('_').joinToString("", transform = String::capitalize)
 
 fun String.titleFormatted(symbol: String = "=", maxLength: Int = 50): String {
     val quotesSize = (maxLength - this.length) / 2

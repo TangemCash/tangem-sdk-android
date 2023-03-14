@@ -72,6 +72,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
         return list.map { decodeTlv(it) }
     }
 
+    @Suppress("LongMethod", "ComplexMethod")
     inline fun <reified T> decodeTlv(tlv: Tlv): T {
         val tag = tlv.tag
         val tlvValue: ByteArray = tlv.value
@@ -129,8 +130,10 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     typeCheck<T, Card.SettingsMask>(tag, false)
                     Card.SettingsMask(tlvValue.toInt()) as T
                 } catch (ex: TangemSdkError.DecodingFailedTypeMismatch) {
-                    Log.warning { "Type of SettingsMask is not Card.SettingsMask type. " +
-                            "Trying to check CardWallet.SettingsMask" }
+                    Log.warning {
+                        "Type of SettingsMask is not Card.SettingsMask type. " +
+                            "Trying to check CardWallet.SettingsMask"
+                    }
                     typeCheck<T, CardWallet.SettingsMask>(tag)
                     CardWallet.SettingsMask(tlvValue.toInt()) as T
                 }
@@ -141,8 +144,10 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     Card.Status.byCode(tlvValue.toInt()) as T
                 } catch (ex: TangemSdkError.DecodingFailedTypeMismatch) {
                     try {
-                        Log.warning { "Type of Status is not Card.Status type. " +
-                                "Trying to check CardWallet.Status" }
+                        Log.warning {
+                            "Type of Status is not Card.Status type. " +
+                                "Trying to check CardWallet.Status"
+                        }
                         typeCheck<T, CardWallet.Status>(tag)
                         CardWallet.Status.byCode(tlvValue.toInt()) as T
                     } catch (ex: Exception) {
@@ -204,7 +209,6 @@ class TlvDecoder(val tlvList: List<Tlv>) {
 
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag, logError: Boolean = true) {
         if (T::class != ExpectedT::class) {
-
             val error = TangemSdkError.DecodingFailedTypeMismatch(
                 "Decoder: type check failed for tag: " +
                     "$tag must be ${tag.valueType()}. It is ${T::class}"
@@ -212,9 +216,5 @@ class TlvDecoder(val tlvList: List<Tlv>) {
             if (logError) Log.error { error.customMessage }
             throw error
         }
-    }
-
-    inline fun <reified T, reified ExpectedT> typeCheckWithoutError(tag: TlvTag): Boolean {
-        return T::class == ExpectedT::class
     }
 }

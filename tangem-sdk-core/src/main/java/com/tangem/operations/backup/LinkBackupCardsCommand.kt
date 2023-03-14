@@ -116,7 +116,7 @@ class LinkBackupCardsCommand(
         environment: SessionEnvironment,
         apdu: ResponseApdu,
     ): LinkBackupCardsResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -126,4 +126,3 @@ class LinkBackupCardsCommand(
         )
     }
 }
-

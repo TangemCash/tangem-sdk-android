@@ -36,8 +36,9 @@ class UserCodeRepository(
     private val cardIdToUserCode: HashMap<String, UserCode> = hashMapOf()
 
     suspend fun unlock(): CompletionResult<Unit> {
-        if (!biometricManager.canAuthenticate)
+        if (!biometricManager.canAuthenticate) {
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
+        }
 
         val cardIdToUserCodeInternal = getCardsIds()
             .associateWith { cardId ->
@@ -69,11 +70,13 @@ class UserCodeRepository(
     }
 
     suspend fun save(cardsIds: Set<String>, userCode: UserCode): CompletionResult<Unit> {
-        if (!biometricManager.canAuthenticate)
+        if (!biometricManager.canAuthenticate) {
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
+        }
 
-        if (!updateCodesIfNeeded(cardsIds, userCode))
+        if (!updateCodesIfNeeded(cardsIds, userCode)) {
             return CompletionResult.Success(Unit) // Nothing changed. Return
+        }
 
         return saveUserCode(cardsIds, userCode)
             .map { saveCardsIds() }
