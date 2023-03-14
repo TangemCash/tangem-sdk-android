@@ -1,14 +1,14 @@
 apply from: '../artifactConfig.gradle'
 apply plugin: 'maven-publish'
 
-afterEvaluate {
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                groupId = "$artifactConfig.group"
-                artifactId = "$project.artifactId"
-                version = "$artifactConfig.version"
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = "$artifactConfig.group"
+            artifactId = "$project.artifactId"
+            version = "$artifactConfig.version"
 
+            afterEvaluate {
                 if (artifactId == "android") {
                     from components.release
                     artifact(sourceJar)
@@ -28,13 +28,14 @@ afterEvaluate {
                 }
             }
         }
-        repositories {
-            maven {
-                url = "https://nexus.tangem-tech.com/repository/maven-releases"
-                credentials {
-                    username = "$nexusUser"
-                    password = "$nexusPass"
-                }
+    }
+
+    repositories {
+        maven {
+            url = "https://nexus.tangem-tech.com/repository/maven-releases"
+            credentials {
+                username = "$nexusUser"
+                password = "$nexusPass"
             }
         }
     }
