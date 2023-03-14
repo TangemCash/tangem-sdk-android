@@ -60,7 +60,7 @@ fun ByteArray.calculateSha256(): ByteArray = MessageDigest.getInstance("SHA-256"
 fun ByteArray.calculateRipemd160(): ByteArray {
     val digest = RIPEMD160Digest()
     digest.update(this, 0, this.size)
-    val out = ByteArray(20)
+    val out = ByteArray(size = 20)
     digest.doFinal(out, 0)
     return out
 }
