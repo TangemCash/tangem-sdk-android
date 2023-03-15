@@ -20,7 +20,11 @@ platform :android do
   desc "Runs all the tests"
   lane :test do
     gradle(
-	  tasks: [":tangem-sdk-core:test", ":tangem-sdk-android:test", ":tangem-sdk-android-demo:test"])
+      task: "clean assemble",
+      build_type: "Debug"
+    )
+    gradle(task: "detekt")
+    gradle(tasks: [":tangem-sdk-core:test", ":tangem-sdk-android:test", ":tangem-sdk-android-demo:test"])
   end
 
 end
