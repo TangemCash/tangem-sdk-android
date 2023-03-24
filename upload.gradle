@@ -1,40 +1,50 @@
 apply from: '../artifactConfig.gradle'
 apply plugin: 'maven-publish'
 
-afterEvaluate {
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                groupId = "$artifactConfig.group"
-                artifactId = "$project.artifactId"
-                version = "$artifactConfig.version"
+publishing {
+    publications {
+        android(MavenPublication) {
+            groupId = "$artifactConfig.group"
+            artifactId = "$project.artifactId"
+            version = "$artifactConfig.version"
 
+            afterEvaluate {
                 if (artifactId == "android") {
                     from components.release
-                    artifact(sourceJar)
+                }
 
-                    pom.withXml {
-                        Node pomNode = asNode()
-                        pomNode.dependencies.'*'.findAll() {
-                            it.groupId.text() == artifactConfig.group
-                        }.each() { it.parent().remove(it) }
+                pom.withXml {
+                    Node pomNode = asNode()
+                    pomNode.dependencies.'*'.findAll() {
+                        it.groupId.text() == artifactConfig.group
+                    }.each() { it.parent().remove(it) }
 
-                        pomNode.dependencies.'*'.findAll() {
-                            it.scope.text() == 'runtime'
-                        }.each { it.scope*.value = 'compile' }
-                    }
-                } else {
+                    pomNode.dependencies.'*'.findAll() {
+                        it.scope.text() == 'runtime'
+                    }.each { it.scope*.value = 'compile' }
+                }
+            }
+        }
+
+        core(MavenPublication) {
+            groupId = "$artifactConfig.group"
+            artifactId = "$project.artifactId"
+            version = "$artifactConfig.version"
+
+            afterEvaluate {
+                if (artifactId == "core") {
                     from components.java
                 }
             }
         }
-        repositories {
-            maven {
-                url = "https://nexus.tangem-tech.com/repository/maven-releases"
-                credentials {
-                    username = "$nexusUser"
-                    password = "$nexusPass"
-                }
+    }
+
+    repositories {
+        maven {
+            url = "https://nexus.tangem-tech.com/repository/maven-releases"
+            credentials {
+                username = "$nexusUser"
+                password = "$nexusPass"
             }
         }
     }
