@@ -1,1 +1,1 @@
-* d23af95f - (HEAD -> release/3.7.1, origin/AND-3197-fix-artifact-loading, AND-3197-fix-artifact-loading) AND-3197 Fix a Card SDK's issue with artifact loading
+* 8ad8938e - (HEAD -> release/3.7.1, origin/AND-3267_fix_uploading_aars, AND-3267_fix_uploading_aars) AND-3267 fix build aar (disabled jvm module)
