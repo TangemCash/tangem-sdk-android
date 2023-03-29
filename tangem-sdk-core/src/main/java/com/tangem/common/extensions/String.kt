@@ -38,3 +38,37 @@ fun String.remove(vararg symbols: String): String {
     symbols.forEach { newString = newString.replace(it, "") }
     return newString
 }
+
+fun String.leadingZeroPadding(newLength: Int): String {
+    if (length >= newLength) return this
+    val prefix = StringBuilder()
+    repeat(newLength - length) {
+        prefix.append("0")
+    }
+    return prefix.append(this).toString()
+}
+
+/**
+ * Converts binary [String] to [ByteArray]
+ *
+ */
+@Suppress("MagicNumber")
+fun String.binaryToByteArray(): ByteArray? {
+    if (this.length % BYTE_SIZE != 0) return null
+
+    val binaryBytes = this.chunked(BYTE_SIZE)
+
+    val bytes = ByteArray(this.length / BYTE_SIZE)
+
+    binaryBytes.forEachIndexed { i, binaryByte ->
+        val byte = try {
+            binaryByte.toByte(2)
+        } catch (e: NumberFormatException) {
+            return null
+        }
+        bytes[i] = byte
+    }
+    return bytes
+}
+
+private const val BYTE_SIZE = 8

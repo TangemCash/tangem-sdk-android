@@ -10,12 +10,11 @@ import kotlin.experimental.xor
 import kotlin.math.min
 import kotlin.math.pow
 
-class Pbkdf2 {
-    private val f: HMac = HMac(SHA256Digest())
+class Pbkdf2(private val hMac: HMac = HMac(SHA256Digest())) {
 
     @Suppress("MagicNumber")
     fun deriveKey(password: ByteArray, salt: ByteArray, iterations: Int): ByteArray {
-        val macSize = f.macSize
+        val macSize = hMac.macSize
         // Check key length
         if (macSize > (2.0.pow(32.0) - 1) * macSize) throw InvalidKeyException("Derived key to long")
 
@@ -29,26 +28,26 @@ class Pbkdf2 {
 
         // Initialize F
         val macParams: CipherParameters = KeyParameter(password)
-        f.init(macParams)
+        hMac.init(macParams)
 
         // Perform iterations
         var kpos = 0
         var blk = 1
         while (kpos < macSize) {
             storeInt32BE(blk, workingArray, b)
-            f.update(salt, 0, salt.size)
-            f.reset()
-            f.update(salt, 0, salt.size)
-            f.update(workingArray, b, 4)
-            f.doFinal(workingArray, u)
+            hMac.update(salt, 0, salt.size)
+            hMac.reset()
+            hMac.update(salt, 0, salt.size)
+            hMac.update(workingArray, b, 4)
+            hMac.doFinal(workingArray, u)
             System.arraycopy(workingArray, u, workingArray, j, k)
             var i = 1
             var j = j
             var k = k
             while (i < iterations) {
-                f.init(macParams)
-                f.update(workingArray, j, k)
-                f.doFinal(workingArray, k)
+                hMac.init(macParams)
+                hMac.update(workingArray, j, k)
+                hMac.doFinal(workingArray, k)
                 var u = u
                 var v = k
                 while (u < b) {

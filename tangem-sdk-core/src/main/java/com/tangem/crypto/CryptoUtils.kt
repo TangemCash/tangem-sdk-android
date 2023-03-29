@@ -2,8 +2,10 @@ package com.tangem.crypto
 
 import com.tangem.common.KeyPair
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.TangemSdkError
 import net.i2p.crypto.eddsa.EdDSASecurityProvider
 import org.spongycastle.crypto.digests.SHA512Digest
+import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator
 import org.spongycastle.crypto.macs.HMac
 import org.spongycastle.crypto.params.KeyParameter
 import org.spongycastle.jce.provider.BouncyCastleProvider
@@ -158,6 +160,14 @@ fun ByteArray.decrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
 
 fun ByteArray.pbkdf2Hash(salt: ByteArray, iterations: Int): ByteArray {
     return Pbkdf2().deriveKey(this, salt, iterations)
+}
+
+@Throws(TangemSdkError.KeyGenerationException::class)
+fun ByteArray.pbkdf2sha512(salt: ByteArray, iterations: Int, keyByteCount: Int = 64): ByteArray {
+    val generator = PKCS5S2ParametersGenerator(SHA512Digest())
+    generator.init(this, salt, iterations)
+    val key = generator.generateDerivedMacParameters(keyByteCount) as? KeyParameter
+    return key?.key ?: throw TangemSdkError.KeyGenerationException(customMessage = "pbkdf2sha512 generation")
 }
 
 fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
