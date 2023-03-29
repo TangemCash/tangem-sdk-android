@@ -104,6 +104,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.UserCanceledBiometricsAuthentication -> null
         is TangemSdkError.EncryptionOperationFailed -> null
         is TangemSdkError.InvalidEncryptionKey -> null
+        is TangemSdkError.KeyGenerationException -> null
+        is TangemSdkError.MnemonicException -> null
     }
 
     return if (resId == null) {

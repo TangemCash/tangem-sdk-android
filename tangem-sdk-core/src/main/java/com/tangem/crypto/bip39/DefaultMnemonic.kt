@@ -1,23 +1,30 @@
 package com.tangem.crypto.bip39
 
+import com.tangem.common.CompletionResult
+import com.tangem.common.core.TangemSdkError
+
 class DefaultMnemonic : Mnemonic {
 
-    val mnemonicComponents: List<String>
-    val wordlist: Wordlist
+    override val mnemonicComponents: List<String>
+    override val wordlist: Wordlist
 
-    @Suppress("UnusedPrivateMember")
+    private val bip39 = DefaultBIP39()
+
+    init {
+        wordlist = bip39.wordlist
+    }
+
+    @Throws(TangemSdkError.MnemonicException::class)
     constructor(mnemonic: String) {
-        mnemonicComponents = emptyList()
-        wordlist = BIP39Wordlist()
+        mnemonicComponents = bip39.parse(mnemonic)
     }
 
-    @Suppress("UnusedPrivateMember")
+    @Throws(TangemSdkError.MnemonicException::class)
     constructor(entropy: EntropyLength, wordlist: Wordlist) {
-        mnemonicComponents = emptyList()
-        this.wordlist = wordlist
+        mnemonicComponents = bip39.generateMnemonic(entropy, wordlist)
     }
 
-    override fun generateSeed(passphrase: String): ByteArray {
-        TODO("Not yet implemented")
+    override fun generateSeed(passphrase: String): CompletionResult<ByteArray> {
+        return bip39.generateSeed(mnemonicComponents, passphrase)
     }
 }

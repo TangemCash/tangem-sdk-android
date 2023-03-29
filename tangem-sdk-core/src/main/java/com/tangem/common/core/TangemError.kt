@@ -3,6 +3,7 @@ package com.tangem.common.core
 import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.StatusWord
 import com.tangem.common.card.Card
+import com.tangem.crypto.bip39.MnemonicErrorResult
 import com.tangem.operations.ScanTask
 import com.tangem.operations.read.ReadCommand
 import java.security.InvalidKeyException
@@ -349,6 +350,9 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
         val isKeyRegenerated: Boolean,
     ) : TangemSdkError(code = 50021)
 
+    class KeyGenerationException(override var customMessage: String) : TangemSdkError(code = 50022)
+
+    class MnemonicException(val mnemonicResult: MnemonicErrorResult) : TangemSdkError(code = 50023)
     /**
      * Get error according to the pin type
      * @param userCodeType: Specific user code type

@@ -4,8 +4,7 @@ import com.tangem.crypto.CryptoUtils
 import org.spongycastle.crypto.digests.RIPEMD160Digest
 import java.nio.ByteBuffer
 import java.security.MessageDigest
-import java.util.Calendar
-import java.util.Date
+import java.util.*
 import kotlin.experimental.and
 import kotlin.experimental.xor
 
@@ -107,3 +106,27 @@ data class ByteArrayKey(val bytes: ByteArray) {
 }
 
 fun ByteArray.toMapKey(): ByteArrayKey = ByteArrayKey(this)
+
+/**
+ * Transforms array of bytes to string representation of bits ["1", "0", ...]
+ */
+fun ByteArray.toBits(): List<String> {
+    return this.flatMap {
+        it.toBits()
+    }
+}
+
+/**
+ * Transforms byte to string representation of bits ["1", "0", ...]
+ */
+@Suppress("MagicNumber")
+fun Byte.toBits(): List<String> {
+    val totalBitsCount = 8
+    val value = this.toInt()
+    val bits = arrayOfNulls<String>(totalBitsCount)
+    for (index in 0 until totalBitsCount) {
+        bits[totalBitsCount - 1 - index] = if (value and (1 shl index) != 0) "1" else "0"
+    }
+
+    return bits.map { it ?: "0" }
+}
