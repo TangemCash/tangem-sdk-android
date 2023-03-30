@@ -113,5 +113,5 @@ class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {
 }
 
 class MockStringLocator : StringsLocator {
-    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any) = ""
+    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any, defaultValue: String) = ""
 }
