@@ -8,20 +8,20 @@ class DefaultMnemonic : Mnemonic {
     override val mnemonicComponents: List<String>
     override val wordlist: Wordlist
 
-    private val bip39 = DefaultBIP39()
-
-    init {
-        wordlist = bip39.wordlist
-    }
+    private val bip39: DefaultBIP39
 
     @Throws(TangemSdkError.MnemonicException::class)
-    constructor(mnemonic: String) {
+    constructor(mnemonic: String, wordlist: Wordlist) {
+        bip39 = DefaultBIP39(wordlist)
+        this.wordlist = bip39.wordlist
         mnemonicComponents = bip39.parse(mnemonic)
     }
 
     @Throws(TangemSdkError.MnemonicException::class)
     constructor(entropy: EntropyLength, wordlist: Wordlist) {
-        mnemonicComponents = bip39.generateMnemonic(entropy, wordlist)
+        bip39 = DefaultBIP39(wordlist)
+        this.wordlist = bip39.wordlist
+        mnemonicComponents = bip39.generateMnemonic(entropy)
     }
 
     override fun generateSeed(passphrase: String): CompletionResult<ByteArray> {
