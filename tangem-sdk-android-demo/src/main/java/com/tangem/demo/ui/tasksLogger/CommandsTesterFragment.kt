@@ -212,7 +212,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
     }
 
     class MockStringLocator : StringsLocator {
-        override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any) = ""
+        override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any, defaultValue: String) = ""
     }
 }
 

@@ -1,7 +1,14 @@
 package com.tangem.common
 
 interface StringsLocator {
-    fun getString(stringId: ID, vararg formatArgs: Any): String
+
+    /**
+     * Get string from resources
+     * @param stringId [ID] of string resource
+     * @param formatArgs string format arguments
+     * @param defaultValue value to be returned in case the string with [stringId] is not found
+     * */
+    fun getString(stringId: ID, vararg formatArgs: Any, defaultValue: String = ""): String
 
     enum class ID {
         BACKUP_PREPARE_PRIMARY_CARD_MESSAGE_FORMAT,
