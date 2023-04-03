@@ -166,7 +166,7 @@ fun ByteArray.pbkdf2Hash(salt: ByteArray, iterations: Int): ByteArray {
 fun ByteArray.pbkdf2sha512(salt: ByteArray, iterations: Int, keyByteCount: Int = 64): ByteArray {
     val generator = PKCS5S2ParametersGenerator(SHA512Digest())
     generator.init(this, salt, iterations)
-    val key = generator.generateDerivedMacParameters(keyByteCount) as? KeyParameter
+    val key = generator.generateDerivedMacParameters(keyByteCount * BYTE_SIZE) as? KeyParameter
     return key?.key ?: throw TangemSdkError.KeyGenerationException(customMessage = "pbkdf2sha512 generation")
 }
 
@@ -185,3 +185,4 @@ fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
 
 private const val ENCRYPTION_SPEC_PKCS7 = "AES/CBC/PKCS7PADDING"
 private const val ENCRYPTION_SPEC_NO_PADDING = "AES/CBC/NOPADDING"
+private const val BYTE_SIZE = 8

@@ -17,13 +17,11 @@ interface BIP39 {
 
     /** Generate a mnemonic.
      * @param entropyLength The  entropy length to use. Default is 128 bit.
-     * @param wordlist The wordlist to use. Default is english.
      * @return The generated mnemonic split to components
      */
     @Throws(TangemSdkError.MnemonicException::class)
     fun generateMnemonic(
         entropyLength: EntropyLength = EntropyLength.Bits128Length,
-        wordlist: Wordlist,
     ): List<String>
 
     /** Generate a deterministic  seed

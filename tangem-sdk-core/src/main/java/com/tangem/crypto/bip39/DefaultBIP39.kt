@@ -10,9 +10,7 @@ import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.pbkdf2sha512
 import java.text.Normalizer
 
-internal class DefaultBIP39 : BIP39 {
-
-    override val wordlist = BIP39Wordlist()
+internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
 
     override fun parse(mnemonicString: String): List<String> {
         val regex = Regex(pattern = "\\p{L}+")
@@ -25,11 +23,10 @@ internal class DefaultBIP39 : BIP39 {
     }
 
     override fun generateMnemonic(
-        entropyLength: EntropyLength,
-        wordlist: Wordlist,
+        entropyLength: EntropyLength
     ): List<String> {
-        // reminder of div by 32 should by 0
-        if (entropyLength.count % DIV_ARG == 0) {
+        // reminder of div by 32 should be 0
+        if (entropyLength.count % DIV_ARG != 0) {
             throw TangemSdkError.MnemonicException(MnemonicErrorResult.MnenmonicCreationFailed)
         }
 
@@ -55,10 +52,10 @@ internal class DefaultBIP39 : BIP39 {
         } catch (e: TangemSdkError.MnemonicException) {
             return CompletionResult.Failure(e)
         }
-        // todo check generation
         return CompletionResult.Success(normalizedMnemonic.pbkdf2sha512(salt = normalizedSalt, iterations = 2048))
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     @Throws(TangemSdkError.MnemonicException::class)
     private fun validate(mnemonicComponents: List<String>) {
         // Validate words count
@@ -107,7 +104,7 @@ internal class DefaultBIP39 : BIP39 {
 
         val entropyBitsCount = concatenatedBits.length - checksumBitsCount
         val entropyBits = concatenatedBits.take(entropyBitsCount)
-        val checksumBits = concatenatedBits.substring(concatenatedBits.length - checksumBitsCount)
+        val checksumBits = concatenatedBits.takeLast(checksumBitsCount)
 
         val entropyData = entropyBits.toString().binaryToByteArray()
             ?: throw TangemSdkError.MnemonicException(MnemonicErrorResult.InvalidChecksum)

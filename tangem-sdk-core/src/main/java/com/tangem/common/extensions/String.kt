@@ -52,17 +52,18 @@ fun String.leadingZeroPadding(newLength: Int): String {
  * Converts binary [String] to [ByteArray]
  *
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 @Suppress("MagicNumber")
-fun String.binaryToByteArray(): ByteArray? {
+fun String.binaryToByteArray(): UByteArray? {
     if (this.length % BYTE_SIZE != 0) return null
 
     val binaryBytes = this.chunked(BYTE_SIZE)
 
-    val bytes = ByteArray(this.length / BYTE_SIZE)
+    val bytes = UByteArray(this.length / BYTE_SIZE)
 
     binaryBytes.forEachIndexed { i, binaryByte ->
         val byte = try {
-            binaryByte.toByte(2)
+            binaryByte.toUByte(2)
         } catch (e: NumberFormatException) {
             return null
         }
