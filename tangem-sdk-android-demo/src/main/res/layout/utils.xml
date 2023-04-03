@@ -42,6 +42,12 @@
                 android:text="Reset to factory settings" />
 
             <Button
+                android:id="@+id/btnGetEntropy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Get entropy" />
+
+            <Button
                 android:id="@+id/btnCheckSetMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
