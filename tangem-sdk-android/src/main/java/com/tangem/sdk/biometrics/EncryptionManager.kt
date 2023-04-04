@@ -142,7 +142,7 @@ internal class EncryptionManager(
     private fun createMasterKeyGenParameterSpec(): KeyGenParameterSpec {
         return KeyGenParameterSpec.Builder(
             masterKeyAlias,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
         )
             .setKeySize(masterKeySize)
             .setBlockModes(masterKeyBlockMode)
@@ -159,7 +159,7 @@ internal class EncryptionManager(
                 .setInvalidatedByBiometricEnrollment(true)
                 .setUserAuthenticationParameters(
                     keyTimeoutSeconds,
-                    KeyProperties.AUTH_BIOMETRIC_STRONG
+                    KeyProperties.AUTH_BIOMETRIC_STRONG,
                 )
         } else {
             this.setUserAuthenticationValidityDurationSeconds(keyTimeoutSeconds)

@@ -12,7 +12,13 @@ import com.tangem.operations.ScanTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
-import com.tangem.operations.files.*
+import com.tangem.operations.files.ChangeFileSettingsTask
+import com.tangem.operations.files.DeleteFilesTask
+import com.tangem.operations.files.File
+import com.tangem.operations.files.FileVisibility
+import com.tangem.operations.files.ReadFilesTask
+import com.tangem.operations.files.WriteFilesResponse
+import com.tangem.operations.files.WriteFilesTask
 import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
@@ -24,7 +30,7 @@ import com.tangem.operations.sign.SignResponse
 import com.tangem.operations.wallet.CreateWalletResponse
 import com.tangem.operations.wallet.CreateWalletTask
 import com.tangem.operations.wallet.PurgeWalletCommand
-import java.util.*
+import java.util.Locale
 
 /**
  * Created by Anton Zhilenkov on 29/06/2021.

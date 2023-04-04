@@ -17,7 +17,7 @@ class BIP44(
         coinType,
         0,
         Chain.External,
-        0
+        0,
     )
 
     /**
@@ -41,6 +41,7 @@ class BIP44(
 
     enum class Chain(val index: Long) {
         External(0),
-        Internal(1);
+        Internal(1),
+        ;
     }
 }

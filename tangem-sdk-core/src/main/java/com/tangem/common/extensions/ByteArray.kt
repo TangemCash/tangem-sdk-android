@@ -86,14 +86,14 @@ fun ByteArray.calculateCrc16(): ByteArray {
         wCRC = wCRC
             .shr(bitCount = 8)
             .xor(
-                other = chBlockInt.and(other = 0xFF).shl(bitCount = 8)
+                other = chBlockInt.and(other = 0xFF).shl(bitCount = 8),
             )
             .and(other = 0xFFFF)
             .xor(
-                other = chBlockInt.and(other = 0xFF).shl(bitCount = 3).and(other = 0xFFFF)
+                other = chBlockInt.and(other = 0xFF).shl(bitCount = 3).and(other = 0xFFFF),
             )
             .xor(
-                other = chBlockInt.and(other = 0xFF).shr(bitCount = 4).and(other = 0xFFFF)
+                other = chBlockInt.and(other = 0xFF).shr(bitCount = 4).and(other = 0xFFFF),
             )
         // (wCRC>>8)^((int)chBlock<<8)^((int) chBlock<<3)^((int)chBlock>>4);
     } while (i < this.size)

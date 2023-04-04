@@ -46,10 +46,7 @@ class ResetPinCommand(
         return CommandApdu(Instruction.SetPin, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): SuccessResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SuccessResponse {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 

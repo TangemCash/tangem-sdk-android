@@ -16,7 +16,7 @@ class Timer(
     val step: Long,
     val delayMs: Long = 1000L,
     private val withInitialDelay: Boolean = true,
-    private val dispatcher: CoroutineDispatcher
+    private val dispatcher: CoroutineDispatcher,
 ) {
 
     var onTick: ((Long) -> Unit)? = null

@@ -78,7 +78,7 @@ class AttestCardKeyCommand(
             cardId = decoder.decode(TlvTag.CardId),
             salt = decoder.decode(TlvTag.Salt),
             cardSignature = decoder.decode(TlvTag.CardSignature),
-            challenge = challenge!!
+            challenge = challenge!!,
         )
     }
 }

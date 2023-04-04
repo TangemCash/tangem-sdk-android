@@ -13,6 +13,6 @@ fun BackupService.Companion.init(sdk: TangemSdk, activity: ComponentActivity): B
     return BackupService(
         sdk,
         BackupRepo(SecureStorage.create(activity), MoshiJsonConverter.INSTANCE),
-        AndroidStringLocator(activity)
+        AndroidStringLocator(activity),
     )
 }

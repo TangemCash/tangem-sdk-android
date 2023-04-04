@@ -19,7 +19,7 @@ enum class NfcLocation(
         orientation = 0,
         x = 0.40f,
         y = 0.50f,
-        z = 0
+        z = 0,
     ),
     Model7(codename = "ZS620KL", fullName = "Asus ZenFone 5Z", orientation = 0, x = 0.70f, y = 0.20f, z = 0),
     Model8(codename = "ZS621KL", fullName = "Asus ZenFone 5Z", orientation = 0, x = 0.70f, y = 0.20f, z = 0),
@@ -78,7 +78,7 @@ enum class NfcLocation(
         orientation = 0,
         x = 0.40f,
         y = 0.00f,
-        z = 0
+        z = 0,
     ),
     Model59(codename = "angler", fullName = "Huawei Nexus 6P", orientation = 0, x = 0.40f, y = 0.15f, z = 0),
     Model60(codename = "HWFIG-H", fullName = "Huawei P Smart", orientation = 0, x = 0.45f, y = 0.00f, z = 0),
@@ -208,7 +208,7 @@ enum class NfcLocation(
         orientation = 1,
         x = 0.65f,
         y = 0.45f,
-        z = 0
+        z = 0,
     ),
     Model182(codename = "a50s", fullName = "Samsung Galaxy A50s", orientation = 0, x = 0.55f, y = 0.20f, z = 0),
     Model183(codename = "a60q", fullName = "Samsung Galaxy A60", orientation = 0, x = 0.50f, y = 0.30f, z = 0),
@@ -218,7 +218,7 @@ enum class NfcLocation(
         orientation = 1,
         x = 0.60f,
         y = 0.40f,
-        z = 0
+        z = 0,
     ),
     Model185(
         codename = "a7y18lte",
@@ -226,7 +226,7 @@ enum class NfcLocation(
         orientation = 0,
         x = 0.40f,
         y = 0.20f,
-        z = 0
+        z = 0,
     ),
     Model186(codename = "a70q", fullName = "Samsung Galaxy A70", orientation = 0, x = 0.50f, y = 0.20f, z = 0),
     Model187(
@@ -235,7 +235,7 @@ enum class NfcLocation(
         orientation = 1,
         x = 0.50f,
         y = 0.50f,
-        z = 0
+        z = 0,
     ),
     Model188(codename = "a8", fullName = "Samsung Galaxy A8 / A8 (2016)", orientation = 0, x = 0.50f, y = 0.15f, z = 0),
     Model189(codename = "jackpot2lte", fullName = "Samsung Galaxy A8+", orientation = 1, x = 0.50f, y = 0.45f, z = 0),
@@ -247,7 +247,7 @@ enum class NfcLocation(
         orientation = 1,
         x = 0.50f,
         y = 0.45f,
-        z = 0
+        z = 0,
     ),
     Model193(
         codename = "a9y18qlte",
@@ -255,7 +255,7 @@ enum class NfcLocation(
         orientation = 0,
         x = 0.60f,
         y = 0.25f,
-        z = 0
+        z = 0,
     ),
     Model194(codename = "r3q", fullName = "Samsung Galaxy A90 5G", orientation = 0, x = 0.50f, y = 0.20f, z = 0),
     Model195(codename = "a9y18qltechn", fullName = "Samsung Galaxy A9s", orientation = 0, x = 0.60f, y = 0.25f, z = 0),
@@ -267,7 +267,7 @@ enum class NfcLocation(
         orientation = 1,
         x = 0.45f,
         y = 0.15f,
-        z = 0
+        z = 0,
     ),
     Model199(codename = "c7ltechn", fullName = "Samsung Galaxy C7", orientation = 0, x = 0.50f, y = 0.15f, z = 0),
     Model200(codename = "c7prolte", fullName = "Samsung Galaxy C7 Pro", orientation = 1, x = 0.50f, y = 0.15f, z = 0),
@@ -281,7 +281,7 @@ enum class NfcLocation(
         orientation = 1,
         x = 0.60f,
         y = 0.50f,
-        z = 0
+        z = 0,
     ),
     Model206(codename = "j6lte", fullName = "Samsung Galaxy J6", orientation = 1, x = 0.60f, y = 0.50f, z = 0),
     Model207(codename = "j7y17lte", fullName = "Samsung Galaxy J7 Pro", orientation = 1, x = 0.40f, y = 0.50f, z = 0),
@@ -328,7 +328,7 @@ enum class NfcLocation(
         orientation = 1,
         x = 0.45f,
         y = 0.55f,
-        z = 0
+        z = 0,
     ),
     Model246(codename = "SCV33", fullName = "Samsung Galaxy S7 Edge", orientation = 1, x = 0.50f, y = 0.45f, z = 0),
     Model247(codename = "SC-02H", fullName = "Samsung Galaxy S7 Edge", orientation = 1, x = 0.50f, y = 0.45f, z = 0),
@@ -343,7 +343,7 @@ enum class NfcLocation(
         orientation = 0,
         x = 0.50f,
         y = 0.50f,
-        z = 0
+        z = 0,
     ),
     Model254(codename = "SCV35", fullName = "Samsung Galaxy S8+", orientation = 0, x = 0.50f, y = 0.45f, z = 0),
     Model255(codename = "SC-03J", fullName = "Samsung Galaxy S8+", orientation = 0, x = 0.50f, y = 0.45f, z = 0),
@@ -469,7 +469,7 @@ enum class NfcLocation(
         orientation = 0,
         x = 0.50f,
         y = 0.40f,
-        z = 0
+        z = 0,
     ),
     Model373(codename = "cepheus", fullName = "Xiaomi MI 9", orientation = 0, x = 0.40f, y = 0.00f, z = 0),
     Model374(codename = "grus", fullName = "Xiaomi MI 9 SE", orientation = 0, x = 0.40f, y = 0.00f, z = 0),

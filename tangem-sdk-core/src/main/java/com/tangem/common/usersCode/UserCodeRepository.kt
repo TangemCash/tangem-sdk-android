@@ -62,10 +62,7 @@ class UserCodeRepository(
         cardIdToUserCode.clear()
     }
 
-    suspend fun save(
-        cardId: String,
-        userCode: UserCode,
-    ): CompletionResult<Unit> {
+    suspend fun save(cardId: String, userCode: UserCode): CompletionResult<Unit> {
         return save(setOf(cardId), userCode)
     }
 

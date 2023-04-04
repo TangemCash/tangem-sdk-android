@@ -20,9 +20,7 @@ interface BIP39 {
      * @return The generated mnemonic split to components
      */
     @Throws(TangemSdkError.MnemonicException::class)
-    fun generateMnemonic(
-        entropyLength: EntropyLength = EntropyLength.Bits128Length,
-    ): List<String>
+    fun generateMnemonic(entropyLength: EntropyLength = EntropyLength.Bits128Length): List<String>
 
     /** Generate a deterministic  seed
      *  @param mnemonicComponents The mnemonic to use

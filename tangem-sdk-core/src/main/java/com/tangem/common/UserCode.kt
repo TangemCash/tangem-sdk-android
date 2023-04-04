@@ -21,7 +21,8 @@ class UserCode constructor(
 
 enum class UserCodeType(val defaultValue: String) {
     AccessCode(UserCode.DefaultAccessCode),
-    Passcode(UserCode.DefaultPasscode);
+    Passcode(UserCode.DefaultPasscode),
+    ;
 
     fun isWrongPinEntered(environment: SessionEnvironment?): Boolean {
         environment ?: return false

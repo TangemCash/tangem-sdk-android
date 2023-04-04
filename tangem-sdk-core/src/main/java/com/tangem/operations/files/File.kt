@@ -61,7 +61,7 @@ data class File(
                     counter = null,
                     signature = null,
                     index = response.fileIndex,
-                    settings = settings
+                    settings = settings,
                 )
             } else {
                 File(
@@ -70,7 +70,7 @@ data class File(
                     counter = namedFile.counter,
                     signature = namedFile.signature,
                     index = response.fileIndex,
-                    settings = settings
+                    settings = settings,
                 )
             }
         }

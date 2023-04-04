@@ -70,8 +70,8 @@ class WriteBackupDataCommand(
                             session.environment.card = session.environment.card?.copy(
                                 backupStatus = Card.BackupStatus.from(
                                     rawStatus = result.data.backupStatus,
-                                    cardsCount = backupStatus.cardCount
-                                )
+                                    cardsCount = backupStatus.cardCount,
+                                ),
                             )
                         }
                         callback(CompletionResult.Success(result.data))
@@ -96,10 +96,7 @@ class WriteBackupDataCommand(
         return CommandApdu(Instruction.WriteBackupData, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): WriteBackupDataResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): WriteBackupDataResponse {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
@@ -107,7 +104,7 @@ class WriteBackupDataCommand(
 
         return WriteBackupDataResponse(
             cardId = decoder.decode(TlvTag.CardId),
-            backupStatus = decoder.decode(TlvTag.BackupStatus)
+            backupStatus = decoder.decode(TlvTag.BackupStatus),
         )
     }
 }

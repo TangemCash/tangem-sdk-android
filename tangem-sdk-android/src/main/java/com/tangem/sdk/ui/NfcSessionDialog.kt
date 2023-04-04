@@ -70,7 +70,7 @@ class NfcSessionDialog(
         pinCodeRequestWidget = PinCodeRequestWidget(view.findViewById(R.id.csPinCode))
         pinCodeSetChangeWidget = PinCodeModificationWidget(
             view.findViewById(R.id.llChangePin),
-            PinCodeModificationWidget.Mode.SET
+            PinCodeModificationWidget.Mode.SET,
         )
         messageWidget = MessageWidget(view.findViewById(R.id.llMessage))
         howToTapWidget = HowToTapWidget(howToContainer, nfcManager, nfcLocationProvider)

@@ -79,11 +79,7 @@ interface SessionViewDelegate {
 
     fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback)
 
-    fun attestationCompletedOffline(
-        positive: VoidCallback,
-        negative: VoidCallback,
-        retry: VoidCallback,
-    )
+    fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback)
 
     fun attestationCompletedWithWarnings(positive: VoidCallback)
 }

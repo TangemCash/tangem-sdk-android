@@ -17,7 +17,7 @@ import com.tangem.operations.CommandResponse
 @JsonClass(generateAdapter = true)
 class WriteFilesResponse(
     val cardId: String,
-    val filesIndices: List<Int>
+    val filesIndices: List<Int>,
 ) : CommandResponse
 
 /**

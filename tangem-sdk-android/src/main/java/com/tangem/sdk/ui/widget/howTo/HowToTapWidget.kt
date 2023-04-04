@@ -74,10 +74,14 @@ class HowToTapWidget constructor(
         return when (mode) {
             HowToMode.KNOWN -> {
                 val view = layoutInflater.inflate(R.layout.how_to_known, null)
-                NfcKnownWidget(view, nfcLocation!!, onSwitch = {
-                    currentMode = HowToMode.UNKNOWN
-                    setState(SessionViewDelegateState.HowToTap)
-                })
+                NfcKnownWidget(
+                    mainView = view,
+                    nfcLocation = nfcLocation!!,
+                    onSwitch = {
+                        currentMode = HowToMode.UNKNOWN
+                        setState(SessionViewDelegateState.HowToTap)
+                    },
+                )
             }
             HowToMode.UNKNOWN -> {
                 NfcUnknownWidget(layoutInflater.inflate(R.layout.how_to_unknown, null))

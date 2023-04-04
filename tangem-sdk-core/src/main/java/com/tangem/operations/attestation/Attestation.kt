@@ -59,7 +59,7 @@ data class Attestation(
                 statusList[0],
                 statusList[1],
                 statusList[2],
-                statusList[3]
+                statusList[3],
             ).apply { this.index = index }
         }
     }
@@ -69,7 +69,8 @@ data class Attestation(
         Warning(intRepresentation = 1),
         Skipped(intRepresentation = 2),
         VerifiedOffline(intRepresentation = 3),
-        Verified(intRepresentation = 4);
+        Verified(intRepresentation = 4),
+        ;
 
         companion object {
             fun fromInt(intRepresentation: Int): Status? {

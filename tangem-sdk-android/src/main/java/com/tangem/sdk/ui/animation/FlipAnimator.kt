@@ -64,7 +64,7 @@ class FlipAnimator(
                 frontView.flipEnd(duration),
                 frontView.wiggleToRight(duration),
                 backView.flipStart(duration),
-                backView.wiggleToRight(duration)
+                backView.wiggleToRight(duration),
             )
         }
     }
@@ -75,7 +75,7 @@ class FlipAnimator(
                 frontView.flipStart(duration),
                 frontView.wiggleToRight(duration),
                 backView.flipEnd(duration),
-                backView.wiggleToRight(duration)
+                backView.wiggleToRight(duration),
             )
         }
     }

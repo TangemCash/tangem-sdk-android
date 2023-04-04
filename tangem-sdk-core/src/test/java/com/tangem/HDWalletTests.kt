@@ -70,13 +70,15 @@ class HDWalletTests {
         val derivationPath = DerivationPath("m / 44' / 0' / 0' / 1 / 0")
         val derivationPath1 = DerivationPath("m/44'/0'/0'/1/0")
         val derivationPath2 = DerivationPath("M/44'/0'/0'/1/0")
-        val derivationPath3 = DerivationPath(listOf(
-            DerivationNode.Hardened(44),
-            DerivationNode.Hardened(0),
-            DerivationNode.Hardened(0),
-            DerivationNode.NonHardened(1),
-            DerivationNode.NonHardened(0)
-        ))
+        val derivationPath3 = DerivationPath(
+            listOf(
+                DerivationNode.Hardened(44),
+                DerivationNode.Hardened(0),
+                DerivationNode.Hardened(0),
+                DerivationNode.NonHardened(1),
+                DerivationNode.NonHardened(0),
+            ),
+        )
         assertEquals(derivationPath, derivationPath1)
         assertEquals(derivationPath, derivationPath2)
         assertEquals(derivationPath, derivationPath3)

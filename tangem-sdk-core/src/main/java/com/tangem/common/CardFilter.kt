@@ -13,7 +13,7 @@ class CardFilter(
      */
     var allowedCardTypes: List<FirmwareVersion.FirmwareType> = listOf(
         FirmwareVersion.FirmwareType.Release,
-        FirmwareVersion.FirmwareType.Sdk
+        FirmwareVersion.FirmwareType.Sdk,
     ),
 
     /**

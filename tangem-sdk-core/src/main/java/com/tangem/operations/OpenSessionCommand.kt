@@ -13,7 +13,7 @@ import com.tangem.common.tlv.TlvTag
 @JsonClass(generateAdapter = true)
 class OpenSessionResponse(
     val sessionKeyB: ByteArray,
-    val uid: ByteArray
+    val uid: ByteArray,
 ) : CommandResponse
 
 /**
@@ -22,7 +22,7 @@ class OpenSessionResponse(
  * to encrypt and decrypt commands’ payload.
  */
 class OpenSessionCommand(
-    private val sessionKeyA: ByteArray
+    private val sessionKeyA: ByteArray,
 ) : ApduSerializable<OpenSessionResponse> {
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {

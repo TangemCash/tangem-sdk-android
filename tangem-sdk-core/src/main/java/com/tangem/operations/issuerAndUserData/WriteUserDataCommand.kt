@@ -29,7 +29,7 @@ class WriteUserDataCommand(
     private val userData: ByteArray? = null,
     private val userProtectedData: ByteArray? = null,
     private val userCounter: Int? = null,
-    private val userProtectedCounter: Int? = null
+    private val userProtectedCounter: Int? = null,
 ) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = true

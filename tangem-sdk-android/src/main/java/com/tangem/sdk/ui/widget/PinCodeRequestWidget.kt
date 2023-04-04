@@ -61,11 +61,11 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
                     when (params.type) {
                         UserCodeType.AccessCode -> String.format(
                             TangemSdkError.WrongAccessCode().localizedDescription(mainView.context),
-                            mainView.context.getString(R.string.pin1)
+                            mainView.context.getString(R.string.pin1),
                         )
                         UserCodeType.Passcode -> String.format(
                             TangemSdkError.WrongPasscode().localizedDescription(mainView.context),
-                            mainView.context.getString(R.string.pin2)
+                            mainView.context.getString(R.string.pin2),
                         )
                     }
                 }

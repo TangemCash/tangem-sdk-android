@@ -71,7 +71,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 val bodyMessage = mainView.context.getString(
                     R.string.error_message,
                     getString(R.string.error_wrong_card),
-                    description
+                    description,
                 )
 
                 setText(tvTaskMessage, bodyMessage)

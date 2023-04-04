@@ -8,11 +8,11 @@ import com.tangem.crypto.CryptoUtils
  */
 class KeyPair(
     val publicKey: ByteArray,
-    val privateKey: ByteArray
+    val privateKey: ByteArray,
 ) {
 
     constructor(
         privateKey: ByteArray,
-        curve: EllipticCurve = EllipticCurve.Secp256k1
+        curve: EllipticCurve = EllipticCurve.Secp256k1,
     ) : this(CryptoUtils.generatePublicKey(privateKey, curve), privateKey)
 }

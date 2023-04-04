@@ -21,7 +21,7 @@ import com.tangem.operations.Command
  * @property walletPublicKey: Public key of the wallet to delete
  */
 class PurgeWalletCommand(
-    private val walletPublicKey: ByteArray
+    private val walletPublicKey: ByteArray,
 ) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = true

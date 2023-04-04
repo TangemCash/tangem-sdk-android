@@ -28,9 +28,9 @@ class MultiMessageTask : CardSessionRunnable<SignHashResponse> {
                     callback(
                         CompletionResult.Failure(
                             TangemSdkError.ExceptionError(
-                                Throwable("Test error message")
-                            )
-                        )
+                                Throwable("Test error message"),
+                            ),
+                        ),
                     )
                 }
                 is CompletionResult.Failure -> {

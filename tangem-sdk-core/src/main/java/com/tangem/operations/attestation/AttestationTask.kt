@@ -63,7 +63,7 @@ class AttestationTask(
                     } else {
                         // Continue attestation
                         currentAttestationStatus = currentAttestationStatus.copy(
-                            cardKeyAttestation = Attestation.Status.VerifiedOffline
+                            cardKeyAttestation = Attestation.Status.VerifiedOffline,
                         )
                         continueAttestation(session, callback)
                     }
@@ -72,7 +72,7 @@ class AttestationTask(
                     // Card attestation failed. Update status and continue attestation
                     if (result.error is TangemSdkError.CardVerificationFailed) {
                         currentAttestationStatus = currentAttestationStatus.copy(
-                            cardKeyAttestation = Attestation.Status.Failed
+                            cardKeyAttestation = Attestation.Status.Failed,
                         )
                         continueAttestation(session, callback)
                     } else {
@@ -111,7 +111,7 @@ class AttestationTask(
                     // Wallets attestation failed. Update status and continue attestation
                     if (result.error is TangemSdkError.CardVerificationFailed) {
                         currentAttestationStatus = currentAttestationStatus.copy(
-                            walletKeysAttestation = Attestation.Status.Failed
+                            walletKeysAttestation = Attestation.Status.Failed,
                         )
                         runExtraAttestation(session, callback)
                     } else {
@@ -203,7 +203,7 @@ class AttestationTask(
                     is CompletionResult.Success -> {
                         // We assume, that card verified, because we skip online attestation for dev cards and cards that failed keys attestation
                         currentAttestationStatus = currentAttestationStatus.copy(
-                            cardKeyAttestation = Attestation.Status.Verified
+                            cardKeyAttestation = Attestation.Status.Verified,
                         )
                         trustedCardsRepo.append(session.environment.card!!.cardPublicKey, currentAttestationStatus)
                         processAttestationReport(session, callback)
@@ -212,7 +212,7 @@ class AttestationTask(
                         // We interest only in cardVerificationFailed error, ignore network errors
                         if (result.error is TangemSdkError.CardVerificationFailed) {
                             currentAttestationStatus = currentAttestationStatus.copy(
-                                cardKeyAttestation = Attestation.Status.Failed
+                                cardKeyAttestation = Attestation.Status.Failed,
                             )
                         }
                         processAttestationReport(session, callback)
@@ -236,10 +236,7 @@ class AttestationTask(
         waitForOnlineAndComplete(session, callback)
     }
 
-    private fun processAttestationReport(
-        session: CardSession,
-        callback: CompletionCallback<Attestation>,
-    ) {
+    private fun processAttestationReport(session: CardSession, callback: CompletionCallback<Attestation>) {
         when (currentAttestationStatus.status) {
             Attestation.Status.Failed, Attestation.Status.Skipped -> {
                 val isDevelopmentCard = session.environment.card!!.firmwareVersion.type ==
@@ -247,9 +244,12 @@ class AttestationTask(
 
                 // Possible production sample or development card
                 if (isDevelopmentCard || session.environment.config.allowUntrustedCards) {
-                    session.viewDelegate.attestationDidFail(isDevelopmentCard, {
-                        complete(session, callback)
-                    }) {
+                    session.viewDelegate.attestationDidFail(
+                        isDevelopmentCard,
+                        {
+                            complete(session, callback)
+                        },
+                    ) {
                         callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
                     }
                 } else {
@@ -265,20 +265,24 @@ class AttestationTask(
                     return
                 }
 
-                session.viewDelegate.attestationCompletedOffline({
-                    complete(session, callback)
-                }, {
-                    callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
-                }, {
-                    retryOnline(session) { result ->
-                        when (result) {
-                            is CompletionResult.Success -> {
-                                processAttestationReport(session, callback)
+                session.viewDelegate.attestationCompletedOffline(
+                    {
+                        complete(session, callback)
+                    },
+                    {
+                        callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+                    },
+                    {
+                        retryOnline(session) { result ->
+                            when (result) {
+                                is CompletionResult.Success -> {
+                                    processAttestationReport(session, callback)
+                                }
+                                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                             }
-                            is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                         }
-                    }
-                })
+                    },
+                )
             }
             Attestation.Status.Warning -> {
                 session.viewDelegate.attestationCompletedWithWarnings {
@@ -299,7 +303,7 @@ class AttestationTask(
     enum class Mode {
         Offline,
         Normal,
-        Full
+        Full,
     }
 
     companion object {

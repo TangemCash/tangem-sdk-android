@@ -18,7 +18,7 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
 
     protected open fun setStateAndShow(
         state: SessionViewDelegateState,
-        vararg views: StateWidget<SessionViewDelegateState>
+        vararg views: StateWidget<SessionViewDelegateState>,
     ) {
         Log.view { "setStateAndShow: state: $state" }
         views.forEach { it.setState(state) }
@@ -45,7 +45,7 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
             llHeader?.isHapticFeedbackEnabled = true
             llHeader?.performHapticFeedback(
                 HapticFeedbackConstants.VIRTUAL_KEY,
-                HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+                HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING,
             )
         }
     }

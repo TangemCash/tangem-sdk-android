@@ -27,7 +27,7 @@ class DemoApplication : Application() {
 
     fun switchToNighMode(switch: Boolean) {
         AppCompatDelegate.setDefaultNightMode(
-            if (switch) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            if (switch) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO,
         )
     }
 }

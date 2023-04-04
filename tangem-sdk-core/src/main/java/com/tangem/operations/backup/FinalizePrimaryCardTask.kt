@@ -26,10 +26,7 @@ class FinalizePrimaryCardTask(
 
     private lateinit var card: Card
 
-    override fun run(
-        session: CardSession,
-        callback: CompletionCallback<Card>,
-    ) {
+    override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
@@ -54,7 +51,7 @@ class FinalizePrimaryCardTask(
             val command = LinkBackupCardsCommand(
                 backupCards = backupCards,
                 accessCode = accessCode,
-                passcode = passcode
+                passcode = passcode,
             )
             command.run(session) { linkResult ->
                 when (linkResult) {
@@ -70,11 +67,7 @@ class FinalizePrimaryCardTask(
         }
     }
 
-    private fun readBackupData(
-        session: CardSession,
-        index: Int,
-        callback: CompletionCallback<Card>,
-    ) {
+    private fun readBackupData(session: CardSession, index: Int, callback: CompletionCallback<Card>) {
         if (index > backupCards.lastIndex) {
             callback(CompletionResult.Success(session.environment.card!!))
             return
@@ -82,7 +75,7 @@ class FinalizePrimaryCardTask(
         val currentBackupCard = backupCards[index]
         ReadBackupDataCommand(
             backupCardLinkingKey = currentBackupCard.linkingKey,
-            accessCode = accessCode
+            accessCode = accessCode,
         ).run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -115,6 +108,6 @@ class FinalizePrimaryCardTask(
     enum class LinkAction {
         LINK,
         SKIP,
-        RETRY
+        RETRY,
     }
 }

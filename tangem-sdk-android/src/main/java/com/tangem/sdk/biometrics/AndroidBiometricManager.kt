@@ -61,9 +61,7 @@ internal class AndroidBiometricManager(
         }
     }
 
-    override suspend fun authenticate(
-        mode: BiometricManager.AuthenticationMode,
-    ): CompletionResult<ByteArray> {
+    override suspend fun authenticate(mode: BiometricManager.AuthenticationMode): CompletionResult<ByteArray> {
         return if (canAuthenticate) {
             tryToProceedData(mode)
         } else {
@@ -71,9 +69,7 @@ internal class AndroidBiometricManager(
         }
     }
 
-    private suspend fun tryToProceedData(
-        mode: BiometricManager.AuthenticationMode,
-    ): CompletionResult<ByteArray> {
+    private suspend fun tryToProceedData(mode: BiometricManager.AuthenticationMode): CompletionResult<ByteArray> {
         return proceedData(mode)
             .flatMapOnFailure { error ->
                 when (val cause = (error as? TangemSdkError.ExceptionError)?.cause) {
@@ -100,7 +96,7 @@ internal class AndroidBiometricManager(
                                 customMessage = cause.localizedMessage.orEmpty(),
                                 cause = cause,
                                 isKeyRegenerated = false,
-                            )
+                            ),
                         )
                     }
                     else -> {
@@ -114,32 +110,31 @@ internal class AndroidBiometricManager(
                             error = TangemSdkError.EncryptionOperationFailed(
                                 customMessage = cause?.localizedMessage.orEmpty(),
                                 cause = cause,
-                            )
+                            ),
                         )
                     }
                 }
             }
     }
 
-    private suspend fun authenticateInternal(
-        mode: BiometricManager.AuthenticationMode,
-    ): CompletionResult<ByteArray> = suspendCoroutine { continuation ->
-        val biometricPrompt = BiometricPrompt(
-            activity,
-            createAuthenticationCallback { result ->
-                when (result) {
-                    is AuthenticationResult.Failure -> {
-                        continuation.resume(CompletionResult.Failure(result.error))
+    private suspend fun authenticateInternal(mode: BiometricManager.AuthenticationMode): CompletionResult<ByteArray> =
+        suspendCoroutine { continuation ->
+            val biometricPrompt = BiometricPrompt(
+                activity,
+                createAuthenticationCallback { result ->
+                    when (result) {
+                        is AuthenticationResult.Failure -> {
+                            continuation.resume(CompletionResult.Failure(result.error))
+                        }
+                        is AuthenticationResult.Success -> {
+                            continuation.resume(proceedDataAfterAuthentication(mode))
+                        }
                     }
-                    is AuthenticationResult.Success -> {
-                        continuation.resume(proceedDataAfterAuthentication(mode))
-                    }
-                }
-            }
-        )
+                },
+            )
 
-        biometricPrompt.authenticate(biometricPromptInfo)
-    }
+            biometricPrompt.authenticate(biometricPromptInfo)
+        }
 
     private fun proceedDataAfterAuthentication(
         mode: BiometricManager.AuthenticationMode,
@@ -170,7 +165,7 @@ internal class AndroidBiometricManager(
                         }
                         TangemSdkError.EncryptionOperationFailed(
                             customMessage = cause?.localizedMessage.orEmpty(),
-                            cause = cause
+                            cause = cause,
                         )
                     }
                 }
@@ -197,7 +192,7 @@ internal class AndroidBiometricManager(
                         BiometricsAvailability(
                             available = true,
                             canBeEnrolled = false,
-                        )
+                        ),
                     )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
@@ -206,7 +201,7 @@ internal class AndroidBiometricManager(
                         BiometricsAvailability(
                             available = false,
                             canBeEnrolled = true,
-                        )
+                        ),
                     )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
@@ -215,7 +210,7 @@ internal class AndroidBiometricManager(
                         BiometricsAvailability(
                             available = false,
                             canBeEnrolled = false,
-                        )
+                        ),
                     )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
@@ -224,7 +219,7 @@ internal class AndroidBiometricManager(
                         BiometricsAvailability(
                             available = false,
                             canBeEnrolled = false,
-                        )
+                        ),
                     )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
@@ -233,7 +228,7 @@ internal class AndroidBiometricManager(
                         BiometricsAvailability(
                             available = false,
                             canBeEnrolled = false,
-                        )
+                        ),
                     )
                 }
                 SystemBiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
@@ -242,7 +237,7 @@ internal class AndroidBiometricManager(
                         BiometricsAvailability(
                             available = false,
                             canBeEnrolled = false,
-                        )
+                        ),
                     )
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
@@ -251,7 +246,7 @@ internal class AndroidBiometricManager(
                         BiometricsAvailability(
                             available = false,
                             canBeEnrolled = false,
-                        )
+                        ),
                     )
                 }
             }

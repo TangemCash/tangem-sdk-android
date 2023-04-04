@@ -150,14 +150,14 @@ class BackupService(
         val message = formattedCardId?.let {
             Message(
                 header = null,
-                body = stringsLocator.getString(StringsLocator.ID.BACKUP_PREPARE_PRIMARY_CARD_MESSAGE_FORMAT, it)
+                body = stringsLocator.getString(StringsLocator.ID.BACKUP_PREPARE_PRIMARY_CARD_MESSAGE_FORMAT, it),
             )
         } ?: Message(header = stringsLocator.getString(StringsLocator.ID.BACKUP_PREPARE_PRIMARY_CARD_MESSAGE))
 
         sdk.startSessionWithRunnable(
             runnable = StartPrimaryCardLinkingTask(),
             cardId = cardId,
-            initialMessage = message
+            initialMessage = message,
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -169,10 +169,7 @@ class BackupService(
         }
     }
 
-    private fun handleCompletion(
-        result: CompletionResult<Card>,
-        callback: CompletionCallback<Card>,
-    ) {
+    private fun handleCompletion(result: CompletionResult<Card>, callback: CompletionCallback<Card>) {
         when (result) {
             is CompletionResult.Success -> {
                 updateState()
@@ -207,10 +204,7 @@ class BackupService(
         updateState()
     }
 
-    private fun readBackupCard(
-        primaryCard: PrimaryCard,
-        callback: CompletionCallback<Unit>,
-    ) {
+    private fun readBackupCard(primaryCard: PrimaryCard, callback: CompletionCallback<Unit>) {
         sdk.startSessionWithRunnable(
             runnable = StartBackupCardLinkingTask(
                 primaryCard = primaryCard,
@@ -219,7 +213,7 @@ class BackupService(
             ),
             initialMessage = Message(
                 header = stringsLocator.getString(StringsLocator.ID.BACKUP_ADD_BACKUP_CARD_MESSAGE),
-            )
+            ),
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -267,7 +261,7 @@ class BackupService(
                 },
                 onRead = { cardId, data ->
                     repo.data = repo.data.copy(backupData = repo.data.backupData.plus(Pair(cardId, data)))
-                }
+                },
             )
             val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
                 .getFormattedCardId(primaryCard.cardId)
@@ -275,7 +269,7 @@ class BackupService(
             val message = formattedCardId?.let {
                 Message(
                     header = null,
-                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_PRIMARY_CARD_MESSAGE_FORMAT, it)
+                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_PRIMARY_CARD_MESSAGE_FORMAT, it),
                 )
             }
 
@@ -327,7 +321,7 @@ class BackupService(
                 backupData = backupData,
                 attestSignature = attestSignature,
                 accessCode = accessCode,
-                passcode = passcode
+                passcode = passcode,
             )
 
             val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
@@ -336,19 +330,19 @@ class BackupService(
             val message = formattedCardId?.let {
                 Message(
                     header = null,
-                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_BACKUP_CARD_MESSAGE_FORMAT, it)
+                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_BACKUP_CARD_MESSAGE_FORMAT, it),
                 )
             }
 
             sdk.startSessionWithRunnable(
                 runnable = task,
                 cardId = backupCard.cardId,
-                initialMessage = message
+                initialMessage = message,
             ) { result ->
                 when (result) {
                     is CompletionResult.Success -> {
                         repo.data = repo.data.copy(
-                            finalizedBackupCardsCount = repo.data.finalizedBackupCardsCount + 1
+                            finalizedBackupCardsCount = repo.data.finalizedBackupCardsCount + 1,
                         )
                         callback(CompletionResult.Success(result.data))
                     }

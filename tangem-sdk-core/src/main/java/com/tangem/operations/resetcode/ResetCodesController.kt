@@ -48,7 +48,7 @@ class ResetCodesController(
                         viewDelegate.showAlert(
                             title = newState.getMessageTitle(viewDelegate.stringsLocator),
                             message = newState.getMessageBody(viewDelegate.stringsLocator),
-                            onContinue = { handleContinue(CompletionResult.Success(false)) }
+                            onContinue = { handleContinue(CompletionResult.Success(false)) },
                         )
                     }
                     else -> {
@@ -57,8 +57,8 @@ class ResetCodesController(
                                 codeType!!,
                                 state = newState,
                                 cardId = formattedCardId,
-                                callback = { handleContinue(it) }
-                            )
+                                callback = { handleContinue(it) },
+                            ),
                         )
                     }
                 }
@@ -73,10 +73,10 @@ class ResetCodesController(
         viewDelegate.setState(
             ResetCodesViewState.RequestCode(
                 type = codeType,
-                cardId = formattedCardId
+                cardId = formattedCardId,
             ) {
                 handleCodeInput(it)
-            }
+            },
         )
     }
 

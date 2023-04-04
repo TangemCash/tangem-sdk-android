@@ -37,21 +37,25 @@ class NdefEncoder(private val ndefRecords: List<NdefRecord>, private val useDina
                 bs.write(headerValue or 0x14) // NDEF Header
                 bs.write(0x0F) // Length of the record type
                 bs.write(ndefRecord.valueInBytes().size) // Length of the payload data
-                bs.write(byteArrayOf(0x61.toByte(),
-                    0x6E.toByte(),
-                    0x64.toByte(),
-                    0x72.toByte(),
-                    0x6F.toByte(),
-                    0x69.toByte(),
-                    0x64.toByte(),
-                    0x2E.toByte(),
-                    0x63.toByte(),
-                    0x6F.toByte(),
-                    0x6D.toByte(),
-                    0x3A.toByte(),
-                    0x70.toByte(),
-                    0x6B.toByte(),
-                    0x67.toByte())) // type name
+                bs.write(
+                    byteArrayOf(
+                        0x61.toByte(),
+                        0x6E.toByte(),
+                        0x64.toByte(),
+                        0x72.toByte(),
+                        0x6F.toByte(),
+                        0x69.toByte(),
+                        0x64.toByte(),
+                        0x2E.toByte(),
+                        0x63.toByte(),
+                        0x6F.toByte(),
+                        0x6D.toByte(),
+                        0x3A.toByte(),
+                        0x70.toByte(),
+                        0x6B.toByte(),
+                        0x67.toByte(),
+                    ),
+                ) // type name
                 bs.write(ndefRecord.valueInBytes())
             }
             NdefRecord.Type.URI -> {

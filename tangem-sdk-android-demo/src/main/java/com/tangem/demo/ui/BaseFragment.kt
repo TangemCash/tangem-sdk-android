@@ -267,7 +267,7 @@ abstract class BaseFragment : Fragment() {
             fileData = issuerData,
             fileCounter = counter,
             fileName = null,
-            privateKey = Personalization.issuer().dataKeyPair.privateKey
+            privateKey = Personalization.issuer().dataKeyPair.privateKey,
         )
 
         sdk.writeIssuerExtraData(
@@ -277,7 +277,7 @@ abstract class BaseFragment : Fragment() {
             finalizingSignature = signatures.finalizingSignature!!,
             issuerDataCounter = counter,
             initialMessage = initialMessage,
-            callback = ::handleResult
+            callback = ::handleResult,
         )
     }
 
@@ -371,7 +371,7 @@ abstract class BaseFragment : Fragment() {
             data = demoPayload,
             fileName = "User file",
             fileVisibility = FileVisibility.Public,
-            walletPublicKey = null
+            walletPublicKey = null,
         )
 
         sdk.writeFiles(listOf(file), card?.cardId, initialMessage) {
@@ -394,23 +394,28 @@ abstract class BaseFragment : Fragment() {
             fileData = demoPayload,
             fileCounter = counter,
             fileName = fileName,
-            privateKey = Personalization.issuer().dataKeyPair.privateKey
+            privateKey = Personalization.issuer().dataKeyPair.privateKey,
         )
 
-        ifNotNullOr(fileHash.startingSignature, fileHash.finalizingSignature, { sSignature, fSignature ->
-            val file = FileToWrite.ByFileOwner(
-                data = demoPayload,
-                fileName = fileName,
-                startingSignature = sSignature,
-                finalizingSignature = fSignature,
-                counter = counter,
-                fileVisibility = FileVisibility.Public,
-                walletPublicKey = null
-            )
-            sdk.writeFiles(listOf(file)) { handleResult(it) }
-        }, {
-            showToast("Failed to sign data with issuer signature")
-        })
+        ifNotNullOr(
+            fileHash.startingSignature,
+            fileHash.finalizingSignature,
+            { sSignature, fSignature ->
+                val file = FileToWrite.ByFileOwner(
+                    data = demoPayload,
+                    fileName = fileName,
+                    startingSignature = sSignature,
+                    finalizingSignature = fSignature,
+                    counter = counter,
+                    fileVisibility = FileVisibility.Public,
+                    walletPublicKey = null,
+                )
+                sdk.writeFiles(listOf(file)) { handleResult(it) }
+            },
+            {
+                showToast("Failed to sign data with issuer signature")
+            },
+        )
     }
 
     protected fun deleteFiles(indices: List<Int>? = null) {

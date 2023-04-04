@@ -30,7 +30,8 @@ enum class StatusWord(val code: Int) {
     InvalidAccessCode(code = 0x6AF1),
     InvalidPasscode(code = 0x6AF2),
 
-    Unknown(code = 0x0000);
+    Unknown(code = 0x0000),
+    ;
 
     companion object {
         private val values = values()

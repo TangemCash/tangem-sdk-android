@@ -9,7 +9,8 @@ package com.tangem.operations.read
 enum class ReadMode(val rawValue: Int) {
     Card(rawValue = 0x01),
     Wallet(rawValue = 0x02),
-    WalletsList(rawValue = 0x03);
+    WalletsList(rawValue = 0x03),
+    ;
 
     companion object {
         private val values = values()

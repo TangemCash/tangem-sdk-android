@@ -95,8 +95,8 @@ class DefaultSessionViewDelegate(
                     isFirstAttempt = isFirstAttempt,
                     showForgotButton = showForgotButton,
                     cardId = cardId,
-                    callback = callback
-                )
+                    callback = callback,
+                ),
             )
         }
     }
@@ -128,10 +128,15 @@ class DefaultSessionViewDelegate(
     }
 
     override fun attestationCompletedOffline(positive: VoidCallback, negative: VoidCallback, retry: VoidCallback) {
-        AttestationFailedDialog.completedOffline(activity, positive, {
-            negative()
-            dismiss()
-        }, retry)
+        AttestationFailedDialog.completedOffline(
+            context = activity,
+            positive = positive,
+            negative = {
+                negative()
+                dismiss()
+            },
+            retry = retry,
+        )
     }
 
     override fun attestationCompletedWithWarnings(positive: VoidCallback) {
@@ -168,7 +173,7 @@ class DefaultSessionViewDelegate(
     private fun formatCardId(cardId: String?): String? {
         val cardId = cardId ?: return null
         val formatter = CardIdFormatter(
-            sdkConfig?.cardIdDisplayFormat ?: CardIdDisplayFormat.Full
+            sdkConfig?.cardIdDisplayFormat ?: CardIdDisplayFormat.Full,
         )
         return formatter.getFormattedCardId(cardId)
     }

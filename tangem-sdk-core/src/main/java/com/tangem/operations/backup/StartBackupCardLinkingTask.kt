@@ -96,8 +96,10 @@ class StartBackupCardLinkingTask(
         }
 
         session.scope.launch(Dispatchers.IO) {
-            when (val result =
-                    onlineCardVerifier.getCardData(rawCard.cardId, rawCard.cardPublicKey)) {
+            when (
+                val result =
+                    onlineCardVerifier.getCardData(rawCard.cardId, rawCard.cardPublicKey)
+            ) {
                 is Result.Success -> {
                     val signature = result.data.issuerSignature.guard {
                         callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed()))

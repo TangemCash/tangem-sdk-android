@@ -46,7 +46,7 @@ class JSONRPCRequest constructor(
                 return jsonMap[name] as T
             } catch (ex: Exception) {
                 throw JSONRPCErrorType.InvalidRequest.toJSONRPCError(
-                    "The field is missing or an unsupported value is used: $name"
+                    "The field is missing or an unsupported value is used: $name",
                 ).asException()
             }
         }
@@ -73,7 +73,7 @@ class JSONRPCError constructor(
     constructor(type: JSONRPCErrorType, data: ErrorData? = null) : this(
         code = type.errorData.code,
         message = type.errorData.message,
-        data = data
+        data = data,
     )
 
     fun asException(): JSONRPCException = JSONRPCException(this)
@@ -90,7 +90,8 @@ enum class JSONRPCErrorType(val errorData: ErrorData) {
     InvalidParams(ErrorData(code = -32602, message = "Invalid parameters")),
     InternalError(ErrorData(code = -32603, message = "Internal error")),
     ServerError(ErrorData(code = -32000, message = "Server error")),
-    UnknownError(ErrorData(code = -32999, message = "Unknown error"));
+    UnknownError(ErrorData(code = -32999, message = "Unknown error")),
+    ;
 
     fun toJSONRPCError(customMessage: String? = null): JSONRPCError {
         val description = ErrorData(this.errorData.code, customMessage ?: this.errorData.message)

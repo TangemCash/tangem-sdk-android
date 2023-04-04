@@ -39,7 +39,7 @@ class NfcKnownWidget(
         mainView.findViewById(R.id.imvHandWithCardH),
         mainView.findViewById(R.id.imvHandWithCardV),
         AnimationProperty(context.dpToPx(-395f), context.dpToPx(-95f), context.dpToPx(200f)),
-        nfcLocation
+        nfcLocation,
     )
     private val animationScheduler = Handler()
     private val phoneFlipAnimator: FlipAnimator = FlipAnimator(phone, phoneBack, flipDuration)

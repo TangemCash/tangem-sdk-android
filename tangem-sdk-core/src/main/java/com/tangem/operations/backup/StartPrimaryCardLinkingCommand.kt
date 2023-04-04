@@ -39,10 +39,7 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
         return CommandApdu(Instruction.StartPrimaryCardLinking, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): RawPrimaryCard {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): RawPrimaryCard {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 

@@ -26,7 +26,7 @@ class SigningMethod(override val rawValue: Int) : BaseMask() {
         SignRawSignedByIssuer(value = 3),
         SignHashSignedByIssuerAndUpdateIssuerData(value = 4),
         SignRawSignedByIssuerAndUpdateIssuerData(value = 5),
-        SignPos(value = 6)
+        SignPos(value = 6),
     }
 
     companion object {

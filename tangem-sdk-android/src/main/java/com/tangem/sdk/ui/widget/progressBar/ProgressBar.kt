@@ -114,24 +114,24 @@ class SdkProgressBar(context: Context, attrs: AttributeSet? = null) : View(conte
             sweepStep = attributes.getInt(R.styleable.SdkProgressBar_pb_sweep_step, sweepStep)
             angleToSwitchSweepIncrement = attributes.getInt(
                 R.styleable.SdkProgressBar_pb_sweep_start_increment,
-                angleToSwitchSweepIncrement
+                angleToSwitchSweepIncrement,
             )
             angleToSwitchSweepDecrement = attributes.getInt(
                 R.styleable.SdkProgressBar_pb_sweep_start_decrement,
-                angleToSwitchSweepDecrement
+                angleToSwitchSweepDecrement,
             )
             progressBarColor = attributes.getInt(R.styleable.SdkProgressBar_pb_color, progressBarColor)
             progressBarThickness = attributes.getDimension(
                 R.styleable.SdkProgressBar_pb_thickness,
-                progressBarThickness
+                progressBarThickness,
             ).pxToDp()
             secondaryProgressBarColor = attributes.getInt(
                 R.styleable.SdkProgressBar_pb_secondary_color,
-                secondaryProgressBarColor
+                secondaryProgressBarColor,
             )
             secondaryProgressBarThickness = attributes.getDimension(
                 R.styleable.SdkProgressBar_pb_secondary_thickness,
-                secondaryProgressBarThickness
+                secondaryProgressBarThickness,
             ).pxToDp()
             roundBorder = attributes.getBoolean(R.styleable.SdkProgressBar_pb_round_border, roundBorder)
         } finally {
@@ -209,9 +209,13 @@ class SdkProgressBar(context: Context, attrs: AttributeSet? = null) : View(conte
     }
 
     fun setProgressBarColorWithAnimation(color: Int) {
-        animateProgressBarColorChanges(color, progressBarColor, listener = ValueAnimator.AnimatorUpdateListener {
-            progressBarColor = it.animatedValue as Int
-        })
+        animateProgressBarColorChanges(
+            color,
+            progressBarColor,
+            listener = ValueAnimator.AnimatorUpdateListener {
+                progressBarColor = it.animatedValue as Int
+            },
+        )
     }
 
     private fun animateProgressBarColorChanges(
@@ -258,9 +262,11 @@ class InnerArbEvaluator : TypeEvaluator<Int> {
         val endG = endValue.shr(bitCount = 8).and(other = 0xff)
         val endB = endValue.and(other = 0xff)
 
-        return ((startA + (fraction * (endA - startA)).toInt()).shl(bitCount = 24)
-            or (startR + (fraction * (endR - startR)).toInt()).shl(bitCount = 16)
-            or (startG + (fraction * (endG - startG)).toInt()).shl(bitCount = 8)
-            or startB + (fraction * (endB - startB)).toInt())
+        return (
+            (startA + (fraction * (endA - startA)).toInt()).shl(bitCount = 24)
+                or (startR + (fraction * (endR - startR)).toInt()).shl(bitCount = 16)
+                or (startG + (fraction * (endG - startG)).toInt()).shl(bitCount = 8)
+                or startB + (fraction * (endB - startB)).toInt()
+            )
     }
 }

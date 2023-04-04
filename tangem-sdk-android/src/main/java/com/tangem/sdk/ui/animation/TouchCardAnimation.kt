@@ -18,7 +18,7 @@ class TouchCardAnimation(
     private val cardHorizontal: View,
     private val cardVertical: View,
     private val animationProperty: AnimationProperty,
-    private val nfcLocation: NfcLocation
+    private val nfcLocation: NfcLocation,
 ) {
 
     var onAnimationEnd: VoidCallback? = null

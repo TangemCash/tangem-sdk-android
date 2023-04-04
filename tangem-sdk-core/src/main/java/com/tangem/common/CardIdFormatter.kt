@@ -3,7 +3,7 @@ package com.tangem.common
 import com.tangem.common.core.CardIdDisplayFormat
 
 class CardIdFormatter(
-    var style: CardIdDisplayFormat
+    var style: CardIdDisplayFormat,
 ) {
     fun getFormattedCardId(cardId: String): String? {
         return when (val style = style) {

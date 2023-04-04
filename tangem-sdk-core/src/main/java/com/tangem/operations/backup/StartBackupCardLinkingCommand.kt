@@ -45,10 +45,7 @@ class StartBackupCardLinkingCommand(
         return CommandApdu(Instruction.StartBackupCardLinking, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): RawBackupCard {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): RawBackupCard {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
@@ -57,7 +54,7 @@ class StartBackupCardLinkingCommand(
             cardId = decoder.decode(TlvTag.CardId),
             cardPublicKey = environment.card?.cardPublicKey ?: throw TangemSdkError.UnknownError(),
             linkingKey = decoder.decode(TlvTag.BackupCardLinkingKey),
-            attestSignature = decoder.decode(TlvTag.CardSignature)
+            attestSignature = decoder.decode(TlvTag.CardSignature),
         )
     }
 }

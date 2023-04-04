@@ -36,10 +36,7 @@ class GetResetPinTokenCommand : Command<ResetPinCard>() {
         return CommandApdu(Instruction.Authorize, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): ResetPinCard {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ResetPinCard {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
@@ -57,7 +54,7 @@ class GetResetPinTokenCommand : Command<ResetPinCard>() {
             attestSignature = decoder.decode(TlvTag.BackupAttestSignature),
             token = decoder.decode(TlvTag.Challenge),
             isAccessCodeSet = isAccessCodeSet,
-            isPasscodeSet = isPasscodeSet
+            isPasscodeSet = isPasscodeSet,
         )
     }
 }

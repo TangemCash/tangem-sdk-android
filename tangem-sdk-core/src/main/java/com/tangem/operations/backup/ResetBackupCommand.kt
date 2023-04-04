@@ -62,7 +62,7 @@ class ResetBackupCommand : Command<ResetBackupResponse>() {
                         backupStatus = Card.BackupStatus.NoBackup,
                         isAccessCodeSet = !result.data.isDefaultAccessCode,
                         isPasscodeSet = !result.data.isDefaultPasscode,
-                        settings = card.settings.updated(result.data.settingsMask)
+                        settings = card.settings.updated(result.data.settingsMask),
                     )
                     callback(CompletionResult.Success(result.data))
                 }
@@ -80,10 +80,7 @@ class ResetBackupCommand : Command<ResetBackupResponse>() {
         return CommandApdu(Instruction.BackupReset, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): ResetBackupResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ResetBackupResponse {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
@@ -94,7 +91,7 @@ class ResetBackupCommand : Command<ResetBackupResponse>() {
             backupStatus = decoder.decode(TlvTag.BackupStatus),
             isDefaultAccessCode = decoder.decode(TlvTag.PinIsDefault),
             isDefaultPasscode = decoder.decode(TlvTag.Pin2IsDefault),
-            settingsMask = decoder.decode(TlvTag.SettingsMask)
+            settingsMask = decoder.decode(TlvTag.SettingsMask),
         )
     }
 }

@@ -32,7 +32,7 @@ class WriteIssuerDataCommand(
     private val issuerDataSignature: ByteArray,
     private val issuerDataCounter: Int? = null,
     private var issuerPublicKey: ByteArray? = null,
-    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier()
+    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier(),
 ) : Command<SuccessResponse>(), IssuerDataVerifier by verifier {
 
     override fun performPreCheck(card: Card): TangemSdkError? {

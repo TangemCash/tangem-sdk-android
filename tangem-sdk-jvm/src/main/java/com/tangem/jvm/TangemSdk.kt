@@ -21,7 +21,7 @@ fun TangemSdk.init(verbose: Boolean = false, indexOfTerminal: Int? = null): Tang
         viewDelegate = LoggingSessionDelegate(),
         biometricManager = DummyBiometricManager(),
         secureStorage = InMemoryStorage(),
-        config = Config()
+        config = Config(),
     )
 }
 
@@ -37,6 +37,6 @@ private fun setLogger(verbose: Boolean) {
 
                 println("$tag: $logMessage")
             }
-        }
+        },
     )
 }

@@ -164,7 +164,7 @@ internal class CreateWalletCommand(
                 decoder,
                 0,
                 card.remainingSignatures,
-                card.settings.isPermanentWallet
+                card.settings.isPermanentWallet,
             )
         }
 
@@ -185,7 +185,7 @@ internal class CreateWalletCommand(
             totalSignedHashes = 0,
             remainingSignatures = remainingSignatures,
             index = index,
-            hasBackup = false
+            hasBackup = false,
         )
     }
 }

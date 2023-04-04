@@ -35,7 +35,7 @@ class TouchCardWidget(
         ivHandCardHorizontal,
         ivHandCardVertical,
         AnimationProperty(mainView.dpToPx(-160f), mainView.dpToPx(-70f), mainView.dpToPx(150f), repeatCount = -1),
-        nfcLocation
+        nfcLocation,
     )
 
     init {
@@ -52,16 +52,19 @@ class TouchCardWidget(
 
     private fun animate() {
         setCallbacks()
-        ivPhone.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                ivPhone.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                val rippleElevation = if (nfcLocation.isOnTheBack()) ivPhone.elevation - 1 else ivPhone.elevation + 1
-                rippleBackgroundNfc.elevation = rippleElevation
-                rippleBackgroundNfc.translationX = calculateRelativePosition(nfcLocation.x, ivPhone.width)
-                rippleBackgroundNfc.translationY = calculateRelativePosition(nfcLocation.y, ivPhone.height)
-                touchCardAnimation.animate()
-            }
-        })
+        ivPhone.viewTreeObserver.addOnGlobalLayoutListener(
+            object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    ivPhone.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    val rippleElevation =
+                        if (nfcLocation.isOnTheBack()) ivPhone.elevation - 1 else ivPhone.elevation + 1
+                    rippleBackgroundNfc.elevation = rippleElevation
+                    rippleBackgroundNfc.translationX = calculateRelativePosition(nfcLocation.x, ivPhone.width)
+                    rippleBackgroundNfc.translationY = calculateRelativePosition(nfcLocation.y, ivPhone.height)
+                    touchCardAnimation.animate()
+                }
+            },
+        )
     }
 
     private fun setCallbacks() {
@@ -72,7 +75,7 @@ class TouchCardWidget(
             },
             onTapOutStarted = {
                 rippleBackgroundNfc.fadeOut(fadeOutDuration = 800) { rippleBackgroundNfc.stopRippleAnimation() }
-            }
+            },
         )
         touchCardAnimation.animatorCallback = object : Animator.AnimatorListener {
             override fun onAnimationStart(animation: Animator) {}

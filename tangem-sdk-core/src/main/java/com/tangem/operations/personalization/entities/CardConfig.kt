@@ -111,7 +111,7 @@ data class CardConfig(
                 createProductMask(),
                 tokenSymbol,
                 tokenContractAddress,
-                tokenDecimal
+                tokenDecimal,
             )
         }
 
@@ -166,7 +166,7 @@ internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     builder.addIf(skipSecurityDelayIfValidatedByIssuer, Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByIssuer)
     builder.addIf(
         condition = skipSecurityDelayIfValidatedByLinkedTerminal,
-        maskCode = Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal
+        maskCode = Card.SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal,
     )
     builder.addIf(restrictOverwriteIssuerDataEx, Card.SettingsMask.Code.RestrictOverwriteIssuerExtraData)
     builder.addIf(disableIssuerData, Card.SettingsMask.Code.DisableIssuerData)

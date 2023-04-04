@@ -84,8 +84,7 @@ inline fun <reified T> Tlv.sendToLog(value: T) {
     Log.tlv { tlvString }
 }
 
-fun List<Tlv>.serialize(): ByteArray =
-    this.map { it.serialize() }.reduce { arr1, arr2 -> arr1 + arr2 }
+fun List<Tlv>.serialize(): ByteArray = this.map { it.serialize() }.reduce { arr1, arr2 -> arr1 + arr2 }
 
 fun Tlv.serialize(): ByteArray {
     val tag = byteArrayOf(this.tag.code.toByte())
@@ -101,7 +100,7 @@ private fun getLengthInBytes(tlvLength: Int): ByteArray {
             byteArrayOf(
                 0xFF.toByte(),
                 (tlvLength shr 8 and 0xFF).toByte(),
-                (tlvLength and 0xFF).toByte()
+                (tlvLength and 0xFF).toByte(),
             )
         } else {
             byteArrayOf((tlvLength and 0xFF).toByte())

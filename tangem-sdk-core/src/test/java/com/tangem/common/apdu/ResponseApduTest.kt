@@ -409,7 +409,8 @@ class ResponseApduTest {
             1,
             0,
             -112,
-            0)
+            0,
+        )
         val responseApdu = ResponseApdu(data)
         assertThat(responseApdu.getTlvData())
             .isNotNull()

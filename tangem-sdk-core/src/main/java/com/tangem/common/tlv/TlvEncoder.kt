@@ -157,7 +157,7 @@ class TlvEncoder {
 
     inline fun <reified T> getEncodingError(tag: TlvTag): TangemSdkError {
         return TangemSdkError.EncodingFailedTypeMismatch(
-            "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+            "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}",
         )
     }
 }

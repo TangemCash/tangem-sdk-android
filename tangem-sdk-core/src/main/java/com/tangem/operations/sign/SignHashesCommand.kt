@@ -14,7 +14,7 @@ import com.tangem.common.hdWallet.DerivationPath
 class SignHashesCommand(
     private val hashes: Array<ByteArray>,
     private val walletPublicKey: ByteArray,
-    private val derivationPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null,
 ) : CardSessionRunnable<SignHashesResponse> {
 
     override fun run(session: CardSession, callback: CompletionCallback<SignHashesResponse>) {

@@ -63,7 +63,7 @@ class ReadFileResponse(
             null,
             null,
             null,
-            null
+            null,
         )
     }
 }
@@ -160,10 +160,7 @@ internal class ReadFileCommand(
         return CommandApdu(Instruction.ReadFileData, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): ReadFileResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadFileResponse {
         val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -178,7 +175,7 @@ internal class ReadFileCommand(
             settings = settings,
             ownerIndex = decoder.decodeOptional(TlvTag.FileOwnerIndex),
             ownerPublicKey = decoder.decodeOptional(TlvTag.IssuerPublicKey),
-            walletIndex = decoder.decodeOptional(TlvTag.WalletIndex)
+            walletIndex = decoder.decodeOptional(TlvTag.WalletIndex),
         )
     }
 }

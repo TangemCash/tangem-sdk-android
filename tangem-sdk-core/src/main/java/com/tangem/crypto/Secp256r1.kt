@@ -92,7 +92,7 @@ object Secp256r1 {
         } else {
             error(
                 "unsupported r-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
-                    ",enc:" + enc.toHexString()
+                    ",enc:" + enc.toHexString(),
             )
         }
         if (sLength <= 32) {
@@ -103,7 +103,7 @@ object Secp256r1 {
         } else {
             error(
                 "unsupported s-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
-                    ",enc:" + enc.toHexString()
+                    ",enc:" + enc.toHexString(),
             )
         }
 

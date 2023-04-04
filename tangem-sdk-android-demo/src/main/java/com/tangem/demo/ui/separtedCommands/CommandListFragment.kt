@@ -141,11 +141,15 @@ class CommandListFragment : BaseFragment() {
             attestCard(mode)
         }
 
-        val adapter = ArrayAdapter(view.context, android.R.layout.simple_dropdown_item_1line, listOf(
-            "m/0/1",
-            "m/0'/1'/2",
-            "m/44'/0'/0'/1/0"
-        ))
+        val adapter = ArrayAdapter(
+            view.context,
+            android.R.layout.simple_dropdown_item_1line,
+            listOf(
+                "m/0/1",
+                "m/0'/1'/2",
+                "m/44'/0'/0'/1/0",
+            ),
+        )
         etDerivePublicKey.setAdapter(adapter)
         etDerivePublicKey.addTextChangedListener { derivationPath = if (it!!.isEmpty()) null else it.toString() }
         btnDerivePublicKey.setOnClickListener { derivePublicKey() }
@@ -210,7 +214,7 @@ class CommandListFragment : BaseFragment() {
             sdk.startSessionWithRunnable(
                 runnable = MultiMessageTask(),
                 cardId = card?.cardId,
-                initialMessage = initialMessage
+                initialMessage = initialMessage,
             ) { postUi { handleCommandResult(it) } }
         }
 

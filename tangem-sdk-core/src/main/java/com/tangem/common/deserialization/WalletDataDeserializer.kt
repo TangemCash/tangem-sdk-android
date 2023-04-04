@@ -27,7 +27,7 @@ object WalletDataDeserializer {
             name = tokenName ?: tokenSymbol,
             symbol = tokenSymbol,
             contractAddress = tokenContractAddress,
-            decimals = tokenDecimals
+            decimals = tokenDecimals,
         )
     }
 }

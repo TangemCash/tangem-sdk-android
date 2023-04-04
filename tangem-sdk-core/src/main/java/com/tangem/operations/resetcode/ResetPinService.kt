@@ -108,9 +108,9 @@ class ResetPinService(
             initialMessage = Message(
                 header = stringsLocator.getString(
                     StringsLocator.ID.RESET_CODES_SCAN_FIRST_CARD,
-                    pinType
-                )
-            )
+                    pinType,
+                ),
+            ),
         ).startWithRunnable(runnable = command) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -132,11 +132,11 @@ class ResetPinService(
             config = config,
             initialMessage = Message(
                 header = stringsLocator.getString(
-                    StringsLocator.ID.RESET_CODES_SCAN_CONFIRMATION_CARD
-                )
-            )
+                    StringsLocator.ID.RESET_CODES_SCAN_CONFIRMATION_CARD,
+                ),
+            ),
         ).startWithRunnable(
-            runnable = command
+            runnable = command,
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -187,9 +187,9 @@ class ResetPinService(
             cardId = resetPinCard.cardId,
             initialMessage = Message(
                 header = stringsLocator.getString(
-                    StringsLocator.ID.RESET_CODES_SCAN_TO_RESET
-                )
-            )
+                    StringsLocator.ID.RESET_CODES_SCAN_TO_RESET,
+                ),
+            ),
         ).startWithRunnable(
             runnable = command,
         ) { result ->
@@ -223,7 +223,7 @@ class ResetPinService(
         fun getMessageTitle(stringsLocator: StringsLocator): String {
             return when (this) {
                 NeedScanResetCard, NeedWriteResetCard -> stringsLocator.getString(
-                    StringsLocator.ID.RESET_CODES_MESSAGE_TITLE_RESTORE
+                    StringsLocator.ID.RESET_CODES_MESSAGE_TITLE_RESTORE,
                 )
                 NeedScanConfirmationCard -> stringsLocator.getString(StringsLocator.ID.RESET_CODES_MESSAGE_TITLE_BACKUP)
                 NeedCode -> ""

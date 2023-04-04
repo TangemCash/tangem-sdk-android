@@ -8,5 +8,5 @@ class CardDataResponse(
     @Json(name = "manufacturer_signature")
     val manufacturerSignature: String?,
     @Json(name = "issuer_signature")
-    val issuerSignature: String?
+    val issuerSignature: String?,
 )

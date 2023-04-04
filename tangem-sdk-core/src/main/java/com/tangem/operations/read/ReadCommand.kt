@@ -24,7 +24,7 @@ import com.tangem.operations.PreflightReadMode
 @JsonClass(generateAdapter = true)
 data class ReadResponse(
     val card: Card,
-    val walletData: WalletData?
+    val walletData: WalletData?,
 ) : CommandResponse
 
 /**
