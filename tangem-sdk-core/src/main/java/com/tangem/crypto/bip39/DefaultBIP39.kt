@@ -144,20 +144,20 @@ internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
         // sequence of entropy bits and checksum of entropy bits
         val concatenatedBits = entropyBits + entropyChecksumBits
         // divide sequence of bits to chunks by 11 bits
-        val bitIndexes = concatenatedBits.chunked(size = 11)
+        val bitIndices = concatenatedBits.chunked(size = 11)
         // converts chunks to Ints that are indices of words in dictionary
-        val indexes = bitIndexes.map {
+        val indices = bitIndices.map {
             it.joinToString(separator = "").toInt(2)
         }
 
-        if (indexes.size != entropyLength.wordCount()) {
+        if (indices.size != entropyLength.wordCount()) {
             throw TangemSdkError.MnemonicException(MnemonicErrorResult.MnenmonicCreationFailed)
         }
 
         val allWords = wordlist.words
         val maxWordIndex = allWords.size
 
-        val words = indexes.map { index ->
+        val words = indices.map { index ->
             if (index > maxWordIndex) {
                 throw TangemSdkError.MnemonicException(MnemonicErrorResult.MnenmonicCreationFailed)
             }

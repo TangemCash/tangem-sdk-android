@@ -263,6 +263,34 @@ class TangemSdk(
     }
 
     /**
+     * This command will import an existing wallet.
+     *
+     * @param curve: Wallet's elliptic curve
+     * @param seed: BIP39 seed to create wallet from. COS v.6.10+.
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used
+     * @param callback: is triggered on the completion of the [CreateWalletTask] and provides
+     * card response in the form of [CreateWalletResponse] if the task was performed successfully
+     * or [TangemSdkError] in case of an error.
+     */
+    fun importWallet(
+        curve: EllipticCurve,
+        cardId: String,
+        seed: ByteArray,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<CreateWalletResponse>,
+    ) {
+        startSessionWithRunnable(
+            runnable = CreateWalletTask(curve, seed),
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = null,
+            callback = callback,
+        )
+    }
+
+    /**
      * This method launches a [PurgeWalletCommand] on a new thread.
      *
      * This command deletes all wallet data. If IsReusable flag is enabled during personalization.
@@ -560,7 +588,7 @@ class TangemSdk(
      * This command deletes selected files from card. This operation can't be undone.
      * To perform file deletion you should initially read all files (`readFiles` command) and add them to
      * `indices` array. When files deleted from card, other files change their indices.
-     * After deleting files you should additionally perform `readFiles` command to actualize files indexes
+     * After deleting files you should additionally perform `readFiles` command to actualize files indices
      * Warning: This command available for COS 3.29 and higher
      *
      * @param indices optional array of indices that should be deleted. If not specified all files

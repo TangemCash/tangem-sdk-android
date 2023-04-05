@@ -107,6 +107,7 @@ object Backup {
         "disableFiles": false,
         "allowHDWallets": true,
         "allowBackup": true,
+        "allowKeysImport": true,
         "NDEF": [],
         "cardData": {
             "date": "2021-03-15",
@@ -159,6 +160,7 @@ object Backup {
        "disableFiles": false,
        "allowHDWallets": true,
        "allowBackup": true,
+       "allowKeysImport": true,
        "NDEF": [],
        "cardData": {
            "date": "2021-03-15",
@@ -211,6 +213,7 @@ object Backup {
        "disableFiles": false,
        "allowHDWallets": true,
        "allowBackup": true,
+        "allowKeysImport": true,
        "NDEF": [],
        "cardData": {
            "date": "2021-03-15",

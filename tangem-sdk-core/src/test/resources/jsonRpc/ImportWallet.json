@@ -1,0 +1,31 @@
+{
+    "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "import_wallet",
+        "params": {
+            "curve": "secp256r1",
+            "seed": "00000000000000000000000000000000"
+        }
+    },
+    "response": {
+        "jsonrpc": "2.0",
+        "result": {
+            "cardId": "c000111122223333",
+            "wallet": {
+                "publicKey": "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348",
+                "curve": "secp256r1",
+                "settings": {
+                    "isPermanent": true
+                },
+                "totalSignedHashes": 10,
+                "remainingSignatures": 100,
+                "index": 1,
+                "hasBackup": false,
+                "isImported": false,
+                "derivedKeys": []
+            }
+        },
+        "id": 1
+    }
+}

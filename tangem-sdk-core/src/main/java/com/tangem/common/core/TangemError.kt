@@ -141,6 +141,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class CardReadWrongWallet : TangemSdkError(code = 40402)
     class WalletCannotBeCreated : TangemSdkError(code = 40403)
     class CardWithMaxZeroWallets : TangemSdkError(code = 40404)
+    class WalletAlreadyCreated : TangemSdkError(code = 40405)
 
     // CreateWallet Errors
     class AlreadyCreated : TangemSdkError(code = 40501)
@@ -200,7 +201,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class CertificateSignatureRequired : TangemSdkError(code = 41211)
     class AccessCodeOrPasscodeRequired : TangemSdkError(code = 41212)
     class NoActiveBackup : TangemSdkError(code = 41220)
-    class ResetBackupFailedHasBackupedWallets : TangemSdkError(code = 41221)
+    class ResetBackupFailedHasBackedUpWallets : TangemSdkError(code = 41221)
     class BackupServiceInvalidState : TangemSdkError(code = 4122)
     class NoBackupCardForIndex : TangemSdkError(code = 41223)
     class EmptyBackupCards : TangemSdkError(code = 41224)
@@ -218,6 +219,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class ResetPinWrongCard(internalCode: Int? = null) : TangemSdkError(code = internalCode ?: 41301)
 
     class HDWalletDisabled : TangemSdkError(code = 42003)
+    class KeysImportDisabled : TangemSdkError(code = 42004)
 
     // SDK Errors
     class ExceptionError(override val cause: Throwable?) : TangemSdkError(code = 50000) {
@@ -278,7 +280,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     class CryptoUtilsError(override var customMessage: String) : TangemSdkError(code = 50011)
 
-//    class Underlying : TangemSdkError(50012)
+    class Underlying(override var customMessage: String) : TangemSdkError(code = 50012)
 
     class UserForgotTheCode : TangemSdkError(code = 50013)
 
@@ -369,4 +371,9 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
             }
         }
     }
+}
+
+fun Exception.toTangemSdkError(): TangemSdkError {
+    if (this is TangemSdkError) return this
+    return TangemSdkError.Underlying(this.localizedMessage)
 }

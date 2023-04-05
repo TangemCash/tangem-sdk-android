@@ -51,47 +51,85 @@
                 android:text="Create wallet with curve"
                 android:translationX="10dp" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:padding="10dp">
+                android:orientation="vertical">
 
-                <Button
-                    android:id="@+id/btnCreateWalletSecpK1"
-                    android:layout_width="0dp"
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:text="Secp_K1"
-                    app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletEdwards"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/btnCreateWalletEdwards"
-                    android:layout_width="0dp"
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:id="@+id/etMnemonic"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="Paste mnemonics (Seed Phrase) to import wallet"
+                        android:inputType="textNoSuggestions|textMultiLine" />
+
+                    <ImageView
+                        android:id="@+id/btnPasteMnemonic"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_paste" />
+                </LinearLayout>
+
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="4dp"
-                    android:text="Ed"
-                    app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletSecpR1"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintStart_toEndOf="@+id/btnCreateWalletSecpK1"
-                    app:layout_constraintTop_toTopOf="@+id/btnCreateWalletSecpK1" />
+                    android:layout_marginTop="8dp"
+                    android:padding="10dp">
 
-                <Button
-                    android:id="@+id/btnCreateWalletSecpR1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:text="Secp_R1"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintStart_toEndOf="@+id/btnCreateWalletEdwards"
-                    app:layout_constraintTop_toTopOf="@+id/btnCreateWalletEdwards" />
+                    <Button
+                        android:id="@+id/btnCreateWalletSecpK1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:text="Secp_K1"
+                        app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletEdwards"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <Button
+                        android:id="@+id/btnCreateWalletEdwards"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:text="Ed"
+                        app:layout_constraintEnd_toStartOf="@+id/btnCreateWalletSecpR1"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toEndOf="@+id/btnCreateWalletSecpK1"
+                        app:layout_constraintTop_toTopOf="@+id/btnCreateWalletSecpK1" />
+
+                    <Button
+                        android:id="@+id/btnCreateWalletSecpR1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Secp_R1"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toEndOf="@+id/btnCreateWalletEdwards"
+                        app:layout_constraintTop_toTopOf="@+id/btnCreateWalletEdwards" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+
 
         </FrameLayout>
 
