@@ -6,14 +6,15 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.extensions.guard
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 
 /**
  * This task allows to change settings of multiple files written to the card with [WriteFileCommand].
  * @property changes: Dictionary of file indices with new settings
  */
 class ChangeFileSettingsTask(
-    changes: Map<Int, FileVisibility>
+    changes: Map<Int, FileVisibility>,
 ) : CardSessionRunnable<SuccessResponse> {
 
     private val changes: Deque<Pair<Int, FileVisibility>> = ArrayDeque(changes.toList())

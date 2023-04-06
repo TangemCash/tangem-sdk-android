@@ -7,7 +7,7 @@ import com.tangem.common.hdWallet.bip.BIP32
 
 sealed class DerivationNode(
     private val internalIndex: Long,
-    val isHardened: Boolean = true
+    val isHardened: Boolean = true,
 ) {
     val index: Long
         get() = if (isHardened) internalIndex + BIP32.hardenedOffset else internalIndex
@@ -26,7 +26,7 @@ sealed class DerivationNode(
 
     override fun hashCode(): Int = calculateHashCode(
         isHardened.hashCode(),
-        internalIndex.hashCode()
+        internalIndex.hashCode(),
     )
 
     companion object {

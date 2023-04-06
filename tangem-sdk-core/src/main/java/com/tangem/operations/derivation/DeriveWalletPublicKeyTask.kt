@@ -39,7 +39,7 @@ class DeriveWalletPublicKeyTask(
 
                     val childKey = ExtendedPublicKey(
                         publicKey = result.data.wallet.publicKey,
-                        chainCode = chainCode
+                        chainCode = chainCode,
                     )
                     updateKeys(childKey, session)
                     callback(CompletionResult.Success(childKey))
@@ -55,7 +55,7 @@ class DeriveWalletPublicKeyTask(
             ?.apply { this[derivationPath] = childKey }
         if (wallet != null && updatedKeys != null) {
             session.environment.card = session.environment.card?.updateWallet(
-                wallet.copy(derivedKeys = updatedKeys)
+                wallet.copy(derivedKeys = updatedKeys),
             )
         }
     }

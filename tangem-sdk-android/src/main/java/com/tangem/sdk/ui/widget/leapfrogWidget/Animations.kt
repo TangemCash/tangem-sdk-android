@@ -93,7 +93,7 @@ fun View.leapBackAnimation(
         start = properties.elevationStart,
         end = properties.elevationEnd,
         startDelay = halfDuration,
-        duration = 100
+        duration = 100,
     )
     val translateDown = ObjectAnimator.ofFloat(this, View.TRANSLATION_Y, properties.yTranslation)
     translateDown.startDelay = halfDuration

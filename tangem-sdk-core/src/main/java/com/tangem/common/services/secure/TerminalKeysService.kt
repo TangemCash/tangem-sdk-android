@@ -22,7 +22,7 @@ interface TerminalKeysService {
  * @param context is required to retrieve an instance of [SharedPreferences]
  */
 class TerminalKeysStorage(
-    private val secureStorage: SecureStorage
+    private val secureStorage: SecureStorage,
 ) : TerminalKeysService {
     private val terminalPublicKey = "terminalPublicKey"
     private val terminalPrivateKey = "terminalPrivateKey"

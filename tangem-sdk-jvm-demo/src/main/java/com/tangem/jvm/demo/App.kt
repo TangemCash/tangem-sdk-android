@@ -9,7 +9,7 @@ import org.apache.commons.cli.Options
 fun main(args: Array<String>) {
     System.setProperty(
         "sun.security.smartcardio.library",
-        "/System/Library/Frameworks/PCSC.framework/Versions/Current/PCSC"
+        "/System/Library/Frameworks/PCSC.framework/Versions/Current/PCSC",
     )
 
     val command = Command.byValue(args.first())

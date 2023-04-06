@@ -6,7 +6,8 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.extensions.guard
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 
 /**
  * This task allows to delete multiple or all files written to the card with [WriteFileCommand].
@@ -16,7 +17,7 @@ import java.util.*
  * will be deleted from card
  */
 class DeleteFilesTask(
-    indices: List<Int>? = null
+    indices: List<Int>? = null,
 ) : CardSessionRunnable<SuccessResponse> {
 
     private val indices: Deque<Int> = indices?.let { ArrayDeque(it.sorted()) } ?: ArrayDeque()

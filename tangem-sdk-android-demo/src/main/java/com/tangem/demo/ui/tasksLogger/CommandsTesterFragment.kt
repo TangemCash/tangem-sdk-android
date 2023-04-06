@@ -96,12 +96,14 @@ class SdkTaskSpinnerFragment : BaseFragment() {
 
         rvConsole.layoutManager = linearLayoutManager
         rvConsole.adapter = rvConsoleAdapter
-        rvConsole.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                (requireActivity() as? DemoActivity)?.enableSwipe(newState == RecyclerView.SCROLL_STATE_IDLE)
-            }
-        })
+        rvConsole.addOnScrollListener(
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    (requireActivity() as? DemoActivity)?.enableSwipe(newState == RecyclerView.SCROLL_STATE_IDLE)
+                }
+            },
+        )
         rvConsoleAdapter.onItemCountChanged = {
             rvConsole.smoothScrollToPosition(it)
         }

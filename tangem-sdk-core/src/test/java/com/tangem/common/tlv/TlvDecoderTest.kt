@@ -389,7 +389,8 @@ class TlvDecoderTest {
             13,
             15,
             1,
-            0)
+            0,
+        )
 
     private val tlvData = Tlv.deserialize(rawData)
 

@@ -38,7 +38,7 @@ class DemoActivity : AppCompatActivity() {
     private val fragmentPages = listOf(
         CommandListFragment::class.java,
         ViewDelegateFragment::class.java,
-        SettingsFragment::class.java
+        SettingsFragment::class.java,
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,11 +48,13 @@ class DemoActivity : AppCompatActivity() {
 
         Log.addLogger(logger)
         viewPager.adapter = ViewPagerAdapter(fragmentPages, this)
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                pageChangeListeners.forEach { it.invoke(position) }
-            }
-        })
+        viewPager.registerOnPageChangeCallback(
+            object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    pageChangeListeners.forEach { it.invoke(position) }
+                }
+            },
+        )
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = fragmentPages[position].simpleName.replace("Fragment", "")
         }.attach()

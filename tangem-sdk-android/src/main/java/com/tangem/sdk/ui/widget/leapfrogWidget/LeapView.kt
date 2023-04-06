@@ -37,7 +37,7 @@ class LeapView(
         state = state.copy(
             currentPosition = currentPosition,
             previousPosition = previousPosition,
-            properties = createLeapAnimationProperty(previousPosition, currentPosition)
+            properties = createLeapAnimationProperty(previousPosition, currentPosition),
         )
 
         return when {
@@ -55,7 +55,7 @@ class LeapView(
         state = state.copy(
             currentPosition = currentPosition,
             previousPosition = previousPosition,
-            properties = createLeapAnimationProperty(previousPosition, currentPosition)
+            properties = createLeapAnimationProperty(previousPosition, currentPosition),
         )
 
         return when {
@@ -66,7 +66,7 @@ class LeapView(
 
     fun fold() {
         state = state.copy(
-            properties = state.properties.toFold()
+            properties = state.properties.toFold(),
         )
     }
 

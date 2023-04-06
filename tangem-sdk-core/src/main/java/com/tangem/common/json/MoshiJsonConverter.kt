@@ -344,7 +344,7 @@ class TangemSdkAdapter {
         fun toJson(src: DerivationPath): String {
             val map = mapOf(
                 "rawPath" to src.rawPath,
-                "nodes" to src.nodes.map { it.index }
+                "nodes" to src.nodes.map { it.index },
             )
             return MoshiJsonConverter.default().toJson(map)
         }
@@ -523,9 +523,11 @@ class TangemSdkAdapter {
     }
 
     private object EnumConverter {
-        inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(json.replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase(locale = Locale.getDefault()) else it.toString()
-        })
+        inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(
+            json.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(locale = Locale.getDefault()) else it.toString()
+            },
+        )
 
         fun toJson(enum: Enum<*>): String = enum.name.replaceFirstChar { it.lowercase(Locale.getDefault()) }
     }

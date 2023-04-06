@@ -20,20 +20,20 @@ sealed class SessionViewDelegateState {
         val isFirstAttempt: Boolean,
         val showForgotButton: Boolean,
         val cardId: String?,
-        val callback: CompletionCallback<String>
+        val callback: CompletionCallback<String>,
     ) : SessionViewDelegateState()
 
     data class PinChangeRequested(
         val type: UserCodeType,
         val cardId: String?,
-        val callback: CompletionCallback<String>
+        val callback: CompletionCallback<String>,
     ) : SessionViewDelegateState()
 
     data class ResetCodes(
         val type: UserCodeType,
         val state: ResetPinService.State,
         val cardId: String?,
-        val callback: CompletionCallback<Boolean>
+        val callback: CompletionCallback<Boolean>,
     ) : SessionViewDelegateState()
 
     data class WrongCard(val wrongValueType: WrongValueType) : SessionViewDelegateState()

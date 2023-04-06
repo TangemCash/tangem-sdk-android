@@ -24,12 +24,12 @@ class SignResetPinTokenCommand(
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
             return TangemSdkError.ResetPinWrongCard(
-                internalCode = TangemSdkError.NotSupportedFirmwareVersion().code
+                internalCode = TangemSdkError.NotSupportedFirmwareVersion().code,
             )
         }
         if (card.backupStatus !is Card.BackupStatus.Active) {
             return TangemSdkError.ResetPinWrongCard(
-                internalCode = TangemSdkError.NoActiveBackup().code
+                internalCode = TangemSdkError.NoActiveBackup().code,
             )
         }
         if (card.cardId == resetPinCard.cardId) {
@@ -56,10 +56,7 @@ class SignResetPinTokenCommand(
         return CommandApdu(Instruction.Authorize, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): ConfirmationCard {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ConfirmationCard {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 

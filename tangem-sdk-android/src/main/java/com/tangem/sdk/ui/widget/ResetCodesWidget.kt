@@ -39,7 +39,7 @@ class ResetCodesWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView
 
         tvTitle.text = stringLocator.getString(
             StringsLocator.ID.PIN_RESET_CODE_FORMAT,
-            stringLocator.getString(pinId).lowercase()
+            stringLocator.getString(pinId).lowercase(),
         )
 
         tvMessageTitle.text = state.state.getMessageTitle(stringLocator)

@@ -28,7 +28,7 @@ import com.tangem.operations.PreflightReadMode
 @JsonClass(generateAdapter = true)
 class ReadWalletResponse(
     val cardId: String,
-    val wallet: CardWallet
+    val wallet: CardWallet,
 ) : CommandResponse
 
 /**
@@ -37,7 +37,7 @@ class ReadWalletResponse(
  */
 class ReadWalletCommand(
     private val walletIndex: Int,
-    private val derivationPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null,
 ) : Command<ReadWalletResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly

@@ -15,7 +15,7 @@ interface StorageService {
 
     enum class Keys {
         HasSuccessfulTapIn,
-        CardValues
+        CardValues,
     }
 }
 

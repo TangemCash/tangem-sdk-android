@@ -135,15 +135,14 @@ class PinCodeModificationWidget(
         }
     }
 
-    private fun getEtForCodeChecks(): TextInputEditText =
-        if (mode == Mode.CHANGE) etNewPinCode else etPinCode
+    private fun getEtForCodeChecks(): TextInputEditText = if (mode == Mode.CHANGE) etNewPinCode else etPinCode
 
     private fun setErrorStateVisibility(state: CheckCodesState) {
         val errorMessage = when (state) {
             CheckCodesState.TOO_SHORT -> getFormattedString(
                 R.string.error_pin_too_short_format,
                 pinName,
-                PIN_CODE_MIN_LENGTH
+                PIN_CODE_MIN_LENGTH,
             )
             CheckCodesState.NOT_MATCH -> getString(R.string.pin_confirm_error_format)
             else -> ""
@@ -199,7 +198,7 @@ class PinCodeModificationWidget(
         NOT_MATCH(isSaveButtonEnabled = true),
         UNDEFINED,
         TOO_SHORT,
-        MATCH(isSaveButtonEnabled = true)
+        MATCH(isSaveButtonEnabled = true),
     }
 
     enum class Mode {
@@ -234,7 +233,7 @@ class DebounceAfterTextChanged(
                 editable = it
                 handler.removeCallbacks(runnable)
                 handler.postDelayed(runnable, debounce)
-            }
+            },
         )
     }
 

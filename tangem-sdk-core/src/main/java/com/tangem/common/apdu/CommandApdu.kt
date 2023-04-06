@@ -59,10 +59,7 @@ class CommandApdu(
         this.write(lc.and(other = 0xFF))
     }
 
-    fun encrypt(
-        encryptionMode: EncryptionMode,
-        encryptionKey: ByteArray?,
-    ): CommandApdu {
+    fun encrypt(encryptionMode: EncryptionMode, encryptionKey: ByteArray?): CommandApdu {
         if (encryptionKey == null || p1 != EncryptionMode.None.byteValue) {
             return this
         }

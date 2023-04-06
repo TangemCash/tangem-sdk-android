@@ -136,7 +136,7 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         sdk.readFiles(
             readPrivateFiles = readPrivateFiles,
             cardId = cid,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -186,7 +186,8 @@ enum class Command(val value: String) {
     WriteFiles("writefiles"),
     DeleteFiles("deletefiles"),
     CreateWallet("createwallet"),
-    PurgeWallet("purgewallet");
+    PurgeWallet("purgewallet"),
+    ;
 
     companion object {
         private val values = values()

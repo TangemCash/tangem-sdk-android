@@ -106,7 +106,7 @@ class ReadIssuerDataCommand(
             decoder.decode(TlvTag.CardId),
             decoder.decode(TlvTag.IssuerData),
             decoder.decode(TlvTag.IssuerDataSignature),
-            decoder.decodeOptional(TlvTag.IssuerDataCounter)
+            decoder.decodeOptional(TlvTag.IssuerDataCounter),
         )
     }
 }

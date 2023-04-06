@@ -75,7 +75,7 @@ class LinkPrimaryCardCommand(
                             complete(
                                 response = LinkPrimaryCardResponse(cardId, Card.BackupRawStatus.CardLinked),
                                 session = session,
-                                callback = callback
+                                callback = callback,
                             )
                         }
                         else -> callback(result)
@@ -96,8 +96,8 @@ class LinkPrimaryCardCommand(
             settings = card.settings.copy(
                 isSettingAccessCodeAllowed = true,
                 isSettingPasscodeAllowed = true,
-                isResettingUserCodesAllowed = false
-            )
+                isResettingUserCodesAllowed = false,
+            ),
         )
         callback(CompletionResult.Success(response))
     }
@@ -125,10 +125,7 @@ class LinkPrimaryCardCommand(
         return CommandApdu(Instruction.LinkPrimaryCard, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): LinkPrimaryCardResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): LinkPrimaryCardResponse {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
@@ -136,7 +133,7 @@ class LinkPrimaryCardCommand(
 
         return LinkPrimaryCardResponse(
             cardId = decoder.decode(TlvTag.CardId),
-            backupStatus = decoder.decode(TlvTag.BackupStatus)
+            backupStatus = decoder.decode(TlvTag.BackupStatus),
         )
     }
 }

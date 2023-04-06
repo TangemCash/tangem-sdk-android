@@ -39,7 +39,7 @@ abstract class TapAnimator(
             tapInAnimation(),
             downTime(properties.tapInDownTimeDuration),
             tapOutAnimation(),
-            downTime(properties.tapOutDownTimeDuration)
+            downTime(properties.tapOutDownTimeDuration),
         )
 
         var isCancelled = false
@@ -57,7 +57,7 @@ abstract class TapAnimator(
                 }
             },
             onCancel = { isCancelled = true },
-            onRepeat = { isCancelled = false }
+            onRepeat = { isCancelled = false },
         )
         tapAnimator?.start()
     }
@@ -124,7 +124,7 @@ class TapBackAnimator(
             view,
             View.TRANSLATION_X,
             properties.xStart,
-            view.translationX + properties.xEnd
+            view.translationX + properties.xEnd,
         )
         slideRight.interpolator = DecelerateInterpolator()
 
@@ -146,7 +146,7 @@ class TapBackAnimator(
             view,
             View.TRANSLATION_X,
             view.translationX + properties.xEnd,
-            properties.xStart
+            properties.xStart,
         )
         slideLeft.interpolator = AccelerateInterpolator()
 
@@ -174,13 +174,13 @@ class TapFrontAnimator(
             view,
             View.TRANSLATION_X,
             properties.xStart,
-            view.translationX + properties.xEnd
+            view.translationX + properties.xEnd,
         )
         val slideUp = ObjectAnimator.ofFloat(
             view,
             View.TRANSLATION_Y,
             view.translationY + properties.yStart,
-            view.translationY
+            view.translationY,
         )
         slideRight.interpolator = DecelerateInterpolator()
         slideUp.interpolator = DecelerateInterpolator()
@@ -207,13 +207,13 @@ class TapFrontAnimator(
             view,
             View.TRANSLATION_X,
             view.translationX + properties.xEnd,
-            properties.xStart
+            properties.xStart,
         )
         val slideDown = ObjectAnimator.ofFloat(
             view,
             View.TRANSLATION_Y,
             view.translationY,
-            view.translationY + properties.yStart
+            view.translationY + properties.yStart,
         )
         slideLeft.interpolator = AccelerateInterpolator()
         slideDown.interpolator = AccelerateInterpolator()

@@ -208,7 +208,7 @@ class LeapfrogWidget(
 }
 
 data class LeapfrogWidgetState(
-    val leapViewStates: List<LeapViewState>
+    val leapViewStates: List<LeapViewState>,
 )
 
 class PropertyCalculator(

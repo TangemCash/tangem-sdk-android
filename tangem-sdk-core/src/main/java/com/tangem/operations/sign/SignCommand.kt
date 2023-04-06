@@ -121,7 +121,7 @@ internal class SignCommand(
                         session.environment.card?.wallet(walletPublicKey)?.let {
                             val wallet = it.copy(
                                 totalSignedHashes = result.data.totalSignedHashes,
-                                remainingSignatures = it.remainingSignatures?.minus(signatures.size)
+                                remainingSignatures = it.remainingSignatures?.minus(signatures.size),
                             )
                             session.environment.card = session.environment.card?.updateWallet(wallet)
                         }
@@ -129,7 +129,7 @@ internal class SignCommand(
                         val finalResponse = SignResponse(
                             result.data.cardId,
                             processSignatures(session.environment, signatures.toList()),
-                            result.data.totalSignedHashes
+                            result.data.totalSignedHashes,
                         )
                         callback(CompletionResult.Success(finalResponse))
                     } else {
@@ -145,7 +145,7 @@ internal class SignCommand(
         val message = LocatorMessage(
             headerSource = LocatorMessage.Source(
                 id = StringsLocator.ID.SIGN_MULTIPLE_CHUNKS_PART,
-                formatArgs = arrayOf(currentChunkNumber + 1, hashesChunked.size)
+                formatArgs = arrayOf(currentChunkNumber + 1, hashesChunked.size),
             ),
             bodySource = null,
         )
@@ -196,7 +196,7 @@ internal class SignCommand(
         return SignResponse(
             decoder.decode(TlvTag.CardId),
             splittedSignatures,
-            decoder.decodeOptional(TlvTag.WalletSignedHashes)
+            decoder.decodeOptional(TlvTag.WalletSignedHashes),
         )
     }
 

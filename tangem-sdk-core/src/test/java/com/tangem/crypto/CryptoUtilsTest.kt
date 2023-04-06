@@ -51,13 +51,15 @@ class CryptoUtilsTest {
 
     @Test
     fun testKeyCompression() {
-        val publicKey = ("0432f507f6a3029028faa5913838c50f5ff3355b9b000b51889d03a2bdb96570cd750e8187482a27ca9d2dd0c" +
-            "92c632155d0384521ed406753c9883621ad0da68c").hexToBytes()
+        val publicKey = (
+            "0432f507f6a3029028faa5913838c50f5ff3355b9b000b51889d03a2bdb96570cd750e8187482a27ca9d2dd0c" +
+                "92c632155d0384521ed406753c9883621ad0da68c"
+            ).hexToBytes()
 
         val compressedKey = Secp256k1.compressPublicKey(publicKey)
         assert(
             compressedKey.toHexString()
-                .lowercase(Locale.getDefault()) == "0232f507f6a3029028faa5913838c50f5ff3355b9b000b51889d03a2bdb96570cd"
+                .lowercase(Locale.getDefault()) == "0232f507f6a3029028faa5913838c50f5ff3355b9b000b51889d03a2bdb96570cd",
         )
         val decompressedKey = Secp256k1.decompressPublicKey(compressedKey)
         assert(decompressedKey.contentEquals(publicKey))

@@ -20,7 +20,7 @@ enum class TlvValueType {
     SigningMethod,
     InteractionMode,
     DerivationPath,
-    BackupStatus
+    BackupStatus,
 }
 
 /**
@@ -148,7 +148,8 @@ enum class TlvTag(val code: Int) {
     PrimaryCardLinkingKey(code = 0xD2),
     BackupCardLinkingKey(code = 0xD3),
     BackupCardLink(code = 0xD4),
-    BackupAttestSignature(code = 0xD5)
+    BackupAttestSignature(code = 0xD5),
+
     ;
 
     /**

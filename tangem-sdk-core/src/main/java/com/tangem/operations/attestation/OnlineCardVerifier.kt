@@ -42,16 +42,15 @@ class OnlineCardVerifier {
         return@lazy builder.create(TangemApi::class.java)
     }
 
-    suspend fun getCardInfo(
-        cardId: String,
-        cardPublicKey: ByteArray,
-    ): Result<CardVerifyAndGetInfo.Response.Item> {
+    suspend fun getCardInfo(cardId: String, cardPublicKey: ByteArray): Result<CardVerifyAndGetInfo.Response.Item> {
         val requestsBody = CardVerifyAndGetInfo.Request()
         requestsBody.requests =
             listOf(CardVerifyAndGetInfo.Request.Item(cardId, cardPublicKey.toHexString()))
 
-        return when (val result =
-                performRequest { tangemVerifyApi.getCardVerifyAndGetInfo(requestsBody) }) {
+        return when (
+            val result =
+                performRequest { tangemVerifyApi.getCardVerifyAndGetInfo(requestsBody) }
+        ) {
             is Result.Success -> {
                 val firstResult = result.data.results?.firstOrNull()
                 when {
@@ -64,11 +63,7 @@ class OnlineCardVerifier {
         }
     }
 
-    suspend fun getArtwork(
-        cardId: String,
-        cardPublicKey: String,
-        artworkId: String,
-    ): Result<ResponseBody> {
+    suspend fun getArtwork(cardId: String, cardPublicKey: String, artworkId: String): Result<ResponseBody> {
         return performRequest { tangemVerifyApi.getArtwork(artworkId, cardId, cardPublicKey) }
     }
 
@@ -77,7 +72,7 @@ class OnlineCardVerifier {
             performRequest {
                 tangemCardDataApi.getCardData(
 //                    cardId, cardPublicKey.toHexString()
-                    TangemApi.getCardDataHeaders(cardId, cardPublicKey.toHexString())
+                    TangemApi.getCardDataHeaders(cardId, cardPublicKey.toHexString()),
                 )
             }
         } catch (exception: Exception) {
@@ -103,9 +98,7 @@ interface TangemApi {
 
     @Headers("Content-Type: application/json")
     @POST(VERIFY_AND_GET_INFO)
-    suspend fun getCardVerifyAndGetInfo(
-        @Body requestBody: CardVerifyAndGetInfo.Request,
-    ): CardVerifyAndGetInfo.Response
+    suspend fun getCardVerifyAndGetInfo(@Body requestBody: CardVerifyAndGetInfo.Request): CardVerifyAndGetInfo.Response
 
     @Headers("Content-Type: application/json")
     @GET(ARTWORK)
@@ -117,9 +110,7 @@ interface TangemApi {
 
     @Headers("Content-Type: application/json")
     @GET(CARD_DATA)
-    suspend fun getCardData(
-        @HeaderMap headers: Map<String, String>,
-    ): CardDataResponse
+    suspend fun getCardData(@HeaderMap headers: Map<String, String>): CardDataResponse
 
     companion object {
         enum class BaseUrl(val url: String) {

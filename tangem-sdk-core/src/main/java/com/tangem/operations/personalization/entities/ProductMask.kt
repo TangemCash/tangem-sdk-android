@@ -17,6 +17,7 @@ class ProductMask(override val rawValue: Int) : BaseMask() {
         IdCard(value = 0x04),
         IdIssuer(value = 0x08),
         Authentication(value = 0x10),
-        TwinCard(value = 0x20);
+        TwinCard(value = 0x20),
+        ;
     }
 }

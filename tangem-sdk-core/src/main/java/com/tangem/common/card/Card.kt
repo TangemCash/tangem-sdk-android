@@ -110,8 +110,7 @@ data class Card internal constructor(
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun wallet(publicKey: ByteArray): CardWallet? =
-        wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
+    fun wallet(publicKey: ByteArray): CardWallet? = wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
 
     fun addWallet(wallet: CardWallet): Card {
         val sortedWallets = wallets.toMutableList().apply {
@@ -179,7 +178,8 @@ data class Card internal constructor(
         NotPersonalized(code = 0),
         Empty(code = 1),
         Loaded(code = 2),
-        Purged(code = 3);
+        Purged(code = 3),
+        ;
 
         companion object {
             private val values = values()
@@ -226,7 +226,8 @@ data class Card internal constructor(
     enum class BackupRawStatus(val code: Int) {
         NoBackup(0),
         CardLinked(1),
-        Active(2);
+        Active(2),
+        ;
 
         companion object {
             private val values = values()
@@ -357,7 +358,7 @@ data class Card internal constructor(
                 maxWalletsCount = this.maxWalletsCount,
                 mask = mask,
                 defaultSigningMethods = this.defaultSigningMethods,
-                defaultCurve = this.defaultCurve
+                defaultCurve = this.defaultCurve,
             )
         }
 
@@ -488,7 +489,8 @@ data class CardWallet(
         /**
          *Wallet was purged and can't be recreated or used for signing, but backup data read and wallet can be usable on backup card
          */
-        BackupedAndPurged(code = 0x83);
+        BackupedAndPurged(code = 0x83),
+        ;
 
         companion object {
             private val values = values()
@@ -521,7 +523,7 @@ data class CardWallet(
 
         enum class Code(override val value: Int) : Mask.Code {
             IsReusable(value = 0x0001),
-            IsPermanent(value = 0x0004)
+            IsPermanent(value = 0x0004),
         }
     }
 }

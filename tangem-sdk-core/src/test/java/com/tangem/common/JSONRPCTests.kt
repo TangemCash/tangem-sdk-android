@@ -133,7 +133,7 @@ class JSONRPCTests {
             10,
             100,
             1,
-            false
+            false,
         )
         val response = CreateWalletResponse("c000111122223333", wallet)
         testMethod("CreateWallet", response)
@@ -156,7 +156,7 @@ class JSONRPCTests {
     fun testSignHashes() {
         val hashes = listOf(
             "EB7411C2B7D871C06DAD51E58E44746583AD134F4E214E4899F2FC84802232A1".hexToBytes(),
-            "33443BD93F350B62A90A0C23D30C6D4E9BB164606E809CCACE60CF0E2591E58C".hexToBytes()
+            "33443BD93F350B62A90A0C23D30C6D4E9BB164606E809CCACE60CF0E2591E58C".hexToBytes(),
         )
         val response = SignHashesResponse("c000111122223333", hashes, 2)
         testMethod("SignHashes", response)
@@ -193,7 +193,7 @@ class JSONRPCTests {
                     publicKey = "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962".hexToBytes(),
                     chainCode = "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB".hexToBytes(),
                 ),
-            )
+            ),
         )
 
         testMethod("DeriveWalletPublicKeys", response)
@@ -210,9 +210,9 @@ class JSONRPCTests {
                     index = 0,
                     settings = FileSettings(false, FileVisibility.Public),
                     null,
-                    null
-                )
-            )
+                    null,
+                ),
+            ),
         )
         testMethod("files/DeleteFiles", SuccessResponse("c000111122223333"))
         testMethod("files/WriteFiles", WriteFilesResponse("c000111122223333", listOf(0, 1)))
@@ -253,7 +253,7 @@ class JSONRPCTests {
                 is CompletionResult.Failure -> JSONRPCResponse(
                     null,
                     result.error.toJSONRPCError(),
-                    jsonResponse.id
+                    jsonResponse.id,
                 )
             }
             val testResponseMap = converter.toMap(resultJsonRpcResponse)

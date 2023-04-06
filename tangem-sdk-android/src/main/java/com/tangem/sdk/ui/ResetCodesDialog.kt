@@ -31,7 +31,7 @@ class ResetCodesDialog(context: Context) : BaseSdkDialog(context) {
         headerWidget = HeaderWidget(view.findViewById(R.id.llHeader))
         pinCodeSetChangeWidget = PinCodeModificationWidget(
             mainView = view.findViewById(R.id.llChangePin),
-            mode = PinCodeModificationWidget.Mode.RESET
+            mode = PinCodeModificationWidget.Mode.RESET,
         )
         resetCodesWidget = ResetCodesWidget(view.findViewById(R.id.reset_codes))
 
@@ -88,7 +88,7 @@ class ResetCodesDialog(context: Context) : BaseSdkDialog(context) {
             type = state.type,
             state = state.state,
             cardId = state.cardId,
-            callback = state.callback
+            callback = state.callback,
         )
         setStateAndShow(viewState, resetCodesWidget, headerWidget)
     }

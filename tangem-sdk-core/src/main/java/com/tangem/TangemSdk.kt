@@ -224,7 +224,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -258,7 +258,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -286,7 +286,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -344,7 +344,7 @@ class TangemSdk(
             cardId = null,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -360,16 +360,13 @@ class TangemSdk(
      * card response in the form of [DepersonalizeResponse] if the task was performed successfully
      * or [TangemSdkError] in case of an error.
      * */
-    fun depersonalize(
-        initialMessage: Message? = null,
-        callback: CompletionCallback<DepersonalizeResponse>,
-    ) {
+    fun depersonalize(initialMessage: Message? = null, callback: CompletionCallback<DepersonalizeResponse>) {
         startSessionWithRunnable(
             runnable = DepersonalizeCommand(),
             cardId = null,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -398,7 +395,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -427,7 +424,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -453,7 +450,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -490,7 +487,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -523,7 +520,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -553,7 +550,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -586,7 +583,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -638,7 +635,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -673,7 +670,7 @@ class TangemSdk(
             issuerData = issuerData,
             issuerDataSignature = issuerDataSignature,
             issuerDataCounter = issuerDataCounter,
-            issuerPublicKey = config.issuerPublicKey
+            issuerPublicKey = config.issuerPublicKey,
         )
         startSessionWithRunnable(
             runnable = command,
@@ -712,7 +709,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -756,14 +753,14 @@ class TangemSdk(
             startingSignature = startingSignature,
             finalizingSignature = finalizingSignature,
             issuerDataCounter = issuerDataCounter,
-            issuerPublicKey = config.issuerPublicKey
+            issuerPublicKey = config.issuerPublicKey,
         )
         startSessionWithRunnable(
             runnable = command,
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -798,7 +795,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -840,7 +837,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -880,14 +877,14 @@ class TangemSdk(
     ) {
         val command = WriteUserDataCommand(
             userProtectedData = userProtectedData,
-            userProtectedCounter = userProtectedCounter
+            userProtectedCounter = userProtectedCounter,
         )
         startSessionWithRunnable(
             runnable = command,
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -1035,10 +1032,7 @@ class TangemSdk(
         viewDelegate.setConfig(config)
     }
 
-    private fun createUserCodeRepository(
-        secureStorage: SecureStorage,
-        config: Config,
-    ): UserCodeRepository? {
+    private fun createUserCodeRepository(secureStorage: SecureStorage, config: Config): UserCodeRepository? {
         val safeBiometricsManager = biometricManager
 
         return if (safeBiometricsManager.canAuthenticate &&

@@ -49,7 +49,9 @@ enum class FileVisibility {
     /**
      * User can read private files only with security delay or user code if set
      */
-    Private;
+    Private,
+
+    ;
 
     private val permissionsRawValue: Byte
         get() = when (this) {

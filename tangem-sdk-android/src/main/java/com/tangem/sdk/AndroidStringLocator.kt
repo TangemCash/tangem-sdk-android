@@ -7,11 +7,7 @@ import java.lang.reflect.Field
 
 class AndroidStringLocator(val context: Context) : StringsLocator {
 
-    override fun getString(
-        stringId: StringsLocator.ID,
-        vararg formatArgs: Any,
-        defaultValue: String,
-    ): String {
+    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any, defaultValue: String): String {
         return runCatching {
             val idField: Field = R.string::class.java.getDeclaredField(stringId.name)
             idField.getInt(idField)

@@ -12,7 +12,8 @@ enum class TangemCommandOptions(val option: Option) {
     WalletIndex(Option("wi", "walletIndex", true, "index of the selected wallet")),
     FileIndices(Option("indices", true, "indices of files")),
     ReadPrivateFiles(Option("privatefiles", false, "should the command read private files")),
-    Files(Option("files", true, "files as array of bytes"));
+    Files(Option("files", true, "files as array of bytes")),
+    ;
 
     val opt = option.opt
 }

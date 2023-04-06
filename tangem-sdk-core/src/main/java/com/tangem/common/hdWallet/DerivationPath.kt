@@ -46,7 +46,7 @@ class DerivationPath {
 
     override fun hashCode(): Int = calculateHashCode(
         rawPath.hashCode(),
-        calculateHashCode(*nodes.map { it.hashCode() }.toIntArray())
+        calculateHashCode(*nodes.map { it.hashCode() }.toIntArray()),
     )
 
     companion object {

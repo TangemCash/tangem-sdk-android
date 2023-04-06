@@ -83,7 +83,7 @@ object CardDeserializer {
             wallets = wallets.toList(),
             health = decoder.decodeOptional(TlvTag.Health),
             remainingSignatures = remainingSignatures,
-            backupStatus = backupStatus
+            backupStatus = backupStatus,
         )
     }
 

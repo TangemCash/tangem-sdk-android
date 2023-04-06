@@ -32,7 +32,7 @@ class FinalizeBackupCardTask(
                 backupCards = backupCards,
                 attestSignature = attestSignature,
                 accessCode = accessCode,
-                passcode = passcode
+                passcode = passcode,
             )
 
             command.run(session) { linkResult ->
@@ -48,10 +48,7 @@ class FinalizeBackupCardTask(
         }
     }
 
-    private fun writeBackupData(
-        session: CardSession,
-        callback: CompletionCallback<Card>,
-    ) {
+    private fun writeBackupData(session: CardSession, callback: CompletionCallback<Card>) {
         val writeCommand = WriteBackupDataCommand(backupData, accessCode, passcode)
 
         writeCommand.run(session) { writeResult ->
@@ -69,10 +66,7 @@ class FinalizeBackupCardTask(
         }
     }
 
-    private fun readWallets(
-        session: CardSession,
-        callback: CompletionCallback<Card>,
-    ) {
+    private fun readWallets(session: CardSession, callback: CompletionCallback<Card>) {
         ReadWalletsListCommand().run(session) { result ->
             when (result) {
                 is CompletionResult.Success ->

@@ -260,7 +260,7 @@ class CardSession(
             }
             requestUserCodeIfNeeded(
                 type = codeType,
-                isFirstAttempt = true
+                isFirstAttempt = true,
             ) { userCodeResult ->
                 userCodeResult
                     .doOnSuccess { runnable.prepare(this, callback) }
@@ -421,7 +421,7 @@ class CardSession(
 
         val encryptionHelper = EncryptionHelper.create(environment.encryptionMode)
             ?: return CompletionResult.Failure(
-                TangemSdkError.CryptoUtilsError("Failed to establish encryption")
+                TangemSdkError.CryptoUtilsError("Failed to establish encryption"),
             )
 
         val openSessionCommand = OpenSessionCommand(encryptionHelper.keyA)
@@ -439,8 +439,8 @@ class CardSession(
                 val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, iterations = 50)
                     ?: return CompletionResult.Failure(
                         TangemSdkError.CryptoUtilsError(
-                            "Failed to establish encryption"
-                        )
+                            "Failed to establish encryption",
+                        ),
                     )
 
                 val secret = encryptionHelper.generateSecret(result.sessionKeyB)
@@ -579,7 +579,7 @@ class CardSession(
         val resetService = ResetPinService(
             sessionBuilder = sessionBuilder,
             stringsLocator = viewDelegate.resetCodesViewDelegate.stringsLocator,
-            config = config
+            config = config,
         )
         viewDelegate.resetCodesViewDelegate.stopSessionCallback = {
             stopSessionIfActive()
@@ -587,7 +587,7 @@ class CardSession(
         }
         resetCodesController = ResetCodesController(
             resetService = resetService,
-            viewDelegate = viewDelegate.resetCodesViewDelegate
+            viewDelegate = viewDelegate.resetCodesViewDelegate,
         ).apply {
             cardIdDisplayFormat = environment.config.cardIdDisplayFormat
             start(codeType = type, cardId = cardId, callback = callback)
@@ -596,7 +596,7 @@ class CardSession(
 
     enum class CardSessionState {
         Inactive,
-        Active
+        Active,
     }
 }
 
@@ -604,7 +604,7 @@ typealias SessionStartedCallback = (session: CardSession, error: TangemError?) -
 
 enum class TagType {
     Nfc,
-    Slix
+    Slix,
 }
 
 class SessionBuilder(
@@ -614,11 +614,7 @@ class SessionBuilder(
     val reader: CardReader,
     val jsonRpcConverter: JSONRPCConverter,
 ) {
-    fun build(
-        config: Config,
-        cardId: String? = null,
-        initialMessage: Message? = null,
-    ): CardSession {
+    fun build(config: Config, cardId: String? = null, initialMessage: Message? = null): CardSession {
         return CardSession(
             cardId = cardId,
             viewDelegate = viewDelegate,

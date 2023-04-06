@@ -41,7 +41,8 @@ enum class IssuerExtraDataMode(val code: Byte) {
      * Under this mode the command provides the issuer signature
      * to confirm the validity of data that was written to card.
      */
-    FinalizeWrite(code = 3);
+    FinalizeWrite(code = 3),
+    ;
 
     companion object {
         private val values = values()
@@ -120,10 +121,7 @@ class ReadIssuerExtraDataCommand(
         readData(session, callback)
     }
 
-    private fun readData(
-        session: CardSession,
-        callback: CompletionCallback<ReadIssuerExtraDataResponse>,
-    ) {
+    private fun readData(session: CardSession, callback: CompletionCallback<ReadIssuerExtraDataResponse>) {
         if (issuerDataSize != 0) {
             session.viewDelegate.onDelay(issuerDataSize, offset, WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE)
         }
@@ -163,7 +161,7 @@ class ReadIssuerExtraDataCommand(
                 issuerDataSize,
                 issuerData.toByteArray(),
                 data.issuerDataSignature,
-                data.issuerDataCounter
+                data.issuerDataCounter,
             )
             callback(CompletionResult.Success(finalResult))
         } else {
@@ -180,10 +178,7 @@ class ReadIssuerExtraDataCommand(
         return CommandApdu(Instruction.ReadIssuerData, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): ReadIssuerExtraDataResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadIssuerExtraDataResponse {
         val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -192,7 +187,7 @@ class ReadIssuerExtraDataCommand(
             size = decoder.decodeOptional(TlvTag.Size),
             issuerData = decoder.decodeOptional(TlvTag.IssuerData) ?: byteArrayOf(),
             issuerDataSignature = decoder.decodeOptional(TlvTag.IssuerDataSignature),
-            issuerDataCounter = decoder.decodeOptional(TlvTag.IssuerDataCounter)
+            issuerDataCounter = decoder.decodeOptional(TlvTag.IssuerDataCounter),
         )
     }
 

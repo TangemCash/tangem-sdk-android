@@ -17,7 +17,6 @@ import com.tangem.sdk.ui.widget.BaseSessionDelegateStateWidget
 /**
  * Created by Anton Zhilenkov on 27/07/2020.
  */
-
 class ProgressbarStateWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     private val progressIndicator: CircularProgressIndicator = mainView.findViewById(R.id.progressBar)
@@ -193,25 +192,24 @@ class ProgressbarStateWidget(mainView: View) : BaseSessionDelegateStateWidget(ma
     override fun onBottomSheetDismiss() {
         handleNoneState()
     }
-}
 
-private fun CircularProgressIndicator.applyPrimaryColor() {
-    applyProgressColor(R.color.sdk_progress_bar_primary)
-}
+    private fun CircularProgressIndicator.applyPrimaryColor() {
+        applyProgressColor(R.color.sdk_progress_bar_primary)
+    }
 
-private fun CircularProgressIndicator.applyProgressColor(@ColorRes color: Int) {
-    setIndicatorColor(parseColor(color))
-}
+    private fun CircularProgressIndicator.applyProgressColor(@ColorRes color: Int) {
+        setIndicatorColor(parseColor(color))
+    }
 
-private fun CircularProgressIndicator.applyTrackColor() {
-    trackColor = parseColor(R.color.sdk_progress_bar_secondary)
-}
+    private fun CircularProgressIndicator.applyTrackColor() {
+        trackColor = parseColor(R.color.sdk_progress_bar_secondary)
+    }
 
-private fun CircularProgressIndicator.disableTrackColor() {
-    trackColor = parseColor(android.R.color.transparent)
-}
+    private fun CircularProgressIndicator.disableTrackColor() {
+        trackColor = parseColor(android.R.color.transparent)
+    }
 
-@Suppress("MagicNumber")
-private fun SessionViewDelegateState.SecurityDelay.isUserCodeFailsSD(): Boolean {
-    return this.ms.mod(100) != 0
+    private fun SessionViewDelegateState.SecurityDelay.isUserCodeFailsSD(): Boolean {
+        return this.ms.mod(other = 100) != 0
+    }
 }

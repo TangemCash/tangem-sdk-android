@@ -71,7 +71,7 @@ class ReadUserDataCommand : Command<ReadUserDataResponse>() {
             userData = decoder.decode(TlvTag.UserData),
             userProtectedData = decoder.decode(TlvTag.UserProtectedData),
             userCounter = decoder.decode(TlvTag.UserCounter),
-            userProtectedCounter = decoder.decode(TlvTag.UserProtectedCounter)
+            userProtectedCounter = decoder.decode(TlvTag.UserProtectedCounter),
         )
     }
 }

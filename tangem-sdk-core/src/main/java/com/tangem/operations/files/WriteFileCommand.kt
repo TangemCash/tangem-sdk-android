@@ -171,12 +171,17 @@ class WriteFileCommand private constructor(
             FileDataMode.InitiateWritingFile -> {
                 tlvBuilder.append(TlvTag.Size, data.size)
 
-                ifNotNullOr(startingSignature, counter, { signature, counter ->
-                    tlvBuilder.append(TlvTag.IssuerDataSignature, signature)
-                    tlvBuilder.append(TlvTag.IssuerDataCounter, counter)
-                }, {
-                    tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-                })
+                ifNotNullOr(
+                    startingSignature,
+                    counter,
+                    { signature, counter ->
+                        tlvBuilder.append(TlvTag.IssuerDataSignature, signature)
+                        tlvBuilder.append(TlvTag.IssuerDataCounter, counter)
+                    },
+                    {
+                        tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
+                    },
+                )
                 tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
 
                 fileVisibility?.let {
@@ -211,7 +216,7 @@ class WriteFileCommand private constructor(
         val decoder = TlvDecoder(tlvData)
         return WriteFileResponse(
             cardId = decoder.decode(TlvTag.CardId),
-            fileIndex = decoder.decodeOptional(TlvTag.FileIndex)
+            fileIndex = decoder.decodeOptional(TlvTag.FileIndex),
         )
     }
 
@@ -272,7 +277,7 @@ class WriteFileCommand private constructor(
                 },
                 orBloc = {
                     false
-                }
+                },
             )
         }
     }

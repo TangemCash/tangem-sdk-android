@@ -150,7 +150,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                             if (remainingTime != null) {
                                 session.viewDelegate.onSecurityDelay(
                                     remainingTime,
-                                    session.environment.card?.settings?.securityDelay ?: 0
+                                    session.environment.card?.settings?.securityDelay ?: 0,
                                 )
                             }
                             transceiveApdu(apdu, session, callback)
@@ -176,7 +176,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                         }
                         StatusWord.Unknown -> {
                             callback(
-                                CompletionResult.Failure(TangemSdkError.UnknownStatus(responseApdu.sw.toHexString()))
+                                CompletionResult.Failure(TangemSdkError.UnknownStatus(responseApdu.sw.toHexString())),
                             )
                         }
                         else -> {

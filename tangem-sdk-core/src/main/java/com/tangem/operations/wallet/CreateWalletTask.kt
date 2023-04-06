@@ -101,7 +101,7 @@ class CreateWalletTask(
 
         derivationTask = DeriveWalletPublicKeysTask(
             walletPublicKey = response.wallet.publicKey,
-            derivationPaths = paths
+            derivationPaths = paths,
         )
         derivationTask!!.run(session) { result ->
             when (result) {

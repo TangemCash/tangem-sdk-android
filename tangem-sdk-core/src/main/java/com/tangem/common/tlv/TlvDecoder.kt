@@ -211,7 +211,7 @@ class TlvDecoder(val tlvList: List<Tlv>) {
         if (T::class != ExpectedT::class) {
             val error = TangemSdkError.DecodingFailedTypeMismatch(
                 "Decoder: type check failed for tag: " +
-                    "$tag must be ${tag.valueType()}. It is ${T::class}"
+                    "$tag must be ${tag.valueType()}. It is ${T::class}",
             )
             if (logError) Log.error { error.customMessage }
             throw error

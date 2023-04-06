@@ -41,7 +41,7 @@ class NfcUnknownWidget(
                     postUI(3000) { onAnimationEnd?.invoke() }
                 }
             },
-            onCancel = { handWithCard.fadeOut(1000) }
+            onCancel = { handWithCard.fadeOut(1000) },
         )
         animatorSet.startDelay = 1000
     }

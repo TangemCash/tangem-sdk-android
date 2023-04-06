@@ -226,12 +226,9 @@ object Backup {
     }
     """
 
-    fun primaryCardConfig(): CardConfig =
-        MoshiJsonConverter.INSTANCE.fromJson(configJsonPrimary)!!
+    fun primaryCardConfig(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonPrimary)!!
 
-    fun backup1Config(): CardConfig =
-        MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup1)!!
+    fun backup1Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup1)!!
 
-    fun backup2Config(): CardConfig =
-        MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup2)!!
+    fun backup2Config(): CardConfig = MoshiJsonConverter.INSTANCE.fromJson(configJsonBackup2)!!
 }

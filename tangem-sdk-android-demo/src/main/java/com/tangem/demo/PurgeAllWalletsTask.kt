@@ -37,10 +37,12 @@ class PurgeAllWalletsTask : CardSessionRunnable<SuccessResponse> {
         }
 
         val walletIndex = session.environment.card?.wallet(wallet.publicKey)?.index ?: -1
-        session.setMessage(Message(
-            "Deleting the #$walletIndex wallet index",
-            "Wait until all wallets are deleted"
-        ))
+        session.setMessage(
+            Message(
+                "Deleting the #$walletIndex wallet index",
+                "Wait until all wallets are deleted",
+            ),
+        )
 
         PurgeWalletCommand(wallet.publicKey).run(session) { result ->
             when (result) {

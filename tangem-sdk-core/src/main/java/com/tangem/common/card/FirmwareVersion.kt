@@ -117,7 +117,8 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
     enum class FirmwareType(val rawValue: String?) {
         Sdk("d SDK"),
         Release("r"),
-        Sprecial(null);
+        Sprecial(null),
+        ;
 
         companion object {
             fun from(type: String): FirmwareType {

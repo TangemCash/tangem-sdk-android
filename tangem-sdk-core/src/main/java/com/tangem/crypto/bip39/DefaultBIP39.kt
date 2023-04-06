@@ -22,9 +22,7 @@ internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
         return components.toList()
     }
 
-    override fun generateMnemonic(
-        entropyLength: EntropyLength
-    ): List<String> {
+    override fun generateMnemonic(entropyLength: EntropyLength): List<String> {
         // reminder of div by 32 should be 0
         if (entropyLength.count % DIV_ARG != 0) {
             throw TangemSdkError.MnemonicException(MnemonicErrorResult.MnenmonicCreationFailed)
