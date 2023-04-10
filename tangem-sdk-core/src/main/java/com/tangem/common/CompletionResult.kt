@@ -117,3 +117,10 @@ inline fun <reified D, reified R> List<CompletionResult<D>>.fold(
 
     return CompletionResult.Success(resultData)
 }
+
+internal fun <T> CompletionResult<T>.successOrNull(): T? {
+    return when (this) {
+        is CompletionResult.Failure -> null
+        is Success -> this.data
+    }
+}

@@ -4,11 +4,11 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.extensions.toLong
-import com.tangem.common.hdWallet.DerivationNode
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.common.hdWallet.HDWalletError
-import com.tangem.common.hdWallet.bip.BIP44
+import com.tangem.crypto.hdWallet.DerivationNode
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.HDWalletError
+import com.tangem.crypto.hdWallet.BIP44
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag

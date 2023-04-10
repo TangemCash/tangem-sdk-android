@@ -1,9 +1,9 @@
-package com.tangem.common.hdWallet
+package com.tangem.crypto.hdWallet
 
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateHashCode
 import com.tangem.common.extensions.remove
-import com.tangem.common.hdWallet.bip.BIP32
+import com.tangem.crypto.hdWallet.bip32.BIP32
 import java.util.Locale
 
 /**
@@ -66,15 +66,15 @@ class DerivationPath {
 
         @Throws(HDWalletError::class)
         private fun createPath(rawPath: String): List<DerivationNode> {
-            val splittedPath = rawPath.lowercase(Locale.getDefault()).split(BIP32.separatorSymbol)
+            val splittedPath = rawPath.lowercase(Locale.getDefault()).split(BIP32.Constants.separatorSymbol)
             if (splittedPath.size < 2) throw HDWalletError.WrongPath
-            if (splittedPath[0].trim() != BIP32.masterKeySymbol) throw HDWalletError.WrongPath
+            if (splittedPath[0].trim() != BIP32.Constants.masterKeySymbol) throw HDWalletError.WrongPath
 
             val derivationPath = splittedPath.subList(1, splittedPath.size).map { pathItem ->
-                val isHardened = pathItem.contains(BIP32.hardenedSymbol) ||
-                    pathItem.contains(BIP32.alternativeHardenedSymbol)
+                val isHardened = pathItem.contains(BIP32.Constants.hardenedSymbol) ||
+                    pathItem.contains(BIP32.Constants.alternativeHardenedSymbol)
                 val cleanedPathItem = pathItem.trim()
-                    .remove(BIP32.hardenedSymbol, BIP32.alternativeHardenedSymbol)
+                    .remove(BIP32.Constants.hardenedSymbol, BIP32.Constants.alternativeHardenedSymbol)
                 val index = cleanedPathItem.toLongOrNull() ?: throw HDWalletError.WrongPath
 
                 if (isHardened) DerivationNode.Hardened(index) else DerivationNode.NonHardened(index)
@@ -83,10 +83,10 @@ class DerivationPath {
         }
 
         private fun createRawPath(nodes: List<DerivationNode>): String {
-            var path = BIP32.masterKeySymbol
+            var path = BIP32.Constants.masterKeySymbol
 
-            val nodesPath = nodes.joinToString(BIP32.separatorSymbol) { it.pathDescription }
-            if (nodesPath.isNotEmpty()) path += "${BIP32.separatorSymbol}$nodesPath"
+            val nodesPath = nodes.joinToString(BIP32.Constants.separatorSymbol) { it.pathDescription }
+            if (nodesPath.isNotEmpty()) path += "${BIP32.Constants.separatorSymbol}$nodesPath"
 
             return path
         }

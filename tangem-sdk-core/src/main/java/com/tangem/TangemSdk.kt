@@ -9,8 +9,8 @@ import com.tangem.common.biometric.DummyBiometricManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result

@@ -3,7 +3,7 @@ package com.tangem.operations.sign
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 
 /**
  * Signs transaction hash using a wallet private key, stored on the card.

@@ -3,7 +3,7 @@ package com.tangem.common.core
 import com.tangem.common.CardFilter
 import com.tangem.common.UserCodeType
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.operations.attestation.AttestationTask
 
 class Config(

@@ -4,8 +4,8 @@ import com.squareup.moshi.JsonClass
 import com.tangem.common.BaseMask
 import com.tangem.common.Mask
 import com.tangem.common.card.CardWallet.Status.Companion.initExtendedPublicKey
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.read.ReadCommand
@@ -208,12 +208,12 @@ data class Card internal constructor(
         companion object {
             fun from(rawStatus: BackupRawStatus, cardsCount: Int? = null): BackupStatus? {
                 return when (rawStatus) {
-                    BackupRawStatus.NoBackup -> BackupStatus.NoBackup
+                    BackupRawStatus.NoBackup -> NoBackup
                     BackupRawStatus.CardLinked -> cardsCount?.let {
-                        BackupStatus.CardLinked(cardsCount)
+                        CardLinked(cardsCount)
                     }
                     BackupRawStatus.Active -> cardsCount?.let {
-                        BackupStatus.Active(cardsCount)
+                        Active(cardsCount)
                     }
                 }
             }
@@ -352,7 +352,7 @@ data class Card internal constructor(
             isFilesAllowed = !mask.contains(SettingsMask.Code.DisableFiles),
         )
 
-        fun updated(mask: Card.SettingsMask): Settings {
+        fun updated(mask: SettingsMask): Settings {
             return Settings(
                 securityDelay = this.securityDelay,
                 maxWalletsCount = this.maxWalletsCount,

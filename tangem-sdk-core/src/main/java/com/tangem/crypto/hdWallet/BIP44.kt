@@ -1,7 +1,4 @@
-package com.tangem.common.hdWallet.bip
-
-import com.tangem.common.hdWallet.DerivationNode
-import com.tangem.common.hdWallet.DerivationPath
+package com.tangem.crypto.hdWallet
 
 /**
  * Created by Anton Zhilenkov on 06/08/2021.

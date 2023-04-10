@@ -4,9 +4,9 @@ import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.common.hdWallet.HDWalletError
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.HDWalletError
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
@@ -204,7 +204,11 @@ class ChangeFileSettingsHandler : JSONRPCHandler<SuccessResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         val changes = (params["changes"] as Map<String, String>).entries.associate {
-            it.key.toInt() to FileVisibility.valueOf(it.value.capitalize(Locale.getDefault()))
+            it.key.toInt() to FileVisibility.valueOf(
+                it.value.replaceFirstChar { firstChar ->
+                    if (firstChar.isLowerCase()) firstChar.titlecase(Locale.getDefault()) else firstChar.toString()
+                },
+            )
         }
         return ChangeFileSettingsTask(changes)
     }
