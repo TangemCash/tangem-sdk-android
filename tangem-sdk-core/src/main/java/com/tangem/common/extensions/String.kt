@@ -20,8 +20,9 @@ fun String.calculateSha512(): ByteArray {
 
 @Suppress("MagicNumber")
 fun String.hexToBytes(): ByteArray {
-    return ByteArray(this.length / 2) { i ->
-        Integer.parseInt(this.substring(2 * i, 2 * i + 2), 16).toByte()
+    val hexString = this.removePrefix("0x")
+    return ByteArray(hexString.length / 2) { i ->
+        Integer.parseInt(hexString.substring(2 * i, 2 * i + 2), 16).toByte()
     }
 }
 

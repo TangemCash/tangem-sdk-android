@@ -97,7 +97,6 @@ object Secp256k1 {
 
     private fun multiply(privateKeyArray: ByteArray, ecSpec: ECParameterSpec? = null): ECPoint {
         val ecSpec = ecSpec ?: createECSpec()
-
         return ecSpec.g.multiply(BigInteger(1, privateKeyArray))
     }
 
@@ -117,6 +116,13 @@ object Secp256k1 {
         }
 
         return signature
+    }
+
+    @Suppress("MagicNumber")
+    internal fun isPrivateKeyValid(privateKey: ByteArray): Boolean {
+        val spec = createECSpec()
+        val ecPoint = multiply(privateKey, spec)
+        return !(ecPoint.isInfinity || BigInteger(privateKey.toHexString(), 16) >= spec.n)
     }
 
     private fun createECSpec(): ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256k1")

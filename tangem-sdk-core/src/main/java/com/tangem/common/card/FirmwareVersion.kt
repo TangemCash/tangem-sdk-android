@@ -62,7 +62,7 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
 
     override fun equals(other: Any?): Boolean {
         val other = other as? FirmwareVersion ?: return false
-        return stringValue == other.stringValue
+        return this.compareTo(other) == 0
     }
 
     override fun hashCode(): Int = stringValue.hashCode()

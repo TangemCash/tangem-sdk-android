@@ -51,4 +51,14 @@ object Ed25519 {
         val publicKey = EdDSAPublicKey(publicKeySpec)
         return publicKey.abyte
     }
+
+    internal fun isPrivateKeyValid(privateKey: ByteArray): Boolean {
+        return try {
+            val dummyMessage = byteArrayOf(0x00)
+            val signature = sign(dummyMessage, privateKey)
+            verify(generatePublicKey(privateKey), dummyMessage, signature)
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

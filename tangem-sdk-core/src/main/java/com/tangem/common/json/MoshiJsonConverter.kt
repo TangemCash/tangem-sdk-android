@@ -18,9 +18,9 @@ import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
-import com.tangem.common.hdWallet.DerivationNode
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.bip.BIP44
+import com.tangem.crypto.hdWallet.DerivationNode
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.BIP44
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask

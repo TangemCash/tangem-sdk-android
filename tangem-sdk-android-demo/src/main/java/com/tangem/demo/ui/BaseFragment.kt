@@ -27,7 +27,7 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.ifNotNullOr
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.extensions.toHexString
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder

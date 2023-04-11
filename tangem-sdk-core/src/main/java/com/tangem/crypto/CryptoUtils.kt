@@ -69,16 +69,20 @@ object CryptoUtils {
     /**
      * Helper function that generates public key from a private key.
      *
-     * @param privateKeyArray  A private key from which a public key is generated
+     * @param privateKey  A private key from which a public key is generated
      * @param curve Elliptic curve used
      *
      * @return Public key [ByteArray]
      */
-    fun generatePublicKey(privateKeyArray: ByteArray, curve: EllipticCurve = EllipticCurve.Secp256k1): ByteArray {
+    fun generatePublicKey(
+        privateKey: ByteArray,
+        curve: EllipticCurve = EllipticCurve.Secp256k1,
+        compressed: Boolean = false,
+    ): ByteArray {
         return when (curve) {
-            EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKeyArray)
-            EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKeyArray)
-            EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKeyArray)
+            EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKey, compressed)
+            EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKey)
+            EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKey)
         }
     }
 
@@ -108,6 +112,14 @@ object CryptoUtils {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.normalize(signature)
             else -> throw UnsupportedOperationException()
+        }
+    }
+
+    fun isPrivateKeyValid(privateKey: ByteArray, curve: EllipticCurve = EllipticCurve.Secp256k1): Boolean {
+        return when (curve) {
+            EllipticCurve.Secp256k1 -> Secp256k1.isPrivateKeyValid(privateKey)
+            EllipticCurve.Secp256r1 -> Secp256r1.isPrivateKeyValid(privateKey)
+            EllipticCurve.Ed25519 -> Ed25519.isPrivateKeyValid(privateKey)
         }
     }
 }

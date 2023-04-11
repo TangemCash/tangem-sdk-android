@@ -7,7 +7,7 @@ import com.tangem.common.extensions.toDate
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.extensions.toInt
 import com.tangem.common.extensions.toUtf8
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.operations.files.FileDataMode
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
