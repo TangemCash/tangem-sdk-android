@@ -6,7 +6,7 @@ import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.services.InMemoryStorage
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvTag
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 class CommandApduTest {
     private val environment = SessionEnvironment(Config(), InMemoryStorage())

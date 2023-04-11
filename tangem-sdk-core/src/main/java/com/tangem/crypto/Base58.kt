@@ -148,7 +148,7 @@ fun ByteArray.encodeToBase58WithChecksum(): String {
 @Suppress("MagicNumber")
 fun String.decodeBase58WithChecksum(): ByteArray {
     val rawBytes = decodeBase58()
-    require(rawBytes.size < CHECKSUM_SIZE) { "Too short for checksum: $this l:  ${rawBytes.size}" }
+    require(rawBytes.size >= CHECKSUM_SIZE) { "Too short for checksum: $this l:  ${rawBytes.size}" }
 
     val checksum = rawBytes.copyOfRange(rawBytes.size - CHECKSUM_SIZE, rawBytes.size)
 

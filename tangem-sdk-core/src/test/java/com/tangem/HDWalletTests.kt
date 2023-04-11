@@ -12,14 +12,19 @@ import com.tangem.crypto.hdWallet.BIP44
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag
+import com.tangem.crypto.CryptoUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.Locale
 
 class HDWalletTests {
+
+    init {
+        CryptoUtils.initCrypto()
+    }
 
     @Test
     fun indexSerialization() {
