@@ -2,7 +2,7 @@ package com.tangem.common.apdu
 
 import com.google.common.truth.Truth.assertThat
 import com.tangem.common.tlv.TlvTag
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 @Suppress("LargeClass")
 class ResponseApduTest {

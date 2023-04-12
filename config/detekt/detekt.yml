@@ -259,6 +259,7 @@ exceptions:
 
 naming:
   active: true
+  excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**' ]
   BooleanPropertyNaming:
     active: true
     allowedPattern: '^(is|has|are)'
@@ -717,7 +718,7 @@ formatting:
     active: true
     indentSize: 4
   MaximumLineLength:
-    excludes: [ "**/assets/**" ]
+    excludes: [ "**/assets/**", '**/test/**', '**/androidTest/**', '**/commonTest/**' ]
     active: true # This rules overlaps with style>MaxLineLength from the standard rules
     maxLineLength: 120
     excludePackageStatements: true

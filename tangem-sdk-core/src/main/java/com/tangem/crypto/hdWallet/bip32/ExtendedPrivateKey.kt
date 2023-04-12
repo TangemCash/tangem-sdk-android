@@ -19,7 +19,7 @@ import com.tangem.crypto.hdWallet.bip32.serialization.ExtendedKeySerializer
 import com.tangem.operations.CommandResponse
 
 @JsonClass(generateAdapter = true)
-class ExtendedPrivateKey @kotlin.jvm.Throws constructor(
+class ExtendedPrivateKey @Throws constructor(
     val privateKey: ByteArray,
     val chainCode: ByteArray,
     val depth: Int = 0,

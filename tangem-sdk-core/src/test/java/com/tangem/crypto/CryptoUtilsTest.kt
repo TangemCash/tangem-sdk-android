@@ -7,14 +7,14 @@ import com.tangem.common.extensions.toHexString
 import com.tangem.crypto.CryptoUtils.generatePublicKey
 import com.tangem.crypto.CryptoUtils.generateRandomBytes
 import com.tangem.crypto.CryptoUtils.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import java.util.Locale
 
-class CryptoUtilsTest {
+internal class CryptoUtilsTest {
 
-    @BeforeEach
-    internal fun setUp() {
+    init {
         CryptoUtils.initCrypto()
     }
 
@@ -63,5 +63,36 @@ class CryptoUtilsTest {
         )
         val decompressedKey = Secp256k1.decompressPublicKey(compressedKey)
         assert(decompressedKey.contentEquals(publicKey))
+    }
+
+    @Test
+    fun testSecp256k1PrivateKeyValidation() {
+        CryptoUtils.initCrypto()
+        assertFalse(CryptoUtils.isPrivateKeyValid(ByteArray(0)))
+        assertFalse(CryptoUtils.isPrivateKeyValid(ByteArray(32) { 0.toByte() }))
+    }
+
+    @Test
+    fun testSecp256r1PrivateKeyValidation() {
+        assertFalse(CryptoUtils.isPrivateKeyValid(ByteArray(0), EllipticCurve.Secp256r1))
+        assertFalse(CryptoUtils.isPrivateKeyValid(ByteArray(32) { 0.toByte() }, EllipticCurve.Secp256r1))
+        assertFalse(
+            CryptoUtils.isPrivateKeyValid(
+                "FFFFFFFFFE92BF972115EB5008573E60811CA5A79B40EAAF9036189360F47413".hexToBytes(),
+                EllipticCurve.Secp256r1,
+            ),
+        )
+        assertFalse(
+            CryptoUtils.isPrivateKeyValid(
+                "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC4FC632551".hexToBytes(),
+                EllipticCurve.Secp256r1,
+            ),
+        )
+        assertTrue(
+            CryptoUtils.isPrivateKeyValid(
+                "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632550".hexToBytes(),
+                EllipticCurve.Secp256r1,
+            ),
+        )
     }
 }

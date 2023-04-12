@@ -2,7 +2,7 @@ package com.tangem.common
 
 import com.tangem.common.card.FirmwareVersion
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 /**
  * Created by Anton Zhilenkov on 01/02/2022.

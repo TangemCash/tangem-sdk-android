@@ -1,7 +1,7 @@
 package com.tangem.common.extensions
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import java.util.Calendar
 
 class ByteArrayExtensionsTest {

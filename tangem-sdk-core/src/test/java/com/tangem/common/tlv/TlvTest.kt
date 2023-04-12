@@ -5,7 +5,7 @@ import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.operations.files.FileSettings
 import com.tangem.operations.files.FileVisibility
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 class TlvTest {
 
