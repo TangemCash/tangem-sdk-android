@@ -35,7 +35,7 @@ internal class WalletDeserializer(
 
     internal fun deserializeWallet(decoder: TlvDecoder): CardWallet {
         val status: CardWallet.Status? = decoder.decode(TlvTag.Status)
-        return if (status == CardWallet.Status.Loaded || status == CardWallet.Status.Backuped) {
+        return if (status?.isAvailable == true) {
             deserialize(decoder, status)
         } else {
             throw TangemSdkError.WalletNotFound()
@@ -61,7 +61,8 @@ internal class WalletDeserializer(
             totalSignedHashes = decoder.decode(TlvTag.WalletSignedHashes),
             remainingSignatures = null,
             index = decoder.decode(TlvTag.WalletIndex),
-            hasBackup = status == CardWallet.Status.Backuped,
+            isImported = status.isImported,
+            hasBackup = status == CardWallet.Status.BackedUp,
         )
     }
 }

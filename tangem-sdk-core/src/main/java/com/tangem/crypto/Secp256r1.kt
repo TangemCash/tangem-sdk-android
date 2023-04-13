@@ -50,8 +50,8 @@ object Secp256r1 {
         return factory.generatePublic(keySpec)
     }
 
-    internal fun generatePublicKey(privateKeyArray: ByteArray): ByteArray {
-        return multiply(privateKeyArray).getEncoded(false)
+    internal fun generatePublicKey(privateKeyArray: ByteArray, compressed: Boolean = false): ByteArray {
+        return multiply(privateKeyArray).getEncoded(compressed)
     }
 
     private fun multiply(privateKeyArray: ByteArray, ecSpec: ECParameterSpec? = null): ECPoint {

@@ -11,7 +11,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.DecodingFailedMissingTag, is TangemSdkError.DecodingFailedTypeMismatch,
         is TangemSdkError.DecodingFailed, is TangemSdkError.CryptoUtilsError, is TangemSdkError.NetworkError,
         is TangemSdkError.ExceptionError, is TangemSdkError.HDWalletDisabled, is TangemSdkError.FileSettingsUnsupported,
-        is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty,
+        is TangemSdkError.FilesDisabled, is TangemSdkError.FilesIsEmpty, is TangemSdkError.Underlying,
         -> null
         is TangemSdkError.TagLost -> R.string.error_tag_lost
         is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_extended_apdu_not_supported
@@ -90,7 +90,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.NoActiveBackup -> null
         is TangemSdkError.NoBackupCardForIndex -> null
         is TangemSdkError.NoBackupDataForCard -> null
-        is TangemSdkError.ResetBackupFailedHasBackupedWallets -> null
+        is TangemSdkError.ResetBackupFailedHasBackedUpWallets -> null
         is TangemSdkError.ResetPinNoCardsToReset -> null
         is TangemSdkError.ResetPinWrongCard -> R.string.error_reset_wrong_card
         is TangemSdkError.TooMuchBackupCards -> null
@@ -106,6 +106,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.InvalidEncryptionKey -> null
         is TangemSdkError.KeyGenerationException -> null
         is TangemSdkError.MnemonicException -> null
+        is TangemSdkError.KeysImportDisabled -> null
+        is TangemSdkError.WalletAlreadyCreated -> null
     }
 
     return if (resId == null) {

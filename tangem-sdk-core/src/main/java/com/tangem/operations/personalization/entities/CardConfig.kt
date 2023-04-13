@@ -72,6 +72,7 @@ data class CardConfig(
     internal val disableFiles: Boolean?,
     internal val allowHDWallets: Boolean?,
     internal val allowBackup: Boolean?,
+    internal val allowKeysImport: Boolean?,
     internal val createWallet: Int,
     internal val cardData: CardConfigData,
     @Json(name = "NDEF")
@@ -174,6 +175,7 @@ internal fun CardConfig.createSettingsMask(): Card.SettingsMask {
     builder.addIf(disableFiles, Card.SettingsMask.Code.DisableFiles)
     builder.addIf(allowHDWallets, Card.SettingsMask.Code.AllowHDWallets)
     builder.addIf(allowBackup, Card.SettingsMask.Code.AllowBackup)
+    builder.addIf(allowKeysImport, Card.SettingsMask.Code.AllowKeysImport)
     builder.addIf(isReusable, Card.SettingsMask.Code.IsReusable)
 
     return builder.build()

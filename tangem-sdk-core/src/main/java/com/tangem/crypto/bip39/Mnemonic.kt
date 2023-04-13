@@ -14,4 +14,9 @@ interface Mnemonic {
      * @return Data The generated deterministic seed according to BIP-39
      */
     fun generateSeed(passphrase: String = ""): CompletionResult<ByteArray>
+
+    /**
+     * Allows to add extension for default init method in Android module
+     */
+    companion object
 }

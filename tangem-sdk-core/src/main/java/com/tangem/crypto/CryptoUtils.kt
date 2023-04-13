@@ -81,7 +81,7 @@ object CryptoUtils {
     ): ByteArray {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKey, compressed)
-            EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKey)
+            EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKey, compressed)
             EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKey)
         }
     }

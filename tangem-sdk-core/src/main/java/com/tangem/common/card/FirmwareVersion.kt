@@ -111,6 +111,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          */
         val HDWalletAvailable = FirmwareVersion(4, 39)
 
+        /**
+         * Keys import support
+         */
+        val KeysImportAvailable = FirmwareVersion(6, 11)
+
         val visaRange = 5.25..5.30
     }
 

@@ -6,6 +6,7 @@ import com.tangem.common.extensions.toHexString
 import com.tangem.common.successOrNull
 import com.tangem.crypto.bip39.BIP39Wordlist
 import com.tangem.crypto.bip39.BIP39WordlistTest
+import com.tangem.crypto.bip39.DefaultBIP39
 import com.tangem.crypto.bip39.DefaultMnemonic
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.crypto.hdWallet.DerivationNode
@@ -226,9 +227,58 @@ internal class BIP32Test {
         )
     }
 
+    // region: - Test that keys uploaded to a card are equal to locally computed
+    @Test
+    fun testKeyImportSecp256k1() {
+        val seed = getSeed()
+        val privKey = BIP32.makeMasterKey(seed, EllipticCurve.Secp256k1)
+        val pubKey = privKey.makePublicKey(EllipticCurve.Secp256k1)
+
+        val publicKeyFromCard = "03D902F35F560E0470C63313C7369168D9D7DF2D49BF295FD9FB7CB109CCEE0494"
+        val chainCodeFromCard = "7923408DADD3C7B56EED15567707AE5E5DCA089DE972E07F3B860450E2A3B70E"
+        assertEquals(pubKey.publicKey.toHexString(), publicKeyFromCard)
+        assertEquals(privKey.chainCode.toHexString(), chainCodeFromCard)
+    }
+
+    @Test
+    fun testKeyImportEd25519() {
+        val seed = getSeed()
+        val privKey = BIP32.makeMasterKey(seed, EllipticCurve.Ed25519)
+        val pubKey = privKey.makePublicKey(EllipticCurve.Ed25519)
+
+        val publicKeyFromCard = "E96B1C6B8769FDB0B34FBECFDF85C33B053CECAD9517E1AB88CBA614335775C1"
+        val chainCodeFromCard = "DDFA71109701BBF7C126C8C7AB5880B0DEC3D167A8FE6AFA7A9597DF0BBEE72B"
+        assertEquals(pubKey.publicKey.toHexString(), publicKeyFromCard)
+        assertEquals(privKey.chainCode.toHexString(), chainCodeFromCard)
+    }
+
+    @Test
+    fun testKeyImportSecp256r1() {
+        val seed = getSeed()
+        val privKey = BIP32.makeMasterKey(seed, EllipticCurve.Secp256r1)
+        val pubKey = privKey.makePublicKey(EllipticCurve.Secp256r1)
+
+        val publicKeyFromCard = "029983A77B155ED3B3B9E1DDD223BD5AA073834C8F61113B2F1B883AAA70971B5F"
+        val chainCodeFromCard = "C7A888C4C670406E7AAEB6E86555CE0C4E738A337F9A9BC239F6D7E475110A4E"
+        assertEquals(pubKey.publicKey.toHexString(), publicKeyFromCard)
+        assertEquals(privKey.chainCode.toHexString(), chainCodeFromCard)
+    }
+
+    private fun getSeed(): ByteArray {
+        val mnemonicString = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        val bip39 = createDefaultBIP39()
+        val parsedMnemonic = bip39.parse(mnemonicString)
+        return bip39.generateSeed(parsedMnemonic).successOrNull()!!
+    }
+    // endregion
+
     private fun createDefaultWordlist(): Wordlist {
         val wordlistStream = getInputStreamForFile(BIP39WordlistTest.TEST_DICTIONARY_FILE_NAME)
         return BIP39Wordlist(wordlistStream)
+    }
+
+    private fun createDefaultBIP39(): DefaultBIP39 {
+        return DefaultBIP39(createDefaultWordlist())
     }
 
     private fun getInputStreamForFile(fileName: String): InputStream {

@@ -43,7 +43,7 @@ class ResetBackupCommand : Command<ResetBackupResponse>() {
             return TangemSdkError.NoActiveBackup()
         }
         if (card.wallets.any { it.hasBackup }) {
-            return TangemSdkError.ResetBackupFailedHasBackupedWallets()
+            return TangemSdkError.ResetBackupFailedHasBackedUpWallets()
         }
 
         return null
