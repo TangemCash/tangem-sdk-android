@@ -105,10 +105,12 @@ class NfcSessionDialog(
 
     @Suppress("LongMethod", "ComplexMethod")
     fun show(state: SessionViewDelegateState) {
-        if (ownerActivity == null || ownerActivity?.isFinishing == true) return
-
         postUI {
-            if (!this.isShowing) this.show()
+            if (ownerActivity?.isFinishing == true) return@postUI
+            if (!this.isShowing) {
+                show()
+            }
+
             when (state) {
                 is SessionViewDelegateState.Ready -> onReady(state)
                 is SessionViewDelegateState.Success -> onSuccess(state)
@@ -118,10 +120,14 @@ class NfcSessionDialog(
                 is SessionViewDelegateState.PinRequested -> onPinRequested(state)
                 is SessionViewDelegateState.PinChangeRequested -> onPinChangeRequested(state)
                 is SessionViewDelegateState.WrongCard -> onWrongCard(state)
-                SessionViewDelegateState.TagConnected -> onTagConnected(state)
-                SessionViewDelegateState.TagLost -> onTagLost(state)
-                SessionViewDelegateState.HowToTap -> howToTap(state)
+                is SessionViewDelegateState.TagConnected -> onTagConnected(state)
+                is SessionViewDelegateState.TagLost -> onTagLost(state)
+                is SessionViewDelegateState.HowToTap -> howToTap(state)
+                is SessionViewDelegateState.None,
+                is SessionViewDelegateState.ResetCodes,
+                -> Unit
             }
+
             currentState = state
         }
     }
