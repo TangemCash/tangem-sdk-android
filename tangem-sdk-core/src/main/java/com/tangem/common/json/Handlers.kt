@@ -77,6 +77,14 @@ class CreateWalletHandler : JSONRPCHandler<CreateWalletResponse> {
     }
 }
 
+class ImportWalletHandler : JSONRPCHandler<CreateWalletResponse> {
+    override val method: String = "IMPORT_WALLET"
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<CreateWalletResponse> {
+        return make<CreateWalletTask>(params)
+    }
+}
+
 class PurgeWalletHandler : JSONRPCHandler<SuccessResponse> {
     override val method: String = "PURGE_WALLET"
 

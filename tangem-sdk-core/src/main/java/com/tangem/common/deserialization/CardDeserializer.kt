@@ -53,6 +53,7 @@ object CardDeserializer {
                 totalSignedHashes = decoder.decodeOptional(TlvTag.WalletSignedHashes),
                 remainingSignatures = remainingSignatures,
                 index = 0,
+                isImported = false,
                 hasBackup = false,
             )
             wallets.add(wallet)

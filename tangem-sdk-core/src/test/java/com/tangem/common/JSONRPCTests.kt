@@ -36,7 +36,7 @@ package com.tangem.common
  */
 // Fixme: fix JSONRPC
 class JSONRPCTests {
-//     private val converter = MoshiJsonConverter.INSTANCE
+    //     private val converter = MoshiJsonConverter.INSTANCE
 //     private val jsonRpcConverter  = JSONRPCConverter.shared()
 //     private val testCard: Card = initCard()
 //
@@ -119,17 +119,35 @@ class JSONRPCTests {
 //     @Test
 //     fun testCreateWallet() {
 //         val wallet = CardWallet(
-//             "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348".hexToBytes(),
-//             null,
-//             EllipticCurve.Secp256r1,
-//             CardWallet.Settings(true),
-//             10,
-//             100,
-//             1,
-//             false,
+//             publicKey = "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348".hexToBytes(),
+//             chainCode = null,
+//             curve = EllipticCurve.Secp256r1,
+//             settings = CardWallet.Settings(true),
+//             totalSignedHashes = 10,
+//             remainingSignatures = 100,
+//             index = 1,
+//             isImported = false,
+//             hasBackup = false
 //         )
 //         val response = CreateWalletResponse("c000111122223333", wallet)
 //         testMethod("CreateWallet", response)
+//     }
+//
+//     @Test
+//     fun testImportWallet() {
+//         val wallet = CardWallet(
+//             publicKey = "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348".hexToBytes(),
+//             chainCode = null,
+//             curve = EllipticCurve.Secp256r1,
+//             settings = CardWallet.Settings(true),
+//             totalSignedHashes = 10,
+//             remainingSignatures = 100,
+//             index = 1,
+//             isImported = false,
+//             hasBackup = false
+//         )
+//         val response = CreateWalletResponse(cardId = "c000111122223333", wallet = wallet)
+//         testMethod(name = "ImportWallet", response = response)
 //     }
 //
 //     @Test

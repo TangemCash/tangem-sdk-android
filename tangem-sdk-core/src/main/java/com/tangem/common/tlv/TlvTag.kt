@@ -104,6 +104,7 @@ enum class TlvTag(val code: Int) {
 
     WalletHDPath(code = 0x6A),
     WalletHDChain(code = 0x6B),
+    WalletPrivateKey(code = 0x6F),
 
     Firmware(code = 0x80),
     BatchId(code = 0x81),

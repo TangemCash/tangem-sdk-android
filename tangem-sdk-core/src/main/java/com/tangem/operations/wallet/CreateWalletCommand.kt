@@ -16,11 +16,14 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.core.toTangemSdkError
 import com.tangem.common.deserialization.WalletDeserializer
 import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
+import com.tangem.crypto.hdWallet.bip32.BIP32
+import com.tangem.crypto.hdWallet.bip32.ExtendedPrivateKey
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
 
@@ -49,15 +52,18 @@ class CreateWalletResponse(
  * RemainingSignature is set to MaxSignatures.
  *
  *  @property curve: Elliptic curve of the wallet
+ *  @param seed: BIP39 seed to create wallet from. COS v6.10+.
  */
-internal class CreateWalletCommand(
+internal class CreateWalletCommand @Throws constructor(
     private val curve: EllipticCurve,
+    seed: ByteArray? = null,
 ) : Command<CreateWalletResponse>() {
 
     var walletIndex: Int = 0
         private set
 
     private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
+    private val privateKey: ExtendedPrivateKey? = seed?.let { BIP32.makeMasterKey(seed, curve) }
 
     override fun requiresPasscode(): Boolean = true
 
@@ -73,6 +79,23 @@ internal class CreateWalletCommand(
                 if (!it.toList().containsAll(signingMethod.toList())) {
                     return TangemSdkError.UnsupportedWalletConfig()
                 }
+            }
+        }
+
+        if (privateKey != null) {
+            if (card.firmwareVersion < FirmwareVersion.KeysImportAvailable) {
+                return TangemSdkError.NotSupportedFirmwareVersion()
+            }
+            if (!card.settings.isKeysImportAllowed) {
+                return TangemSdkError.KeysImportDisabled()
+            }
+            try {
+                val extendedKey = privateKey.makePublicKey(curve)
+                if (card.wallet(extendedKey.publicKey) != null) {
+                    return TangemSdkError.WalletAlreadyCreated()
+                }
+            } catch (e: Exception) {
+                return e.toTangemSdkError()
             }
         }
 
@@ -106,19 +129,7 @@ internal class CreateWalletCommand(
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val card = environment.card ?: throw TangemSdkError.MissingPreflightRead()
 
-        // We need to execute this wallet index calculation stuff only after precheck.
-        // Run fires only before precheck. And precheck will not fire if error handling disabled
-        val maxIndex = card.settings.maxWalletsCount
-        val occupiedIndexes = card.wallets.map { it.index }
-        val allIndexes = 0 until maxIndex
-
-        walletIndex = allIndexes.filter { !occupiedIndexes.contains(it) }.minOrNull().guard {
-            if (maxIndex == 1) {
-                throw TangemSdkError.AlreadyCreated()
-            } else {
-                throw TangemSdkError.MaxNumberOfWalletsCreated()
-            }
-        }
+        walletIndex = calculateWalletIndex(card)
 
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
@@ -136,6 +147,11 @@ internal class CreateWalletCommand(
             tlvBuilder.append(TlvTag.SigningMethod, signingMethod)
 
             tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
+        }
+
+        if (privateKey != null) {
+            tlvBuilder.append(TlvTag.WalletPrivateKey, privateKey.privateKey)
+            tlvBuilder.append(TlvTag.WalletHDChain, privateKey.chainCode)
         }
 
         return CommandApdu(Instruction.CreateWallet, tlvBuilder.serialize())
@@ -185,7 +201,25 @@ internal class CreateWalletCommand(
             totalSignedHashes = 0,
             remainingSignatures = remainingSignatures,
             index = index,
+            isImported = false,
             hasBackup = false,
         )
+    }
+
+    @Throws(TangemSdkError::class)
+    private fun calculateWalletIndex(card: Card): Int {
+        // We need to execute this wallet index calculation stuff only after precheck.
+        // Run fires only before precheck. And precheck will not fire if error handling disabled
+        val maxIndex = card.settings.maxWalletsCount
+        val occupiedIndices = card.wallets.map { it.index }
+        val allIndices = 0 until maxIndex
+
+        return allIndices.filter { !occupiedIndices.contains(it) }.minOrNull().guard {
+            if (maxIndex == 1) {
+                throw TangemSdkError.AlreadyCreated()
+            } else {
+                throw TangemSdkError.MaxNumberOfWalletsCreated()
+            }
+        }
     }
 }

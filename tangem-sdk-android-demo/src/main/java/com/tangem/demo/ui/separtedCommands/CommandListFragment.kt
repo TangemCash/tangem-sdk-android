@@ -158,9 +158,26 @@ class CommandListFragment : BaseFragment() {
         btnSignHash.setOnClickListener { sign(SignStrategyType.SINGLE) }
         btnSignHashes.setOnClickListener { sign(SignStrategyType.MULTIPLE) }
 
-        btnCreateWalletSecpK1.setOnClickListener { createWallet(EllipticCurve.Secp256k1) }
-        btnCreateWalletSecpR1.setOnClickListener { createWallet(EllipticCurve.Secp256r1) }
-        btnCreateWalletEdwards.setOnClickListener { createWallet(EllipticCurve.Ed25519) }
+        btnCreateWalletSecpK1.setOnClickListener {
+            createOrImportWallet(
+                EllipticCurve.Secp256k1,
+                etMnemonic.text?.toString(),
+            )
+        }
+        btnCreateWalletSecpR1.setOnClickListener {
+            createOrImportWallet(
+                EllipticCurve.Secp256r1,
+                etMnemonic.text?.toString(),
+            )
+        }
+        btnCreateWalletEdwards.setOnClickListener {
+            createOrImportWallet(
+                EllipticCurve.Ed25519,
+                etMnemonic.text?.toString(),
+            )
+        }
+        btnPasteMnemonic.setOnClickListener { etMnemonic.setTextFromClipboard() }
+
         btnPurgeWallet.setOnClickListener { purgeWallet() }
         btnPurgeAllWallet.setOnClickListener { purgeAllWallet() }
 

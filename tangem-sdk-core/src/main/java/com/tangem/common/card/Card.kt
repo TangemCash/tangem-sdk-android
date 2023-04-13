@@ -272,6 +272,11 @@ data class Card internal constructor(
         val isBackupAllowed: Boolean,
 
         /**
+         * Is allowed to import  keys. COS. v6.10+
+         */
+        val isKeysImportAllowed: Boolean,
+
+        /**
          * All  encryption modes supported by the card
          */
         val supportedEncryptionModes: List<EncryptionMode>,
@@ -342,6 +347,7 @@ data class Card internal constructor(
             isLinkedTerminalEnabled = mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
             isHDWalletAllowed = mask.contains(SettingsMask.Code.AllowHDWallets),
             isBackupAllowed = mask.contains(SettingsMask.Code.AllowBackup),
+            isKeysImportAllowed = mask.contains(SettingsMask.Code.AllowKeysImport),
             supportedEncryptionModes = createEncryptionModes(mask),
             isPermanentWallet = mask.contains(SettingsMask.Code.PermanentWallet),
             isOverwritingIssuerExtraDataRestricted = mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
@@ -405,6 +411,7 @@ data class Card internal constructor(
             DisableFiles(value = 0x04000000),
             AllowHDWallets(value = 0x00200000),
             AllowBackup(value = 0x00400000),
+            AllowKeysImport(value = 0x00800000),
         }
     }
 }
@@ -450,6 +457,11 @@ data class CardWallet(
     val index: Int,
 
     /**
+     *  Has this key been imported to a card. E.g. from seed phrase
+     */
+    val isImported: Boolean,
+
+    /**
      *  Shows whether this wallet has a backup
      */
     val hasBackup: Boolean,
@@ -484,13 +496,41 @@ data class CardWallet(
         /**
          * Wallet created and can be used for signing, backup data read
          */
-        Backuped(code = 0x82),
+        BackedUp(code = 0x82),
 
         /**
          *Wallet was purged and can't be recreated or used for signing, but backup data read and wallet can be usable on backup card
          */
-        BackupedAndPurged(code = 0x83),
+        BackedUpAndPurged(code = 0x83),
+
+        /**
+         * Wallet was imported
+         */
+        Imported(code = 0x42),
+
+        /**
+         * Wallet was imported and backed up
+         */
+        BackedUpImported(code = 0xC2),
         ;
+
+        val isBackedUp: Boolean
+            get() = when (this) {
+                BackedUp, BackedUpAndPurged, BackedUpImported -> true
+                else -> false
+            }
+
+        val isImported: Boolean
+            get() = when (this) {
+                Imported, BackedUpImported -> true
+                else -> false
+            }
+
+        val isAvailable: Boolean
+            get() = when (this) {
+                Empty, Purged, BackedUpAndPurged -> false
+                else -> true
+            }
 
         companion object {
             private val values = values()
