@@ -52,7 +52,7 @@ class CreateWalletResponse(
  * RemainingSignature is set to MaxSignatures.
  *
  *  @property curve: Elliptic curve of the wallet
- *  @param seed: BIP39 seed to create wallet from. COS v6.10+.
+ *  @param seed: BIP39 seed to create wallet from. COS v6.11+.
  */
 internal class CreateWalletCommand @Throws constructor(
     private val curve: EllipticCurve,

@@ -29,6 +29,7 @@ import com.tangem.demo.ui.separtedCommands.task.ResetToFactorySettingsTask
 import com.tangem.operations.GetEntropyCommand
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.files.FileVisibility
+import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.tangem_demo.R
 import kotlinx.android.synthetic.main.attestation.*
 import kotlinx.android.synthetic.main.backup.*
@@ -95,7 +96,7 @@ class CommandListFragment : BaseFragment() {
 
     override fun getLayoutId(): Int = R.layout.fg_command_list
 
-    @Suppress("LongMethod")
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -230,6 +231,17 @@ class CommandListFragment : BaseFragment() {
         }
         btnGetEntropy.setOnClickListener {
             sdk.startSessionWithRunnable(GetEntropyCommand()) {
+                postUi { handleCommandResult(it) }
+            }
+        }
+        chipGroupUserCodeRecoveryAllowed.fitChipsByGroupWidth()
+        btnUserCodeRecovery.setOnClickListener {
+            val allow = when (chipGroupUserCodeRecoveryAllowed.checkedChipId) {
+                R.id.chipUserCodeRecoveryEnable -> true
+                R.id.chipUserCodeRecoveryDisable -> false
+                else -> false
+            }
+            sdk.startSessionWithRunnable(SetUserCodeRecoveryAllowedTask(allow)) {
                 postUi { handleCommandResult(it) }
             }
         }

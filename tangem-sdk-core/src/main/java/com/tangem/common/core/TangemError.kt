@@ -220,6 +220,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     class HDWalletDisabled : TangemSdkError(code = 42003)
     class KeysImportDisabled : TangemSdkError(code = 42004)
+    class UserCodeRecoveryDisabled : TangemSdkError(code = 42005)
 
     // SDK Errors
     class ExceptionError(override val cause: Throwable?) : TangemSdkError(code = 50000) {

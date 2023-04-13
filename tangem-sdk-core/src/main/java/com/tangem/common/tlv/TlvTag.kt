@@ -21,6 +21,7 @@ enum class TlvValueType {
     InteractionMode,
     DerivationPath,
     BackupStatus,
+    UserSettingsMask,
 }
 
 /**
@@ -38,6 +39,7 @@ enum class TlvTag(val code: Int) {
     MaxSignatures(code = 0x08),
     PauseBeforePin2(code = 0x09),
     SettingsMask(code = 0x0A),
+    UserSettingsMask(code = 0x2F),
     CardData(code = 0x0C),
     NdefData(code = 0x0D),
     CreateWalletAtPersonalize(code = 0x0E),
@@ -192,6 +194,7 @@ enum class TlvTag(val code: Int) {
             InteractionMode -> TlvValueType.InteractionMode
             WalletHDPath -> TlvValueType.DerivationPath
             BackupStatus -> TlvValueType.BackupStatus
+            UserSettingsMask -> TlvValueType.UserSettingsMask
             else -> TlvValueType.ByteArray
         }
     }

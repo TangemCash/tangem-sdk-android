@@ -108,6 +108,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.MnemonicException -> null
         is TangemSdkError.KeysImportDisabled -> null
         is TangemSdkError.WalletAlreadyCreated -> null
+        is TangemSdkError.UserCodeRecoveryDisabled -> null
     }
 
     return if (resId == null) {

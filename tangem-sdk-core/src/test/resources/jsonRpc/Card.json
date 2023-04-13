@@ -6,11 +6,14 @@
         "secp256r1"
     ],
     "cardPublicKey": "0400D05BCAC34B58AA48BF998FB68667A3112262275200431EA235EC4616A15287B5D21F15E45740AB6B829F415950DBC7A68493DCF5FD270C8CAAB0E975E9A0D9",
+    "userSettings": {
+        "isUserCodeRecoveryAllowed": true
+    },
     "settings": {
         "isSettingPasscodeAllowed": true,
         "maxWalletsCount": 36,
         "isOverwritingIssuerExtraDataRestricted": false,
-        "isResettingUserCodesAllowed": true,
+        "isRemovingUserCodesAllowed": true,
         "isLinkedTerminalEnabled": true,
         "securityDelay": 3000,
         "isSettingAccessCodeAllowed": false,

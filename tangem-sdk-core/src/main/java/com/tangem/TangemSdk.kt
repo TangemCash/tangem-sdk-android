@@ -32,6 +32,7 @@ import com.tangem.operations.personalization.PersonalizeCommand
 import com.tangem.operations.personalization.entities.*
 import com.tangem.operations.pins.SetUserCodeCommand
 import com.tangem.operations.sign.*
+import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.operations.wallet.*
 import kotlinx.coroutines.*
 
@@ -266,7 +267,7 @@ class TangemSdk(
      * This command will import an existing wallet.
      *
      * @param curve: Wallet's elliptic curve
-     * @param seed: BIP39 seed to create wallet from. COS v.6.10+.
+     * @param seed: BIP39 seed to create wallet from. COS v.6.11+.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used
@@ -475,6 +476,34 @@ class TangemSdk(
     ) {
         startSessionWithRunnable(
             runnable = SetUserCodeCommand.resetUserCodes(),
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = null,
+            callback = callback,
+        )
+    }
+
+    /**
+     * This method launches a [SetUserCodeRecoveryAllowedTask] on a new thread.
+     *
+     * Set if card allowed to reset user code
+     *
+     * @param isAllowed: Whether this card can reset user codes on the other linked card or not
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used
+     * @param callback: is triggered on the completion of the [SetUserCodeRecoveryAllowedTask] and provides
+     * card response in the form of [SuccessResponse] if the task was performed successfully
+     * or [TangemSdkError] in case of an error.
+     */
+    fun setUserCodeRecoveryAllowed(
+        isAllowed: Boolean,
+        cardId: String,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        startSessionWithRunnable(
+            runnable = SetUserCodeRecoveryAllowedTask(isAllowed),
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
