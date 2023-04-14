@@ -26,6 +26,7 @@ import com.tangem.demo.ui.extension.fitChipsByGroupWidth
 import com.tangem.demo.ui.extension.setTextFromClipboard
 import com.tangem.demo.ui.separtedCommands.task.MultiMessageTask
 import com.tangem.demo.ui.separtedCommands.task.ResetToFactorySettingsTask
+import com.tangem.operations.GetEntropyCommand
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.files.FileVisibility
 import com.tangem.tangem_demo.R
@@ -224,6 +225,11 @@ class CommandListFragment : BaseFragment() {
 
         btnResetToFactory.setOnClickListener {
             sdk.startSessionWithRunnable(ResetToFactorySettingsTask()) {
+                postUi { handleCommandResult(it) }
+            }
+        }
+        btnGetEntropy.setOnClickListener {
+            sdk.startSessionWithRunnable(GetEntropyCommand()) {
                 postUi { handleCommandResult(it) }
             }
         }
