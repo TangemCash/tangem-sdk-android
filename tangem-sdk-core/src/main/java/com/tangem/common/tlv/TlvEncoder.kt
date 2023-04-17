@@ -5,6 +5,7 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.SigningMethod
+import com.tangem.common.card.UserSettingsMask
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
@@ -102,6 +103,10 @@ class TlvEncoder {
                     val rawValue = (value as CardWallet.SettingsMask).rawValue
                     rawValue.toByteArray(size = 4)
                 }
+            }
+            TlvValueType.UserSettingsMask -> {
+                typeCheck<T, UserSettingsMask>(tag)
+                (value as UserSettingsMask).rawValue.toByteArray(size = 4)
             }
             TlvValueType.Status -> {
                 try {

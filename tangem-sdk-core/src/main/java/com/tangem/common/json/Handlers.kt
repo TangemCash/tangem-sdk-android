@@ -27,6 +27,7 @@ import com.tangem.operations.sign.SignCommand
 import com.tangem.operations.sign.SignHashCommand
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignResponse
+import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.operations.wallet.CreateWalletResponse
 import com.tangem.operations.wallet.CreateWalletTask
 import com.tangem.operations.wallet.PurgeWalletCommand
@@ -219,5 +220,14 @@ class ChangeFileSettingsHandler : JSONRPCHandler<SuccessResponse> {
             )
         }
         return ChangeFileSettingsTask(changes)
+    }
+}
+
+class SetUserCodeRecoveryAllowedHandler : JSONRPCHandler<SuccessResponse> {
+    override val method: String = "SET_USERCODE_RECOVERY_ALLOWED"
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
+        val isAllowed = params["isAllowed"] as? Boolean ?: false
+        return SetUserCodeRecoveryAllowedTask(isAllowed)
     }
 }

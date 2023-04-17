@@ -25,6 +25,9 @@ class GetResetPinTokenCommand : Command<ResetPinCard>() {
         if (card.backupStatus !is Card.BackupStatus.Active) {
             return TangemSdkError.NoActiveBackup()
         }
+        if (!card.userSettings.isUserCodeRecoveryAllowed) {
+            return TangemSdkError.UserCodeRecoveryDisabled()
+        }
         return null
     }
 

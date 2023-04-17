@@ -34,7 +34,7 @@ class ScanTask(
         @Suppress("MagicNumber")
         if (card.firmwareVersion < FirmwareVersion.IsPasscodeStatusAvailable &&
             card.firmwareVersion.doubleValue > 1.19 &&
-            card.settings.isResettingUserCodesAllowed
+            card.settings.isRemovingUserCodesAllowed
         ) {
             checkUserCodes(session, callback)
         } else {

@@ -1,4 +1,5 @@
 package com.tangem.common
+
 //
 // import com.tangem.Message
 // import com.tangem.common.card.Card
@@ -208,6 +209,12 @@ class JSONRPCTests {
 //         )
 //
 //         testMethod("DeriveWalletPublicKeys", response)
+//     }
+//
+//     @Test
+//     fun testUserCodeRecoveryAllowed() {
+//         val response = SuccessResponse(cardId = "c000111122223333")
+//         testMethod("SetUserCodeRecoveryAllowed", response)
 //     }
 //
 //     @Test

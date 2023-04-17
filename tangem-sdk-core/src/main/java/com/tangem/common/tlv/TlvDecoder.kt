@@ -138,6 +138,15 @@ class TlvDecoder(val tlvList: List<Tlv>) {
                     CardWallet.SettingsMask(tlvValue.toInt()) as T
                 }
             }
+            TlvValueType.UserSettingsMask -> {
+                try {
+                    typeCheck<T, UserSettingsMask>(tag, false)
+                    UserSettingsMask(tlvValue.toInt()) as T
+                } catch (exception: Exception) {
+                    logException(tag, tlvValue.toHexString(), exception)
+                    throw TangemSdkError.DecodingFailed(provideDecodingFailedMessage(tag))
+                }
+            }
             TlvValueType.Status -> {
                 try {
                     typeCheck<T, Card.Status>(tag, false)

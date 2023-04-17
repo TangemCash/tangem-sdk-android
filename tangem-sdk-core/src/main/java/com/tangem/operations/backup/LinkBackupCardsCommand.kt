@@ -64,7 +64,7 @@ class LinkBackupCardsCommand(
                         settings = card.settings.copy(
                             isSettingAccessCodeAllowed = true,
                             isSettingPasscodeAllowed = true,
-                            isResettingUserCodesAllowed = true,
+                            isRemovingUserCodesAllowed = true,
                         ),
                     )
                     session.environment.accessCode =

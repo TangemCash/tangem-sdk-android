@@ -5,6 +5,8 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
+import com.tangem.common.card.UserSettings
+import com.tangem.common.card.UserSettingsMask
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder
@@ -69,6 +71,13 @@ object CardDeserializer {
         val backupCardsCount: Int? = decoder.decodeOptional(TlvTag.BackupCount)
         val backupStatus = backupRawStatus?.let { Card.BackupStatus.from(it, backupCardsCount) }
 
+        val userSettingsMask: UserSettingsMask? = decoder.decodeOptional(TlvTag.UserSettingsMask)
+        val userSettings: UserSettings = if (userSettingsMask != null) {
+            UserSettings(userSettingsMask)
+        } else {
+            UserSettings(isUserCodeRecoveryAllowed = firmware >= FirmwareVersion.BackupAvailable)
+        }
+
         return Card(
             cardId = decoder.decode(TlvTag.CardId),
             batchId = cardDataDecoder.decode(TlvTag.BatchId),
@@ -85,6 +94,7 @@ object CardDeserializer {
             health = decoder.decodeOptional(TlvTag.Health),
             remainingSignatures = remainingSignatures,
             backupStatus = backupStatus,
+            userSettings = userSettings,
         )
     }
 

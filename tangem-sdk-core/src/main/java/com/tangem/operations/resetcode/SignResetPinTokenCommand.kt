@@ -35,6 +35,9 @@ class SignResetPinTokenCommand(
         if (card.cardId == resetPinCard.cardId) {
             return TangemSdkError.ResetPinWrongCard()
         }
+        if (!card.userSettings.isUserCodeRecoveryAllowed) {
+            return TangemSdkError.UserCodeRecoveryDisabled()
+        }
         return null
     }
 

@@ -96,7 +96,7 @@ class LinkPrimaryCardCommand(
             settings = card.settings.copy(
                 isSettingAccessCodeAllowed = true,
                 isSettingPasscodeAllowed = true,
-                isResettingUserCodesAllowed = false,
+                isRemovingUserCodesAllowed = false,
             ),
         )
         callback(CompletionResult.Success(response))
