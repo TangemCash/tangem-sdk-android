@@ -25,7 +25,6 @@ class StartBackupCardLinkingTask(
 
     private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
-    @Suppress("CyclomaticComplexMethod")
     override fun run(session: CardSession, callback: CompletionCallback<BackupCard>) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
@@ -50,18 +49,6 @@ class StartBackupCardLinkingTask(
                 callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleBatch()))
                 return
             }
-
-            if (primaryCard.firmwareVersion != null && primaryCard.firmwareVersion != card.firmwareVersion) {
-                callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleFirmware()))
-                return
-            }
-        }
-
-        if (primaryCard.isKeysImportAllowed != null &&
-            primaryCard.isKeysImportAllowed != card.settings.isKeysImportAllowed
-        ) {
-            callback(CompletionResult.Failure(TangemSdkError.BackupFailedKeysImportSettings()))
-            return
         }
 
         if (!backupCardSupportedCurves.containsAll(primaryWalletCurves)) {

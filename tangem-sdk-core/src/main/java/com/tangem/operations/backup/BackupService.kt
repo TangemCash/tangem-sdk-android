@@ -9,7 +9,6 @@ import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
-import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
@@ -384,8 +383,6 @@ class RawPrimaryCard(
     val issuer: Card.Issuer,
     val walletCurves: List<EllipticCurve>,
     val batchId: String?, // for compatibility with interrupted backups
-    val firmwareVersion: FirmwareVersion?, // for compatibility with interrupted backups
-    val isKeysImportAllowed: Boolean?, // for compatibility with interrupted backups
 ) : CommandResponse
 
 @Suppress("LongParameterList")
@@ -401,8 +398,6 @@ class PrimaryCard(
     val issuer: Card.Issuer,
     val walletCurves: List<EllipticCurve>,
     val batchId: String?, // for compatibility with interrupted backups
-    val firmwareVersion: FirmwareVersion?, // for compatibility with interrupted backups
-    val isKeysImportAllowed: Boolean?, // for compatibility with interrupted backups
 ) : CertificateProvider {
     constructor(rawPrimaryCard: RawPrimaryCard, issuerSignature: ByteArray) : this(
         cardId = rawPrimaryCard.cardId,
@@ -414,8 +409,6 @@ class PrimaryCard(
         issuer = rawPrimaryCard.issuer,
         walletCurves = rawPrimaryCard.walletCurves,
         batchId = rawPrimaryCard.batchId,
-        firmwareVersion = rawPrimaryCard.firmwareVersion,
-        isKeysImportAllowed = rawPrimaryCard.isKeysImportAllowed,
     )
 }
 
