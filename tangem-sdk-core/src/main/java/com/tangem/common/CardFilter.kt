@@ -32,6 +32,12 @@ class CardFilter(
     var issuerFilter: ItemFilter? = null,
 
     /**
+     * Use this filter to configure the highest firmware version allowed to work with your app.
+     * Null to allow all versions.
+     */
+    var maxFirmwareVersion: FirmwareVersion? = null,
+
+    /**
      * Custom error localized description
      */
     var localizedDescription: String? = null,
@@ -42,6 +48,10 @@ class CardFilter(
 
     @Throws(TangemSdkError.WrongCardType::class)
     fun verifyCard(card: Card): Boolean {
+        maxFirmwareVersion?.let { maxFirmwareVersion ->
+            if (card.firmwareVersion > maxFirmwareVersion) throw wrongCardError
+        }
+
         if (!allowedCardTypes.contains(card.firmwareVersion.type)) throw wrongCardError
 
         batchIdFilter?.let {
