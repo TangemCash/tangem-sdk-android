@@ -82,7 +82,10 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.BackupNotAllowed -> R.string.error_backup_wrong_card
         is TangemSdkError.BackupServiceInvalidState -> null
         is TangemSdkError.BackupFailedFirmware -> R.string.error_backup_wrong_card
-        is TangemSdkError.BackupFailedIncompatibleBatch -> R.string.error_backup_wrong_card
+        is TangemSdkError.BackupFailedIncompatibleBatch,
+        is TangemSdkError.BackupFailedIncompatibleFirmware,
+        is TangemSdkError.BackupFailedKeysImportSettings,
+        -> R.string.error_backup_wrong_card
         is TangemSdkError.CertificateSignatureRequired -> null
         is TangemSdkError.EmptyBackupCards -> null
         is TangemSdkError.MissingPrimaryAttestSignature -> null
