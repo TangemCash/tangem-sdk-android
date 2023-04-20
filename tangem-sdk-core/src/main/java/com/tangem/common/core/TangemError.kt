@@ -214,6 +214,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class BackupFailedIncompatibleBatch : TangemSdkError(code = 41231)
     class BackupFailedIncompatibleFirmware : TangemSdkError(code = 41232)
     class BackupFailedKeysImportSettings : TangemSdkError(code = 41233)
+    class BackupFailedAlreadyCreated : TangemSdkError(code = 41234)
 
     class ResetPinNoCardsToReset : TangemSdkError(code = 41300)
 

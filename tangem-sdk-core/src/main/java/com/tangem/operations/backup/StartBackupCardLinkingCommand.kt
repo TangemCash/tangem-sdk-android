@@ -27,11 +27,14 @@ class StartBackupCardLinkingCommand(
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
             return TangemSdkError.BackupFailedFirmware()
         }
-        if (card.wallets.isNotEmpty()) {
-            return TangemSdkError.BackupFailedNotEmptyWallets()
-        }
         if (!card.settings.isBackupAllowed) {
             return TangemSdkError.BackupNotAllowed()
+        }
+        if (card.backupStatus != null && card.backupStatus.isActive) {
+            return TangemSdkError.BackupFailedAlreadyCreated()
+        }
+        if (card.wallets.isNotEmpty()) {
+            return TangemSdkError.BackupFailedNotEmptyWallets()
         }
         return null
     }
