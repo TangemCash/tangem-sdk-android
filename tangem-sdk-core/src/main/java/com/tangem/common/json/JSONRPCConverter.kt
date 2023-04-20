@@ -54,6 +54,7 @@ class JSONRPCConverter {
                 register(PreflightReadHandler())
                 register(ScanHandler())
                 register(CreateWalletHandler())
+                register(ImportWalletHandler())
                 register(PurgeWalletHandler())
                 register(SignHashHandler())
                 register(SignHashesHandler())

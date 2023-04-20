@@ -21,6 +21,7 @@ import com.tangem.common.extensions.toHexString
 import com.tangem.crypto.hdWallet.DerivationNode
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.BIP44
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
@@ -124,6 +125,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                 TangemSdkAdapter.BackupStatusAdapter(),
                 TangemSdkAdapter.DerivationPathAdapter(),
                 TangemSdkAdapter.DerivationNodeAdapter(),
+                TangemSdkAdapter.DerivedKeysAdapter(),
             )
         }
 
@@ -427,11 +429,54 @@ class TangemSdkAdapter {
 
     class BackupStatusAdapter {
         @ToJson
-        fun toJson(src: Card.BackupStatus): String = EnumConverter.toJson(src.toRawStatus())
+        fun toJson(src: Card.BackupStatus): Map<String, Any> {
+            val result = mutableMapOf("status" to EnumConverter.toJson(src.toRawStatus()))
+            when (src) {
+                is Card.BackupStatus.CardLinked -> result["cardsCount"] = src.cardCount.toString()
+                is Card.BackupStatus.Active -> result["cardsCount"] = src.cardCount.toString()
+            }
+            return result
+        }
 
         @FromJson
-        fun fromJson(json: String): Card.BackupStatus =
-            Card.BackupStatus.from(EnumConverter.toEnum<Card.BackupRawStatus>(json)) ?: Card.BackupStatus.NoBackup
+        fun fromJson(json: Map<String, Any>): Card.BackupStatus {
+            val statusString = json["status"] as? String
+            val rawStatus = statusString?.let { EnumConverter.toEnum(statusString) }
+                ?: Card.BackupRawStatus.NoBackup
+            return Card.BackupStatus.from(
+                rawStatus = rawStatus,
+                cardsCount = json["cardsCount"] as? Int,
+            ) ?: Card.BackupStatus.NoBackup
+        }
+    }
+
+    class DerivedKeysAdapter {
+        @FromJson
+        fun fromJson(reader: JsonReader): Map<DerivationPath, ExtendedPublicKey> {
+            val result = mutableMapOf<DerivationPath, ExtendedPublicKey>()
+
+            reader.beginArray()
+            while (reader.hasNext()) {
+                val path = DerivationPath(reader.nextString())
+                val key = reader.readJsonValue() as? ExtendedPublicKey
+                if (key != null) {
+                    result[path] = key
+                }
+            }
+            reader.endArray()
+
+            return result
+        }
+
+        @ToJson
+        fun toJson(writer: JsonWriter, derivedKeys: Map<DerivationPath, ExtendedPublicKey>) {
+            writer.beginArray()
+            for ((path, key) in derivedKeys) {
+                writer.value(path.toString())
+                writer.value(key.toString())
+            }
+            writer.endArray()
+        }
     }
 
     class CardWalletStatusAdapter {

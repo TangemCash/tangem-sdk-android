@@ -205,8 +205,6 @@ data class Card internal constructor(
             }
         }
 
-        // TODO: add backupStatusCodable
-
         companion object {
             fun from(rawStatus: BackupRawStatus, cardsCount: Int? = null): BackupStatus? {
                 return when (rawStatus) {
