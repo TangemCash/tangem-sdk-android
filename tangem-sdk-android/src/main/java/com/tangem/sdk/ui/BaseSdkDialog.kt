@@ -11,10 +11,12 @@ import com.tangem.sdk.SessionViewDelegateState
 import com.tangem.sdk.postUI
 import com.tangem.sdk.ui.widget.StateWidget
 import kotlinx.android.synthetic.main.bottom_sheet_layout.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
 
     protected val stateWidgets = mutableListOf<StateWidget<*>>()
+    private val isDismissedProgrammatically = AtomicBoolean(false)
 
     protected open fun setStateAndShow(
         state: SessionViewDelegateState,
@@ -52,10 +54,23 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
 
     override fun dismiss() {
         postUI {
-            stateWidgets.forEach { it.onBottomSheetDismiss() }
+            if (!isDismissedProgrammatically.get()) {
+                // call it only if dismiss() called by system and not from dismissInternal()
+                stateWidgets.forEach { it.onBottomSheetDismiss() }
+                isDismissedProgrammatically.set(false)
+            }
             if (ownerActivity == null || ownerActivity?.isFinishing == true) return@postUI
 
             super.dismiss()
         }
+    }
+
+    /**
+     * Dismiss bottom sheet with flag [isDismissedProgrammatically] that determine sending
+     * StateWidget.onBottomSheetDismiss() callback
+     */
+    fun dismissInternal() {
+        isDismissedProgrammatically.set(true)
+        dismiss()
     }
 }
