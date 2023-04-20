@@ -58,6 +58,8 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
             issuer = card.issuer,
             walletCurves = card.wallets.map { it.curve },
             batchId = card.batchId,
+            firmwareVersion = card.firmwareVersion,
+            isKeysImportAllowed = card.settings.isKeysImportAllowed,
         )
     }
 }
