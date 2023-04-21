@@ -25,6 +25,9 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
         if (!card.settings.isBackupAllowed) {
             return TangemSdkError.BackupNotAllowed()
         }
+        if (card.backupStatus != null && card.backupStatus.isActive) {
+            return TangemSdkError.BackupFailedAlreadyCreated()
+        }
         if (card.wallets.isEmpty()) {
             return TangemSdkError.BackupFailedEmptyWallets()
         }
