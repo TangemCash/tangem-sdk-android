@@ -9,14 +9,17 @@ interface BiometricManager {
     suspend fun authenticate(mode: AuthenticationMode): CompletionResult<ByteArray>
 
     sealed interface AuthenticationMode {
+        val keyName: String
+        val data: ByteArray
+
         class Encryption(
-            val keyName: String,
-            val data: ByteArray,
+            override val keyName: String,
+            override val data: ByteArray,
         ) : AuthenticationMode
 
         class Decryption(
-            val keyName: String,
-            val data: ByteArray,
+            override val keyName: String,
+            override val data: ByteArray,
         ) : AuthenticationMode
     }
 }

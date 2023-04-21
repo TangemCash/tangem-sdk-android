@@ -333,28 +333,36 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     }
 
     /**
-     * The encryption/decryption operation failed with the [cause]
+     * The cryptography operation with biometrics authentication failed with the [cause]
      *
-     * @see InvalidKeyException
+     * @see InvalidBiometricCryptographyKey
+     * @see BiometricCryptographyKeyInvalidated
      * */
-    class EncryptionOperationFailed(
+    class BiometricCryptographyOperationFailed(
         override var customMessage: String,
         override val cause: Throwable?,
     ) : TangemSdkError(code = 50020)
 
     /**
-     * The encryption/decryption operation failed with the invalid key exception
-     * e.g. Key permanently invalidated (may occur after new biometric enrollment),
-     * user not authenticated (authentication failed)
-     * or key expired
+     * The cryptography operation with biometric authentication failed with the invalid key exception
+     * e.g. user not authenticated or key expired
      *
-     * @see EncryptionOperationFailed
+     * @see BiometricCryptographyOperationFailed
+     * @see InvalidBiometricCryptographyKey
      * */
-    class InvalidEncryptionKey(
+    class InvalidBiometricCryptographyKey(
         override var customMessage: String,
         override val cause: InvalidKeyException?,
-        val isKeyRegenerated: Boolean,
     ) : TangemSdkError(code = 50021)
+
+    /**
+     * The cryptography operation with biometric authentication failed with the key permanently invalidated exception
+     * e.g. new biometric enrollment
+     *
+     * @see BiometricCryptographyOperationFailed
+     * @see InvalidBiometricCryptographyKey
+     * */
+    class BiometricCryptographyKeyInvalidated : TangemSdkError(code = 50024)
 
     class KeyGenerationException(override var customMessage: String) : TangemSdkError(code = 50022)
 
