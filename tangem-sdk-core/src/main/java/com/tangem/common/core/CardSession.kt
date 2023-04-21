@@ -275,7 +275,12 @@ class CardSession(
                         userCodeRepository?.unlock()
                             ?.doOnSuccess { runnable.prepare(this@CardSession, callback) }
                             ?.doOnFailure { e ->
-                                Log.error { "User codes storage could not be unlocked: $e" }
+                                Log.error {
+                                    """
+                                        User codes storage could not be unlocked
+                                        |- Cause: $e
+                                    """.trimIndent()
+                                }
                                 requestUserCode(policy.codeType)
                             }
                     } else {

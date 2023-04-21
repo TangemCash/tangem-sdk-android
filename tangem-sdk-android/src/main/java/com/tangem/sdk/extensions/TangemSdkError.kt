@@ -105,13 +105,14 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.BiometricsAuthenticationLockout -> null
         is TangemSdkError.BiometricsAuthenticationPermanentLockout -> null
         is TangemSdkError.UserCanceledBiometricsAuthentication -> null
-        is TangemSdkError.EncryptionOperationFailed -> null
-        is TangemSdkError.InvalidEncryptionKey -> null
+        is TangemSdkError.BiometricCryptographyOperationFailed -> null
+        is TangemSdkError.InvalidBiometricCryptographyKey -> null
         is TangemSdkError.KeyGenerationException -> null
         is TangemSdkError.MnemonicException -> null
         is TangemSdkError.KeysImportDisabled -> null
         is TangemSdkError.WalletAlreadyCreated -> null
         is TangemSdkError.UserCodeRecoveryDisabled -> null
+        is TangemSdkError.BiometricCryptographyKeyInvalidated -> null
     }
 
     return if (resId == null) {
