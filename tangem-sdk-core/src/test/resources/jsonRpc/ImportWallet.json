@@ -13,7 +13,7 @@
         "result": {
             "cardId": "c000111122223333",
             "wallet": {
-                "publicKey": "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348",
+                "publicKey": "5130869115A2FF91959774C99D4DC2873F0C41AF3E0BB23D027AB16D39DE1348",
                 "curve": "secp256r1",
                 "settings": {
                     "isPermanent": true
