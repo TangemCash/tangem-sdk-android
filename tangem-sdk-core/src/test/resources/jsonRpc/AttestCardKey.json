@@ -1,0 +1,20 @@
+{
+    "request" : {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "attest_card_key",
+        "params": {
+            "challenge": "000000000000"
+        }
+    },
+    "response" : {
+        "jsonrpc" : "2.0",
+        "result" : {
+            "cardId": "c000111122223333",
+            "salt": "BBBBBBBBBBBB",
+            "cardSignature": "AAAAAAAAAAAA",
+            "challenge": "000000000000"
+        },
+        "id" : 1
+    }
+}

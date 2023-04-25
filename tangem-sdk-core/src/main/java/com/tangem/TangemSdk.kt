@@ -23,6 +23,8 @@ import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.bip39.DefaultMnemonic
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.operations.*
+import com.tangem.operations.attestation.AttestCardKeyCommand
+import com.tangem.operations.attestation.AttestCardKeyResponse
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
@@ -94,6 +96,36 @@ class TangemSdk(
         startSessionWithRunnable(
             runnable = ScanTask(allowRequestUserCodeFromRepository),
             cardId = null,
+            initialMessage = initialMessage,
+            accessCode = null,
+            callback = callback,
+        )
+    }
+
+    /**
+     * This method launches a [AttestCardKeyCommand] on a new thread.
+     *
+     * To start using any card, you first need to read it using the scanCard() method.
+     * This method launches an NFC session, and once it’s connected with the card,
+     * it obtains the card data. Optionally, if the card contains a wallet (private and public key pair),
+     * it proves that the wallet owns a private key that corresponds to a public one.
+     *
+     * @param challenge Optional challenge. If null, it will be created automatically and returned in command response.
+     * @param cardId CID, Unique Tangem card ID number.
+     * @param initialMessage A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used.
+     * @param callback is triggered on the completion of the [ScanTask] and provides card response.
+     * in the form of [Card] if the task was performed successfully or [TangemSdkError] in case of an error.
+     */
+    fun attestCardKey(
+        challenge: ByteArray? = null,
+        cardId: String? = null,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<AttestCardKeyResponse>,
+    ) {
+        startSessionWithRunnable(
+            runnable = AttestCardKeyCommand(challenge),
+            cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
             callback = callback,

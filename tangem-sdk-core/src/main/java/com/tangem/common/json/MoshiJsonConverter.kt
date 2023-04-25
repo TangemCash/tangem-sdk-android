@@ -343,14 +343,10 @@ class TangemSdkAdapter {
 
     class DerivationPathAdapter {
         @ToJson
-        fun toJson(src: DerivationPath): String {
-            return src.rawPath
-        }
+        fun toJson(src: DerivationPath): String = src.rawPath
 
         @FromJson
-        fun fromJson(json: String): DerivationPath {
-            return DerivationPath(json)
-        }
+        fun fromJson(json: String): DerivationPath = DerivationPath(json)
     }
 
     class DerivationNodeAdapter {
