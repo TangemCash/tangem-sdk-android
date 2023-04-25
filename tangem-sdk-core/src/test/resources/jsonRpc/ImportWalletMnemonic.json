@@ -1,0 +1,33 @@
+{
+    "request" : {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "import_wallet",
+        "params": {
+            "curve": "secp256k1",
+            "mnemonic": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+            "passphrase": "TREZOR"
+        }
+    },
+    "response" : {
+        "jsonrpc" : "2.0",
+        "result" : {
+            "cardId": "c000111122223333",
+            "wallet": {
+                "publicKey": "029983A77B155ED3B3B9E1DDD223BD5AA073834C8F61113B2F1B883AAA70971B5F",
+                "chainCode": "C7A888C4C670406E7AAEB6E86555CE0C4E738A337F9A9BC239F6D7E475110A4E",
+                "curve": "secp256k1",
+                "settings": {
+                    "isPermanent" : true
+                },
+                "totalSignedHashes": 10,
+                "remainingSignatures": 100,
+                "index": 1,
+                "hasBackup" : false,
+                "isImported": false,
+                "derivedKeys" : []
+            }
+        },
+        "id" : 1
+    }
+}
