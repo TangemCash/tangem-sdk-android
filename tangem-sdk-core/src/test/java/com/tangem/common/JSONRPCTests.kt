@@ -14,6 +14,12 @@ import com.tangem.common.json.toJSONRPCError
 import com.tangem.crypto.bip39.BIP39Wordlist
 import com.tangem.crypto.bip39.BIP39WordlistTest
 import com.tangem.crypto.bip39.Wordlist
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
+import com.tangem.operations.derivation.ExtendedPublicKeysMap
+import com.tangem.operations.files.File
+import com.tangem.operations.files.FileSettings
+import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.files.WriteFilesResponse
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.sign.SignHashResponse
@@ -197,32 +203,32 @@ class JSONRPCTests {
         testMethod("SetPasscode", null)
     }
 
-    // @Test fixme: fix and enable in next PR
-    // fun testDerivePublicKey() {
-    //     val response = ExtendedPublicKey(
-    //         publicKey = "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962".hexToBytes(),
-    //         chainCode = "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB".hexToBytes(),
-    //     )
-    //     testMethod("DeriveWalletPublicKey", response)
-    // }
+    @Test
+    fun testDerivePublicKey() {
+        val response = ExtendedPublicKey(
+            publicKey = "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962".hexToBytes(),
+            chainCode = "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB".hexToBytes(),
+        )
+        testMethod("DeriveWalletPublicKey", response)
+    }
 
-    // @Test fixme: fix and enable in next PR
-    // fun testDerivePublicKeys() {
-    //     val response = ExtendedPublicKeysMap(
-    //         mapOf(
-    //             DerivationPath("m/44'/0'") to ExtendedPublicKey(
-    //                 publicKey = "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962".hexToBytes(),
-    //                 chainCode = "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB".hexToBytes(),
-    //             ),
-    //             DerivationPath("m/44'/1'") to ExtendedPublicKey(
-    //                 publicKey = "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962".hexToBytes(),
-    //                 chainCode = "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB".hexToBytes(),
-    //             ),
-    //         ),
-    //     )
-    //
-    //     testMethod("DeriveWalletPublicKeys", response)
-    // }
+    @Test
+    fun testDerivePublicKeys() {
+        val response = ExtendedPublicKeysMap(
+            mapOf(
+                DerivationPath("m/44'/0'") to ExtendedPublicKey(
+                    publicKey = "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962".hexToBytes(),
+                    chainCode = "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB".hexToBytes(),
+                ),
+                DerivationPath("m/44'/1'") to ExtendedPublicKey(
+                    publicKey = "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962".hexToBytes(),
+                    chainCode = "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB".hexToBytes(),
+                ),
+            ),
+        )
+
+        testMethod("DeriveWalletPublicKeys", response)
+    }
 
     @Test
     fun testUserCodeRecoveryAllowed() {
@@ -232,19 +238,19 @@ class JSONRPCTests {
 
     @Test
     fun testFiles() {
-        // testMethod( Fixme: fix and enable in next PR
-        //     name = "files/ReadFiles",
-        //     response = listOf(
-        //         File(
-        //             name = null,
-        //             data = "00AABBCCDD".hexToBytes(),
-        //             index = 0,
-        //             settings = FileSettings(false, FileVisibility.Public),
-        //             null,
-        //             null,
-        //         ),
-        //     ),
-        // )
+        testMethod(
+            name = "files/ReadFiles",
+            response = listOf(
+                File(
+                    name = null,
+                    data = "00AABBCCDD".hexToBytes(),
+                    index = 0,
+                    settings = FileSettings(false, FileVisibility.Public),
+                    null,
+                    null,
+                ),
+            ),
+        )
         testMethod("files/DeleteFiles", SuccessResponse("c000111122223333"))
         testMethod("files/WriteFiles", WriteFilesResponse("c000111122223333", listOf(0, 1)))
         testMethod("files/ChangeFileSettings", SuccessResponse("c000111122223333"))

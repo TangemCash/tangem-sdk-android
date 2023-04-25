@@ -344,20 +344,12 @@ class TangemSdkAdapter {
     class DerivationPathAdapter {
         @ToJson
         fun toJson(src: DerivationPath): String {
-            val map = mapOf(
-                "rawPath" to src.rawPath,
-                "nodes" to src.nodes.map { it.index },
-            )
-            return MoshiJsonConverter.default().toJson(map)
+            return src.rawPath
         }
 
         @FromJson
         fun fromJson(json: String): DerivationPath {
-            val map = MoshiJsonConverter.default().toMap(json)
-            val rawPath = map["rawPath"] as String
-            val nodeIndexes = map["nodes"] as List<Number>
-            val nodes = nodeIndexes.map { DerivationNode.fromIndex(it.toLong()) }
-            return DerivationPath(rawPath, nodes)
+            return DerivationPath(json)
         }
     }
 
