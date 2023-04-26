@@ -11,6 +11,9 @@ import com.tangem.common.json.JSONRPCRequest
 import com.tangem.common.json.JSONRPCResponse
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.json.toJSONRPCError
+import com.tangem.crypto.bip39.BIP39Wordlist
+import com.tangem.crypto.bip39.BIP39WordlistTest
+import com.tangem.crypto.bip39.Wordlist
 import com.tangem.operations.files.WriteFilesResponse
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.sign.SignHashResponse
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -30,7 +34,7 @@ import java.nio.file.Paths
  */
 class JSONRPCTests {
     private val converter = MoshiJsonConverter.INSTANCE
-    private val jsonRpcConverter = JSONRPCConverter.shared()
+    private val jsonRpcConverter = JSONRPCConverter.shared(createDefaultWordlist())
     private val testCard: Card = initCard()
 
     private fun initCard(): Card {
@@ -127,7 +131,7 @@ class JSONRPCTests {
     }
 
     @Test
-    fun testImportWallet() {
+    fun testImportWalletSeed() {
         val wallet = CardWallet(
             publicKey = "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348".hexToBytes(),
             chainCode = null,
@@ -140,7 +144,24 @@ class JSONRPCTests {
             hasBackup = false,
         )
         val response = CreateWalletResponse(cardId = "c000111122223333", wallet = wallet)
-        testMethod(name = "ImportWallet", response = response)
+        testMethod(name = "ImportWalletSeed", response = response)
+    }
+
+    @Test
+    fun testImportWalletMnemonic() {
+        val wallet = CardWallet(
+            publicKey = "029983A77B155ED3B3B9E1DDD223BD5AA073834C8F61113B2F1B883AAA70971B5F".hexToBytes(),
+            chainCode = "C7A888C4C670406E7AAEB6E86555CE0C4E738A337F9A9BC239F6D7E475110A4E".hexToBytes(),
+            curve = EllipticCurve.Secp256k1,
+            settings = CardWallet.Settings(true),
+            totalSignedHashes = 10,
+            remainingSignatures = 100,
+            index = 1,
+            isImported = false,
+            hasBackup = false,
+        )
+        val response = CreateWalletResponse(cardId = "c000111122223333", wallet = wallet)
+        testMethod(name = "ImportWalletMnemonic", response = response)
     }
 
     @Test
@@ -313,5 +334,14 @@ class JSONRPCTests {
             if (lValue == rValue) continue else error("Values for [$key] not equals ($lValue & $rValue)")
         }
         return true
+    }
+
+    private fun createDefaultWordlist(): Wordlist {
+        val wordlistStream = getInputStreamForFile(BIP39WordlistTest.TEST_DICTIONARY_FILE_NAME)
+        return BIP39Wordlist(wordlistStream)
+    }
+
+    private fun getInputStreamForFile(fileName: String): InputStream {
+        return object {}.javaClass.classLoader.getResourceAsStream(fileName)!!
     }
 }

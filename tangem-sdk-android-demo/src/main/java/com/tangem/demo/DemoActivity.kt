@@ -14,11 +14,13 @@ import com.tangem.TangemSdk
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
+import com.tangem.crypto.bip39.Wordlist
 import com.tangem.demo.ui.separtedCommands.CommandListFragment
 import com.tangem.demo.ui.settings.SettingsFragment
 import com.tangem.demo.ui.viewDelegate.ViewDelegateFragment
 import com.tangem.sdk.DefaultSessionViewDelegate
 import com.tangem.sdk.extensions.createLogger
+import com.tangem.sdk.extensions.getWordlist
 import com.tangem.sdk.extensions.initBiometricManager
 import com.tangem.sdk.extensions.initNfcManager
 import com.tangem.sdk.storage.create
@@ -86,6 +88,7 @@ class DemoActivity : AppCompatActivity() {
             reader = nfcManager.reader,
             viewDelegate = viewDelegate,
             secureStorage = secureStorage,
+            wordlist = Wordlist.getWordlist(this),
             config = config,
             biometricManager = authManager,
         )

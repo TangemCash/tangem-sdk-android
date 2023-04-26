@@ -9,6 +9,8 @@ import com.tangem.common.biometric.DummyBiometricManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
+import com.tangem.common.doOnFailure
+import com.tangem.common.doOnSuccess
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.common.json.*
@@ -18,6 +20,8 @@ import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
 import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
+import com.tangem.crypto.bip39.DefaultMnemonic
+import com.tangem.crypto.bip39.Wordlist
 import com.tangem.operations.*
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
@@ -53,13 +57,14 @@ class TangemSdk(
     private val viewDelegate: SessionViewDelegate,
     val secureStorage: SecureStorage,
     val biometricManager: BiometricManager = DummyBiometricManager(),
+    val wordlist: Wordlist,
     var config: Config = Config(),
 ) {
 
     private var cardSession: CardSession? = null
 
     private val onlineCardVerifier = OnlineCardVerifier()
-    private val jsonRpcConverter: JSONRPCConverter by lazy { JSONRPCConverter.shared() }
+    private val jsonRpcConverter: JSONRPCConverter by lazy { JSONRPCConverter.shared(wordlist) }
 
     init {
         CryptoUtils.initCrypto()
@@ -267,7 +272,7 @@ class TangemSdk(
      * This command will import an existing wallet.
      *
      * @param curve: Wallet's elliptic curve
-     * @param seed: BIP39 seed to create wallet from. COS v.6.11+.
+     * @param seed: BIP39 seed to create wallet from. COS v.6.16+.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used
@@ -289,6 +294,42 @@ class TangemSdk(
             accessCode = null,
             callback = callback,
         )
+    }
+
+    /**
+     * This command will import an existing wallet.
+     *
+     * @param curve: Wallet's elliptic curve
+     * @param mnemonic: BIP39 mnemonic to create wallet from. COS v.6.16+.
+     * @param passphrase: BIP39 passphrase to create wallet from. COS v.6.16+. Empty passphrase by default.
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used
+     * @param callback: is triggered on the completion of the [CreateWalletTask] and provides
+     * card response in the form of [CreateWalletResponse] if the task was performed successfully
+     * or [TangemSdkError] in case of an error.
+     */
+    fun importWallet(
+        curve: EllipticCurve,
+        cardId: String,
+        mnemonic: String,
+        passphrase: String = "",
+        initialMessage: Message? = null,
+        callback: CompletionCallback<CreateWalletResponse>,
+    ) {
+        DefaultMnemonic(mnemonic, wordlist).generateSeed(passphrase)
+            .doOnSuccess { seed ->
+                startSessionWithRunnable(
+                    runnable = CreateWalletTask(curve, seed),
+                    cardId = cardId,
+                    initialMessage = initialMessage,
+                    accessCode = null,
+                    callback = callback,
+                )
+            }
+            .doOnFailure { error ->
+                callback(CompletionResult.Failure(error))
+            }
     }
 
     /**

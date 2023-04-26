@@ -14,6 +14,7 @@ import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.biometric.DummyBiometricManager
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
+import com.tangem.crypto.bip39.Wordlist
 import com.tangem.sdk.DefaultSessionViewDelegate
 import com.tangem.sdk.NfcLifecycleObserver
 import com.tangem.sdk.biometrics.AndroidBiometricManager
@@ -35,6 +36,7 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
         secureStorage = secureStorage,
+        wordlist = Wordlist.getWordlist(activity),
         config = config,
     )
 }
@@ -52,6 +54,7 @@ fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: C
         viewDelegate = viewDelegate,
         secureStorage = secureStorage,
         biometricManager = biometricManager,
+        wordlist = Wordlist.getWordlist(activity),
         config = config,
     )
 }
@@ -72,6 +75,7 @@ fun TangemSdk.Companion.customDelegate(
         reader = nfcManager.reader,
         viewDelegate = safeViewDelegate,
         secureStorage = secureStorage,
+        wordlist = Wordlist.getWordlist(activity),
         config = config,
     )
 }

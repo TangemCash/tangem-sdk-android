@@ -61,8 +61,10 @@ data class CardWallet(
      */
     val derivedKeys: Map<DerivationPath, ExtendedPublicKey> = emptyMap(),
 
-    val extendedPublicKey: ExtendedPublicKey? = initExtendedPublicKey(publicKey, chainCode),
 ) {
+
+    val extendedPublicKey: ExtendedPublicKey?
+        get() = initExtendedPublicKey(publicKey, chainCode)
 
     /**
      * Status of the wallet.

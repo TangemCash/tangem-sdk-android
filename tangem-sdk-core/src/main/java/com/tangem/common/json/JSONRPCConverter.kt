@@ -1,6 +1,7 @@
 package com.tangem.common.json
 
 import com.tangem.common.core.CardSessionRunnable
+import com.tangem.crypto.bip39.Wordlist
 import java.util.Locale
 
 /**
@@ -23,7 +24,8 @@ class JSONRPCConverter {
     @Throws(JSONRPCException::class)
     fun convert(request: JSONRPCRequest): CardSessionRunnable<*> {
         return try {
-            getHandler(request).makeRunnable(request.params)
+            getHandler(request)
+                .makeRunnable(request.params)
         } catch (ex: Exception) {
             when (ex) {
                 is JSONRPCException -> throw ex
@@ -47,14 +49,14 @@ class JSONRPCConverter {
     }
 
     companion object {
-        fun shared(): JSONRPCConverter {
+        fun shared(wordlist: Wordlist): JSONRPCConverter {
             return JSONRPCConverter().apply {
                 register(PersonalizeHandler())
                 register(DepersonalizeHandler())
                 register(PreflightReadHandler())
                 register(ScanHandler())
                 register(CreateWalletHandler())
-                register(ImportWalletHandler())
+                register(ImportWalletHandler(wordlist))
                 register(PurgeWalletHandler())
                 register(SignHashHandler())
                 register(SignHashesHandler())

@@ -272,7 +272,7 @@ data class Card internal constructor(
         val isBackupAllowed: Boolean,
 
         /**
-         * Is allowed to import  keys. COS. v6.11+
+         * Is allowed to import  keys. COS. v6.16+
          */
         val isKeysImportAllowed: Boolean,
 
