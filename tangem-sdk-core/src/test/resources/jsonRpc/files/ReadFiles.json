@@ -1,20 +1,22 @@
 {
-  "request": {
+  "request" : {
     "jsonrpc": "2.0",
     "id": 1,
     "method": "READ_FILES",
     "params": {}
   },
-  "response": {
-    "jsonrpc": "2.0",
-    "result": {
-      "fileIndex": 0,
-      "fileData": "00AABBCCDD",
-      "fileSettings": {
-        "isPermanent": false,
-        "visibility": "public"
-      },
-      "id": 1
-    }
+  "response" : {
+    "jsonrpc" : "2.0",
+    "result" : [
+      {
+        "index": 0,
+        "data": "00AABBCCDD",
+        "settings": {
+          "isPermanent": false,
+          "visibility": "public"
+        }
+      }
+    ],
+    "id" : 1
   }
 }
