@@ -14,6 +14,8 @@ import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.crypto.hdWallet.HDWalletError
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
+import com.tangem.operations.attestation.AttestCardKeyCommand
+import com.tangem.operations.attestation.AttestCardKeyResponse
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
@@ -254,5 +256,14 @@ class SetUserCodeRecoveryAllowedHandler : JSONRPCHandler<SuccessResponse> {
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         val isAllowed = params["isAllowed"] as? Boolean ?: false
         return SetUserCodeRecoveryAllowedTask(isAllowed)
+    }
+}
+
+class AttestCardKeyHandler : JSONRPCHandler<AttestCardKeyResponse> {
+    override val method: String = "ATTEST_CARD_KEY"
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<AttestCardKeyResponse> {
+        val challenge = (params["challenge"] as? String)?.hexToBytes()
+        return AttestCardKeyCommand(challenge)
     }
 }

@@ -70,6 +70,7 @@ class JSONRPCConverter {
                 register(DeriveWalletPublicKeyHandler())
                 register(DeriveWalletPublicKeysHandler())
                 register(SetUserCodeRecoveryAllowedHandler())
+                register(AttestCardKeyHandler())
             }
         }
     }

@@ -16,6 +16,7 @@ import com.tangem.crypto.bip39.BIP39WordlistTest
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
+import com.tangem.operations.attestation.AttestCardKeyResponse
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
 import com.tangem.operations.files.File
 import com.tangem.operations.files.FileSettings
@@ -234,6 +235,17 @@ class JSONRPCTests {
     fun testUserCodeRecoveryAllowed() {
         val response = SuccessResponse(cardId = "c000111122223333")
         testMethod("SetUserCodeRecoveryAllowed", response)
+    }
+
+    @Test
+    fun testAttestCardKey() {
+        val response = AttestCardKeyResponse(
+            cardId = "c000111122223333",
+            salt = "BBBBBBBBBBBB".hexToBytes(),
+            cardSignature = "AAAAAAAAAAAA".hexToBytes(),
+            challenge = "000000000000".hexToBytes(),
+        )
+        testMethod("AttestCardKey", response)
     }
 
     @Test
