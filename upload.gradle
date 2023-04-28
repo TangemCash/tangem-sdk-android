@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 publishing {
     publications {
-        maven(MavenPublication) {
+        android(MavenPublication) {
             groupId = "$artifactConfig.group"
             artifactId = "$project.artifactId"
             version = "$artifactConfig.version"
@@ -11,19 +11,28 @@ publishing {
             afterEvaluate {
                 if (artifactId == "android") {
                     from components.release
-                    artifact(sourceJar)
+                }
 
-                    pom.withXml {
-                        Node pomNode = asNode()
-                        pomNode.dependencies.'*'.findAll() {
-                            it.groupId.text() == artifactConfig.group
-                        }.each() { it.parent().remove(it) }
+                pom.withXml {
+                    Node pomNode = asNode()
+                    pomNode.dependencies.'*'.findAll() {
+                        it.groupId.text() == artifactConfig.group
+                    }.each() { it.parent().remove(it) }
 
-                        pomNode.dependencies.'*'.findAll() {
-                            it.scope.text() == 'runtime'
-                        }.each { it.scope*.value = 'compile' }
-                    }
-                } else {
+                    pomNode.dependencies.'*'.findAll() {
+                        it.scope.text() == 'runtime'
+                    }.each { it.scope*.value = 'compile' }
+                }
+            }
+        }
+
+        core(MavenPublication) {
+            groupId = "$artifactConfig.group"
+            artifactId = "$project.artifactId"
+            version = "$artifactConfig.version"
+
+            afterEvaluate {
+                if (artifactId == "core") {
                     from components.java
                 }
             }
