@@ -20,7 +20,13 @@ import com.tangem.crypto.sign
 import com.tangem.operations.Command
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
-import com.tangem.operations.personalization.entities.*
+import com.tangem.operations.personalization.entities.Acquirer
+import com.tangem.operations.personalization.entities.CardConfig
+import com.tangem.operations.personalization.entities.CardData
+import com.tangem.operations.personalization.entities.Issuer
+import com.tangem.operations.personalization.entities.Manufacturer
+import com.tangem.operations.personalization.entities.createCardId
+import com.tangem.operations.personalization.entities.createSettingsMask
 
 /**
  * Command available on SDK cards only
@@ -41,14 +47,14 @@ class PersonalizeCommand(
     private val config: CardConfig,
     private val issuer: Issuer,
     private val manufacturer: Manufacturer,
-    private val acquirer: Acquirer? = null
+    private val acquirer: Acquirer? = null,
 ) : Command<Card>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.None
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         Log.command(this)
-        //We have to run preflight read ourselves to catch the notPersonalized error
+        // We have to run preflight read ourselves to catch the notPersonalized error
         val read = PreflightReadTask(PreflightReadMode.ReadCardOnly, null)
         read.run(session) { result ->
             when (result) {
@@ -81,8 +87,8 @@ class PersonalizeCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): Card {
-        val decoder = CardDeserializer.getDecoder(environment, apdu)
-        val cardDataDecoder = CardDeserializer.getCardDataDecoder(environment, decoder.tlvList)
+        val decoder = CardDeserializer.getDecoder(apdu)
+        val cardDataDecoder = CardDeserializer.getCardDataDecoder(decoder.tlvList)
 
         val isAccessCodeSet = config.pin != UserCodeType.AccessCode.defaultValue
         return CardDeserializer.deserialize(isAccessCodeSet, decoder, cardDataDecoder, true)
@@ -100,7 +106,7 @@ class PersonalizeCommand(
         tlvBuilder.append(TlvTag.MaxSignatures, config.maxSignatures ?: Int.MAX_VALUE)
         tlvBuilder.append(TlvTag.SigningMethod, config.signingMethod)
         tlvBuilder.append(TlvTag.SettingsMask, config.createSettingsMask())
-        tlvBuilder.append(TlvTag.PauseBeforePin2, config.pauseBeforePin2 / 10)
+        tlvBuilder.append(TlvTag.PauseBeforePin2, config.pauseBeforePin2.div(other = 10))
         tlvBuilder.append(TlvTag.Cvc, config.cvc.toByteArray())
         tlvBuilder.append(TlvTag.NdefData, serializeNdef(config))
         tlvBuilder.append(TlvTag.CreateWalletAtPersonalize, createWallet)

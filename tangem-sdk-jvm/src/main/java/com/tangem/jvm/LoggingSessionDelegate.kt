@@ -3,6 +3,7 @@ package com.tangem.jvm
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
+import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CompletionResult
 import com.tangem.common.StringsLocator
@@ -36,7 +37,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
         Log.session { "Tag has been connected!" }
     }
 
-    override fun onSessionStarted(cardId: String?, message: Message?, enableHowTo: Boolean) {
+    override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {
         Log.session { "Session started" }
     }
 
@@ -45,7 +46,7 @@ class LoggingSessionDelegate : SessionViewDelegate {
         isFirstAttempt: Boolean,
         showForgotButton: Boolean,
         cardId: String?,
-        callback: CompletionCallback<String>
+        callback: CompletionCallback<String>,
     ) {
         if (isFirstAttempt) {
             Log.view { "enter PIN:" }
@@ -72,13 +73,16 @@ class LoggingSessionDelegate : SessionViewDelegate {
     }
 
     override fun onWrongCard(wrongValueType: WrongValueType) {
-        Log.warning { "You tapped a different card. Please match the in-app Card ID to the your physical Card ID to continue this process." }
+        Log.warning {
+            "You tapped a different card. Please match the in-app Card ID to the your physical Card ID to continue " +
+                "this process."
+        }
     }
 
     override fun setConfig(config: Config) {
     }
 
-    override fun setMessage(message: Message?) {
+    override fun setMessage(message: ViewDelegateMessage?) {
     }
 
     override fun attestationDidFail(isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {
@@ -108,6 +112,6 @@ class EmptyResetCodesViewDelegate : ResetCodesViewDelegate {
     override fun showAlert(title: String, message: String, onContinue: VoidCallback) {}
 }
 
-class MockStringLocator: StringsLocator {
-    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: String) = ""
+class MockStringLocator : StringsLocator {
+    override fun getString(stringId: StringsLocator.ID, vararg formatArgs: Any, defaultValue: String) = ""
 }

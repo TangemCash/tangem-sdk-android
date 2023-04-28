@@ -18,16 +18,15 @@ fun String.calculateSha512(): ByteArray {
     return sha.digest(data)
 }
 
+@Suppress("MagicNumber")
 fun String.hexToBytes(): ByteArray {
-    return ByteArray(this.length / 2)
-    { i ->
-        Integer.parseInt(this.substring(2 * i, 2 * i + 2), 16).toByte()
+    val hexString = this.removePrefix("0x")
+    return ByteArray(hexString.length / 2) { i ->
+        Integer.parseInt(hexString.substring(2 * i, 2 * i + 2), 16).toByte()
     }
 }
 
 fun String.toSnakeCase(): String = replace("(?<=.)(?=\\p{Upper})".toRegex(), "_")
-
-fun String.toCamelCase(): String = split('_').joinToString("", transform = String::capitalize)
 
 fun String.titleFormatted(symbol: String = "=", maxLength: Int = 50): String {
     val quotesSize = (maxLength - this.length) / 2
@@ -40,3 +39,38 @@ fun String.remove(vararg symbols: String): String {
     symbols.forEach { newString = newString.replace(it, "") }
     return newString
 }
+
+fun String.leadingZeroPadding(newLength: Int): String {
+    if (length >= newLength) return this
+    val prefix = StringBuilder()
+    repeat(newLength - length) {
+        prefix.append("0")
+    }
+    return prefix.append(this).toString()
+}
+
+/**
+ * Converts binary [String] to [ByteArray]
+ *
+ */
+@OptIn(ExperimentalUnsignedTypes::class)
+@Suppress("MagicNumber")
+fun String.binaryToByteArray(): UByteArray? {
+    if (this.length % BYTE_SIZE != 0) return null
+
+    val binaryBytes = this.chunked(BYTE_SIZE)
+
+    val bytes = UByteArray(this.length / BYTE_SIZE)
+
+    binaryBytes.forEachIndexed { i, binaryByte ->
+        val byte = try {
+            binaryByte.toUByte(2)
+        } catch (e: NumberFormatException) {
+            return null
+        }
+        bytes[i] = byte
+    }
+    return bytes
+}
+
+private const val BYTE_SIZE = 8

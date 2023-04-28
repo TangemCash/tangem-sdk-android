@@ -5,8 +5,10 @@ import org.spongycastle.asn1.ASN1EncodableVector
 import org.spongycastle.asn1.ASN1Integer
 import org.spongycastle.asn1.DERSequence
 import org.spongycastle.jce.ECNamedCurveTable
+import org.spongycastle.jce.spec.ECParameterSpec
 import org.spongycastle.jce.spec.ECPrivateKeySpec
 import org.spongycastle.jce.spec.ECPublicKeySpec
+import org.spongycastle.math.ec.ECPoint
 import java.math.BigInteger
 import java.security.KeyFactory
 import java.security.PublicKey
@@ -33,14 +35,13 @@ object Secp256r1 {
     }
 
     private fun calculateR(signature: ByteArray, size: Int): ASN1Integer =
-            ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
+        ASN1Integer(BigInteger(1, signature.copyOfRange(0, size)))
 
     private fun calculateS(signature: ByteArray, size: Int): ASN1Integer =
-            ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
+        ASN1Integer(BigInteger(1, signature.copyOfRange(size, size * 2)))
 
     internal fun loadPublicKey(publicKeyArray: ByteArray): PublicKey {
-
-        val spec = ECNamedCurveTable.getParameterSpec("secp256r1")
+        val spec = createECSpec()
         val factory = KeyFactory.getInstance("EC", "SC")
 
         val p1 = spec.curve.decodePoint(publicKeyArray)
@@ -49,9 +50,13 @@ object Secp256r1 {
         return factory.generatePublic(keySpec)
     }
 
-    internal fun generatePublicKey(privateKeyArray: ByteArray): ByteArray {
-        val spec = ECNamedCurveTable.getParameterSpec("secp256r1")
-        return spec.g.multiply(BigInteger(1, privateKeyArray)).getEncoded(false)
+    internal fun generatePublicKey(privateKeyArray: ByteArray, compressed: Boolean = false): ByteArray {
+        return multiply(privateKeyArray).getEncoded(compressed)
+    }
+
+    private fun multiply(privateKeyArray: ByteArray, ecSpec: ECParameterSpec? = null): ECPoint {
+        val ecSpec = ecSpec ?: createECSpec()
+        return ecSpec.g.multiply(BigInteger(1, privateKeyArray))
     }
 
     internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
@@ -71,14 +76,23 @@ object Secp256r1 {
         val res = toByte64(enc)
 
         if (!verify(generatePublicKey(privateKeyArray), data, res)) {
-            throw Exception("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
+            error("Signature self verify failed - ,enc:" + enc.toHexString() + ",res:" + res.toHexString())
         }
 
         return res
     }
 
-    private fun toByte64(enc: ByteArray): ByteArray {
+    @Suppress("MagicNumber")
+    internal fun isPrivateKeyValid(privateKey: ByteArray): Boolean {
+        val spec = createECSpec()
+        val ecPoint = multiply(privateKey, spec)
+        return !(ecPoint.isInfinity || BigInteger(privateKey.toHexString(), 16) >= spec.n)
+    }
 
+    private fun createECSpec(): ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
+
+    @Suppress("MagicNumber")
+    private fun toByte64(enc: ByteArray): ByteArray {
         var rLength = enc[3].toInt()
         var sLength = enc[5 + rLength].toInt()
 
@@ -91,7 +105,10 @@ object Secp256r1 {
             rLength--
             System.arraycopy(enc, 5, res, 0, rLength)
         } else {
-            throw Exception("unsupported r-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() + ",enc:" + enc.toHexString())
+            error(
+                "unsupported r-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
+                    ",enc:" + enc.toHexString(),
+            )
         }
         if (sLength <= 32) {
             System.arraycopy(enc, sPos, res, rLength + 32 - sLength, sLength)
@@ -99,7 +116,10 @@ object Secp256r1 {
         } else if (sLength == 33 && enc[sPos].toInt() == 0) {
             System.arraycopy(enc, sPos + 1, res, rLength, sLength - 1)
         } else {
-            throw Exception("unsupported s-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() + ",enc:" + enc.toHexString())
+            error(
+                "unsupported s-length - r-length:" + rLength.toString() + ",s-length:" + sLength.toString() +
+                    ",enc:" + enc.toHexString(),
+            )
         }
 
         return res

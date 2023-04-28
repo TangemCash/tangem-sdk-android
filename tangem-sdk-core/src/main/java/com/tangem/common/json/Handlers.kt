@@ -2,17 +2,30 @@ package com.tangem.common.json
 
 import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
+import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.CardSessionRunnable
+import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.common.hdWallet.HDWalletError
+import com.tangem.common.successOrNull
+import com.tangem.crypto.bip39.DefaultMnemonic
+import com.tangem.crypto.bip39.Wordlist
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.HDWalletError
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
+import com.tangem.operations.attestation.AttestCardKeyCommand
+import com.tangem.operations.attestation.AttestCardKeyResponse
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
 import com.tangem.operations.derivation.ExtendedPublicKeysMap
-import com.tangem.operations.files.*
+import com.tangem.operations.files.ChangeFileSettingsTask
+import com.tangem.operations.files.DeleteFilesTask
+import com.tangem.operations.files.File
+import com.tangem.operations.files.FileVisibility
+import com.tangem.operations.files.ReadFilesTask
+import com.tangem.operations.files.WriteFilesResponse
+import com.tangem.operations.files.WriteFilesTask
 import com.tangem.operations.personalization.DepersonalizeCommand
 import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
@@ -21,10 +34,12 @@ import com.tangem.operations.sign.SignCommand
 import com.tangem.operations.sign.SignHashCommand
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignResponse
+import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
+import com.tangem.operations.wallet.CreateWalletCommand
 import com.tangem.operations.wallet.CreateWalletResponse
 import com.tangem.operations.wallet.CreateWalletTask
 import com.tangem.operations.wallet.PurgeWalletCommand
-import java.util.*
+import java.util.Locale
 
 /**
  * Created by Anton Zhilenkov on 29/06/2021.
@@ -68,6 +83,33 @@ class CreateWalletHandler : JSONRPCHandler<CreateWalletResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<CreateWalletResponse> {
         return make<CreateWalletTask>(params)
+    }
+}
+
+class ImportWalletHandler(private val wordlist: Wordlist) : JSONRPCHandler<CreateWalletResponse> {
+    override val method: String = "IMPORT_WALLET"
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<CreateWalletResponse> {
+        val curve: EllipticCurve = (params["curve"] as? String)?.let { EllipticCurve.byName(it) }
+            ?: EllipticCurve.Secp256k1
+        val seedParam: ByteArray? = (params["seed"] as? String)?.hexToBytes()
+
+        val mnemonicString: String? = params["mnemonic"] as? String
+        val passphrase: String = params["passphrase"] as? String ?: ""
+        val seedFromMnemonic = mnemonicString?.let { DefaultMnemonic(it, wordlist).generateSeed(passphrase) }
+
+        val seed: ByteArray? = seedParam ?: seedFromMnemonic?.successOrNull()
+        seed.guard {
+            val error = JSONRPCError(
+                type = JSONRPCErrorType.InvalidParams,
+                data = ErrorData(
+                    code = JSONRPCErrorType.InvalidParams.errorData.code,
+                    message = "You should pass a seed or a mnemonic and an optional passphrase",
+                ),
+            )
+            throw error.asException()
+        }
+        return CreateWalletCommand(curve, seed)
     }
 }
 
@@ -198,8 +240,30 @@ class ChangeFileSettingsHandler : JSONRPCHandler<SuccessResponse> {
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
         val changes = (params["changes"] as Map<String, String>).entries.associate {
-            it.key.toInt() to FileVisibility.valueOf(it.value.capitalize(Locale.getDefault()))
+            it.key.toInt() to FileVisibility.valueOf(
+                it.value.replaceFirstChar { firstChar ->
+                    if (firstChar.isLowerCase()) firstChar.titlecase(Locale.getDefault()) else firstChar.toString()
+                },
+            )
         }
         return ChangeFileSettingsTask(changes)
+    }
+}
+
+class SetUserCodeRecoveryAllowedHandler : JSONRPCHandler<SuccessResponse> {
+    override val method: String = "SET_USERCODE_RECOVERY_ALLOWED"
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<SuccessResponse> {
+        val isAllowed = params["isAllowed"] as? Boolean ?: false
+        return SetUserCodeRecoveryAllowedTask(isAllowed)
+    }
+}
+
+class AttestCardKeyHandler : JSONRPCHandler<AttestCardKeyResponse> {
+    override val method: String = "ATTEST_CARD_KEY"
+
+    override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<AttestCardKeyResponse> {
+        val challenge = (params["challenge"] as? String)?.hexToBytes()
+        return AttestCardKeyCommand(challenge)
     }
 }

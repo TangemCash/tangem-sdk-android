@@ -4,5 +4,5 @@ import com.tangem.common.KeyPair
 
 data class Manufacturer(
     val keyPair: KeyPair,
-    val name: String? = null
+    val name: String? = null,
 )

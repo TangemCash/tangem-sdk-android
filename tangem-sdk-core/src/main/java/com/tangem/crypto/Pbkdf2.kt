@@ -10,11 +10,11 @@ import kotlin.experimental.xor
 import kotlin.math.min
 import kotlin.math.pow
 
+@Suppress("MagicNumber", "VariableNaming")
 class Pbkdf2 {
     private val F: HMac = HMac(SHA256Digest())
 
     fun deriveKey(password: ByteArray, salt: ByteArray, iterations: Int): ByteArray {
-
         val macSize = F.macSize
         // Check key length
         if (macSize > (2.0.pow(32.0) - 1) * macSize) throw InvalidKeyException("Derived key to long")
@@ -83,6 +83,4 @@ class Pbkdf2 {
         bytes[offSet + 1] = (value ushr 16).toByte()
         bytes[offSet] = (value ushr 24).toByte()
     }
-
-
 }

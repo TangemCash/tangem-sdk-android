@@ -13,7 +13,7 @@ import com.tangem.common.tlv.TlvTag
 @JsonClass(generateAdapter = true)
 class OpenSessionResponse(
     val sessionKeyB: ByteArray,
-    val uid: ByteArray
+    val uid: ByteArray,
 ) : CommandResponse
 
 /**
@@ -22,7 +22,7 @@ class OpenSessionResponse(
  * to encrypt and decrypt commands’ payload.
  */
 class OpenSessionCommand(
-    private val sessionKeyA: ByteArray
+    private val sessionKeyA: ByteArray,
 ) : ApduSerializable<OpenSessionResponse> {
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
@@ -34,7 +34,7 @@ class OpenSessionCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): OpenSessionResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return OpenSessionResponse(decoder.decode(TlvTag.SessionKeyB), decoder.decode(TlvTag.Uid))

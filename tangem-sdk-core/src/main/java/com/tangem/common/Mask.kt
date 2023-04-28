@@ -7,8 +7,8 @@ interface Mask {
     val rawValue: Int
     val values: List<Code>
 
-    fun contains(code: Code): Boolean{
-        return (rawValue and code.value) != 0
+    fun contains(code: Code): Boolean {
+        return rawValue and code.value != 0
     }
 
     interface Code {

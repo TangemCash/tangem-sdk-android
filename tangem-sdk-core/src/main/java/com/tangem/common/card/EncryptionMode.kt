@@ -6,5 +6,5 @@ package com.tangem.common.card
 enum class EncryptionMode(val byteValue: Int) {
     None(0x0),
     Fast(0x1),
-    Strong(0x2)
+    Strong(0x2),
 }

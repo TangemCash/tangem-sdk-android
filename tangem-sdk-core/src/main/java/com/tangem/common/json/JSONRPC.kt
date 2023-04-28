@@ -46,7 +46,7 @@ class JSONRPCRequest constructor(
                 return jsonMap[name] as T
             } catch (ex: Exception) {
                 throw JSONRPCErrorType.InvalidRequest.toJSONRPCError(
-                        "The field is missing or an unsupported value is used: $name"
+                    "The field is missing or an unsupported value is used: $name",
                 ).asException()
             }
         }
@@ -67,26 +67,31 @@ data class ErrorData(val code: Int, val message: String)
 class JSONRPCError constructor(
     val code: Int,
     val message: String,
-    val data: ErrorData? = null
+    val data: ErrorData? = null,
 ) : JSONStringConvertible {
 
-    constructor(type: JSONRPCErrorType, data: ErrorData? = null) : this(type.errorData.code, type.errorData.message, data)
+    constructor(type: JSONRPCErrorType, data: ErrorData? = null) : this(
+        code = type.errorData.code,
+        message = type.errorData.message,
+        data = data,
+    )
 
     fun asException(): JSONRPCException = JSONRPCException(this)
 
     override fun toString(): String {
-        return "code: $code, message: ${message}. Data: $data"
+        return "code: $code, message: $message. Data: $data"
     }
 }
 
 enum class JSONRPCErrorType(val errorData: ErrorData) {
-    ParseError(ErrorData(-32700, "Parse error")),
-    InvalidRequest(ErrorData(-32600, "Invalid request")),
-    MethodNotFound(ErrorData(-32601, "Method not found")),
-    InvalidParams(ErrorData(-32602, "Invalid parameters")),
-    InternalError(ErrorData(-32603, "Internal error")),
-    ServerError(ErrorData(-32000, "Server error")),
-    UnknownError(ErrorData(-32999, "Unknown error"));
+    ParseError(ErrorData(code = -32700, message = "Parse error")),
+    InvalidRequest(ErrorData(code = -32600, message = "Invalid request")),
+    MethodNotFound(ErrorData(code = -32601, message = "Method not found")),
+    InvalidParams(ErrorData(code = -32602, message = "Invalid parameters")),
+    InternalError(ErrorData(code = -32603, message = "Internal error")),
+    ServerError(ErrorData(code = -32000, message = "Server error")),
+    UnknownError(ErrorData(code = -32999, message = "Unknown error")),
+    ;
 
     fun toJSONRPCError(customMessage: String? = null): JSONRPCError {
         val description = ErrorData(this.errorData.code, customMessage ?: this.errorData.message)

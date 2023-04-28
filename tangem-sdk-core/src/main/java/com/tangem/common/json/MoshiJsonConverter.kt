@@ -18,9 +18,10 @@ import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
-import com.tangem.common.hdWallet.DerivationNode
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.bip.BIP44
+import com.tangem.crypto.hdWallet.DerivationNode
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.BIP44
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
@@ -124,6 +125,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                 TangemSdkAdapter.BackupStatusAdapter(),
                 TangemSdkAdapter.DerivationPathAdapter(),
                 TangemSdkAdapter.DerivationNodeAdapter(),
+                TangemSdkAdapter.DerivedKeysAdapter(),
             )
         }
 
@@ -209,7 +211,7 @@ class TangemSdkAdapter {
                 "fullCardRead" -> PreflightReadMode.FullCardRead
                 "readCardOnly" -> PreflightReadMode.ReadCardOnly
                 "none" -> PreflightReadMode.None
-                else -> throw java.lang.IllegalArgumentException()
+                else -> error("PreflightReadMode not found")
             }
         }
     }
@@ -238,7 +240,7 @@ class TangemSdkAdapter {
                 }
             }
             reader.endObject()
-            return version ?: throw java.lang.IllegalArgumentException()
+            return version ?: error("Error")
         }
 
         @ToJson
@@ -271,7 +273,7 @@ class TangemSdkAdapter {
                 }
                 return SigningMethod.build(*methods.toTypedArray())
             } catch (ex: Exception) {
-                //Is not an array... Try parse as rawValue
+                // Is not an array... Try parse as rawValue
             }
 
             return SigningMethod(reader.nextInt())
@@ -341,22 +343,10 @@ class TangemSdkAdapter {
 
     class DerivationPathAdapter {
         @ToJson
-        fun toJson(src: DerivationPath): String {
-            val map = mapOf(
-                "rawPath" to src.rawPath,
-                "nodes" to src.nodes.map { it.index }
-            )
-            return MoshiJsonConverter.default().toJson(map)
-        }
+        fun toJson(src: DerivationPath): String = src.rawPath
 
         @FromJson
-        fun fromJson(json: String): DerivationPath {
-            val map = MoshiJsonConverter.default().toMap(json)
-            val rawPath = map["rawPath"] as String
-            val nodeIndexes = map["nodes"] as List<Number>
-            val nodes = nodeIndexes.map { DerivationNode.fromIndex(it.toLong()) }
-            return DerivationPath(rawPath, nodes)
-        }
+        fun fromJson(json: String): DerivationPath = DerivationPath(json)
     }
 
     class DerivationNodeAdapter {
@@ -427,11 +417,54 @@ class TangemSdkAdapter {
 
     class BackupStatusAdapter {
         @ToJson
-        fun toJson(src: Card.BackupStatus): String = EnumConverter.toJson(src.toRawStatus())
+        fun toJson(src: Card.BackupStatus): Map<String, Any> {
+            val result = mutableMapOf("status" to EnumConverter.toJson(src.toRawStatus()))
+            when (src) {
+                is Card.BackupStatus.CardLinked -> result["cardsCount"] = src.cardCount.toString()
+                is Card.BackupStatus.Active -> result["cardsCount"] = src.cardCount.toString()
+            }
+            return result
+        }
 
         @FromJson
-        fun fromJson(json: String): Card.BackupStatus =
-                Card.BackupStatus.from(EnumConverter.toEnum<Card.BackupRawStatus>(json)) ?: Card.BackupStatus.NoBackup
+        fun fromJson(json: Map<String, Any>): Card.BackupStatus {
+            val statusString = json["status"] as? String
+            val rawStatus = statusString?.let { EnumConverter.toEnum(statusString) }
+                ?: Card.BackupRawStatus.NoBackup
+            return Card.BackupStatus.from(
+                rawStatus = rawStatus,
+                cardsCount = json["cardsCount"] as? Int,
+            ) ?: Card.BackupStatus.NoBackup
+        }
+    }
+
+    class DerivedKeysAdapter {
+        @FromJson
+        fun fromJson(reader: JsonReader): Map<DerivationPath, ExtendedPublicKey> {
+            val result = mutableMapOf<DerivationPath, ExtendedPublicKey>()
+
+            reader.beginArray()
+            while (reader.hasNext()) {
+                val path = DerivationPath(reader.nextString())
+                val key = reader.readJsonValue() as? ExtendedPublicKey
+                if (key != null) {
+                    result[path] = key
+                }
+            }
+            reader.endArray()
+
+            return result
+        }
+
+        @ToJson
+        fun toJson(writer: JsonWriter, derivedKeys: Map<DerivationPath, ExtendedPublicKey>) {
+            writer.beginArray()
+            for ((path, key) in derivedKeys) {
+                writer.value(path.toString())
+                writer.value(key.toString())
+            }
+            writer.endArray()
+        }
     }
 
     class CardWalletStatusAdapter {
@@ -522,15 +555,13 @@ class TangemSdkAdapter {
         fun fromJson(json: String): BIP44.Chain = EnumConverter.toEnum(json)
     }
 
-    private class EnumConverter {
-        companion object {
-            inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(json.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(
-                    Locale.getDefault()
-                ) else it.toString()
-            })
+    private object EnumConverter {
+        inline fun <reified T : Enum<T>> toEnum(json: String): T = enumValueOf(
+            json.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(locale = Locale.getDefault()) else it.toString()
+            },
+        )
 
-            fun toJson(enum: Enum<*>): String = enum.name.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-        }
+        fun toJson(enum: Enum<*>): String = enum.name.replaceFirstChar { it.lowercase(Locale.getDefault()) }
     }
 }

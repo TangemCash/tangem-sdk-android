@@ -5,12 +5,13 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.SigningMethod
+import com.tangem.common.card.UserSettingsMask
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
-import com.tangem.common.hdWallet.DerivationNode.Companion.serialize
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationNode.Companion.serialize
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.operations.files.FileDataMode
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
@@ -39,6 +40,7 @@ class TlvEncoder {
         }
     }
 
+    @Suppress("LongMethod", "ComplexMethod")
     inline fun <reified T> encodeValue(tag: TlvTag, value: T): ByteArray {
         return when (tag.valueType()) {
             TlvValueType.HexString -> {
@@ -80,7 +82,7 @@ class TlvEncoder {
             }
             TlvValueType.DateTime -> {
                 typeCheck<T, Date>(tag)
-                val calendar = Calendar.getInstance().apply { time = (value as Date) }
+                val calendar = Calendar.getInstance().apply { time = value as Date }
                 val year = calendar.get(Calendar.YEAR)
                 val month = calendar.get(Calendar.MONTH) + 1
                 val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -99,8 +101,12 @@ class TlvEncoder {
                     Log.warning { "Type of mask is not CardSettingsMask. Trying to check CardWalletSettingsMask" }
                     typeCheck<T, CardWallet.SettingsMask>(tag)
                     val rawValue = (value as CardWallet.SettingsMask).rawValue
-                    rawValue.toByteArray(4)
+                    rawValue.toByteArray(size = 4)
                 }
+            }
+            TlvValueType.UserSettingsMask -> {
+                typeCheck<T, UserSettingsMask>(tag)
+                (value as UserSettingsMask).rawValue.toByteArray(size = 4)
             }
             TlvValueType.Status -> {
                 try {
@@ -140,9 +146,10 @@ class TlvEncoder {
         }
     }
 
+    @Suppress("MagicNumber")
     fun determineByteArraySize(value: Int): Int {
         val mask = 0xFFFF0000.toInt()
-        return if ((value and mask) != 0) 4 else 2
+        return if (value and mask != 0) 4 else 2
     }
 
     inline fun <reified T, reified ExpectedT> typeCheck(tag: TlvTag) {
@@ -155,7 +162,7 @@ class TlvEncoder {
 
     inline fun <reified T> getEncodingError(tag: TlvTag): TangemSdkError {
         return TangemSdkError.EncodingFailedTypeMismatch(
-            "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}"
+            "Encoder: Mapping error. Type for tag: $tag must be ${tag.valueType()}. It is ${T::class}",
         )
     }
 }

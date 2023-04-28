@@ -38,7 +38,7 @@ class WriteIssuerExtraDataCommand(
     private val finalizingSignature: ByteArray,
     private val issuerDataCounter: Int? = null,
     private var issuerPublicKey: ByteArray? = null,
-    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier()
+    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier(),
 ) : Command<SuccessResponse>(), IssuerDataVerifier by verifier {
 
     private var mode: IssuerExtraDataMode = IssuerExtraDataMode.ReadOrStartWrite
@@ -87,7 +87,7 @@ class WriteIssuerExtraDataCommand(
         val secondData = IssuerDataToVerify(cardId, issuerData, issuerDataCounter)
 
         return verify(publicKey, startingSignature, firstData) &&
-                verify(publicKey, finalizingSignature, secondData)
+            verify(publicKey, finalizingSignature, secondData)
     }
 
     private fun writeData(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
@@ -125,8 +125,6 @@ class WriteIssuerExtraDataCommand(
                 }
             }
         }
-
-
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
@@ -160,7 +158,7 @@ class WriteIssuerExtraDataCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SuccessResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         return SuccessResponse(TlvDecoder(tlvData).decode(TlvTag.CardId))
     }

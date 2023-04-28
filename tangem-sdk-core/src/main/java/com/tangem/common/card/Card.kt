@@ -3,13 +3,10 @@ package com.tangem.common.card
 import com.squareup.moshi.JsonClass
 import com.tangem.common.BaseMask
 import com.tangem.common.Mask
-import com.tangem.common.card.CardWallet.Status.Companion.initExtendedPublicKey
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.read.ReadCommand
-import java.util.*
+import java.util.Date
 
 /**
  * Response for [ReadCommand]. Contains detailed card information.
@@ -51,6 +48,11 @@ data class Card internal constructor(
      * Card setting, that were set during the personalization process
      */
     val settings: Settings,
+
+    /**
+     * Card settings that were set during the personalization process and can be changed by user directly
+     */
+    val userSettings: UserSettings,
 
     /**
      * When this value is `current`, it means that the application is linked to the card,
@@ -110,8 +112,7 @@ data class Card internal constructor(
         return this.copy(wallets = sortedWallets.toList())
     }
 
-    fun wallet(publicKey: ByteArray): CardWallet? =
-        wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
+    fun wallet(publicKey: ByteArray): CardWallet? = wallets.firstOrNull { it.publicKey.contentEquals(publicKey) }
 
     fun addWallet(wallet: CardWallet): Card {
         val sortedWallets = wallets.toMutableList().apply {
@@ -151,7 +152,7 @@ data class Card internal constructor(
         /**
          * Signature of CardId with manufacturer’s private key. COS 1.21+
          */
-        val signature: ByteArray?
+        val signature: ByteArray?,
     )
 
     data class Issuer(
@@ -163,7 +164,7 @@ data class Card internal constructor(
         /**
          * Public key that is used by the card issuer to sign IssuerData field.
          */
-        val publicKey: ByteArray
+        val publicKey: ByteArray,
     )
 
     enum class LinkedTerminalStatus {
@@ -176,10 +177,11 @@ data class Card internal constructor(
      * Status of the card and its wallet.
      */
     enum class Status(val code: Int) {
-        NotPersonalized(0),
-        Empty(1),
-        Loaded(2),
-        Purged(3);
+        NotPersonalized(code = 0),
+        Empty(code = 1),
+        Loaded(code = 2),
+        Purged(code = 3),
+        ;
 
         companion object {
             private val values = values()
@@ -203,17 +205,15 @@ data class Card internal constructor(
             }
         }
 
-        //TODO: add backupStatusCodable
-
         companion object {
             fun from(rawStatus: BackupRawStatus, cardsCount: Int? = null): BackupStatus? {
                 return when (rawStatus) {
-                    BackupRawStatus.NoBackup -> BackupStatus.NoBackup
+                    BackupRawStatus.NoBackup -> NoBackup
                     BackupRawStatus.CardLinked -> cardsCount?.let {
-                        BackupStatus.CardLinked(cardsCount)
+                        CardLinked(cardsCount)
                     }
                     BackupRawStatus.Active -> cardsCount?.let {
-                        BackupStatus.Active(cardsCount)
+                        Active(cardsCount)
                     }
                 }
             }
@@ -226,7 +226,8 @@ data class Card internal constructor(
     enum class BackupRawStatus(val code: Int) {
         NoBackup(0),
         CardLinked(1),
-        Active(2);
+        Active(2),
+        ;
 
         companion object {
             private val values = values()
@@ -258,7 +259,7 @@ data class Card internal constructor(
         /**
          * Is allowed to remove access code
          */
-        val isResettingUserCodesAllowed: Boolean,
+        val isRemovingUserCodesAllowed: Boolean,
 
         /**
          * Is LinkedTerminal feature enabled
@@ -269,6 +270,11 @@ data class Card internal constructor(
          * Is backup feature available
          */
         val isBackupAllowed: Boolean,
+
+        /**
+         * Is allowed to import  keys. COS. v6.16+
+         */
+        val isKeysImportAllowed: Boolean,
 
         /**
          * All  encryption modes supported by the card
@@ -331,16 +337,17 @@ data class Card internal constructor(
             maxWalletsCount: Int,
             mask: SettingsMask,
             defaultSigningMethods: SigningMethod? = null,
-            defaultCurve: EllipticCurve? = null
+            defaultCurve: EllipticCurve? = null,
         ) : this(
             securityDelay = securityDelay,
             maxWalletsCount = maxWalletsCount,
             isSettingAccessCodeAllowed = mask.contains(SettingsMask.Code.AllowSetPIN1),
             isSettingPasscodeAllowed = mask.contains(SettingsMask.Code.AllowSetPIN2),
-            isResettingUserCodesAllowed = !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
+            isRemovingUserCodesAllowed = !mask.contains(SettingsMask.Code.ProhibitDefaultPIN1),
             isLinkedTerminalEnabled = mask.contains(SettingsMask.Code.SkipSecurityDelayIfValidatedByLinkedTerminal),
             isHDWalletAllowed = mask.contains(SettingsMask.Code.AllowHDWallets),
             isBackupAllowed = mask.contains(SettingsMask.Code.AllowBackup),
+            isKeysImportAllowed = mask.contains(SettingsMask.Code.AllowKeysImport),
             supportedEncryptionModes = createEncryptionModes(mask),
             isPermanentWallet = mask.contains(SettingsMask.Code.PermanentWallet),
             isOverwritingIssuerExtraDataRestricted = mask.contains(SettingsMask.Code.RestrictOverwriteIssuerExtraData),
@@ -351,13 +358,13 @@ data class Card internal constructor(
             isFilesAllowed = !mask.contains(SettingsMask.Code.DisableFiles),
         )
 
-        fun updated(mask: Card.SettingsMask): Settings {
+        fun updated(mask: SettingsMask): Settings {
             return Settings(
                 securityDelay = this.securityDelay,
                 maxWalletsCount = this.maxWalletsCount,
                 mask = mask,
                 defaultSigningMethods = this.defaultSigningMethods,
-                defaultCurve = this.defaultCurve
+                defaultCurve = this.defaultCurve,
             )
         }
 
@@ -378,151 +385,33 @@ data class Card internal constructor(
         fun toWalletSettingsMask(): CardWallet.SettingsMask = CardWallet.SettingsMask(rawValue)
 
         enum class Code(override val value: Int) : Mask.Code {
-            IsReusable(0x0001),
-            UseActivation(0x0002),
-            PermanentWallet(0x0004),
-            UseBlock(0x0008),
-            AllowSetPIN1(0x0010),
-            AllowSetPIN2(0x0020),
-            UseCvc(0x0040),
-            ProhibitDefaultPIN1(0x0080),
-            UseOneCommandAtTime(0x0100),
-            UseNDEF(0x0200),
-            UseDynamicNDEF(0x0400),
-            SmartSecurityDelay(0x0800),
-            AllowUnencrypted(0x1000),
-            AllowFastEncryption(0x2000),
-            ProtectIssuerDataAgainstReplay(0x4000),
-            RestrictOverwriteIssuerExtraData(0x00100000),
-            AllowSelectBlockchain(0x8000),
-            DisablePrecomputedNDEF(0x00010000),
-            SkipSecurityDelayIfValidatedByLinkedTerminal(0x00080000),
-            SkipCheckPIN2CVCIfValidatedByIssuer(0x00040000),
-            SkipSecurityDelayIfValidatedByIssuer(0x00020000),
-            DisableIssuerData(0x01000000),
-            DisableUserData(0x02000000),
-            DisableFiles(0x04000000),
-            AllowHDWallets(0x00200000),
-            AllowBackup(0x00400000),
-        }
-    }
-}
-
-data class CardWallet(
-    /**
-     * Wallet's public key.
-     * For [EllipticCurve.Secp256k1], the key can be compressed or uncompressed.
-     * Use [com.tangem.crypto.Secp256k1Key] for any conversions.
-     */
-    val publicKey: ByteArray,
-
-    /**
-     * Optional chain code for BIP32 derivation.
-     */
-    val chainCode: ByteArray?,
-
-    /**
-     *  Elliptic curve used for all wallet key operations.
-     */
-    val curve: EllipticCurve,
-
-    /**
-     *  Wallet's settings
-     */
-    val settings: Settings,
-
-    /**
-     * Total number of signed hashes returned by the wallet since its creation
-     * COS 1.16+
-     */
-    val totalSignedHashes: Int?,
-
-    /**
-     * Remaining number of `Sign` operations before the wallet will stop signing any data.
-     * Note: This counter were deprecated for cards with COS 4.0 and higher
-     */
-    val remainingSignatures: Int?,
-
-    /**
-     *  Index of the wallet in the card storage
-     */
-    val index: Int,
-
-    /**
-     *  Shows whether this wallet has a backup
-     */
-    val hasBackup: Boolean,
-
-    /**
-     * Derived keys according to [com.tangem.common.core.Config.defaultDerivationPaths]
-     */
-    val derivedKeys: Map<DerivationPath, ExtendedPublicKey> = emptyMap(),
-
-    val extendedPublicKey: ExtendedPublicKey? = initExtendedPublicKey(publicKey, chainCode)
-) {
-
-    /**
-     * Status of the wallet.
-     */
-    enum class Status(val code: Int) {
-        /**
-         * Wallet not created
-         */
-        Empty(1),
-
-        /**
-         * Wallet created and can be used for signing
-         */
-        Loaded(2),
-
-        /**
-         * Wallet was purged and can't be recreated or used for signing
-         */
-        Purged(3),
-
-
-        /**
-         * Wallet created and can be used for signing, backup data read
-         */
-        Backuped(0x82),
-
-        /**
-         *Wallet was purged and can't be recreated or used for signing, but backup data read and wallet can be usable on backup card
-         */
-        BackupedAndPurged(0x83);
-
-        companion object {
-            private val values = values()
-            fun byCode(code: Int): Status? {
-                return values.find { it.code.toByte() == code.toByte() }
-            }
-
-            fun initExtendedPublicKey(publicKey: ByteArray, chainCode: ByteArray?): ExtendedPublicKey? {
-                val chainCode = chainCode ?: return null
-
-                return ExtendedPublicKey(publicKey, chainCode)
-            }
-        }
-    }
-
-    data class Settings internal constructor(
-        /**
-         * If true, erasing the wallet will be prohibited
-         */
-        val isPermanent: Boolean
-    ) {
-        internal constructor(
-            mask: SettingsMask
-        ) : this(mask.contains(SettingsMask.Code.IsPermanent))
-    }
-
-    class SettingsMask(override var rawValue: Int) : BaseMask() {
-
-        override val values: List<Code> = Code.values().toList()
-
-        enum class Code(override val value: Int) : Mask.Code {
-            IsReusable(0x0001),
-            IsPermanent(0x0004)
+            IsReusable(value = 0x0001),
+            UseActivation(value = 0x0002),
+            PermanentWallet(value = 0x0004),
+            UseBlock(value = 0x0008),
+            AllowSetPIN1(value = 0x0010),
+            AllowSetPIN2(value = 0x0020),
+            UseCvc(value = 0x0040),
+            ProhibitDefaultPIN1(value = 0x0080),
+            UseOneCommandAtTime(value = 0x0100),
+            UseNDEF(value = 0x0200),
+            UseDynamicNDEF(value = 0x0400),
+            SmartSecurityDelay(value = 0x0800),
+            AllowUnencrypted(value = 0x1000),
+            AllowFastEncryption(value = 0x2000),
+            ProtectIssuerDataAgainstReplay(value = 0x4000),
+            RestrictOverwriteIssuerExtraData(value = 0x00100000),
+            AllowSelectBlockchain(value = 0x8000),
+            DisablePrecomputedNDEF(value = 0x00010000),
+            SkipSecurityDelayIfValidatedByLinkedTerminal(value = 0x00080000),
+            SkipCheckPIN2CVCIfValidatedByIssuer(value = 0x00040000),
+            SkipSecurityDelayIfValidatedByIssuer(value = 0x00020000),
+            DisableIssuerData(value = 0x01000000),
+            DisableUserData(value = 0x02000000),
+            DisableFiles(value = 0x04000000),
+            AllowHDWallets(value = 0x00200000),
+            AllowBackup(value = 0x00400000),
+            AllowKeysImport(value = 0x00800000),
         }
     }
 }

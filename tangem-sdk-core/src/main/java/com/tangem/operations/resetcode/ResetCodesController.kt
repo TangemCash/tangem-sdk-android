@@ -21,7 +21,7 @@ import java.io.StringWriter
 
 class ResetCodesController(
     private val resetService: ResetPinService,
-    private val viewDelegate: ResetCodesViewDelegate
+    private val viewDelegate: ResetCodesViewDelegate,
 ) {
     var cardIdDisplayFormat: CardIdDisplayFormat = CardIdDisplayFormat.Full
 
@@ -39,20 +39,6 @@ class ResetCodesController(
     private val formattedCardId: String?
         get() = cardId?.let { CardIdFormatter(cardIdDisplayFormat).getFormattedCardId(it) }
 
-    fun start(codeType: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
-        this.cardId = cardId
-        this.codeType = codeType
-        this.callback = callback
-        viewDelegate.setState(
-            ResetCodesViewState.RequestCode(
-                type = codeType,
-                cardId = formattedCardId
-            ) {
-                handleCodeInput(it)
-            }
-        )
-    }
-
     init {
         resetService.currentStateAsFlow
             .drop(1)
@@ -62,7 +48,8 @@ class ResetCodesController(
                         viewDelegate.showAlert(
                             title = newState.getMessageTitle(viewDelegate.stringsLocator),
                             message = newState.getMessageBody(viewDelegate.stringsLocator),
-                            onContinue = { handleContinue(CompletionResult.Success(false)) })
+                            onContinue = { handleContinue(CompletionResult.Success(false)) },
+                        )
                     }
                     else -> {
                         viewDelegate.setState(
@@ -70,13 +57,27 @@ class ResetCodesController(
                                 codeType!!,
                                 state = newState,
                                 cardId = formattedCardId,
-                                callback =  { handleContinue(it) }
-                            )
+                                callback = { handleContinue(it) },
+                            ),
                         )
                     }
                 }
             }
             .launchIn(scope)
+    }
+
+    fun start(codeType: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
+        this.cardId = cardId
+        this.codeType = codeType
+        this.callback = callback
+        viewDelegate.setState(
+            ResetCodesViewState.RequestCode(
+                type = codeType,
+                cardId = formattedCardId,
+            ) {
+                handleCodeInput(it)
+            },
+        )
     }
 
     private fun handleCodeInput(result: CompletionResult<String>) {
@@ -85,7 +86,6 @@ class ResetCodesController(
                 when (val setCodeResult = resetService.setAccessCode(result.data)) {
                     is CompletionResult.Success -> this.newCode = result.data
                     is CompletionResult.Failure -> viewDelegate.showError(setCodeResult.error)
-
                 }
             }
             is CompletionResult.Failure -> viewDelegate.hide {
@@ -99,7 +99,7 @@ class ResetCodesController(
             is CompletionResult.Success -> {
                 if (result.data) {
                     resetService.proceed(cardId)
-                } else { //completed
+                } else { // completed
                     viewDelegate.hide {
                         callback?.invoke(CompletionResult.Success(newCode))
                     }
@@ -110,9 +110,7 @@ class ResetCodesController(
             }
         }
     }
-
 }
-
 
 interface ResetCodesViewDelegate {
 
@@ -135,14 +133,13 @@ sealed class ResetCodesViewState {
     data class RequestCode(
         val type: UserCodeType,
         val cardId: String?,
-        val callback: CompletionCallback<String>
+        val callback: CompletionCallback<String>,
     ) : ResetCodesViewState()
 
     data class ResetCodes(
         val type: UserCodeType,
         val state: ResetPinService.State,
         val cardId: String?,
-        val callback: CompletionCallback<Boolean>
+        val callback: CompletionCallback<Boolean>,
     ) : ResetCodesViewState()
-
 }

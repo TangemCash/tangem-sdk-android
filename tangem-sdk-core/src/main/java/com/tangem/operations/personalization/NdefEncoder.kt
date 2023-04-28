@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets
  */
 class NdefEncoder(private val ndefRecords: List<NdefRecord>, private val useDinamicNdef: Boolean) {
 
+    @Suppress("MagicNumber")
     fun encode(): ByteArray {
         val bs = ByteArrayOutputStream()
         // space for size
@@ -16,7 +17,9 @@ class NdefEncoder(private val ndefRecords: List<NdefRecord>, private val useDina
         bs.write(0)
 
         for (i in ndefRecords.indices) {
-            val headerValue = (if (i == 0) 0x80 else 0x00) or (if (!useDinamicNdef && i == ndefRecords.size - 1) 0x40 else 0x00)
+            val condition1 = if (i == 0) 0x80 else 0x00
+            val condition2 = if (!useDinamicNdef && i == ndefRecords.size - 1) 0x40 else 0x00
+            val headerValue = condition1 or condition2
             var value: ByteArray = ndefRecords[i].value.toByteArray(StandardCharsets.UTF_8)
             encodeValue(ndefRecords[i], headerValue, bs)
         }
@@ -25,22 +28,38 @@ class NdefEncoder(private val ndefRecords: List<NdefRecord>, private val useDina
         result[0] = (result.size - 2 shr 8).toByte()
         result[1] = (result.size - 2 and 0xFF).toByte()
         return result
-
     }
 
-
+    @Suppress("LongMethod", "MagicNumber")
     private fun encodeValue(ndefRecord: NdefRecord, headerValue: Int, bs: ByteArrayOutputStream) {
         when (ndefRecord.type) {
             NdefRecord.Type.AAR -> {
-                bs.write((headerValue or 0x14)) // NDEF Header
+                bs.write(headerValue or 0x14) // NDEF Header
                 bs.write(0x0F) // Length of the record type
                 bs.write(ndefRecord.valueInBytes().size) // Length of the payload data
-                bs.write(byteArrayOf(0x61.toByte(), 0x6E.toByte(), 0x64.toByte(), 0x72.toByte(), 0x6F.toByte(), 0x69.toByte(), 0x64.toByte(), 0x2E.toByte(), 0x63.toByte(), 0x6F.toByte(), 0x6D.toByte(), 0x3A.toByte(),
-                        0x70.toByte(), 0x6B.toByte(), 0x67.toByte())) // type name
+                bs.write(
+                    byteArrayOf(
+                        0x61.toByte(),
+                        0x6E.toByte(),
+                        0x64.toByte(),
+                        0x72.toByte(),
+                        0x6F.toByte(),
+                        0x69.toByte(),
+                        0x64.toByte(),
+                        0x2E.toByte(),
+                        0x63.toByte(),
+                        0x6F.toByte(),
+                        0x6D.toByte(),
+                        0x3A.toByte(),
+                        0x70.toByte(),
+                        0x6B.toByte(),
+                        0x67.toByte(),
+                    ),
+                ) // type name
                 bs.write(ndefRecord.valueInBytes())
             }
             NdefRecord.Type.URI -> {
-                bs.write((headerValue or 0x11)) // NDEF Header
+                bs.write(headerValue.or(other = 0x11)) // NDEF Header
                 bs.write(0x01) // Length of the record type
                 val uriIdentifierCode: Byte
                 val prefix: String
@@ -61,9 +80,7 @@ class NdefEncoder(private val ndefRecords: List<NdefRecord>, private val useDina
                         uriIdentifierCode = 0x04.toByte()
                         prefix = "https://"
                     }
-                    else -> {
-                        throw Exception()
-                    }
+                    else -> error("Not found")
                 }
                 val value = ndefRecord.value.substring(prefix.length).toByteArray()
                 bs.write(value.size + 1) // Length of the payload data
@@ -72,7 +89,7 @@ class NdefEncoder(private val ndefRecords: List<NdefRecord>, private val useDina
                 bs.write(value)
             }
             NdefRecord.Type.TEXT -> {
-                bs.write((headerValue or 0x11)) // NDEF Header
+                bs.write(headerValue.or(other = 0x11)) // NDEF Header
                 bs.write(0x01) // Length of the record type
                 bs.write(ndefRecord.valueInBytes().size.toByte() + 1 + "en".length) // Length of the payload data
                 bs.write(0x54) // Text
@@ -80,9 +97,6 @@ class NdefEncoder(private val ndefRecords: List<NdefRecord>, private val useDina
                 bs.write("en".toByteArray(StandardCharsets.US_ASCII))
                 bs.write(ndefRecord.valueInBytes())
             }
-            else -> throw Exception("Invalid NDEF record in config!")
         }
     }
-
-
 }

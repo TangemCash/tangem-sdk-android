@@ -5,7 +5,7 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.operations.CommandResponse
 
 /**
@@ -38,7 +38,7 @@ data class SignHashResponse(
 class SignHashCommand(
     private val hash: ByteArray,
     private val walletPublicKey: ByteArray,
-    private val derivationPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null,
 ) : CardSessionRunnable<SignHashResponse> {
 
     override fun run(session: CardSession, callback: CompletionCallback<SignHashResponse>) {
@@ -49,7 +49,7 @@ class SignHashCommand(
                     val response = SignHashResponse(
                         result.data.cardId,
                         result.data.signatures[0],
-                        result.data.totalSignedHashes
+                        result.data.totalSignedHashes,
                     )
                     callback(CompletionResult.Success(response))
                 }

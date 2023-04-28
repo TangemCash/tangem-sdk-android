@@ -3,25 +3,31 @@
     "jsonrpc": "2.0",
     "method": "derive_wallet_public_keys",
     "params": {
-      "walletPublicKey": "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348",
+      "walletPublicKey": "033FF179FAD6EACF88B7C100D23A06FF2B2F9D361EA09A686870E04371EEDEFDDC",
       "derivationPaths" : ["m/44'/0'", "m/44'/1'"]
     },
     "id": 1
   },
   "response" : {
     "jsonrpc" : "2.0",
-    "result" : [
+    "result" : {
+      "m/44'/0'" :
       {
-        "compressedPublicKey": "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962",
+        "publicKey": "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962",
         "chainCode": "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB",
-        "derivationPath": "m/44'/0'"
+        "depth" : 0,
+        "parentFingerprint" : "00000000",
+        "childNumber" : 0
       },
+      "m/44'/1'" :
       {
-        "compressedPublicKey": "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962",
+        "publicKey": "0200300397571D99D41BB2A577E2CBE495C04AC5B9A97B7A4ECF999F23CE45E962",
         "chainCode": "537F7361175B150732E17508066982B42D9FB1F8239C4D7BFC490088C83A8BBB",
-        "derivationPath": "m/44'/1'"
+        "depth" : 0,
+        "parentFingerprint" : "00000000",
+        "childNumber" : 0
       }
-    ],
+    },
     "id" : 1
   }
 }

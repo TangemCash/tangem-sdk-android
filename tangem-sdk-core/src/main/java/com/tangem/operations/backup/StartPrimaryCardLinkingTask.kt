@@ -32,7 +32,8 @@ class StartPrimaryCardLinkingTask : CardSessionRunnable<PrimaryCard> {
 
     private fun loadIssuerSignature(
         rawCard: RawPrimaryCard,
-        session: CardSession, callback: CompletionCallback<PrimaryCard>,
+        session: CardSession,
+        callback: CompletionCallback<PrimaryCard>,
     ) {
         if (session.environment.card?.firmwareVersion?.type == FirmwareVersion.FirmwareType.Sdk) {
             val issuerPrivateKey =
@@ -43,8 +44,10 @@ class StartPrimaryCardLinkingTask : CardSessionRunnable<PrimaryCard> {
         }
 
         session.scope.launch(Dispatchers.IO) {
-            when (val result =
-                onlineCardVerifier.getCardData(rawCard.cardId, rawCard.cardPublicKey)) {
+            when (
+                val result =
+                    onlineCardVerifier.getCardData(rawCard.cardId, rawCard.cardPublicKey)
+            ) {
                 is Result.Success -> {
                     val signature = result.data.issuerSignature.guard {
                         callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed()))

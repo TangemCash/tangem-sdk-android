@@ -6,5 +6,5 @@ data class Issuer(
     val name: String,
     val id: String,
     val dataKeyPair: KeyPair,
-    val transactionKeyPair: KeyPair
+    val transactionKeyPair: KeyPair,
 )

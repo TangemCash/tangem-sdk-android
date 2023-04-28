@@ -1,8 +1,7 @@
 package com.tangem.common.extensions
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.jupiter.api.Test
-
+import org.junit.Test
 
 class IntExtensionsTest {
 
@@ -11,7 +10,7 @@ class IntExtensionsTest {
         val int = 13
         val expected = byteArrayOf(0, 0, 0, 13)
         assertThat(int.toByteArray())
-                .isEqualTo(expected)
+            .isEqualTo(expected)
     }
 
     @Test
@@ -19,6 +18,6 @@ class IntExtensionsTest {
         val int = 999
         val expected = byteArrayOf(0, 0, 3, -25)
         assertThat(int.toByteArray())
-                .isEqualTo(expected)
+            .isEqualTo(expected)
     }
 }

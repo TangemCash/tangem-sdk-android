@@ -19,12 +19,11 @@ import com.tangem.operations.PreflightReadMode
  */
 class ResetPinCommand(
     private val accessCode: ByteArray,
-    private val passcode: ByteArray
+    private val passcode: ByteArray,
 ) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = false
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
-
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
@@ -47,11 +46,8 @@ class ResetPinCommand(
         return CommandApdu(Instruction.SetPin, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): SuccessResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SuccessResponse {
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -60,4 +56,3 @@ class ResetPinCommand(
         )
     }
 }
-

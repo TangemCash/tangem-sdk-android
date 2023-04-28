@@ -20,8 +20,8 @@ class CheckUserCodesCommand : CardSessionRunnable<CheckUserCodesResponse> {
 
     override fun run(session: CardSession, callback: CompletionCallback<CheckUserCodesResponse>) {
         val command = SetUserCodeCommand.change(
-                session.environment.accessCode.value,
-                session.environment.passcode.value,
+            session.environment.accessCode.value,
+            session.environment.passcode.value,
         )
         command.shouldRestrictDefaultCodes = false
         command.isPasscodeRequire = false
@@ -30,16 +30,16 @@ class CheckUserCodesCommand : CardSessionRunnable<CheckUserCodesResponse> {
             when (result) {
                 is CompletionResult.Success -> {
                     val response = CheckUserCodesResponse(
-                            session.environment.isUserCodeSet(UserCodeType.AccessCode),
-                            session.environment.isUserCodeSet(UserCodeType.Passcode),
+                        session.environment.isUserCodeSet(UserCodeType.AccessCode),
+                        session.environment.isUserCodeSet(UserCodeType.Passcode),
                     )
                     callback(CompletionResult.Success(response))
                 }
                 is CompletionResult.Failure -> {
                     if (result.error is TangemSdkError.InvalidParams) {
                         val response = CheckUserCodesResponse(
-                                session.environment.isUserCodeSet(UserCodeType.AccessCode),
-                                true,
+                            session.environment.isUserCodeSet(UserCodeType.AccessCode),
+                            true,
                         )
                         callback(CompletionResult.Success(response))
                     } else {

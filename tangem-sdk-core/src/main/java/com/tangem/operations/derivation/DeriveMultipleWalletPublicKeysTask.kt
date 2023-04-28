@@ -5,15 +5,15 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.extensions.ByteArrayKey
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.operations.CommandResponse
 
 class DerivationTaskResponse(
-    val entries: Map<ByteArrayKey, ExtendedPublicKeysMap>
-): CommandResponse
+    val entries: Map<ByteArrayKey, ExtendedPublicKeysMap>,
+) : CommandResponse
 
 class DeriveMultipleWalletPublicKeysTask(
-    private val derivations: Map<ByteArrayKey, List<DerivationPath>>
+    private val derivations: Map<ByteArrayKey, List<DerivationPath>>,
 ) : CardSessionRunnable<DerivationTaskResponse> {
 
     val response: MutableMap<ByteArrayKey, ExtendedPublicKeysMap> = mutableMapOf()
@@ -26,7 +26,7 @@ class DeriveMultipleWalletPublicKeysTask(
         keys: List<ByteArrayKey>,
         index: Int,
         session: CardSession,
-        callback: CompletionCallback<DerivationTaskResponse>
+        callback: CompletionCallback<DerivationTaskResponse>,
     ) {
         if (index == keys.count()) {
             callback(CompletionResult.Success(DerivationTaskResponse(response.toMap())))

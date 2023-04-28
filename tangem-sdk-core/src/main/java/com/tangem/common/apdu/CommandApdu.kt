@@ -24,10 +24,8 @@ class CommandApdu(
 
     private val le: Int = 0x00,
 
-    private val cla: Int = ISO_CLA
+    private val cla: Int = ISO_CLA,
 ) {
-
-    constructor(instruction: Instruction, tlvs: ByteArray) : this(instruction.code, tlvs, 0, 0)
 
     /**
      * Request converted to a raw data
@@ -38,6 +36,7 @@ class CommandApdu(
         apduData = toBytes()
     }
 
+    constructor(instruction: Instruction, tlvs: ByteArray) : this(instruction.code, tlvs, 0, 0)
 
     private fun toBytes(): ByteArray {
         val data = tlvs
@@ -56,15 +55,11 @@ class CommandApdu(
 
     private fun ByteArrayOutputStream.writeLength(lc: Int) {
         this.write(0)
-        this.write(lc shr 8)
-        this.write(lc and 0xFF)
+        this.write(lc.shr(bitCount = 8))
+        this.write(lc.and(other = 0xFF))
     }
 
-
-    fun encrypt(
-        encryptionMode: EncryptionMode,
-        encryptionKey: ByteArray?
-    ): CommandApdu {
+    fun encrypt(encryptionMode: EncryptionMode, encryptionKey: ByteArray?): CommandApdu {
         if (encryptionKey == null || p1 != EncryptionMode.None.byteValue) {
             return this
         }
@@ -76,6 +71,7 @@ class CommandApdu(
         return CommandApdu(ins, encryptedData, encryptionMode.byteValue, p2, le, cla)
     }
 
+    @Suppress("MagicNumber")
     override fun toString(): String {
         val lc = apduData.size.toByte()
         return ">>>> [${apduData.size + 4}  bytes]: $cla $ins $p1 $p2 $lc ${apduData.toHexString()}"

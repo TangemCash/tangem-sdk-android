@@ -121,6 +121,7 @@ class WriteFileCommand private constructor(
         writeFileData(session, callback)
     }
 
+    @Suppress("MagicNumber")
     override fun performPreCheck(card: Card): TangemSdkError? {
         val firmwareVersion = card.firmwareVersion
         if (firmwareVersion < FirmwareVersion.FilesAvailable) {
@@ -170,12 +171,17 @@ class WriteFileCommand private constructor(
             FileDataMode.InitiateWritingFile -> {
                 tlvBuilder.append(TlvTag.Size, data.size)
 
-                ifNotNullOr(startingSignature, counter, { signature, counter ->
-                    tlvBuilder.append(TlvTag.IssuerDataSignature, signature)
-                    tlvBuilder.append(TlvTag.IssuerDataCounter, counter)
-                }, {
-                    tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
-                })
+                ifNotNullOr(
+                    startingSignature,
+                    counter,
+                    { signature, counter ->
+                        tlvBuilder.append(TlvTag.IssuerDataSignature, signature)
+                        tlvBuilder.append(TlvTag.IssuerDataCounter, counter)
+                    },
+                    {
+                        tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
+                    },
+                )
                 tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
 
                 fileVisibility?.let {
@@ -206,9 +212,11 @@ class WriteFileCommand private constructor(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): WriteFileResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
         val decoder = TlvDecoder(tlvData)
-        return WriteFileResponse(decoder.decode(TlvTag.CardId), decoder.decodeOptional(TlvTag.FileIndex)
+        return WriteFileResponse(
+            cardId = decoder.decode(TlvTag.CardId),
+            fileIndex = decoder.decodeOptional(TlvTag.FileIndex),
         )
     }
 
@@ -253,20 +261,25 @@ class WriteFileCommand private constructor(
     private fun verifySignatures(publicKey: ByteArray, cardId: String): Boolean {
         return if (isWritingByUserCodes) {
             true
-        } else ifNotNullOr(
-            counter, startingSignature, finalizingSignature,
-            { counter, startingSignature, finalizingSignature ->
-                val firstData = IssuerDataToVerify(cardId, null, counter, data.size)
-                val secondData = IssuerDataToVerify(cardId, data, counter)
+        } else {
+            ifNotNullOr(
+                a = counter,
+                b = startingSignature,
+                c = finalizingSignature,
+                block = { counter, startingSignature, finalizingSignature ->
+                    val firstData = IssuerDataToVerify(cardId, null, counter, data.size)
+                    val secondData = IssuerDataToVerify(cardId, data, counter)
 
-                val startingSignatureVerified = verify(publicKey, startingSignature, firstData)
-                val finalizingSignatureVerified = verify(publicKey, finalizingSignature, secondData)
+                    val startingSignatureVerified = verify(publicKey, startingSignature, firstData)
+                    val finalizingSignatureVerified = verify(publicKey, finalizingSignature, secondData)
 
-                startingSignatureVerified && finalizingSignatureVerified
-            }, {
-                false
-            }
-        )
+                    startingSignatureVerified && finalizingSignatureVerified
+                },
+                orBloc = {
+                    false
+                },
+            )
+        }
     }
 
     companion object {

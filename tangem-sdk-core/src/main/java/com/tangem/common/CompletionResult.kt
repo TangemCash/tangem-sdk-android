@@ -38,9 +38,7 @@ inline fun <T> CompletionResult<T>.mapFailure(transform: (TangemError) -> Tangem
 }
 
 @Suppress("RemoveRedundantQualifierName")
-inline fun <T, D> CompletionResult<T>.flatMap(
-    transform: (T) -> CompletionResult<D>,
-): CompletionResult<D> {
+inline fun <T, D> CompletionResult<T>.flatMap(transform: (T) -> CompletionResult<D>): CompletionResult<D> {
     return when (this) {
         is CompletionResult.Failure -> CompletionResult.Failure(error)
         is CompletionResult.Success -> try {
@@ -70,16 +68,16 @@ inline fun <T> CompletionResult<T>.doOnSuccess(
 ): CompletionResult<T> {
     return when (this) {
         is CompletionResult.Failure -> this
-        is CompletionResult.Success -> if (catchException) catching { block(data); data } else {
+        is CompletionResult.Success -> if (catchException) {
+            catching { block(data); data }
+        } else {
             block(data); this
         }
     }
 }
 
 @Suppress("RemoveRedundantQualifierName")
-inline fun <T> CompletionResult<T>.doOnFailure(
-    block: (TangemError) -> Unit,
-): CompletionResult<T> {
+inline fun <T> CompletionResult<T>.doOnFailure(block: (TangemError) -> Unit): CompletionResult<T> {
     return when (this) {
         is CompletionResult.Failure -> {
             block(error); this
@@ -89,9 +87,7 @@ inline fun <T> CompletionResult<T>.doOnFailure(
 }
 
 @Suppress("RemoveRedundantQualifierName")
-inline fun <T> CompletionResult<T>.doOnResult(
-    block: () -> Unit,
-): CompletionResult<T> {
+inline fun <T> CompletionResult<T>.doOnResult(block: () -> Unit): CompletionResult<T> {
     return this
         .doOnFailure { block() }
         .doOnSuccess { block() }
@@ -99,7 +95,7 @@ inline fun <T> CompletionResult<T>.doOnResult(
 
 @Suppress("RedundantUnitExpression")
 fun List<CompletionResult<Unit>>.fold(): CompletionResult<Unit> {
-    return fold(Unit) { _, _ -> Unit }
+    return fold(Unit) { _, _ -> }
 }
 
 @Suppress("UNCHECKED_CAST", "RemoveRedundantQualifierName")
@@ -120,4 +116,11 @@ inline fun <reified D, reified R> List<CompletionResult<D>>.fold(
     }
 
     return CompletionResult.Success(resultData)
+}
+
+internal fun <T> CompletionResult<T>.successOrNull(): T? {
+    return when (this) {
+        is CompletionResult.Failure -> null
+        is Success -> this.data
+    }
 }

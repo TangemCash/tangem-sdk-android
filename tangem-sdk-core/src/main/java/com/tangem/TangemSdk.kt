@@ -9,8 +9,10 @@ import com.tangem.common.biometric.DummyBiometricManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
+import com.tangem.common.doOnFailure
+import com.tangem.common.doOnSuccess
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
@@ -18,7 +20,11 @@ import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
 import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
+import com.tangem.crypto.bip39.DefaultMnemonic
+import com.tangem.crypto.bip39.Wordlist
 import com.tangem.operations.*
+import com.tangem.operations.attestation.AttestCardKeyCommand
+import com.tangem.operations.attestation.AttestCardKeyResponse
 import com.tangem.operations.attestation.CardVerifyAndGetInfo
 import com.tangem.operations.attestation.OnlineCardVerifier
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
@@ -32,6 +38,7 @@ import com.tangem.operations.personalization.PersonalizeCommand
 import com.tangem.operations.personalization.entities.*
 import com.tangem.operations.pins.SetUserCodeCommand
 import com.tangem.operations.sign.*
+import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.operations.wallet.*
 import kotlinx.coroutines.*
 
@@ -46,18 +53,20 @@ import kotlinx.coroutines.*
  * @property config allows to change a number of parameters for communication with Tangem cards.
  * Do not change the default values unless you know what you are doing.
  */
+@Suppress("LargeClass", "TooManyFunctions")
 class TangemSdk(
     private val reader: CardReader,
     private val viewDelegate: SessionViewDelegate,
     val secureStorage: SecureStorage,
     val biometricManager: BiometricManager = DummyBiometricManager(),
+    val wordlist: Wordlist,
     var config: Config = Config(),
 ) {
 
     private var cardSession: CardSession? = null
 
     private val onlineCardVerifier = OnlineCardVerifier()
-    private val jsonRpcConverter: JSONRPCConverter by lazy { JSONRPCConverter.shared() }
+    private val jsonRpcConverter: JSONRPCConverter by lazy { JSONRPCConverter.shared(wordlist) }
 
     init {
         CryptoUtils.initCrypto()
@@ -87,6 +96,36 @@ class TangemSdk(
         startSessionWithRunnable(
             runnable = ScanTask(allowRequestUserCodeFromRepository),
             cardId = null,
+            initialMessage = initialMessage,
+            accessCode = null,
+            callback = callback,
+        )
+    }
+
+    /**
+     * This method launches a [AttestCardKeyCommand] on a new thread.
+     *
+     * To start using any card, you first need to read it using the scanCard() method.
+     * This method launches an NFC session, and once it’s connected with the card,
+     * it obtains the card data. Optionally, if the card contains a wallet (private and public key pair),
+     * it proves that the wallet owns a private key that corresponds to a public one.
+     *
+     * @param challenge Optional challenge. If null, it will be created automatically and returned in command response.
+     * @param cardId CID, Unique Tangem card ID number.
+     * @param initialMessage A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used.
+     * @param callback is triggered on the completion of the [ScanTask] and provides card response.
+     * in the form of [Card] if the task was performed successfully or [TangemSdkError] in case of an error.
+     */
+    fun attestCardKey(
+        challenge: ByteArray? = null,
+        cardId: String? = null,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<AttestCardKeyResponse>,
+    ) {
+        startSessionWithRunnable(
+            runnable = AttestCardKeyCommand(challenge),
+            cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
             callback = callback,
@@ -223,7 +262,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -257,8 +296,72 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
+    }
+
+    /**
+     * This command will import an existing wallet.
+     *
+     * @param curve: Wallet's elliptic curve
+     * @param seed: BIP39 seed to create wallet from. COS v.6.16+.
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used
+     * @param callback: is triggered on the completion of the [CreateWalletTask] and provides
+     * card response in the form of [CreateWalletResponse] if the task was performed successfully
+     * or [TangemSdkError] in case of an error.
+     */
+    fun importWallet(
+        curve: EllipticCurve,
+        cardId: String,
+        seed: ByteArray,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<CreateWalletResponse>,
+    ) {
+        startSessionWithRunnable(
+            runnable = CreateWalletTask(curve, seed),
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = null,
+            callback = callback,
+        )
+    }
+
+    /**
+     * This command will import an existing wallet.
+     *
+     * @param curve: Wallet's elliptic curve
+     * @param mnemonic: BIP39 mnemonic to create wallet from. COS v.6.16+.
+     * @param passphrase: BIP39 passphrase to create wallet from. COS v.6.16+. Empty passphrase by default.
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used
+     * @param callback: is triggered on the completion of the [CreateWalletTask] and provides
+     * card response in the form of [CreateWalletResponse] if the task was performed successfully
+     * or [TangemSdkError] in case of an error.
+     */
+    fun importWallet(
+        curve: EllipticCurve,
+        cardId: String,
+        mnemonic: String,
+        passphrase: String = "",
+        initialMessage: Message? = null,
+        callback: CompletionCallback<CreateWalletResponse>,
+    ) {
+        DefaultMnemonic(mnemonic, wordlist).generateSeed(passphrase)
+            .doOnSuccess { seed ->
+                startSessionWithRunnable(
+                    runnable = CreateWalletTask(curve, seed),
+                    cardId = cardId,
+                    initialMessage = initialMessage,
+                    accessCode = null,
+                    callback = callback,
+                )
+            }
+            .doOnFailure { error ->
+                callback(CompletionResult.Failure(error))
+            }
     }
 
     /**
@@ -285,7 +388,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -343,7 +446,7 @@ class TangemSdk(
             cardId = null,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -359,16 +462,13 @@ class TangemSdk(
      * card response in the form of [DepersonalizeResponse] if the task was performed successfully
      * or [TangemSdkError] in case of an error.
      * */
-    fun depersonalize(
-        initialMessage: Message? = null,
-        callback: CompletionCallback<DepersonalizeResponse>,
-    ) {
+    fun depersonalize(initialMessage: Message? = null, callback: CompletionCallback<DepersonalizeResponse>) {
         startSessionWithRunnable(
             runnable = DepersonalizeCommand(),
             cardId = null,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -397,7 +497,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -426,7 +526,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -452,7 +552,35 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
+        )
+    }
+
+    /**
+     * This method launches a [SetUserCodeRecoveryAllowedTask] on a new thread.
+     *
+     * Set if card allowed to reset user code
+     *
+     * @param isAllowed: Whether this card can reset user codes on the other linked card or not
+     * @param cardId: CID, Unique Tangem card ID number.
+     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
+     * If null, default message will be used
+     * @param callback: is triggered on the completion of the [SetUserCodeRecoveryAllowedTask] and provides
+     * card response in the form of [SuccessResponse] if the task was performed successfully
+     * or [TangemSdkError] in case of an error.
+     */
+    fun setUserCodeRecoveryAllowed(
+        isAllowed: Boolean,
+        cardId: String,
+        initialMessage: Message? = null,
+        callback: CompletionCallback<SuccessResponse>,
+    ) {
+        startSessionWithRunnable(
+            runnable = SetUserCodeRecoveryAllowedTask(isAllowed),
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = null,
+            callback = callback,
         )
     }
 
@@ -489,7 +617,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -522,7 +650,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -552,7 +680,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -562,7 +690,7 @@ class TangemSdk(
      * This command deletes selected files from card. This operation can't be undone.
      * To perform file deletion you should initially read all files (`readFiles` command) and add them to
      * `indices` array. When files deleted from card, other files change their indices.
-     * After deleting files you should additionally perform `readFiles` command to actualize files indexes
+     * After deleting files you should additionally perform `readFiles` command to actualize files indices
      * Warning: This command available for COS 3.29 and higher
      *
      * @param indices optional array of indices that should be deleted. If not specified all files
@@ -585,7 +713,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -637,7 +765,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -672,7 +800,7 @@ class TangemSdk(
             issuerData = issuerData,
             issuerDataSignature = issuerDataSignature,
             issuerDataCounter = issuerDataCounter,
-            issuerPublicKey = config.issuerPublicKey
+            issuerPublicKey = config.issuerPublicKey,
         )
         startSessionWithRunnable(
             runnable = command,
@@ -711,7 +839,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -751,17 +879,18 @@ class TangemSdk(
         callback: CompletionCallback<SuccessResponse>,
     ) {
         val command = WriteIssuerExtraDataCommand(
-            issuerData,
-            startingSignature, finalizingSignature,
-            issuerDataCounter,
-            config.issuerPublicKey
+            issuerData = issuerData,
+            startingSignature = startingSignature,
+            finalizingSignature = finalizingSignature,
+            issuerDataCounter = issuerDataCounter,
+            issuerPublicKey = config.issuerPublicKey,
         )
         startSessionWithRunnable(
             runnable = command,
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -796,7 +925,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -838,7 +967,7 @@ class TangemSdk(
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -878,14 +1007,14 @@ class TangemSdk(
     ) {
         val command = WriteUserDataCommand(
             userProtectedData = userProtectedData,
-            userProtectedCounter = userProtectedCounter
+            userProtectedCounter = userProtectedCounter,
         )
         startSessionWithRunnable(
             runnable = command,
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
-            callback = callback
+            callback = callback,
         )
     }
 
@@ -1033,11 +1162,8 @@ class TangemSdk(
         viewDelegate.setConfig(config)
     }
 
-    private fun createUserCodeRepository(
-        secureStorage: SecureStorage,
-        config: Config,
-    ): UserCodeRepository? {
-        val safeBiometricsManager = biometricManager ?: return null
+    private fun createUserCodeRepository(secureStorage: SecureStorage, config: Config): UserCodeRepository? {
+        val safeBiometricsManager = biometricManager
 
         return if (safeBiometricsManager.canAuthenticate &&
             config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics

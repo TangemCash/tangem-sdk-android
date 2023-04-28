@@ -8,9 +8,13 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
 import com.tangem.common.card.FirmwareVersion
-import com.tangem.common.core.*
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.WalletDeserializer
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -24,7 +28,7 @@ import com.tangem.operations.PreflightReadMode
 @JsonClass(generateAdapter = true)
 class ReadWalletResponse(
     val cardId: String,
-    val wallet: CardWallet
+    val wallet: CardWallet,
 ) : CommandResponse
 
 /**
@@ -33,7 +37,7 @@ class ReadWalletResponse(
  */
 class ReadWalletCommand(
     private val walletIndex: Int,
-    private val derivationPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null,
 ) : Command<ReadWalletResponse>() {
 
     override fun preflightReadMode(): PreflightReadMode = PreflightReadMode.ReadCardOnly
@@ -67,7 +71,7 @@ class ReadWalletCommand(
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadWalletResponse {
         val card = environment.card ?: throw TangemSdkError.UnknownError()
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         val wallet = try {

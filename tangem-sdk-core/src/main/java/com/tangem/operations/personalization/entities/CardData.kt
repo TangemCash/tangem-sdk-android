@@ -1,37 +1,25 @@
 package com.tangem.operations.personalization.entities
 
-import java.util.*
+import java.util.Date
 
 /**
- * Detailed information about card contents.
+ * Detailed information about card contents
+ *
+ * @property batchId              Tangem internal manufacturing batch ID
+ * @property manufactureDateTime  timestamp of manufacturing
+ * @property blockchainName       name of the blockchain
+ * @property productMask          mask of products enabled on card. COS 2.30+
+ * @property tokenSymbol          name of the token
+ * @property tokenContractAddress smart contract address
+ * @property tokenDecimal         number of decimals in token value
  */
+@Suppress("LongParameterList")
 internal class CardData(
-    /**
-     * Tangem internal manufacturing batch ID.
-     */
     val batchId: String,
-    /**
-     * Timestamp of manufacturing.
-     */
     val manufactureDateTime: Date,
-    /**
-     * Name of the blockchain.
-     */
     val blockchainName: String,
-    /**
-     * Mask of products enabled on card. COS 2.30+
-     */
     val productMask: ProductMask?,
-    /**
-     * Name of the token.
-     */
     val tokenSymbol: String?,
-    /**
-     * Smart contract address.
-     */
     val tokenContractAddress: String?,
-    /**
-     * Number of decimals in token value.
-     */
     val tokenDecimal: Int?,
 )

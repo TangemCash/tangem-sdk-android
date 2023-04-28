@@ -52,11 +52,10 @@ class ReadBackupDataCommand(
     private val accessCode: ByteArray,
 ) : Command<ReadBackupDataResponse>() {
 
-    override fun requiresPasscode(): Boolean = false
-
-    private var aggregatedResponse: InternalReadBackupDataResponse =
-        InternalReadBackupDataResponse()
+    private var aggregatedResponse: InternalReadBackupDataResponse = InternalReadBackupDataResponse()
     private var readIndex: Int = 0
+
+    override fun requiresPasscode(): Boolean = false
 
     override fun performPreCheck(card: Card): TangemSdkError? {
         if (card.firmwareVersion < FirmwareVersion.BackupAvailable) {
@@ -81,22 +80,24 @@ class ReadBackupDataCommand(
                     val status = session.environment.card?.backupStatus
                     if (status is Card.BackupStatus.CardLinked) {
                         session.environment.card = session.environment.card?.copy(
-                            backupStatus = Card.BackupStatus.Active(status.cardCount)
+                            backupStatus = Card.BackupStatus.Active(status.cardCount),
                         )
                         val wallets = session.environment.card?.wallets
                             ?.map { it.copy(hasBackup = true) }
                             ?: emptyList()
                         session.environment.card?.setWallets(wallets)
                     }
-                    callback(CompletionResult.Success(
-                        ReadBackupDataResponse(
-                            aggregatedResponse.cardId,
-                            aggregatedResponse.data,
-                            session.environment.card?.wallets?.size ?: 0
-                        )
-                    ))
+                    callback(
+                        CompletionResult.Success(
+                            ReadBackupDataResponse(
+                                aggregatedResponse.cardId,
+                                aggregatedResponse.data,
+                                session.environment.card?.wallets?.size ?: 0,
+                            ),
+                        ),
+                    )
                 }
-                is CompletionResult.Failure ->  callback(CompletionResult.Failure(result.error))
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
     }
@@ -131,23 +132,21 @@ class ReadBackupDataCommand(
         return CommandApdu(Instruction.ReadBackupData, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): ReadBackupDataResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadBackupDataResponse {
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
 
         return ReadBackupDataResponse(
             cardId = decoder.decode(TlvTag.CardId),
-            data = listOf(EncryptedBackupData(
-                data = decoder.decode(TlvTag.IssuerData),
-                salt = decoder.decode(TlvTag.Salt)
-            )),
-            index = decoder.decode(TlvTag.WalletIndex)
+            data = listOf(
+                EncryptedBackupData(
+                    data = decoder.decode(TlvTag.IssuerData),
+                    salt = decoder.decode(TlvTag.Salt),
+                ),
+            ),
+            index = decoder.decode(TlvTag.WalletIndex),
         )
     }
 }
-

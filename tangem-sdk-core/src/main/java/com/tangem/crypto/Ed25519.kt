@@ -31,7 +31,6 @@ object Ed25519 {
     }
 
     internal fun sign(data: ByteArray, privateKeyArray: ByteArray): ByteArray {
-
         val dataSha512 = data.calculateSha512()
         val spec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519)
         val signatureInstance = EdDSAEngine(MessageDigest.getInstance(spec.hashAlgorithm))
@@ -51,5 +50,15 @@ object Ed25519 {
         val publicKeySpec = EdDSAPublicKeySpec(privateKeySpec.a, spec)
         val publicKey = EdDSAPublicKey(publicKeySpec)
         return publicKey.abyte
+    }
+
+    internal fun isPrivateKeyValid(privateKey: ByteArray): Boolean {
+        return try {
+            val dummyMessage = byteArrayOf(0x00)
+            val signature = sign(dummyMessage, privateKey)
+            verify(generatePublicKey(privateKey), dummyMessage, signature)
+        } catch (e: Exception) {
+            false
+        }
     }
 }

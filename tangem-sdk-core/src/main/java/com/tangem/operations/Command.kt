@@ -76,6 +76,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
         }
     }
 
+    @Suppress("ComplexMethod")
     private fun transceiveInternal(session: CardSession, callback: CompletionCallback<T>) {
         Log.apduCommand { "C-APDU serialization..." }
         val apdu = serialize(session.environment)
@@ -85,12 +86,10 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
             when (result) {
                 is CompletionResult.Failure -> {
                     val environment = session.environment
-                    if (result.error is TangemSdkError.ExtendedLengthNotSupported) {
-                        if (environment.terminalKeys != null) {
-                            environment.terminalKeys = null
-                            transceiveInternal(session, callback)
-                            return@transceiveApdu
-                        }
+                    if (result.error is TangemSdkError.ExtendedLengthNotSupported && environment.terminalKeys != null) {
+                        environment.terminalKeys = null
+                        transceiveInternal(session, callback)
+                        return@transceiveApdu
                     }
 
                     val error = when {
@@ -102,7 +101,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                         is TangemSdkError.PasscodeRequired -> requestPin(UserCodeType.Passcode, session, callback)
                         is TangemSdkError.InvalidParams -> {
                             if (requiresPasscode()) {
-                                //Addition check for COS v4 and newer to prevent false-positive pin2 request
+                                // Addition check for COS v4 and newer to prevent false-positive pin2 request
                                 val isPasscodeSet = environment.card?.isPasscodeSet == false
                                 if (isPasscodeSet && !environment.isUserCodeSet(UserCodeType.Passcode)) {
                                     callback(CompletionResult.Failure(error))
@@ -130,6 +129,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
         }
     }
 
+    @Suppress("LongMethod", "ComplexMethod")
     private fun transceiveApdu(apdu: CommandApdu, session: CardSession, callback: CompletionCallback<ResponseApdu>) {
         session.send(apdu) { result ->
             when (result) {
@@ -140,16 +140,17 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                         StatusWord.ProcessCompleted,
                         StatusWord.Pin1Changed, StatusWord.Pin2Changed, StatusWord.Pins12Changed,
                         StatusWord.Pin3Changed, StatusWord.Pins13Changed, StatusWord.Pins23Changed,
-                        StatusWord.Pins123Changed -> {
+                        StatusWord.Pins123Changed,
+                        -> {
                             callback(CompletionResult.Success(responseApdu))
                         }
                         StatusWord.NeedPause -> {
                             // NeedPause is returned from the card whenever security delay is triggered.
-                            val remainingTime = deserializeSecurityDelay(session.environment, responseApdu)
+                            val remainingTime = deserializeSecurityDelay(responseApdu)
                             if (remainingTime != null) {
                                 session.viewDelegate.onSecurityDelay(
                                     remainingTime,
-                                    session.environment.card?.settings?.securityDelay ?: 0
+                                    session.environment.card?.settings?.securityDelay ?: 0,
                                 )
                             }
                             transceiveApdu(apdu, session, callback)
@@ -174,7 +175,9 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                             transceiveApdu(apdu, session, callback)
                         }
                         StatusWord.Unknown -> {
-                            callback(CompletionResult.Failure(TangemSdkError.UnknownStatus(responseApdu.sw.toHexString())))
+                            callback(
+                                CompletionResult.Failure(TangemSdkError.UnknownStatus(responseApdu.sw.toHexString())),
+                            )
                         }
                         else -> {
                             val error = responseApdu.statusWord.toTangemSdkError()
@@ -201,7 +204,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
         if (!session.environment.enableMissingSecurityDelay) return
 
         var totalDuration = session.environment.card!!.settings.securityDelay
-        totalDuration = if (totalDuration == 0) 0 else totalDuration + (totalDuration / 3)
+        totalDuration = if (totalDuration == 0) 0 else totalDuration + totalDuration.div(other = 3)
         session.viewDelegate.onSecurityDelay(SessionEnvironment.missingSecurityDelayCode, totalDuration)
     }
 
@@ -210,13 +213,13 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
      *
      * @return Remaining security delay in milliseconds.
      */
-    private fun deserializeSecurityDelay(environment: SessionEnvironment, responseApdu: ResponseApdu): Int? {
-        val tlv = responseApdu.getTlvData(environment.encryptionKey)
+    private fun deserializeSecurityDelay(responseApdu: ResponseApdu): Int? {
+        val tlv = responseApdu.getTlvData()
         return tlv?.find { it.tag == TlvTag.Pause }?.value?.toInt()
     }
 
     private fun requestPin(type: UserCodeType, session: CardSession, callback: CompletionCallback<T>) {
-        session.pause(TangemSdkError.from(type, session.environment))
+        session.pause()
         val isFirstAttempt = type.isWrongPinEntered(session.environment)
         when (type) {
             UserCodeType.AccessCode -> session.environment.accessCode = UserCode(UserCodeType.AccessCode, null)
@@ -232,6 +235,6 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
     }
 
     protected fun deserializeApdu(environment: SessionEnvironment, apdu: ResponseApdu): List<Tlv> {
-        return apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        return apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
     }
 }

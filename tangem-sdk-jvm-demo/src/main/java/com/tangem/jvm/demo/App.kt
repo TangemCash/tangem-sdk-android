@@ -1,10 +1,16 @@
 package com.tangem.jvm.demo
 
-import org.apache.commons.cli.*
-
+import org.apache.commons.cli.CommandLine
+import org.apache.commons.cli.CommandLineParser
+import org.apache.commons.cli.DefaultParser
+import org.apache.commons.cli.HelpFormatter
+import org.apache.commons.cli.Options
 
 fun main(args: Array<String>) {
-    System.setProperty("sun.security.smartcardio.library", "/System/Library/Frameworks/PCSC.framework/Versions/Current/PCSC")
+    System.setProperty(
+        "sun.security.smartcardio.library",
+        "/System/Library/Frameworks/PCSC.framework/Versions/Current/PCSC",
+    )
 
     val command = Command.byValue(args.first())
     if (command == null) {

@@ -3,11 +3,13 @@ package com.tangem.common.core
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
+import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
+import com.tangem.common.apdu.Apdu
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.EncryptionMode
@@ -63,6 +65,7 @@ import java.io.StringWriter
  * @property initialMessage A custom description that will be shown at the beginning of the NFC session.
  * If null, a default header and text body will be used.
  */
+@Suppress("LargeClass")
 class CardSession(
     cardId: String? = null,
     val viewDelegate: SessionViewDelegate,
@@ -71,7 +74,7 @@ class CardSession(
     private val reader: CardReader,
     private val jsonRpcConverter: JSONRPCConverter,
     private val secureStorage: SecureStorage,
-    private var initialMessage: Message? = null,
+    private var initialMessage: ViewDelegateMessage? = null,
 ) {
 
     var cardId: String? = cardId
@@ -93,11 +96,13 @@ class CardSession(
 
     private var preflightReadMode: PreflightReadMode = PreflightReadMode.FullCardRead
 
-    fun setInitialMessage(message: Message?) {
+    private var onTagConnectedAfterResume: VoidCallback? = null
+
+    fun setInitialMessage(message: ViewDelegateMessage?) {
         initialMessage = message
     }
 
-    fun setMessage(message: Message?) {
+    fun setMessage(message: ViewDelegateMessage?) {
         viewDelegate.setMessage(message)
     }
 
@@ -146,7 +151,6 @@ class CardSession(
                     callback(CompletionResult.Failure(prepareResult.error))
                 }
             }
-
         }
     }
 
@@ -164,48 +168,54 @@ class CardSession(
 
         scope.launch {
             reader.tag.asFlow()
-                    .filterNotNull()
-                    .take(1)
-                    .collect { tagType ->
-                        if (tagType == TagType.Nfc && preflightReadMode != PreflightReadMode.None) {
-                            preflightCheck(onSessionStarted)
-                        } else {
-                            onSessionStarted(this@CardSession, null)
+                .filterNotNull()
+                .take(1)
+                .collect { tagType ->
+                    selectApplet()
+                        .doOnSuccess {
+                            if (tagType == TagType.Nfc && preflightReadMode != PreflightReadMode.None) {
+                                preflightCheck(onSessionStarted)
+                            } else {
+                                onSessionStarted(this@CardSession, null)
+                            }
                         }
-                    }
+                        .doOnFailure {
+                            onSessionStarted(this@CardSession, it)
+                        }
+                }
         }
 
         scope.launch {
             reader.tag.asFlow()
-                    .drop(1)
-                    .collect {
-                        if (it == null) {
-                            viewDelegate.onTagLost()
-                        } else {
-                            viewDelegate.onTagConnected()
-                            onTagConnectedAfterResume?.invoke()
-                            onTagConnectedAfterResume = null
-                        }
+                .drop(1)
+                .collect {
+                    if (it == null) {
+                        viewDelegate.onTagLost()
+                    } else {
+                        viewDelegate.onTagConnected()
+                        onTagConnectedAfterResume?.invoke()
+                        onTagConnectedAfterResume = null
                     }
+                }
         }
 
         scope.launch {
             reader.tag.asFlow()
-                    .onCompletion {
-                        if (it is CancellationException && it.message == TangemSdkError.UserCancelled().customMessage) {
-                            stopWithError(TangemSdkError.UserCancelled())
-                            viewDelegate.dismiss()
-                            onSessionStarted(this@CardSession, TangemSdkError.UserCancelled())
-                        }
+                .onCompletion {
+                    if (it is CancellationException && it.message == TangemSdkError.UserCancelled().customMessage) {
+                        stopWithError(TangemSdkError.UserCancelled())
+                        viewDelegate.dismiss()
+                        onSessionStarted(this@CardSession, TangemSdkError.UserCancelled())
                     }
-                    .collect {
-                        if (it == null && connectedTag != null && state == CardSessionState.Active) {
-                            environment.encryptionKey = null
-                            connectedTag = null
-                        } else if (it != null) {
-                            connectedTag = it
-                        }
+                }
+                .collect {
+                    if (it == null && connectedTag != null && state == CardSessionState.Active) {
+                        environment.encryptionKey = null
+                        connectedTag = null
+                    } else if (it != null) {
+                        connectedTag = it
                     }
+                }
         }
     }
 
@@ -250,7 +260,7 @@ class CardSession(
             }
             requestUserCodeIfNeeded(
                 type = codeType,
-                isFirstAttempt = true
+                isFirstAttempt = true,
             ) { userCodeResult ->
                 userCodeResult
                     .doOnSuccess { runnable.prepare(this, callback) }
@@ -265,7 +275,12 @@ class CardSession(
                         userCodeRepository?.unlock()
                             ?.doOnSuccess { runnable.prepare(this@CardSession, callback) }
                             ?.doOnFailure { e ->
-                                Log.error { "User codes storage could not be unlocked: $e" }
+                                Log.error {
+                                    """
+                                        User codes storage could not be unlocked
+                                        |- Cause: $e
+                                    """.trimIndent()
+                                }
                                 requestUserCode(policy.codeType)
                             }
                     } else {
@@ -300,7 +315,7 @@ class CardSession(
                         Log.error { "${result.error}" }
                         viewDelegate.onWrongCard(wrongType)
                         scope.launch(scope.coroutineContext) {
-                            delay(3500)
+                            delay(timeMillis = 3500)
                             if (connectedTag == null) {
                                 onSessionStarted(this@CardSession, result.error)
                                 stopWithError(result.error)
@@ -313,7 +328,6 @@ class CardSession(
                         onSessionStarted(this, result.error)
                         stopWithError(result.error)
                     }
-
                 }
             }
         }
@@ -324,7 +338,7 @@ class CardSession(
      * @param message If null, the default message will be shown.
      */
     fun stop(message: Message? = null) {
-        stopSession()
+        stopSessionIfActive()
         viewDelegate.onSessionStopped(message)
     }
 
@@ -333,7 +347,7 @@ class CardSession(
      * @param error An error that will be shown.
      */
     fun stopWithError(error: TangemError) {
-        stopSession()
+        stopSessionIfActive()
         if (error !is TangemSdkError.UserCancelled) {
             Log.error { "Finishing with error: ${error.code}" }
             viewDelegate.onError(error)
@@ -342,7 +356,9 @@ class CardSession(
         }
     }
 
-    private fun stopSession() {
+    private fun stopSessionIfActive() {
+        if (state == CardSessionState.Inactive) return
+
         Log.session { "stop session" }
         state = CardSessionState.Inactive
         preflightReadMode = PreflightReadMode.FullCardRead
@@ -356,47 +372,50 @@ class CardSession(
         val subscription = reader.tag.openSubscription()
         scope.launch {
             subscription.consumeAsFlow()
-                    .filterNotNull()
-                    .map { establishEncryptionIfNeeded() }
-                    .map { apdu.encrypt(environment.encryptionMode, environment.encryptionKey) }
-                    .map { encryptedApdu -> reader.transceiveApdu(encryptedApdu) }
-                    .map { responseApdu -> decrypt(responseApdu) }
-                    .catch {
-                        if (it is TangemSdkError) {
-                            Log.error { "$it" }
-                            callback(CompletionResult.Failure(it))
-                        }
+                .filterNotNull()
+                .map { establishEncryptionIfNeeded() }
+                .map { apdu.encrypt(environment.encryptionMode, environment.encryptionKey) }
+                .map { encryptedApdu -> reader.transceiveApdu(encryptedApdu) }
+                .map { responseApdu -> decrypt(responseApdu) }
+                .catch {
+                    if (it is TangemSdkError) {
+                        Log.error { "$it" }
+                        callback(CompletionResult.Failure(it))
                     }
-                    .collect { result ->
-                        when (result) {
-                            is CompletionResult.Success -> {
-                                subscription.cancel()
-                                callback(result)
-                            }
-                            is CompletionResult.Failure -> {
-                                when (result.error) {
-                                    is TangemSdkError.TagLost -> Log.session { "tag lost. Waiting for tag..." }
-                                    else -> {
-                                        Log.error { "${result.error}" }
-                                        subscription.cancel()
-                                        callback(result)
-                                    }
+                }
+                .collect { result ->
+                    when (result) {
+                        is CompletionResult.Success -> {
+                            subscription.cancel()
+                            callback(result)
+                        }
+                        is CompletionResult.Failure -> {
+                            when (result.error) {
+                                is TangemSdkError.TagLost -> Log.session { "tag lost. Waiting for tag..." }
+                                else -> {
+                                    Log.error { "${result.error}" }
+                                    subscription.cancel()
+                                    callback(result)
                                 }
                             }
                         }
                     }
+                }
         }
     }
 
-    fun pause(error: TangemError? = null) {
+    fun pause() {
         reader.pauseSession()
     }
-
-    private var onTagConnectedAfterResume: VoidCallback? = null
 
     fun resume(onTagConnected: VoidCallback? = null) {
         onTagConnectedAfterResume = onTagConnected
         reader.resumeSession()
+    }
+
+    private suspend fun selectApplet(): CompletionResult<ByteArray?> {
+        Log.session { "select the Wallet applet" }
+        return reader.transceiveRaw(Apdu.build(Apdu.SELECT, Apdu.TANGEM_WALLET_AID))
     }
 
     private suspend fun establishEncryptionIfNeeded(): CompletionResult<Boolean> {
@@ -406,9 +425,9 @@ class CardSession(
         }
 
         val encryptionHelper = EncryptionHelper.create(environment.encryptionMode)
-                ?: return CompletionResult.Failure(
-                    TangemSdkError.CryptoUtilsError("Failed to establish encryption")
-                )
+            ?: return CompletionResult.Failure(
+                TangemSdkError.CryptoUtilsError("Failed to establish encryption"),
+            )
 
         val openSessionCommand = OpenSessionCommand(encryptionHelper.keyA)
         val apdu = openSessionCommand.serialize(environment)
@@ -422,12 +441,12 @@ class CardSession(
                 }
 
                 val uid = result.uid
-                val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, 50)
-                        ?: return CompletionResult.Failure(
-                            TangemSdkError.CryptoUtilsError(
-                                "Failed to establish encryption"
-                            )
-                        )
+                val protocolKey = environment.accessCode.value?.pbkdf2Hash(uid, iterations = 50)
+                    ?: return CompletionResult.Failure(
+                        TangemSdkError.CryptoUtilsError(
+                            "Failed to establish encryption",
+                        ),
+                    )
 
                 val secret = encryptionHelper.generateSecret(result.sessionKeyB)
                 val sessionKey = (secret + protocolKey).calculateSha256()
@@ -527,6 +546,7 @@ class CardSession(
                 }
         }
 
+        @Suppress("GlobalCoroutineUsage")
         GlobalScope.launch {
             val card = environment.card
             when {
@@ -564,15 +584,15 @@ class CardSession(
         val resetService = ResetPinService(
             sessionBuilder = sessionBuilder,
             stringsLocator = viewDelegate.resetCodesViewDelegate.stringsLocator,
-            config = config
+            config = config,
         )
         viewDelegate.resetCodesViewDelegate.stopSessionCallback = {
-            stopSession()
+            stopSessionIfActive()
             callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
         }
         resetCodesController = ResetCodesController(
             resetService = resetService,
-            viewDelegate = viewDelegate.resetCodesViewDelegate
+            viewDelegate = viewDelegate.resetCodesViewDelegate,
         ).apply {
             cardIdDisplayFormat = environment.config.cardIdDisplayFormat
             start(codeType = type, cardId = cardId, callback = callback)
@@ -581,7 +601,7 @@ class CardSession(
 
     enum class CardSessionState {
         Inactive,
-        Active
+        Active,
     }
 }
 
@@ -589,7 +609,7 @@ typealias SessionStartedCallback = (session: CardSession, error: TangemError?) -
 
 enum class TagType {
     Nfc,
-    Slix
+    Slix,
 }
 
 class SessionBuilder(
@@ -599,11 +619,7 @@ class SessionBuilder(
     val reader: CardReader,
     val jsonRpcConverter: JSONRPCConverter,
 ) {
-    fun build(
-        config: Config,
-        cardId: String? = null,
-        initialMessage: Message? = null,
-    ): CardSession {
+    fun build(config: Config, cardId: String? = null, initialMessage: Message? = null): CardSession {
         return CardSession(
             cardId = cardId,
             viewDelegate = viewDelegate,

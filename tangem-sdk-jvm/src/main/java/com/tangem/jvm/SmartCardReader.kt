@@ -15,7 +15,11 @@ import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
-import javax.smartcardio.*
+import javax.smartcardio.Card
+import javax.smartcardio.CardChannel
+import javax.smartcardio.CardException
+import javax.smartcardio.CardTerminal
+import javax.smartcardio.CommandAPDU
 
 class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
     private var card: Card? = null
@@ -39,7 +43,6 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
                     card!!.disconnect(false)
                 } catch (e: CardException) {
                     e.message?.let { Log.nfc { it } }
-                    if (logException) e.printStackTrace()
                 }
                 card = null
             } catch (e: CardException) {
@@ -58,7 +61,6 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
         return terminal?.isCardPresent ?: false
     }
 
-
     @Throws(CardException::class)
     fun getUID(): ByteArray? {
         val rsp = channel!!.transmit(CommandAPDU("FFCA000000".hexToBytes()))
@@ -69,7 +71,7 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
     override fun startSession() {
         val terminal = terminal ?: throw CardException("No terminal specified!")
 
-        if (terminal.waitForCardPresent(30000)) {
+        if (terminal.waitForCardPresent(WAIT_CARD_PRESENT_DELAY_MS)) {
             card = terminal.connect("*")
             channel = card?.basicChannel
             getUID()?.let { Log.nfc { "UID: " + it.toHexString() } }
@@ -89,38 +91,58 @@ class SmartCardReader(private var terminal: CardTerminal?) : CardReader {
     }
 
     override suspend fun transceiveApdu(apdu: CommandApdu): CompletionResult<ResponseApdu> =
-            suspendCancellableCoroutine { continuation ->
-                transceiveApdu(apdu) { result ->
-                    if (continuation.isActive) continuation.resume(result) {}
-                }
+        suspendCancellableCoroutine { continuation ->
+            transceiveApdu(apdu) { result ->
+                if (continuation.isActive) continuation.resume(result) {}
             }
-
+        }
 
     override fun transceiveApdu(apdu: CommandApdu, callback: (response: CompletionResult<ResponseApdu>) -> Unit) {
+        transceiveRaw(apdu.apduData) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    result.data?.let {
+                        Log.nfc { "data from the card was received" }
+                        Log.nfc { "raw data that was received from the card: ${it.toHexString()}" }
+                        val rApdu = ResponseApdu(it)
+                        Log.nfc { rApdu.toString() }
+                        callback.invoke(CompletionResult.Success(rApdu))
+                    }
+                }
+                is CompletionResult.Failure -> callback.invoke(CompletionResult.Failure(result.error))
+            }
+        }
+    }
+
+    override suspend fun transceiveRaw(apduData: ByteArray): CompletionResult<ByteArray?> =
+        suspendCancellableCoroutine { continuation ->
+            transceiveRaw(apduData) { result ->
+                if (continuation.isActive) continuation.resume(result) {}
+            }
+        }
+
+    override fun transceiveRaw(apduData: ByteArray, callback: CompletionCallback<ByteArray?>) {
         val channel = channel ?: throw IOException()
 
-        Log.nfc { "sending data to the card, size is ${apdu.apduData.size}" }
-        Log.nfc { "raw data that is to be sent to the card: ${apdu.apduData.toHexString()}" }
-
-        val rawResponse: ByteArray? = try {
-            val rspAPDU = channel.transmit(CommandAPDU(apdu.apduData))
-            rspAPDU.bytes
+        Log.nfc { "sending data to the card, size is ${apduData.size}" }
+        Log.nfc { "raw data that is to be sent to the card: ${apduData.toHexString()}" }
+        try {
+            val rspAPDU = channel.transmit(CommandAPDU(apduData))
+            callback.invoke(CompletionResult.Success(rspAPDU.bytes))
         } catch (e: Exception) {
             callback.invoke(CompletionResult.Failure(TangemSdkError.TagLost()))
-            if (terminal?.waitForCardAbsent(30000) == true) {
+            if (terminal?.waitForCardAbsent(WAIT_CARD_ABSENT_DELAY_MS) == true) {
                 connectedTag = null
                 startSession()
             } else {
                 Log.error { e.localizedMessage }
                 stopSession()
             }
-            return
         }
+    }
 
-        if (rawResponse != null) {
-            Log.nfc { "data from the card was received" }
-            Log.nfc { "raw data that was received from the card: ${rawResponse.toHexString()}" }
-            callback.invoke(CompletionResult.Success(ResponseApdu(rawResponse)))
-        }
+    private companion object {
+        const val WAIT_CARD_PRESENT_DELAY_MS = 30_000L
+        const val WAIT_CARD_ABSENT_DELAY_MS = 30_000L
     }
 }

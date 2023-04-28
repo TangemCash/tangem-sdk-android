@@ -25,6 +25,9 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
         if (!card.settings.isBackupAllowed) {
             return TangemSdkError.BackupNotAllowed()
         }
+        if (card.backupStatus != null && card.backupStatus.isActive) {
+            return TangemSdkError.BackupFailedAlreadyCreated()
+        }
         if (card.wallets.isEmpty()) {
             return TangemSdkError.BackupFailedEmptyWallets()
         }
@@ -39,11 +42,8 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
         return CommandApdu(Instruction.StartPrimaryCardLinking, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): RawPrimaryCard {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): RawPrimaryCard {
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
@@ -61,7 +61,8 @@ class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
             issuer = card.issuer,
             walletCurves = card.wallets.map { it.curve },
             batchId = card.batchId,
+            firmwareVersion = card.firmwareVersion,
+            isKeysImportAllowed = card.settings.isKeysImportAllowed,
         )
     }
 }
-

@@ -4,12 +4,12 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
 
 class ExtendedPublicKeysMap(
-    map: Map<DerivationPath, ExtendedPublicKey>
+    map: Map<DerivationPath, ExtendedPublicKey>,
 ) : HashMap<DerivationPath, ExtendedPublicKey>(map), CommandResponse
 
 /**
@@ -33,7 +33,7 @@ class DeriveWalletPublicKeysTask(
         index: Int,
         keys: Map<DerivationPath, ExtendedPublicKey>,
         session: CardSession,
-        callback: CompletionCallback<ExtendedPublicKeysMap>
+        callback: CompletionCallback<ExtendedPublicKeysMap>,
     ) {
         if (index >= derivationPaths.size) {
             callback(CompletionResult.Success(ExtendedPublicKeysMap(keys)))

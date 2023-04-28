@@ -11,7 +11,7 @@ import com.tangem.operations.PreflightReadMode
 
 @JsonClass(generateAdapter = true)
 data class DepersonalizeResponse(
-    val success: Boolean
+    val success: Boolean,
 ) : CommandResponse
 
 /**

@@ -23,7 +23,6 @@ class ResetPinTask(
                 }
                 is CompletionResult.Failure -> callback(result)
             }
-
         }
     }
 }

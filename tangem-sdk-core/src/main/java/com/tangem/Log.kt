@@ -12,10 +12,13 @@ object Log {
 
     fun command(any: Any, message: (() -> String)? = null) {
         val commandName = any::class.java.simpleName
-        logInternal({
-            val messageBody = "run: $commandName${message?.invoke() ?: ""}"
-            messageBody.titleFormatted(maxLength = 80)
-        }, Level.Command)
+        logInternal(
+            {
+                val messageBody = "run: $commandName${message?.invoke() ?: ""}"
+                messageBody.titleFormatted(maxLength = 80)
+            },
+            Level.Command,
+        )
     }
 
     fun tlv(message: () -> String) {
@@ -103,7 +106,7 @@ interface LogFormat {
 
     class StairsFormatter(
         private val stepSpace: String = "    ",
-        private val stepLength: Map<Log.Level, Int> = defaultStepLength()
+        private val stepLength: Map<Log.Level, Int> = defaultStepLength(),
     ) : LogFormat {
 
         override fun format(message: () -> String, level: Log.Level): String {
@@ -112,6 +115,7 @@ interface LogFormat {
         }
 
         companion object {
+            @Suppress("MagicNumber")
             fun defaultStepLength(): Map<Log.Level, Int> {
                 return mapOf(
                     Log.Level.Session to 1,

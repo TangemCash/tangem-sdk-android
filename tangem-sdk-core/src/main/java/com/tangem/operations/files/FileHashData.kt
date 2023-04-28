@@ -4,7 +4,7 @@ data class FileHashData(
     val startingHash: ByteArray,
     val finalizingHash: ByteArray,
     val startingSignature: ByteArray? = null,
-    val finalizingSignature: ByteArray? = null
+    val finalizingSignature: ByteArray? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

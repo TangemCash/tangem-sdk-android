@@ -7,8 +7,8 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.get
 import com.tangem.common.extensions.guard
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.read.ReadWalletCommand
 
 /**
@@ -39,7 +39,7 @@ class DeriveWalletPublicKeyTask(
 
                     val childKey = ExtendedPublicKey(
                         publicKey = result.data.wallet.publicKey,
-                        chainCode = chainCode
+                        chainCode = chainCode,
                     )
                     updateKeys(childKey, session)
                     callback(CompletionResult.Success(childKey))
@@ -55,7 +55,7 @@ class DeriveWalletPublicKeyTask(
             ?.apply { this[derivationPath] = childKey }
         if (wallet != null && updatedKeys != null) {
             session.environment.card = session.environment.card?.updateWallet(
-                wallet.copy(derivedKeys = updatedKeys)
+                wallet.copy(derivedKeys = updatedKeys),
             )
         }
     }

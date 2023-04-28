@@ -17,7 +17,7 @@ data class File(
     val index: Int,
     val settings: FileSettings,
     val counter: Int?,
-    val signature: ByteArray?
+    val signature: ByteArray?,
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -61,7 +61,7 @@ data class File(
                     counter = null,
                     signature = null,
                     index = response.fileIndex,
-                    settings = settings
+                    settings = settings,
                 )
             } else {
                 File(
@@ -70,7 +70,7 @@ data class File(
                     counter = namedFile.counter,
                     signature = namedFile.signature,
                     index = response.fileIndex,
-                    settings = settings
+                    settings = settings,
                 )
             }
         }
@@ -81,7 +81,7 @@ data class NamedFile(
     val name: String,
     val payload: ByteArray,
     val counter: Int? = null,
-    val signature: ByteArray? = null
+    val signature: ByteArray? = null,
 ) {
 
     @Throws()
@@ -156,7 +156,6 @@ sealed class FileToWrite {
             is ByUser -> this.fileName
         }
 
-
     /**
      * Write file protected by the user with security delay or user code if set
      * @property data: Data to write
@@ -168,7 +167,7 @@ sealed class FileToWrite {
         val data: ByteArray,
         val fileName: String?,
         val fileVisibility: FileVisibility?,
-        val walletPublicKey: ByteArray?
+        val walletPublicKey: ByteArray?,
     ) : FileToWrite() {
 
         override fun equals(other: Any?): Boolean {
@@ -211,7 +210,7 @@ sealed class FileToWrite {
         val finalizingSignature: ByteArray,
         val counter: Int,
         val fileVisibility: FileVisibility?,
-        val walletPublicKey: ByteArray?
+        val walletPublicKey: ByteArray?,
     ) : FileToWrite() {
 
         override fun equals(other: Any?): Boolean {

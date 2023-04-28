@@ -101,6 +101,7 @@
     <string name="reset_codes_scan_first_card">Отсканируйте карту, на которой вы хотите сбросить %s</string>
     <string name="reset_codes_scan_to_reset">Отсканируйте карту для сброса кода</string>
     <string name="reset_codes_success_message">Код успешно сброшен</string>
+    <string name="sign_multiple_chunks_part">Подпись части %1$d из %2$d</string>
     <string name="view_delegate_delay">Операция в процессе</string>
     <string name="view_delegate_header_card">Карта</string>
     <string name="view_delegate_scan">Готово к сканированию</string>

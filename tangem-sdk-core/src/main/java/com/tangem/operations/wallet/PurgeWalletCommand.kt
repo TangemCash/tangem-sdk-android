@@ -21,7 +21,7 @@ import com.tangem.operations.Command
  * @property walletPublicKey: Public key of the wallet to delete
  */
 class PurgeWalletCommand(
-    private val walletPublicKey: ByteArray
+    private val walletPublicKey: ByteArray,
 ) : Command<SuccessResponse>() {
 
     override fun requiresPasscode(): Boolean = true
@@ -66,7 +66,7 @@ class PurgeWalletCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SuccessResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return SuccessResponse(decoder.decode(TlvTag.CardId))

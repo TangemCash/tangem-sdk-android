@@ -26,10 +26,9 @@ class ResponseApdu(private val data: ByteArray) {
     /**
      * Converts raw response data to the list of TLVs.
      *
-     * @param encryptionKey key to decrypt response.
      * (Encryption / decryption functionality is not implemented yet.)
      */
-    fun getTlvData(encryptionKey: ByteArray?): List<Tlv>? {
+    fun getTlvData(): List<Tlv>? {
         return if (data.size <= 2) {
             null
         } else {
@@ -37,10 +36,11 @@ class ResponseApdu(private val data: ByteArray) {
         }
     }
 
+    @Suppress("MagicNumber")
     fun decrypt(encryptionKey: ByteArray?): ResponseApdu {
         if (encryptionKey == null) return this
 
-        //nothing to decrypt
+        // nothing to decrypt
         if (data.size < 18) return this
 
         val responseData = data.copyOf(data.size - 2)

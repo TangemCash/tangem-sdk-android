@@ -47,9 +47,8 @@ class ReadIssuerDataResponse(
      * When flag [Settings.ProtectIssuerDataAgainstReplay] set in [SettingsMask]
      * then this value is mandatory and must increase on each execution of [WriteIssuerDataCommand].
      */
-    val issuerDataCounter: Int?
+    val issuerDataCounter: Int?,
 ) : CommandResponse
-
 
 /**
  * This command returns 512-byte Issuer Data field and its issuer’s signature.
@@ -61,7 +60,7 @@ class ReadIssuerDataResponse(
 @Deprecated(message = "Use files instead")
 class ReadIssuerDataCommand(
     private var issuerPublicKey: ByteArray? = null,
-    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier()
+    verifier: IssuerDataVerifier = DefaultIssuerDataVerifier(),
 ) : Command<ReadIssuerDataResponse>(), IssuerDataVerifier by verifier {
 
     override fun run(session: CardSession, callback: CompletionCallback<ReadIssuerDataResponse>) {
@@ -100,14 +99,14 @@ class ReadIssuerDataCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): ReadIssuerDataResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlvData = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return ReadIssuerDataResponse(
-                decoder.decode(TlvTag.CardId),
-                decoder.decode(TlvTag.IssuerData),
-                decoder.decode(TlvTag.IssuerDataSignature),
-                decoder.decodeOptional(TlvTag.IssuerDataCounter)
+            decoder.decode(TlvTag.CardId),
+            decoder.decode(TlvTag.IssuerData),
+            decoder.decode(TlvTag.IssuerDataSignature),
+            decoder.decodeOptional(TlvTag.IssuerDataCounter),
         )
     }
 }

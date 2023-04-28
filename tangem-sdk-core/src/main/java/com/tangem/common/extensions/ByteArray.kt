@@ -15,6 +15,7 @@ fun ByteArray.toHexString(): String = joinToString("") { "%02X".format(it) }
 
 fun ByteArray.toUtf8(): String = String(this).removeSuffix("\u0000")
 
+@Suppress("MagicNumber")
 fun ByteArray.toInt(): Int {
     return when (this.size) {
         1 -> (this[0] and 0xFF.toByte()).toInt()
@@ -24,6 +25,7 @@ fun ByteArray.toInt(): Int {
     }
 }
 
+@Suppress("MagicNumber")
 fun ByteArray.toLong(): Long {
     return when (size) {
         4 -> {
@@ -40,6 +42,7 @@ fun ByteArray.toLong(): Long {
     }
 }
 
+@Suppress("MagicNumber")
 fun ByteArray.toDate(): Date {
     val year = copyOfRange(0, 2).toInt()
     val month = if (this.size > 2) this[2] - 1 else 0
@@ -53,10 +56,14 @@ fun ByteArray.calculateSha512(): ByteArray = MessageDigest.getInstance("SHA-512"
 
 fun ByteArray.calculateSha256(): ByteArray = MessageDigest.getInstance("SHA-256").digest(this)
 
+@OptIn(ExperimentalUnsignedTypes::class)
+fun UByteArray.calculateSha256(): UByteArray =
+    MessageDigest.getInstance("SHA-256").digest(this.toByteArray()).toUByteArray()
+
 fun ByteArray.calculateRipemd160(): ByteArray {
     val digest = RIPEMD160Digest()
     digest.update(this, 0, this.size)
-    val out = ByteArray(20)
+    val out = ByteArray(size = 20)
     digest.doFinal(out, 0)
     return out
 }
@@ -65,7 +72,7 @@ fun ByteArray.toCompressedPublicKey(): ByteArray = CryptoUtils.compressPublicKey
 
 fun ByteArray.toDecompressedPublicKey(): ByteArray = CryptoUtils.decompressPublicKey(this)
 
-
+@Suppress("MagicNumber")
 fun ByteArray.calculateCrc16(): ByteArray {
     var chBlock: Byte
     // STEP 1	Initialize the CRC-16 value
@@ -75,8 +82,19 @@ fun ByteArray.calculateCrc16(): ByteArray {
     do {
         chBlock = this.get(i++)
         chBlock = chBlock xor (wCRC and 0x00FF).toByte()
-        val chBlockInt = (chBlock.toInt() xor (chBlock.toInt() shl 4))
-        wCRC = wCRC shr 8 xor (chBlockInt and 0xFF shl 8) and 0xFFFF xor (chBlockInt and 0xFF shl 3 and 0xFFFF) xor (chBlockInt and 0xFF shr 4 and 0xFFFF)
+        val chBlockInt = chBlock.toInt() xor (chBlock.toInt() shl 4)
+        wCRC = wCRC
+            .shr(bitCount = 8)
+            .xor(
+                other = chBlockInt.and(other = 0xFF).shl(bitCount = 8),
+            )
+            .and(other = 0xFFFF)
+            .xor(
+                other = chBlockInt.and(other = 0xFF).shl(bitCount = 3).and(other = 0xFFFF),
+            )
+            .xor(
+                other = chBlockInt.and(other = 0xFF).shr(bitCount = 4).and(other = 0xFFFF),
+            )
         // (wCRC>>8)^((int)chBlock<<8)^((int) chBlock<<3)^((int)chBlock>>4);
     } while (i < this.size)
 
@@ -92,3 +110,52 @@ data class ByteArrayKey(val bytes: ByteArray) {
 }
 
 fun ByteArray.toMapKey(): ByteArrayKey = ByteArrayKey(this)
+
+/**
+ * Transforms [ByteArray] to string representation of bits ["1", "0", ...]
+ */
+fun ByteArray.toBits(): List<String> {
+    return this.flatMap {
+        it.toBits()
+    }
+}
+
+/**
+ * Transforms [UByteArray] to string representation of bits ["1", "0", ...]
+ */
+@OptIn(ExperimentalUnsignedTypes::class)
+fun UByteArray.toBits(): List<String> {
+    return this.flatMap {
+        it.toBits()
+    }
+}
+
+/**
+ * Transforms UByte to string representation of bits ["1", "0", ...]
+ */
+@Suppress("MagicNumber")
+fun UByte.toBits(): List<String> {
+    val totalBitsCount = 8
+    val value = this.toInt()
+    val bits = arrayOfNulls<String>(totalBitsCount)
+    for (index in 0 until totalBitsCount) {
+        bits[totalBitsCount - 1 - index] = if (value and (1 shl index) != 0) "1" else "0"
+    }
+
+    return bits.map { it ?: "0" }
+}
+
+/**
+ * Transforms [Byte] to string representation of bits ["1", "0", ...]
+ */
+@Suppress("MagicNumber")
+fun Byte.toBits(): List<String> {
+    val totalBitsCount = 8
+    val value = this.toInt()
+    val bits = arrayOfNulls<String>(totalBitsCount)
+    for (index in 0 until totalBitsCount) {
+        bits[totalBitsCount - 1 - index] = if (value and (1 shl index) != 0) "1" else "0"
+    }
+
+    return bits.map { it ?: "0" }
+}

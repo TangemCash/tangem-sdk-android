@@ -62,7 +62,7 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
 
     override fun equals(other: Any?): Boolean {
         val other = other as? FirmwareVersion ?: return false
-        return stringValue == other.stringValue
+        return this.compareTo(other) == 0
     }
 
     override fun hashCode(): Int = stringValue.hashCode()
@@ -111,13 +111,19 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          */
         val HDWalletAvailable = FirmwareVersion(4, 39)
 
+        /**
+         * Keys import support
+         */
+        val KeysImportAvailable = FirmwareVersion(6, 16)
+
         val visaRange = 5.25..5.30
     }
 
     enum class FirmwareType(val rawValue: String?) {
         Sdk("d SDK"),
         Release("r"),
-        Sprecial(null);
+        Sprecial(null),
+        ;
 
         companion object {
             fun from(type: String): FirmwareType {

@@ -64,8 +64,8 @@ class LinkBackupCardsCommand(
                         settings = card.settings.copy(
                             isSettingAccessCodeAllowed = true,
                             isSettingPasscodeAllowed = true,
-                            isResettingUserCodesAllowed = true
-                        )
+                            isRemovingUserCodesAllowed = true,
+                        ),
                     )
                     session.environment.accessCode =
                         UserCode(UserCodeType.AccessCode, value = accessCode)
@@ -112,18 +112,14 @@ class LinkBackupCardsCommand(
         return CommandApdu(Instruction.LinkBackupCards, tlvBuilder.serialize())
     }
 
-    override fun deserialize(
-        environment: SessionEnvironment,
-        apdu: ResponseApdu,
-    ): LinkBackupCardsResponse {
-        val tlvData = apdu.getTlvData(environment.encryptionKey)
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): LinkBackupCardsResponse {
+        val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
         return LinkBackupCardsResponse(
             decoder.decode(TlvTag.CardId),
-            decoder.decode(TlvTag.BackupAttestSignature)
+            decoder.decode(TlvTag.BackupAttestSignature),
         )
     }
 }
-

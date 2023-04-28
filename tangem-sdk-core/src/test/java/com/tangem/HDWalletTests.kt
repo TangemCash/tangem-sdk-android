@@ -4,20 +4,27 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.extensions.toLong
-import com.tangem.common.hdWallet.DerivationNode
-import com.tangem.common.hdWallet.DerivationPath
-import com.tangem.common.hdWallet.ExtendedPublicKey
-import com.tangem.common.hdWallet.HDWalletError
-import com.tangem.common.hdWallet.bip.BIP44
+import com.tangem.crypto.hdWallet.DerivationNode
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.HDWalletError
+import com.tangem.crypto.hdWallet.BIP44
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.tlv.TlvEncoder
 import com.tangem.common.tlv.TlvTag
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import com.tangem.crypto.CryptoUtils
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.*
+import java.util.Locale
 
 class HDWalletTests {
+
+    init {
+        CryptoUtils.initCrypto()
+    }
 
     @Test
     fun indexSerialization() {
@@ -68,13 +75,15 @@ class HDWalletTests {
         val derivationPath = DerivationPath("m / 44' / 0' / 0' / 1 / 0")
         val derivationPath1 = DerivationPath("m/44'/0'/0'/1/0")
         val derivationPath2 = DerivationPath("M/44'/0'/0'/1/0")
-        val derivationPath3 = DerivationPath(listOf(
-            DerivationNode.Hardened(44),
-            DerivationNode.Hardened(0),
-            DerivationNode.Hardened(0),
-            DerivationNode.NonHardened(1),
-            DerivationNode.NonHardened(0)
-        ))
+        val derivationPath3 = DerivationPath(
+            listOf(
+                DerivationNode.Hardened(44),
+                DerivationNode.Hardened(0),
+                DerivationNode.Hardened(0),
+                DerivationNode.NonHardened(1),
+                DerivationNode.NonHardened(0),
+            ),
+        )
         assertEquals(derivationPath, derivationPath1)
         assertEquals(derivationPath, derivationPath2)
         assertEquals(derivationPath, derivationPath3)
@@ -135,7 +144,7 @@ class HDWalletTests {
 
     @Test
     fun testPathDerivation1() {
-        //xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8doc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB
+        // xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8doc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB
         val path = DerivationPath("m/0/1")
         val masterKey = ExtendedPublicKey(
             "03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7".hexToBytes(),

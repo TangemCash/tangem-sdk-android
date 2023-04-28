@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 class NdefRecord(
     val type: Type,
-    val value: String
+    val value: String,
 ) {
     enum class Type {
         URI, AAR, TEXT

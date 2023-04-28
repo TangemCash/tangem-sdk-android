@@ -7,9 +7,10 @@ package com.tangem.operations.read
  * Note: This modes available for cards with COS v. 4.0 and higher
  */
 enum class ReadMode(val rawValue: Int) {
-    Card(0x01),
-    Wallet(0x02),
-    WalletsList(0x03);
+    Card(rawValue = 0x01),
+    Wallet(rawValue = 0x02),
+    WalletsList(rawValue = 0x03),
+    ;
 
     companion object {
         private val values = values()

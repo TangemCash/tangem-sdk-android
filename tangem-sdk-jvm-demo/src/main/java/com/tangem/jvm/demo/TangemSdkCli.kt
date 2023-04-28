@@ -90,9 +90,9 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
 
     private fun parseHashes(hashesArgument: String): Array<ByteArray> {
         return hashesArgument
-                .split(",")
-                .map { hash -> hash.trim().hexToBytes() }
-                .toTypedArray()
+            .split(",")
+            .map { hash -> hash.trim().hexToBytes() }
+            .toTypedArray()
     }
 
     private fun createWallet(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
@@ -130,22 +130,22 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val readPrivateFiles: Boolean = cmd.hasOption(TangemCommandOptions.ReadPrivateFiles.opt)
         val fileIndices: List<Int>? = cmd.getOptionValue(TangemCommandOptions.FileIndices.opt)
-                ?.split(",")
-                ?.mapNotNull { it.trim().toIntOrNull() }
+            ?.split(",")
+            ?.mapNotNull { it.trim().toIntOrNull() }
 
         sdk.readFiles(
             readPrivateFiles = readPrivateFiles,
             cardId = cid,
-            callback = callback
+            callback = callback,
         )
     }
 
     private fun writeFiles(sdk: TangemSdk, callback: CompletionCallback<*>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val files: List<FileToWrite>? = cmd.getOptionValue(TangemCommandOptions.Files.opt)
-                ?.split(",")
-                ?.map { it.trim().hexToBytes() }
-                ?.map { FileToWrite.ByUser(it, null, FileVisibility.Public, null) }
+            ?.split(",")
+            ?.map { it.trim().hexToBytes() }
+            ?.map { FileToWrite.ByUser(it, null, FileVisibility.Public, null) }
 
         if (files == null) {
             println("Missing option value")
@@ -155,12 +155,11 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
         sdk.writeFiles(files = files, cardId = cid, callback = callback)
     }
 
-
     private fun deleteFiles(sdk: TangemSdk, callback: CompletionCallback<out CommandResponse>) {
         val cid: String? = cmd.getOptionValue(TangemCommandOptions.CardId.opt)
         val fileIndices: List<Int>? = cmd.getOptionValue(TangemCommandOptions.FileIndices.opt)
-                ?.split(",")
-                ?.mapNotNull { it.trim().toIntOrNull() }
+            ?.split(",")
+            ?.mapNotNull { it.trim().toIntOrNull() }
 
         sdk.deleteFiles(indices = fileIndices, cardId = cid, callback = callback)
     }
@@ -180,7 +179,6 @@ class TangemSdkCli(verbose: Boolean = false, indexOfTerminal: Int? = null, priva
     }
 }
 
-
 enum class Command(val value: String) {
     Read("read"),
     Sign("sign"),
@@ -188,7 +186,8 @@ enum class Command(val value: String) {
     WriteFiles("writefiles"),
     DeleteFiles("deletefiles"),
     CreateWallet("createwallet"),
-    PurgeWallet("purgewallet");
+    PurgeWallet("purgewallet"),
+    ;
 
     companion object {
         private val values = values()

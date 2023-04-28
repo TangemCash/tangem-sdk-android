@@ -10,11 +10,12 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 
+@Suppress("LongParameterList")
 class FinalizePrimaryCardTask(
     private val backupCards: List<BackupCard>,
     private val accessCode: ByteArray,
     private val passcode: ByteArray,
-    private val attestSignature: ByteArray?, //We already have attestSignature
+    private val attestSignature: ByteArray?, // We already have attestSignature
     private val onLink: (ByteArray) -> Unit,
     private val onRead: (String, List<EncryptedBackupData>) -> Unit,
     private val readBackupStartIndex: Int,
@@ -25,10 +26,7 @@ class FinalizePrimaryCardTask(
 
     private lateinit var card: Card
 
-    override fun run(
-        session: CardSession,
-        callback: CompletionCallback<Card>,
-    ) {
+    override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
@@ -40,7 +38,7 @@ class FinalizePrimaryCardTask(
 
         val linkAction = getLinkAction(backupStatus)
 
-        if (linkAction == LinkAction.RETRY) { //We should swap codes only if they were set on the card.
+        if (linkAction == LinkAction.RETRY) { // We should swap codes only if they were set on the card.
             if (card.isAccessCodeSet) {
                 session.environment.accessCode = UserCode(UserCodeType.AccessCode, accessCode)
             }
@@ -51,7 +49,9 @@ class FinalizePrimaryCardTask(
 
         if (linkAction != LinkAction.SKIP) {
             val command = LinkBackupCardsCommand(
-                backupCards = backupCards, accessCode = accessCode, passcode = passcode
+                backupCards = backupCards,
+                accessCode = accessCode,
+                passcode = passcode,
             )
             command.run(session) { linkResult ->
                 when (linkResult) {
@@ -67,18 +67,15 @@ class FinalizePrimaryCardTask(
         }
     }
 
-    private fun readBackupData(
-        session: CardSession,
-        index: Int,
-        callback: CompletionCallback<Card>,
-    ) {
+    private fun readBackupData(session: CardSession, index: Int, callback: CompletionCallback<Card>) {
         if (index > backupCards.lastIndex) {
             callback(CompletionResult.Success(session.environment.card!!))
             return
         }
         val currentBackupCard = backupCards[index]
         ReadBackupDataCommand(
-            backupCardLinkingKey = currentBackupCard.linkingKey, accessCode = accessCode
+            backupCardLinkingKey = currentBackupCard.linkingKey,
+            accessCode = accessCode,
         ).run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -87,7 +84,6 @@ class FinalizePrimaryCardTask(
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
-
         }
     }
 
@@ -95,10 +91,10 @@ class FinalizePrimaryCardTask(
         return when (status) {
             is Card.BackupStatus.Active, is Card.BackupStatus.CardLinked -> {
                 if (attestSignature != null) {
-                    //We already have attest signature and card already linked. Can skip linking
+                    // We already have attest signature and card already linked. Can skip linking
                     LinkAction.SKIP
                 } else {
-                    //We don't have attest signature, but card already linked.
+                    // We don't have attest signature, but card already linked.
                     // Force retry with new user codes
                     LinkAction.RETRY
                 }
@@ -112,6 +108,6 @@ class FinalizePrimaryCardTask(
     enum class LinkAction {
         LINK,
         SKIP,
-        RETRY
+        RETRY,
     }
 }

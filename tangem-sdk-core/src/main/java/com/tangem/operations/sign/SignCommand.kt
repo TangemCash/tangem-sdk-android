@@ -1,9 +1,11 @@
 package com.tangem.operations.sign
 
 import com.squareup.moshi.JsonClass
+import com.tangem.LocatorMessage
 import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.KeyPair
+import com.tangem.common.StringsLocator
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -17,7 +19,7 @@ import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.toByteArray
-import com.tangem.common.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
@@ -47,7 +49,7 @@ class SignResponse(
 internal class SignCommand(
     private val hashes: Array<ByteArray>,
     private val walletPublicKey: ByteArray,
-    private val derivationPath: DerivationPath? = null
+    private val derivationPath: DerivationPath? = null,
 ) : Command<SignResponse>() {
 
     private var terminalKeys: KeyPair? = null
@@ -77,7 +79,7 @@ internal class SignCommand(
             }
         }
 
-        //Before v4
+        // Before v4
         if (wallet.remainingSignatures == 0) {
             return TangemSdkError.NoRemainingSignatures()
         }
@@ -109,6 +111,8 @@ internal class SignCommand(
 
     private fun sign(session: CardSession, callback: CompletionCallback<SignResponse>) {
         environment = session.environment
+        if (hashesChunked.size > 1) setSignedChunksMessage(session)
+
         transceive(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
@@ -117,7 +121,7 @@ internal class SignCommand(
                         session.environment.card?.wallet(walletPublicKey)?.let {
                             val wallet = it.copy(
                                 totalSignedHashes = result.data.totalSignedHashes,
-                                remainingSignatures = it.remainingSignatures?.minus(signatures.size)
+                                remainingSignatures = it.remainingSignatures?.minus(signatures.size),
                             )
                             session.environment.card = session.environment.card?.updateWallet(wallet)
                         }
@@ -125,7 +129,8 @@ internal class SignCommand(
                         val finalResponse = SignResponse(
                             result.data.cardId,
                             processSignatures(session.environment, signatures.toList()),
-                            result.data.totalSignedHashes)
+                            result.data.totalSignedHashes,
+                        )
                         callback(CompletionResult.Success(finalResponse))
                     } else {
                         sign(session, callback)
@@ -136,6 +141,17 @@ internal class SignCommand(
         }
     }
 
+    private fun setSignedChunksMessage(session: CardSession) {
+        val message = LocatorMessage(
+            headerSource = LocatorMessage.Source(
+                id = StringsLocator.ID.SIGN_MULTIPLE_CHUNKS_PART,
+                formatArgs = arrayOf(currentChunkNumber + 1, hashesChunked.size),
+            ),
+            bodySource = null,
+        )
+        session.setMessage(message)
+    }
+
     /**
      * Application can optionally submit a public key Terminal_PublicKey in [SignCommand].
      * Submitted key is stored by the Tangem card if it differs from a previous submitted Terminal_PublicKey.
@@ -143,6 +159,7 @@ internal class SignCommand(
      * TerminalTransactionSignature parameter containing a correct signature of raw data to be signed made with
      * TerminalPrivateKey (this key should be generated and security stored by the application).
      */
+    @Suppress("MagicNumber")
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
 
@@ -179,7 +196,7 @@ internal class SignCommand(
         return SignResponse(
             decoder.decode(TlvTag.CardId),
             splittedSignatures,
-            decoder.decodeOptional(TlvTag.WalletSignedHashes)
+            decoder.decodeOptional(TlvTag.WalletSignedHashes),
         )
     }
 
@@ -211,13 +228,12 @@ internal class SignCommand(
     }
 
     private fun retrieveTerminalKeys(card: Card, environment: SessionEnvironment): KeyPair? {
-        if (!card.settings.isLinkedTerminalEnabled || card.firmwareVersion >= FirmwareVersion.HDWalletAvailable){
+        if (!card.settings.isLinkedTerminalEnabled || card.firmwareVersion >= FirmwareVersion.HDWalletAvailable) {
             return null
         }
 
         return environment.terminalKeys
     }
-
 
     companion object {
         const val CHUNK_SIZE = 10

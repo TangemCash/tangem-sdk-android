@@ -2,8 +2,10 @@ package com.tangem.crypto
 
 import com.tangem.common.KeyPair
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.TangemSdkError
 import net.i2p.crypto.eddsa.EdDSASecurityProvider
 import org.spongycastle.crypto.digests.SHA512Digest
+import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator
 import org.spongycastle.crypto.macs.HMac
 import org.spongycastle.crypto.params.KeyParameter
 import org.spongycastle.jce.provider.BouncyCastleProvider
@@ -52,7 +54,9 @@ object CryptoUtils {
      * @return Result of a verification
      */
     fun verify(
-        publicKey: ByteArray, message: ByteArray, signature: ByteArray,
+        publicKey: ByteArray,
+        message: ByteArray,
+        signature: ByteArray,
         curve: EllipticCurve = EllipticCurve.Secp256k1,
     ): Boolean {
         return when (curve) {
@@ -65,26 +69,24 @@ object CryptoUtils {
     /**
      * Helper function that generates public key from a private key.
      *
-     * @param privateKeyArray  A private key from which a public key is generated
+     * @param privateKey  A private key from which a public key is generated
      * @param curve Elliptic curve used
      *
      * @return Public key [ByteArray]
      */
     fun generatePublicKey(
-        privateKeyArray: ByteArray,
+        privateKey: ByteArray,
         curve: EllipticCurve = EllipticCurve.Secp256k1,
+        compressed: Boolean = false,
     ): ByteArray {
         return when (curve) {
-            EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKeyArray)
-            EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKeyArray)
-            EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKeyArray)
+            EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKey, compressed)
+            EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKey, compressed)
+            EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKey)
         }
     }
 
-    fun loadPublicKey(
-        publicKey: ByteArray,
-        curve: EllipticCurve = EllipticCurve.Secp256k1,
-    ): PublicKey {
+    fun loadPublicKey(publicKey: ByteArray, curve: EllipticCurve = EllipticCurve.Secp256k1): PublicKey {
         return when (curve) {
             EllipticCurve.Secp256k1 -> Secp256k1.loadPublicKey(publicKey)
             EllipticCurve.Secp256r1 -> Secp256r1.loadPublicKey(publicKey)
@@ -112,10 +114,18 @@ object CryptoUtils {
             else -> throw UnsupportedOperationException()
         }
     }
+
+    fun isPrivateKeyValid(privateKey: ByteArray, curve: EllipticCurve = EllipticCurve.Secp256k1): Boolean {
+        return when (curve) {
+            EllipticCurve.Secp256k1 -> Secp256k1.isPrivateKeyValid(privateKey)
+            EllipticCurve.Secp256r1 -> Secp256r1.isPrivateKeyValid(privateKey)
+            EllipticCurve.Ed25519 -> Ed25519.isPrivateKeyValid(privateKey)
+        }
+    }
 }
 
 fun Secp256k1.generateKeyPair(): KeyPair {
-    val privateKey = CryptoUtils.generateRandomBytes(32)
+    val privateKey = CryptoUtils.generateRandomBytes(length = 32)
     val publicKey = CryptoUtils.generatePublicKey(privateKey)
     return KeyPair(publicKey, privateKey)
 }
@@ -136,6 +146,7 @@ fun ByteArray.sign(privateKeyArray: ByteArray, curve: EllipticCurve = EllipticCu
     }
 }
 
+@Suppress("MagicNumber")
 fun ByteArray.encrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     val spec = if (usePkcs7) ENCRYPTION_SPEC_PKCS7 else ENCRYPTION_SPEC_NO_PADDING
     val secretKeySpec = SecretKeySpec(key, spec)
@@ -144,6 +155,7 @@ fun ByteArray.encrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     return cipher.doFinal(this)
 }
 
+@Suppress("MagicNumber")
 fun ByteArray.decrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     val spec = if (usePkcs7) ENCRYPTION_SPEC_PKCS7 else ENCRYPTION_SPEC_NO_PADDING
     val secretKeySpec = SecretKeySpec(key, spec)
@@ -156,15 +168,27 @@ fun ByteArray.pbkdf2Hash(salt: ByteArray, iterations: Int): ByteArray {
     return Pbkdf2().deriveKey(this, salt, iterations)
 }
 
+@Throws(TangemSdkError.KeyGenerationException::class)
+fun ByteArray.pbkdf2sha512(salt: ByteArray, iterations: Int, keyByteCount: Int = 64): ByteArray {
+    val generator = PKCS5S2ParametersGenerator(SHA512Digest())
+    generator.init(this, salt, iterations)
+    val key = generator.generateDerivedMacParameters(keyByteCount * BYTE_SIZE) as? KeyParameter
+    return key?.key ?: throw TangemSdkError.KeyGenerationException(customMessage = "pbkdf2sha512 generation")
+}
+
 fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
     val key = this
     val hMac = HMac(SHA512Digest())
+
     hMac.init(KeyParameter(key))
     hMac.update(input, 0, input.size)
-    val out = ByteArray(64)
+
+    val out = ByteArray(size = 64)
     hMac.doFinal(out, 0)
+
     return out
 }
 
 private const val ENCRYPTION_SPEC_PKCS7 = "AES/CBC/PKCS7PADDING"
 private const val ENCRYPTION_SPEC_NO_PADDING = "AES/CBC/NOPADDING"
+private const val BYTE_SIZE = 8

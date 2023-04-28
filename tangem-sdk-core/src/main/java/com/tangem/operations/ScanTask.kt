@@ -7,7 +7,6 @@ import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.*
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.toMapKey
-import com.tangem.operations.*
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.derivation.DeriveMultipleWalletPublicKeysTask
 import com.tangem.operations.pins.CheckUserCodesCommand
@@ -32,9 +31,10 @@ class ScanTask(
         // checkUserCodes command for cards with COS <=1.19 not supported because of persistent SD.
         // We cannot run checkUserCodes command for cards whose `isResettingUserCodesAllowed` is set to false
         // because of an error
-        if (card.firmwareVersion < FirmwareVersion.IsPasscodeStatusAvailable
-            && card.firmwareVersion.doubleValue > 1.19
-            && card.settings.isResettingUserCodesAllowed
+        @Suppress("MagicNumber")
+        if (card.firmwareVersion < FirmwareVersion.IsPasscodeStatusAvailable &&
+            card.firmwareVersion.doubleValue > 1.19 &&
+            card.settings.isRemovingUserCodesAllowed
         ) {
             checkUserCodes(session, callback)
         } else {
@@ -63,8 +63,8 @@ class ScanTask(
 
         val defaultPaths = session.environment.config.defaultDerivationPaths
 
-        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable
-            || !card.settings.isHDWalletAllowed || defaultPaths.isEmpty()
+        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable ||
+            !card.settings.isHDWalletAllowed || defaultPaths.isEmpty()
         ) {
             runAttestation(session, callback)
             return

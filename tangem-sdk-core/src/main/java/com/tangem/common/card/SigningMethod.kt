@@ -8,6 +8,9 @@ import com.tangem.common.Mask
  */
 class SigningMethod(override val rawValue: Int) : BaseMask() {
 
+    override val values: List<Code> = Code.values().toList()
+
+    @Suppress("MagicNumber")
     override fun contains(code: Mask.Code): Boolean {
         return if (rawValue and 0x80 == 0) {
             code.value == rawValue
@@ -16,16 +19,14 @@ class SigningMethod(override val rawValue: Int) : BaseMask() {
         }
     }
 
-    override val values: List<Code> = Code.values().toList()
-
     enum class Code(override val value: Int) : Mask.Code {
-        SignHash(0),
-        SignRaw(1),
-        SignHashSignedByIssuer(2),
-        SignRawSignedByIssuer(3),
-        SignHashSignedByIssuerAndUpdateIssuerData(4),
-        SignRawSignedByIssuerAndUpdateIssuerData(5),
-        SignPos(6)
+        SignHash(value = 0),
+        SignRaw(value = 1),
+        SignHashSignedByIssuer(value = 2),
+        SignRawSignedByIssuer(value = 3),
+        SignHashSignedByIssuerAndUpdateIssuerData(value = 4),
+        SignRawSignedByIssuerAndUpdateIssuerData(value = 5),
+        SignPos(value = 6),
     }
 
     companion object {
@@ -45,11 +46,12 @@ private class SigningMethodMaskBuilder {
         signingMethods.add(signingMethod)
     }
 
+    @Suppress("MagicNumber")
     fun build(): SigningMethod {
         val rawValue: Int = when {
-            signingMethods.count() == 0 -> 0
+            signingMethods.isEmpty() -> 0
             signingMethods.count() == 1 -> signingMethods.iterator().next().value
-            else -> signingMethods.fold(0x80, { acc, code -> acc + (0x01 shl code.value) })
+            else -> signingMethods.fold(0x80) { acc, code -> acc + (0x01 shl code.value) }
         }
         return SigningMethod(rawValue)
     }

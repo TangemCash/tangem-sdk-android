@@ -21,6 +21,7 @@
         "remainingSignatures": 100,
         "index": 1,
         "hasBackup" : false,
+        "isImported": false,
         "derivedKeys" : []
       }
     },

@@ -3,7 +3,7 @@ package com.tangem.common
 import com.tangem.common.core.CardIdDisplayFormat
 
 class CardIdFormatter(
-    var style: CardIdDisplayFormat
+    var style: CardIdDisplayFormat,
 ) {
     fun getFormattedCardId(cardId: String): String? {
         return when (val style = style) {
@@ -24,5 +24,5 @@ class CardIdFormatter(
         }
     }
 
-    private fun String.splitBySpace() = reversed().chunked(4).joinToString(separator = " ").reversed()
+    private fun String.splitBySpace() = reversed().chunked(size = 4).joinToString(separator = " ").reversed()
 }

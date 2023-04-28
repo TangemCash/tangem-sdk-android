@@ -12,8 +12,9 @@ class BiometricStorage(
     private val secureStorage: SecureStorage,
 ) {
     suspend fun get(key: String): CompletionResult<ByteArray?> {
-        if (!biometricManager.canAuthenticate)
+        if (!biometricManager.canAuthenticate) {
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
+        }
 
         val decryptedData = withContext(Dispatchers.IO) { secureStorage.get(key) }
             ?.takeIf { it.isNotEmpty() }
@@ -23,8 +24,9 @@ class BiometricStorage(
     }
 
     suspend fun store(key: String, data: ByteArray): CompletionResult<Unit> {
-        if (!biometricManager.canAuthenticate)
+        if (!biometricManager.canAuthenticate) {
             return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
+        }
 
         val mode = BiometricManager.AuthenticationMode.Encryption(key, data)
         return biometricManager.authenticate(mode = mode)

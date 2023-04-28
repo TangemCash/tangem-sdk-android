@@ -25,6 +25,7 @@ class StartBackupCardLinkingTask(
 
     private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
+    @Suppress("CyclomaticComplexMethod")
     override fun run(session: CardSession, callback: CompletionCallback<BackupCard>) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
@@ -49,6 +50,18 @@ class StartBackupCardLinkingTask(
                 callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleBatch()))
                 return
             }
+
+            if (primaryCard.firmwareVersion != null && primaryCard.firmwareVersion != card.firmwareVersion) {
+                callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleFirmware()))
+                return
+            }
+        }
+
+        if (primaryCard.isKeysImportAllowed != null &&
+            primaryCard.isKeysImportAllowed != card.settings.isKeysImportAllowed
+        ) {
+            callback(CompletionResult.Failure(TangemSdkError.BackupFailedKeysImportSettings()))
+            return
         }
 
         if (!backupCardSupportedCurves.containsAll(primaryWalletCurves)) {
@@ -84,7 +97,8 @@ class StartBackupCardLinkingTask(
 
     private fun loadIssuerSignature(
         rawCard: RawBackupCard,
-        session: CardSession, callback: CompletionCallback<BackupCard>,
+        session: CardSession,
+        callback: CompletionCallback<BackupCard>,
     ) {
         if (session.environment.card?.firmwareVersion?.type == FirmwareVersion.FirmwareType.Sdk) {
             val issuerPrivateKey =
@@ -95,8 +109,10 @@ class StartBackupCardLinkingTask(
         }
 
         session.scope.launch(Dispatchers.IO) {
-            when (val result =
-                onlineCardVerifier.getCardData(rawCard.cardId, rawCard.cardPublicKey)) {
+            when (
+                val result =
+                    onlineCardVerifier.getCardData(rawCard.cardId, rawCard.cardPublicKey)
+            ) {
                 is Result.Success -> {
                     val signature = result.data.issuerSignature.guard {
                         callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed()))
@@ -113,7 +129,7 @@ class StartBackupCardLinkingTask(
 
     private fun isBatchIdCompatible(batchId: String): Boolean {
         val primaryCardBatchId = primaryCard.batchId?.uppercase()
-            ?: return true //We found the old interrupted backup. Skip this check.
+            ?: return true // We found the old interrupted backup. Skip this check.
 
         val backupCardBatchId = batchId.uppercase()
 

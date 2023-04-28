@@ -1,6 +1,8 @@
 package com.tangem.common.json
 
 import com.tangem.common.core.CardSessionRunnable
+import com.tangem.crypto.bip39.Wordlist
+import java.util.Locale
 
 /**
  * Created by Anton Zhilenkov on 14/09/2021.
@@ -22,7 +24,8 @@ class JSONRPCConverter {
     @Throws(JSONRPCException::class)
     fun convert(request: JSONRPCRequest): CardSessionRunnable<*> {
         return try {
-            getHandler(request).makeRunnable(request.params)
+            getHandler(request)
+                .makeRunnable(request.params)
         } catch (ex: Exception) {
             when (ex) {
                 is JSONRPCException -> throw ex
@@ -31,30 +34,29 @@ class JSONRPCConverter {
                     throw JSONRPCErrorType.ParseError.toJSONRPCError(ex.localizedMessage).asException()
                 }
             }
-
         }
-
     }
 
     @Throws(JSONRPCException::class)
     fun getHandler(request: JSONRPCRequest): JSONRPCHandler<*> {
-        val handler = handlers.firstOrNull { it.method == request.method.toUpperCase() }
+        val handler = handlers.firstOrNull { it.method == request.method.uppercase(Locale.getDefault()) }
         if (handler == null) {
             val errorMessage = "Can't create the CardSessionRunnable. " +
-                    "Missed converter for the method: ${request.method}"
+                "Missed converter for the method: ${request.method}"
             throw JSONRPCErrorType.MethodNotFound.toJSONRPCError(errorMessage).asException()
         }
         return handler
     }
 
     companion object {
-        fun shared(): JSONRPCConverter {
+        fun shared(wordlist: Wordlist): JSONRPCConverter {
             return JSONRPCConverter().apply {
                 register(PersonalizeHandler())
                 register(DepersonalizeHandler())
                 register(PreflightReadHandler())
                 register(ScanHandler())
                 register(CreateWalletHandler())
+                register(ImportWalletHandler(wordlist))
                 register(PurgeWalletHandler())
                 register(SignHashHandler())
                 register(SignHashesHandler())
@@ -67,6 +69,8 @@ class JSONRPCConverter {
                 register(ChangeFileSettingsHandler())
                 register(DeriveWalletPublicKeyHandler())
                 register(DeriveWalletPublicKeysHandler())
+                register(SetUserCodeRecoveryAllowedHandler())
+                register(AttestCardKeyHandler())
             }
         }
     }

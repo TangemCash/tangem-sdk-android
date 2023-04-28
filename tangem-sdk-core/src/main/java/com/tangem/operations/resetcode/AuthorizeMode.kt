@@ -1,11 +1,11 @@
 package com.tangem.operations.resetcode
 
 enum class AuthorizeMode(val rawValue: Int) {
-    FileOwnerGetChallenge(0x01),
-    FileOwnerAuthenticate(0x02),
-    TokenGet(0x03),
-    TokenSign(0x04),
-    TokenAuthenticate(0x05),
+    FileOwnerGetChallenge(rawValue = 0x01),
+    FileOwnerAuthenticate(rawValue = 0x02),
+    TokenGet(rawValue = 0x03),
+    TokenSign(rawValue = 0x04),
+    TokenAuthenticate(rawValue = 0x05),
     ;
 
     companion object {

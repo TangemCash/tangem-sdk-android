@@ -1,6 +1,5 @@
 package com.tangem.common.tlv
 
-
 class TlvBuilder {
     private val tlvs = mutableListOf<Tlv>()
     private val encoder = TlvEncoder()
@@ -12,5 +11,4 @@ class TlvBuilder {
     }
 
     fun serialize(): ByteArray = tlvs.serialize()
-
 }

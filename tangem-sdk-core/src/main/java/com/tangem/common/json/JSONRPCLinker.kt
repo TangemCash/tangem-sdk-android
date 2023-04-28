@@ -9,6 +9,16 @@ import com.tangem.common.core.TangemError
  */
 internal class JSONRPCLinker {
 
+    val request: JSONRPCRequest?
+
+    var response: JSONRPCResponse = JSONRPCResponse(null, null, null)
+        private set(value) {
+            // if incoming id is NULL, get it from the request
+            field = field.copy(result = value.result, error = value.error, id = value.id ?: request?.id)
+        }
+
+    var runnable: CardSessionRunnable<*>? = null
+
     constructor(jsonString: String) {
         request = try {
             JSONRPCRequest(jsonString)
@@ -26,16 +36,6 @@ internal class JSONRPCLinker {
             null
         }
     }
-
-    val request: JSONRPCRequest?
-
-    var response: JSONRPCResponse = JSONRPCResponse(null, null, null)
-        private set(value) {
-            // if incoming id is NULL, get it from the request
-            field = field.copy(result = value.result, error = value.error, id = value.id ?: request?.id)
-        }
-
-    var runnable: CardSessionRunnable<*>? = null
 
     fun initRunnable(jsonRpcConverter: JSONRPCConverter) {
         if (request == null) return
@@ -71,7 +71,7 @@ internal class JSONRPCLinker {
                     throw JSONRPCErrorType.ParseError.toJSONRPCError(ex.localizedMessage).asException()
                 }
                 listOfMap?.map { JSONRPCLinker(it) }
-                        ?: throw JSONRPCErrorType.ParseError.toJSONRPCError("Empty requests").asException()
+                    ?: throw JSONRPCErrorType.ParseError.toJSONRPCError("Empty requests").asException()
             } else {
                 listOf(JSONRPCLinker(jsonRequest))
             }

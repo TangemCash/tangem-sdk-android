@@ -8,25 +8,47 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.core.toTangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.read.ReadWalletsListCommand
 
+/**
+ * This task will create a new wallet on the card
+ * A key pair WalletPublicKey / WalletPrivateKey is generated and securely stored in the card.
+ * App will need to obtain Wallet_PublicKey from the response of [CreateWalletTask] or [ScanTask]
+ * and then transform it into an address of corresponding blockchain wallet
+ * according to a specific blockchain algorithm.
+ * WalletPrivateKey is never revealed by the card and will be used by [com.tangem.operations.sign.SignHashCommand] or
+ * [com.tangem.operations.sign.SignHashesCommand] and [com.tangem.operations.attestation.AttestWalletKeyCommand].
+ * RemainingSignature is set to MaxSignatures.
+ *
+ * @property curve Elliptic curve of the wallet. [com.tangem.common.card.Card.supportedCurves] contains all curves
+ * supported by the card
+ * @property seed: BIP39 seed to create wallet from. COS v6.16+.
+ */
 class CreateWalletTask(
     private val curve: EllipticCurve,
+    private val seed: ByteArray? = null,
 ) : CardSessionRunnable<CreateWalletResponse> {
 
     private var derivationTask: DeriveWalletPublicKeysTask? = null
 
     override fun run(session: CardSession, callback: CompletionCallback<CreateWalletResponse>) {
-        val command = CreateWalletCommand(curve)
+        val command = try {
+            CreateWalletCommand(curve, seed)
+        } catch (e: Exception) {
+            return callback(CompletionResult.Failure(e.toTangemSdkError()))
+        }
+
         command.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> deriveKeysIfNeeded(result.data, session, callback)
                 is CompletionResult.Failure -> {
-                    //Wallet already created but we didn't get the proper response from the card. Rescan and retrieve the wallet
                     if (result.error is TangemSdkError.InvalidState) {
+                        // Wallet already created but we didn't get the proper response from the card.
+                        // Rescan and retrieve the wallet
                         Log.debug { "Received wallet creation error. Try rescan and retrieve created wallet" }
                         scanAndRetrieveCreatedWallet(command.walletIndex, session, callback)
                     } else {
@@ -40,7 +62,7 @@ class CreateWalletTask(
     private fun scanAndRetrieveCreatedWallet(
         index: Int,
         session: CardSession,
-        callback: CompletionCallback<CreateWalletResponse>
+        callback: CompletionCallback<CreateWalletResponse>,
     ) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
@@ -54,7 +76,6 @@ class CreateWalletTask(
                     is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 }
             }
-
         } else {
             ReadWalletsListCommand().run(session) { result ->
                 when (result) {
@@ -84,7 +105,7 @@ class CreateWalletTask(
     private fun deriveKeysIfNeeded(
         response: CreateWalletResponse,
         session: CardSession,
-        callback: CompletionCallback<CreateWalletResponse>
+        callback: CompletionCallback<CreateWalletResponse>,
     ) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
@@ -93,15 +114,16 @@ class CreateWalletTask(
 
         val paths = session.environment.config.defaultDerivationPaths[response.wallet.curve]
 
-        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable
-            || !card.settings.isHDWalletAllowed || paths.isNullOrEmpty()
+        if (card.firmwareVersion < FirmwareVersion.HDWalletAvailable ||
+            !card.settings.isHDWalletAllowed || paths.isNullOrEmpty()
         ) {
             callback(CompletionResult.Success(response))
             return
         }
 
         derivationTask = DeriveWalletPublicKeysTask(
-            walletPublicKey = response.wallet.publicKey, derivationPaths = paths
+            walletPublicKey = response.wallet.publicKey,
+            derivationPaths = paths,
         )
         derivationTask!!.run(session) { result ->
             when (result) {
@@ -115,4 +137,3 @@ class CreateWalletTask(
         }
     }
 }
-

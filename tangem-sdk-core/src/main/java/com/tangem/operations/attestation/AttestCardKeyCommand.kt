@@ -37,11 +37,11 @@ class AttestCardKeyResponse(
  * @property challenge Optional challenge. If null, it will be created automatically and returned in command response
  */
 class AttestCardKeyCommand(
-    private var challenge: ByteArray? = null
+    private var challenge: ByteArray? = null,
 ) : Command<AttestCardKeyResponse>() {
 
     override fun run(session: CardSession, callback: CompletionCallback<AttestCardKeyResponse>) {
-        challenge = challenge ?: CryptoUtils.generateRandomBytes(16)
+        challenge = challenge ?: CryptoUtils.generateRandomBytes(length = 16)
         val cardPublicKey = session.environment.card?.cardPublicKey.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
@@ -71,13 +71,14 @@ class AttestCardKeyCommand(
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): AttestCardKeyResponse {
-        val tlv = apdu.getTlvData(environment.encryptionKey) ?: throw TangemSdkError.DeserializeApduFailed()
+        val tlv = apdu.getTlvData() ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlv)
         return AttestCardKeyResponse(
-                decoder.decode(TlvTag.CardId),
-                decoder.decode(TlvTag.Salt),
-                decoder.decode(TlvTag.CardSignature),
-                challenge!!)
+            cardId = decoder.decode(TlvTag.CardId),
+            salt = decoder.decode(TlvTag.Salt),
+            cardSignature = decoder.decode(TlvTag.CardSignature),
+            challenge = challenge!!,
+        )
     }
 }
