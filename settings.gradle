@@ -1,5 +1,5 @@
-include ':tangem-sdk-jvm-demo'
-include ':tangem-sdk-jvm'
+//include ':tangem-sdk-jvm-demo'
+//include ':tangem-sdk-jvm'
 include ':tangem-sdk-android-demo'
 include ':tangem-sdk-android'
 include ':tangem-sdk-core'
