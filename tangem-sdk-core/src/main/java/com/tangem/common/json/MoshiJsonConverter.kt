@@ -21,7 +21,6 @@ import com.tangem.common.extensions.toHexString
 import com.tangem.crypto.hdWallet.DerivationNode
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.BIP44
-import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
@@ -125,7 +124,6 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                 TangemSdkAdapter.BackupStatusAdapter(),
                 TangemSdkAdapter.DerivationPathAdapter(),
                 TangemSdkAdapter.DerivationNodeAdapter(),
-                TangemSdkAdapter.DerivedKeysAdapter(),
             )
         }
 
@@ -435,35 +433,6 @@ class TangemSdkAdapter {
                 rawStatus = rawStatus,
                 cardsCount = json["cardsCount"] as? Int,
             ) ?: Card.BackupStatus.NoBackup
-        }
-    }
-
-    class DerivedKeysAdapter {
-        @FromJson
-        fun fromJson(reader: JsonReader): Map<DerivationPath, ExtendedPublicKey> {
-            val result = mutableMapOf<DerivationPath, ExtendedPublicKey>()
-
-            reader.beginArray()
-            while (reader.hasNext()) {
-                val path = DerivationPath(reader.nextString())
-                val key = reader.readJsonValue() as? ExtendedPublicKey
-                if (key != null) {
-                    result[path] = key
-                }
-            }
-            reader.endArray()
-
-            return result
-        }
-
-        @ToJson
-        fun toJson(writer: JsonWriter, derivedKeys: Map<DerivationPath, ExtendedPublicKey>) {
-            writer.beginArray()
-            for ((path, key) in derivedKeys) {
-                writer.value(path.toString())
-                writer.value(key.toString())
-            }
-            writer.endArray()
         }
     }
 
