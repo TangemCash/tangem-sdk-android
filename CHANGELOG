@@ -1,1 +1,3 @@
-* 8ad8938e - (HEAD -> release/3.7.1, origin/AND-3267_fix_uploading_aars, AND-3267_fix_uploading_aars) AND-3267 fix build aar (disabled jvm module)
+* d40d60ba - (HEAD -> release/3.8.1, tag: develop-232, origin/develop, develop) Merge pull request #267 from tangem/task/AND-3529_derived_keys_json_mapping
+* 3cbb5f06 - Merge branch 'develop' into task/AND-3529_derived_keys_json_mapping
+* e81dbf08 - AND-3529: change mapping of derivedKeys to/from JSON
