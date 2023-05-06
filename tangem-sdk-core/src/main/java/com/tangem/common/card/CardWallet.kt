@@ -1,11 +1,13 @@
 package com.tangem.common.card
 
+import com.squareup.moshi.JsonClass
 import com.tangem.common.BaseMask
 import com.tangem.common.Mask
 import com.tangem.common.card.CardWallet.Status.Companion.initExtendedPublicKey
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 
+@JsonClass(generateAdapter = true)
 data class CardWallet(
     /**
      * Wallet's public key.
