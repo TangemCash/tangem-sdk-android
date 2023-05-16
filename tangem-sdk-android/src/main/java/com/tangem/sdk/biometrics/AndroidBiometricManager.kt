@@ -68,25 +68,22 @@ internal class AndroidBiometricManager(
             initCrypto(mode)
                 .map { cryptographyManager.invoke(mode.keyName, mode.data) }
                 .mapFailure { error ->
-                    when (val cause = (error as? TangemSdkError.ExceptionError)?.cause) {
-                        is KeyPermanentlyInvalidatedException,
-                        is UserNotAuthenticatedException,
-                        -> {
-                            cryptographyManager.deleteMasterKey()
-                            TangemSdkError.BiometricCryptographyKeyInvalidated()
+                    when (error) {
+                        is TangemSdkError.ExceptionError -> when (val cause = error.cause) {
+                            is KeyPermanentlyInvalidatedException,
+                            is UserNotAuthenticatedException,
+                            -> {
+                                cryptographyManager.deleteMasterKey()
+                                TangemSdkError.BiometricCryptographyKeyInvalidated()
+                            }
+                            is InvalidKeyException -> {
+                                TangemSdkError.InvalidBiometricCryptographyKey(cause.localizedMessage.orEmpty(), cause)
+                            }
+                            else -> {
+                                TangemSdkError.BiometricCryptographyOperationFailed(error.customMessage, error)
+                            }
                         }
-
-                        is InvalidKeyException -> {
-                            TangemSdkError.InvalidBiometricCryptographyKey(cause.localizedMessage.orEmpty(), cause)
-                        }
-
-                        is TangemSdkError.UserCanceledBiometricsAuthentication -> {
-                            error
-                        }
-
-                        else -> {
-                            TangemSdkError.BiometricCryptographyOperationFailed(error.customMessage, error)
-                        }
+                        else -> error
                     }
                 }
         } else {
