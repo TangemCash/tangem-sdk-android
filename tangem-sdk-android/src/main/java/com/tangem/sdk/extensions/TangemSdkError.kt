@@ -150,6 +150,9 @@ fun TangemSdkError.localizedDescription(context: Context): String {
             is TangemSdkError.BackupNotAllowed,
             is TangemSdkError.BackupFailedFirmware,
             is TangemSdkError.BackupFailedIncompatibleBatch,
+            is TangemSdkError.BackupFailedIncompatibleFirmware,
+            is TangemSdkError.BackupFailedKeysImportSettings,
+            is TangemSdkError.BackupFailedAlreadyCreated,
             is TangemSdkError.ResetPinWrongCard,
             -> context.getString(resId, code.toString())
 
