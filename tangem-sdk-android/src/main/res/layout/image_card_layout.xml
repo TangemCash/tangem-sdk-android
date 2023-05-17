@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/flImageContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clGenericImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ivHandCardHorizontal"
+            android:layout_width="230dp"
+            android:layout_height="188dp"
+            android:alpha="0"
+            app:layout_constraintBottom_toBottomOf="@+id/ivPhone"
+            app:layout_constraintEnd_toEndOf="@+id/ivPhone"
+            app:layout_constraintStart_toStartOf="@+id/ivPhone"
+            app:layout_constraintTop_toTopOf="@+id/ivPhone"
+            app:srcCompat="@drawable/hand_full_card_horizontal" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ivHandCardVertical"
+            android:layout_width="187dp"
+            android:layout_height="204dp"
+            android:layout_marginStart="5dp"
+            android:alpha="0"
+            app:layout_constraintBottom_toBottomOf="@+id/ivPhone"
+            app:layout_constraintEnd_toEndOf="@+id/ivPhone"
+            app:layout_constraintStart_toStartOf="@+id/ivPhone"
+            app:layout_constraintTop_toTopOf="@+id/ivPhone"
+            app:srcCompat="@drawable/hand_full_card_vertical" />
+
+        <com.skyfishjy.library.RippleBackground
+            android:id="@+id/rippleBackgroundNfc"
+            android:layout_width="@dimen/phone_height"
+            android:layout_height="@dimen/phone_height"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/ivPhone"
+            app:layout_constraintEnd_toEndOf="@+id/ivPhone"
+            app:layout_constraintStart_toStartOf="@+id/ivPhone"
+            app:layout_constraintTop_toTopOf="@+id/ivPhone"
+            app:rb_color="@color/sdk_ripple_background"
+            app:rb_duration="3000"
+            app:rb_radius="16dp"
+            app:rb_rippleAmount="4"
+            app:rb_scale="4"
+            app:rb_strokeWidth="8dp"
+            app:rb_type="strokeRipple" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ivPhone"
+            android:layout_width="75dp"
+            android:layout_height="@dimen/phone_height"
+            android:layout_gravity="center"
+            android:layout_marginTop="100dp"
+            android:elevation="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.65"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/phone_mid" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <FrameLayout
+        android:id="@+id/flCustomImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="58dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/customImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal" />
+
+    </FrameLayout>
+
+</FrameLayout>
