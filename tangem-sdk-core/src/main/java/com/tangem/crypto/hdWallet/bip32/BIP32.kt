@@ -1,6 +1,7 @@
 package com.tangem.crypto.hdWallet.bip32
 
 import com.tangem.common.card.EllipticCurve
+import com.tangem.common.core.TangemSdkError
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.hdWallet.HDWalletError
 import com.tangem.crypto.hmacSha512
@@ -53,4 +54,8 @@ private val EllipticCurve.hmacKey: BIP32.HMACKey
         EllipticCurve.Secp256k1 -> BIP32.HMACKey.Secp256k1
         EllipticCurve.Ed25519 -> BIP32.HMACKey.Ed25519
         EllipticCurve.Secp256r1 -> BIP32.HMACKey.Secp256r1
+        EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop ->
+            // https://eips.ethereum.org/EIPS/eip-2333#derive_master_sk
+            throw TangemSdkError.UnsupportedCurve() // TODO: implement
+        EllipticCurve.Bip0340 -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
     }

@@ -63,6 +63,9 @@ object CryptoUtils {
             EllipticCurve.Secp256k1 -> Secp256k1.verify(publicKey, message, signature)
             EllipticCurve.Secp256r1 -> Secp256r1.verify(publicKey, message, signature)
             EllipticCurve.Ed25519 -> Ed25519.verify(publicKey, message, signature)
+            EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop,
+            EllipticCurve.Bip0340,
+            -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
         }
     }
 
@@ -83,6 +86,9 @@ object CryptoUtils {
             EllipticCurve.Secp256k1 -> Secp256k1.generatePublicKey(privateKey, compressed)
             EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKey, compressed)
             EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKey)
+            EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop,
+            EllipticCurve.Bip0340,
+            -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
         }
     }
 
@@ -91,6 +97,9 @@ object CryptoUtils {
             EllipticCurve.Secp256k1 -> Secp256k1.loadPublicKey(publicKey)
             EllipticCurve.Secp256r1 -> Secp256r1.loadPublicKey(publicKey)
             EllipticCurve.Ed25519 -> Ed25519.loadPublicKey(publicKey)
+            EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop,
+            EllipticCurve.Bip0340,
+            -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
         }
     }
 
@@ -120,6 +129,9 @@ object CryptoUtils {
             EllipticCurve.Secp256k1 -> Secp256k1.isPrivateKeyValid(privateKey)
             EllipticCurve.Secp256r1 -> Secp256r1.isPrivateKeyValid(privateKey)
             EllipticCurve.Ed25519 -> Ed25519.isPrivateKeyValid(privateKey)
+            EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop,
+            EllipticCurve.Bip0340,
+            -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
         }
     }
 }
@@ -143,6 +155,9 @@ fun ByteArray.sign(privateKeyArray: ByteArray, curve: EllipticCurve = EllipticCu
         EllipticCurve.Secp256k1 -> Secp256k1.sign(this, privateKeyArray)
         EllipticCurve.Secp256r1 -> Secp256r1.sign(this, privateKeyArray)
         EllipticCurve.Ed25519 -> Ed25519.sign(this, privateKeyArray)
+        EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop,
+        EllipticCurve.Bip0340,
+        -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
     }
 }
 
