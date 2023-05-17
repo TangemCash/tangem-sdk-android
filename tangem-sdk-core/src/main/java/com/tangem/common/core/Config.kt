@@ -68,7 +68,22 @@ class Config(
      * User code request policy.
      */
     var userCodeRequestPolicy: UserCodeRequestPolicy = UserCodeRequestPolicy.Default,
+
+    /**
+     * Options for displaying different tags on the scanning screen
+     */
+    var scanTagImage: ScanTagImage = ScanTagImage.GenericCard,
 )
+
+sealed class ScanTagImage {
+
+    object GenericCard : ScanTagImage()
+
+    data class Image(
+        val bitmapArray: ByteArray,
+        val verticalOffset: Int = 0,
+    ) : ScanTagImage()
+}
 
 sealed class CardIdDisplayFormat {
 
