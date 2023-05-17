@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="size_progress_bar_big">135dp</dimen>
-
-    <dimen name="tap_in_info_message_height">60dp</dimen>
-    <dimen name="tap_in_buttons_container_padding_start_end">46dp</dimen>
-    <dimen name="tap_in_buttons_container_padding_top_bottom">32dp</dimen>
-    <dimen name="tap_in_layout_hand_margin_top">64dp</dimen>
-    <dimen name="layout_hand_padding_top">45dp</dimen>
-    <dimen name="button_continue_margin_top">104dp</dimen>
 
     <dimen name="progress_bar_state_width">185dp</dimen>
     <dimen name="progress_bar_state_inset">8dp</dimen>
     <dimen name="progress_bar_state_text_size">51sp</dimen>
-    <dimen name="progress_bar_stroke_width">2</dimen>
 
     <dimen name="bottom_sheet_top_container_height">220dp</dimen>
     <dimen name="bottom_sheet_bottom_container_height">105dp</dimen>
