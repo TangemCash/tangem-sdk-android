@@ -160,21 +160,15 @@ class CommandListFragment : BaseFragment() {
         btnSignHash.setOnClickListener { sign(SignStrategyType.SINGLE) }
         btnSignHashes.setOnClickListener { sign(SignStrategyType.MULTIPLE) }
 
-        btnCreateWalletSecpK1.setOnClickListener {
+        val spinnerAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_list_item_1,
+            EllipticCurve.values(),
+        )
+        spinnerCurves.adapter = spinnerAdapter
+        btnCreateWallet.setOnClickListener {
             createOrImportWallet(
-                EllipticCurve.Secp256k1,
-                etMnemonic.text?.toString(),
-            )
-        }
-        btnCreateWalletSecpR1.setOnClickListener {
-            createOrImportWallet(
-                EllipticCurve.Secp256r1,
-                etMnemonic.text?.toString(),
-            )
-        }
-        btnCreateWalletEdwards.setOnClickListener {
-            createOrImportWallet(
-                EllipticCurve.Ed25519,
+                spinnerCurves.selectedItem as EllipticCurve,
                 etMnemonic.text?.toString(),
             )
         }
