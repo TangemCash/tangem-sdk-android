@@ -11,8 +11,6 @@ import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
-import com.tangem.crypto.hdWallet.DerivationPath
-import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
@@ -22,6 +20,8 @@ import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.bip39.DefaultMnemonic
 import com.tangem.crypto.bip39.Wordlist
+import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.*
 import com.tangem.operations.attestation.AttestCardKeyCommand
 import com.tangem.operations.attestation.AttestCardKeyResponse
@@ -1156,6 +1156,10 @@ class TangemSdk(
      */
     fun registerJSONRPCTask(handler: JSONRPCHandler<*>) {
         jsonRpcConverter.register(handler)
+    }
+
+    fun setScanImage(scanTagImage: ScanTagImage) {
+        config.scanTagImage = scanTagImage
     }
 
     private fun configure() {

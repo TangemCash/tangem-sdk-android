@@ -9,7 +9,6 @@ import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.UserCodeType
-import com.tangem.common.core.CardIdDisplayFormat
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
@@ -32,7 +31,7 @@ class DefaultSessionViewDelegate(
     private val activity: Activity,
 ) : SessionViewDelegate {
 
-    var sdkConfig: Config? = null
+    var sdkConfig: Config = Config()
 
     override val resetCodesViewDelegate: ResetCodesViewDelegate = AndroidResetCodesViewDelegate(activity)
 
@@ -152,29 +151,33 @@ class DefaultSessionViewDelegate(
             if (readingDialog == null) createReadingDialog(activity)
             readingDialog?.showHowTo(enableHowTo)
             readingDialog?.setInitialMessage(message)
+            readingDialog?.setScanImage(sdkConfig.scanTagImage)
             readingDialog?.show(state)
         }
     }
 
     private fun createReadingDialog(activity: Activity) {
         val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
-        readingDialog = NfcSessionDialog(activity.sdkThemeContext(), nfcManager, nfcLocationProvider).apply {
+        readingDialog = NfcSessionDialog(
+            context = activity.sdkThemeContext(),
+            nfcManager = nfcManager,
+            nfcLocationProvider = nfcLocationProvider,
+        ).apply {
             setOwnerActivity(activity)
             dismissWithAnimation = true
             stoppedBySession = false
             create()
             setOnCancelListener {
                 if (!stoppedBySession) reader.stopSession(true)
-                createReadingDialog(activity)
+                readingDialog = null
             }
         }
     }
 
     private fun formatCardId(cardId: String?): String? {
         val cardId = cardId ?: return null
-        val formatter = CardIdFormatter(
-            sdkConfig?.cardIdDisplayFormat ?: CardIdDisplayFormat.Full,
-        )
+
+        val formatter = CardIdFormatter(sdkConfig.cardIdDisplayFormat)
         return formatter.getFormattedCardId(cardId)
     }
 }
