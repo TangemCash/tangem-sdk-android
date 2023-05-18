@@ -39,7 +39,6 @@
     <string name="error_empty_hashes">Hier gibt es nichts zu signieren</string>
     <string name="error_extended_apdu_not_supported">It looks like your phone doesn\'t fully support NFC protocol. Please try to use another phone for this operation.</string>
     <string name="error_invalid_response">Ungültige Antwort</string>
-    <string name="error_message">%1$s: %2$s</string>
     <string name="error_missing_counter">Die Daten können auf die Karte nicht geschrieben werden, da kein Zähler vorhanden ist</string>
     <string name="error_missing_issuer_public_key">Der öffentliche Schlüssel des Emittenten ist nicht vorhanden</string>
     <string name="error_no_remaining_signatures">Sie können die Daten mit diesem Wallet nicht signieren, weil die Karte die Unterschriftsbeschränkung erreicht hat</string>

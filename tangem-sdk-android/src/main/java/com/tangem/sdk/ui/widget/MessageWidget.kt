@@ -62,19 +62,16 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
             is SessionViewDelegateState.TagConnected -> {
             }
             is SessionViewDelegateState.WrongCard -> {
+                setText(tv = tvTaskTitle, text = null, id = R.string.common_error)
+
                 val description = when (params.wrongValueType) {
                     WrongValueType.CardId -> getString(R.string.error_wrong_card_number)
                     WrongValueType.CardType -> getString(R.string.error_wrong_card_type)
                 }
-
-                setText(tvTaskTitle, null, R.string.common_error)
-                val bodyMessage = mainView.context.getString(
-                    R.string.error_message,
-                    getString(R.string.error_wrong_card),
-                    description,
+                setText(
+                    tv = tvTaskMessage,
+                    text = "${getString(R.string.error_wrong_card)}: $description",
                 )
-
-                setText(tvTaskMessage, bodyMessage)
             }
         }
     }

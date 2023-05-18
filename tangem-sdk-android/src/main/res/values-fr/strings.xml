@@ -26,7 +26,7 @@
     <string name="error_backup_card_already_added">This card has already been added to the list</string>
     <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
     <string name="error_backup_wrong_card">This card can\'t be used as a backup card. Error code: %s.</string>
-    <string name="error_busy">La commande est exécutée dans l\'élément CardSession. Veuillez attendre et réessayer </string>
+    <string name="error_busy">La commande est exécutée dans l\'élément CardSession. Veuillez attendre et réessayer.</string>
     <string name="error_cannot_be_depersonalized">Cette carte ne peut pas être dépersonnalisée. </string>
     <string name="error_cannot_be_signed">Ces données ne peuvent pas être signées </string>
     <string name="error_card_error">Des données importantes manquent sur votre carte </string>
@@ -39,7 +39,6 @@
     <string name="error_empty_hashes">Il n\'y a rien à signer ici </string>
     <string name="error_extended_apdu_not_supported">It looks like your phone doesn\'t fully support NFC protocol. Please try to use another phone for this operation.</string>
     <string name="error_invalid_response">Réponse incorrecte</string>
-    <string name="error_message">%1$s: %2$s</string>
     <string name="error_missing_counter">Les données ne peuvent pas être écrites sur la carte car il n\'y a pas de compteur </string>
     <string name="error_missing_issuer_public_key">La clé publique de l\'émetteur est manquante </string>
     <string name="error_no_remaining_signatures">Vous ne pouvez pas signer les données avec ce portefeuille car la carte a atteint sa limite de signatures </string>

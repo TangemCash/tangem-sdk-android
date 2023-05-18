@@ -39,7 +39,6 @@
     <string name="error_empty_hashes">Non c\' è nulla da firmare qui</string>
     <string name="error_extended_apdu_not_supported">It looks like your phone doesn\'t fully support NFC protocol. Please try to use another phone for this operation.</string>
     <string name="error_invalid_response">Risposta non valida</string>
-    <string name="error_message">%1$s: %2$s</string>
     <string name="error_missing_counter">I dati non possono essere scritti sulla carta perché non c\'è un contatore</string>
     <string name="error_missing_issuer_public_key">Manca la chiave pubblica dell\'emittente</string>
     <string name="error_no_remaining_signatures">Non puoi firmare dati con questo portafoglio perché la carta ha raggiunto il limite di firma</string>
