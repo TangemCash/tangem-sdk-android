@@ -4,7 +4,8 @@
         "id": 1,
         "method": "attest_card_key",
         "params": {
-            "challenge": "000000000000"
+            "attestationMode": "default",
+            "challenge": "B9117EA3F68F00843156A283030784B2"
         }
     },
     "response" : {
@@ -13,7 +14,8 @@
             "cardId": "c000111122223333",
             "salt": "BBBBBBBBBBBB",
             "cardSignature": "AAAAAAAAAAAA",
-            "challenge": "000000000000"
+            "challenge": "000000000000",
+            "linkedCardsPublicKeys": []
         },
         "id" : 1
     }

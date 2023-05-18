@@ -152,7 +152,7 @@ enum class TlvTag(val code: Int) {
     BackupCardLinkingKey(code = 0xD3),
     BackupCardLink(code = 0xD4),
     BackupAttestSignature(code = 0xD5),
-
+    BackupCardPublicKey(code = 0xD6),
     ;
 
     /**

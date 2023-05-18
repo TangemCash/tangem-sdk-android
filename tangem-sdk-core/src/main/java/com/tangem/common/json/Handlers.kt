@@ -263,7 +263,6 @@ class AttestCardKeyHandler : JSONRPCHandler<AttestCardKeyResponse> {
     override val method: String = "ATTEST_CARD_KEY"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<AttestCardKeyResponse> {
-        val challenge = (params["challenge"] as? String)?.hexToBytes()
-        return AttestCardKeyCommand(challenge)
+        return make<AttestCardKeyCommand>(params)
     }
 }

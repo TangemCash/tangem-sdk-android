@@ -70,7 +70,7 @@ class WriteBackupDataCommand(
                             session.environment.card = session.environment.card?.copy(
                                 backupStatus = Card.BackupStatus.from(
                                     rawStatus = result.data.backupStatus,
-                                    cardsCount = backupStatus.cardCount,
+                                    cardsCount = backupStatus.cardsCount,
                                 ),
                             )
                         }

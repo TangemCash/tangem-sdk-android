@@ -110,6 +110,8 @@ class TangemSdk(
      * it obtains the card data. Optionally, if the card contains a wallet (private and public key pair),
      * it proves that the wallet owns a private key that corresponds to a public one.
      *
+     * @param attestationMode Attestation mode to use. Full attestation available only for COS v6+.
+     * It can be used to get all public keys of linked cards.
      * @param challenge Optional challenge. If null, it will be created automatically and returned in command response.
      * @param cardId CID, Unique Tangem card ID number.
      * @param initialMessage A custom description that shows at the beginning of the NFC session.
@@ -118,13 +120,14 @@ class TangemSdk(
      * in the form of [Card] if the task was performed successfully or [TangemSdkError] in case of an error.
      */
     fun attestCardKey(
+        attestationMode: AttestCardKeyCommand.Mode = AttestCardKeyCommand.Mode.Default,
         challenge: ByteArray? = null,
         cardId: String? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<AttestCardKeyResponse>,
     ) {
         startSessionWithRunnable(
-            runnable = AttestCardKeyCommand(challenge),
+            runnable = AttestCardKeyCommand(mode = attestationMode, challenge = challenge),
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
@@ -304,7 +307,7 @@ class TangemSdk(
      * This command will import an existing wallet.
      *
      * @param curve: Wallet's elliptic curve
-     * @param seed: BIP39 seed to create wallet from. COS v.6.16+.
+     * @param seed: BIP39 seed to create wallet from. COS v.6+.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used
@@ -332,8 +335,8 @@ class TangemSdk(
      * This command will import an existing wallet.
      *
      * @param curve: Wallet's elliptic curve
-     * @param mnemonic: BIP39 mnemonic to create wallet from. COS v.6.16+.
-     * @param passphrase: BIP39 passphrase to create wallet from. COS v.6.16+. Empty passphrase by default.
+     * @param mnemonic: BIP39 mnemonic to create wallet from. COS v.6+.
+     * @param passphrase: BIP39 passphrase to create wallet from. COS v.6+. Empty passphrase by default.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used
