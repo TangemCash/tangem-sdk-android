@@ -10,6 +10,7 @@ import com.tangem.Log
 import com.tangem.ViewDelegateMessage
 import com.tangem.common.CompletionResult
 import com.tangem.common.Timer
+import com.tangem.common.core.ScanTagImage
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.sdk.R
@@ -65,7 +66,7 @@ class NfcSessionDialog(
         howToContainer = view.findViewById(R.id.howToContainer)
 
         headerWidget = HeaderWidget(view.findViewById(R.id.llHeader))
-        touchCardWidget = TouchCardWidget(view.findViewById(R.id.rlTouchCard), nfcLocation)
+        touchCardWidget = TouchCardWidget(view.findViewById(R.id.flImageContainer), nfcLocation)
         progressStateWidget = ProgressbarStateWidget(view.findViewById(R.id.clProgress))
         pinCodeRequestWidget = PinCodeRequestWidget(view.findViewById(R.id.csPinCode))
         pinCodeSetChangeWidget = PinCodeModificationWidget(
@@ -101,6 +102,10 @@ class NfcSessionDialog(
     @UiThread
     fun setMessage(message: ViewDelegateMessage?) {
         messageWidget.setMessage(message)
+    }
+
+    fun setScanImage(scanImage: ScanTagImage) {
+        touchCardWidget.setScanImage(scanImage)
     }
 
     @Suppress("LongMethod", "ComplexMethod")

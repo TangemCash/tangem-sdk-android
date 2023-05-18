@@ -18,8 +18,8 @@
         android:layout_height="wrap_content">
 
         <include
-            android:id="@+id/rlTouchCard"
-            layout="@layout/touch_card_layout"
+            android:id="@+id/flImageContainer"
+            layout="@layout/image_card_layout"
             android:visibility="visible" />
 
         <LinearLayout
@@ -44,8 +44,8 @@
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:clipChildren="false"
-                android:layout_height="@dimen/bottom_sheet_top_container_height">
+                android:layout_height="@dimen/bottom_sheet_top_container_height"
+                android:clipChildren="false">
 
                 <include
                     android:id="@+id/clProgress"
@@ -62,9 +62,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:minHeight="@dimen/bottom_sheet_bottom_container_height"
-                android:clipToPadding="false"
                 android:clipChildren="false"
+                android:clipToPadding="false"
+                android:minHeight="@dimen/bottom_sheet_bottom_container_height"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp">
 
