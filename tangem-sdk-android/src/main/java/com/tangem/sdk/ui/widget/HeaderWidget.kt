@@ -14,18 +14,14 @@ import com.tangem.sdk.extensions.show
 /**
  * Created by Anton Zhilenkov on 09/08/2020.
  */
-class HeaderWidget(
-    mainView: View,
-) : BaseSessionDelegateStateWidget(mainView) {
+class HeaderWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     private val tvCard = mainView.findViewById<TextView>(R.id.tvCard)
-    private val tvCardId = mainView.findViewById<TextView>(R.id.tvCardId)
     private val imvClose = mainView.findViewById<ImageView>(R.id.imvClose)
     private val btnHowTo = mainView.findViewById<Button>(R.id.btnHowTo)
 
     var onClose: VoidCallback? = null
     var onHowTo: VoidCallback? = null
-//    var isFullScreenMode: Boolean = true
 
     var cardId: String? = null
         private set
@@ -55,25 +51,30 @@ class HeaderWidget(
                 btnHowTo.isEnabled = true
                 btnHowTo.show()
             }
+
             is SessionViewDelegateState.PinChangeRequested -> {
                 cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show()
             }
+
             is SessionViewDelegateState.PinRequested -> {
                 cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show(true)
             }
+
             is SessionViewDelegateState.TagLost -> btnHowTo.isEnabled = true
             is SessionViewDelegateState.TagConnected, is SessionViewDelegateState.Error,
             is SessionViewDelegateState.WrongCard,
             -> btnHowTo.isEnabled = false
+
             is SessionViewDelegateState.ResetCodes -> {
                 cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show()
             }
+
             else -> {
                 imvClose.hide()
                 btnHowTo.show()
@@ -83,13 +84,12 @@ class HeaderWidget(
     }
 
     private fun setCardId() {
-        if (cardId == null) {
-            tvCard.text = ""
-        } else {
-            tvCard.text = getString(R.string.view_delegate_header_card)
+        val scannedCardId = cardId
+        if (scannedCardId != null) {
+            tvCard.text = getFormattedString(R.string.cid_format, scannedCardId)
             tvCard.show()
-            tvCardId.show()
-            tvCardId.text = cardId
+        } else {
+            tvCard.text = ""
         }
     }
 }
