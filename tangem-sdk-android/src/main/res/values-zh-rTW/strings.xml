@@ -39,7 +39,6 @@
     <string name="error_empty_hashes">這裡不需要簽名</string>
     <string name="error_extended_apdu_not_supported">您的手機似乎不完全支持 NFC 協議。請嘗試使用其他手機進行此操作。</string>
     <string name="error_invalid_response">無效回應</string>
-    <string name="error_message">%1$s: %2$s</string>
     <string name="error_missing_counter">數據無法寫入卡，因為沒有計數器</string>
     <string name="error_missing_issuer_public_key">發行人公鑰丟失</string>
     <string name="error_no_remaining_signatures">您無法使用此錢包簽署數據，因為該卡已達到其簽名限制</string>
@@ -105,7 +104,7 @@
     <string name="view_delegate_delay">操作進行中</string>
     <string name="view_delegate_header_card">卡片</string>
     <string name="view_delegate_scan">已準備好掃描</string>
-    <string name="view_delegate_scan_description">如上圖點擊卡片並按住直到操作結束</string>
+    <string name="view_delegate_scan_description">如上圖觸碰卡片並按住直到操作結束</string>
     <string name="view_delegate_security_delay">長按</string>
     <string name="view_delegate_security_delay_description">為確保安全，請持有卡直至操作完成</string>
     <string name="wallet_not_found">此卡不包含當前錢包</string>
