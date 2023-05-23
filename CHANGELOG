@@ -1,11 +1,9 @@
-*   92c42ed9 - (HEAD -> release/3.8.1, tag: develop-233, origin/develop, develop) Merge pull request #269 from tangem/AND-3503_merge_master_into_develop
-|\  
-| *   d69f9360 - Merge branch 'develop' into AND-3503_merge_master_into_develop
-| |\  
-| |/  
-|/|   
-* | d40d60ba - (tag: develop-232) Merge pull request #267 from tangem/task/AND-3529_derived_keys_json_mapping
-* | 3cbb5f06 - Merge branch 'develop' into task/AND-3529_derived_keys_json_mapping
-* | e81dbf08 - AND-3529: change mapping of derivedKeys to/from JSON
- /  
-* b01050ff - AND-3529: change mapping of derivedKeys to/from JSON
+* 3728c204 - (HEAD -> release/3.8.2, origin/release_3.8.2, release_3.8.2) AND-3539 added the ability to set custom image on the scan dialog
+* 955ebb8a - AND-3533 Clear SDK keys in localise
+* 858519a5 - AND-3579 Error code is missed for several backup's error
+* 0fee41e8 - AND-3577: add Schnorr and BLS (allow to create wallets)
+* 197cfadf - AND-3578: allow to select any available curve in DemoApp
+* daf86eea - AND-3542 Fix handling of biometric authentication cancellation exception
+* bc88434b - AND-3525 There is no error code in CardSDK bottom sheet dialog on scan or biometric
+* e9cfa83d - AND-3557 Fix CardSDK upload.gradle
+* a239d0ab - AND-3542 Biometry and Save cards: biometry appears again and again when trying to enter app via scanning the card
