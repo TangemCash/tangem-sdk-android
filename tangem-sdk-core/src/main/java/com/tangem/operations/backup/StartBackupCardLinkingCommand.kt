@@ -34,7 +34,7 @@ class StartBackupCardLinkingCommand(
             return TangemSdkError.BackupFailedAlreadyCreated()
         }
         if (card.wallets.isNotEmpty()) {
-            return TangemSdkError.BackupFailedNotEmptyWallets()
+            return TangemSdkError.BackupFailedNotEmptyWallets(cardId = card.cardId)
         }
         return null
     }

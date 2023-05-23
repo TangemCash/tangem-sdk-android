@@ -197,7 +197,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class BackupCardRequired : TangemSdkError(code = 41207)
     class NoBackupDataForCard : TangemSdkError(code = 41208)
     class BackupFailedEmptyWallets : TangemSdkError(code = 41209)
-    class BackupFailedNotEmptyWallets : TangemSdkError(code = 41210)
+    class BackupFailedNotEmptyWallets(val cardId: String) : TangemSdkError(code = 41210)
     class CertificateSignatureRequired : TangemSdkError(code = 41211)
     class AccessCodeOrPasscodeRequired : TangemSdkError(code = 41212)
     class NoActiveBackup : TangemSdkError(code = 41220)
