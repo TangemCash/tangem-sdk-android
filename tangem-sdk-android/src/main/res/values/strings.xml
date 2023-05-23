@@ -39,7 +39,6 @@
     <string name="error_empty_hashes">There is nothing to sign here</string>
     <string name="error_extended_apdu_not_supported">It looks like your phone doesn\'t fully support NFC protocol. Please try to use another phone for this operation.</string>
     <string name="error_invalid_response">Invalid Response</string>
-    <string name="error_message">%1$s: %2$s</string>
     <string name="error_missing_counter">The data cannot be written to the card because there is no counter</string>
     <string name="error_missing_issuer_public_key">The issuer public key is missing</string>
     <string name="error_no_remaining_signatures">You cannot sign data with this wallet because the card has reached its signature limit</string>

@@ -39,7 +39,6 @@
     <string name="error_empty_hashes">Здесь нечего подписывать</string>
     <string name="error_extended_apdu_not_supported">Похоже, что ваш телефон не полностью поддерживает NFC. Пожалуйста, попробуйте использовать другой телефон для этой операции.</string>
     <string name="error_invalid_response">Неверный ответ</string>
-    <string name="error_message">%1$s: %2$s</string>
     <string name="error_missing_counter">Данные не могут быть записаны на карту, потому что нет счетчика</string>
     <string name="error_missing_issuer_public_key">Открытый ключ эмитента отсутствует</string>
     <string name="error_no_remaining_signatures">Вы не можете подписывать данные с помощью этого кошелька, так как лимит подписей на карте исчерпан.</string>

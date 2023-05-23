@@ -67,20 +67,23 @@ internal class AndroidBiometricManager(
         return if (canAuthenticate) {
             initCrypto(mode)
                 .map { cryptographyManager.invoke(mode.keyName, mode.data) }
-                .mapFailure { e ->
-                    when (val cause = (e as? TangemSdkError.ExceptionError)?.cause) {
-                        is KeyPermanentlyInvalidatedException,
-                        is UserNotAuthenticatedException,
-                        -> {
-                            cryptographyManager.deleteMasterKey()
-                            TangemSdkError.BiometricCryptographyKeyInvalidated()
+                .mapFailure { error ->
+                    when (error) {
+                        is TangemSdkError.ExceptionError -> when (val cause = error.cause) {
+                            is KeyPermanentlyInvalidatedException,
+                            is UserNotAuthenticatedException,
+                            -> {
+                                cryptographyManager.deleteMasterKey()
+                                TangemSdkError.BiometricCryptographyKeyInvalidated()
+                            }
+                            is InvalidKeyException -> {
+                                TangemSdkError.InvalidBiometricCryptographyKey(cause.localizedMessage.orEmpty(), cause)
+                            }
+                            else -> {
+                                TangemSdkError.BiometricCryptographyOperationFailed(error.customMessage, error)
+                            }
                         }
-                        is InvalidKeyException -> {
-                            TangemSdkError.InvalidBiometricCryptographyKey(cause.localizedMessage.orEmpty(), cause)
-                        }
-                        else -> {
-                            TangemSdkError.BiometricCryptographyOperationFailed(e.customMessage, e)
-                        }
+                        else -> error
                     }
                 }
         } else {
@@ -88,37 +91,35 @@ internal class AndroidBiometricManager(
         }
     }
 
-    private suspend fun authenticateInternal(): CompletionResult<Unit> = suspendCoroutine { continuation ->
-        val biometricPrompt = BiometricPrompt(
-            activity,
-            createAuthenticationCallback { result ->
-                when (result) {
-                    is AuthenticationResult.Failure -> {
-                        continuation.resume(CompletionResult.Failure(result.error))
-                    }
-                    is AuthenticationResult.Success -> {
-                        continuation.resume(CompletionResult.Success(Unit))
-                    }
-                }
-            },
-        )
+    private suspend fun authenticateInternal(): CompletionResult<Unit> {
+        return suspendCoroutine { continuation ->
+            val biometricPrompt = BiometricPrompt(
+                activity,
+                createAuthenticationCallback { result ->
+                    continuation.resume(
+                        value = when (result) {
+                            is AuthenticationResult.Failure -> CompletionResult.Failure(result.error)
+                            is AuthenticationResult.Success -> CompletionResult.Success(Unit)
+                        },
+                    )
+                },
+            )
 
-        biometricPrompt.authenticate(biometricPromptInfo)
+            biometricPrompt.authenticate(biometricPromptInfo)
+        }
     }
 
     private suspend fun initCrypto(mode: BiometricManager.AuthenticationMode): CompletionResult<Unit> {
         return when (mode) {
             is BiometricManager.AuthenticationMode.Decryption -> {
-                catching { cryptographyManager.initDecryption() }
-                    .flatMapOnFailure { e ->
-                        when ((e as? TangemSdkError.ExceptionError)?.cause) {
-                            is UserNotAuthenticatedException -> {
-                                withContext(Dispatchers.Main) { authenticateInternal() }
-                                    .map { cryptographyManager.initDecryption() }
-                            }
-                            else -> CompletionResult.Failure(e)
-                        }
+                catching(cryptographyManager::initDecryption).flatMapOnFailure { error ->
+                    if ((error as? TangemSdkError.ExceptionError)?.cause is UserNotAuthenticatedException) {
+                        withContext(Dispatchers.Main) { authenticateInternal() }
+                            .map { cryptographyManager.initDecryption() }
+                    } else {
+                        CompletionResult.Failure(error)
                     }
+                }
             }
             is BiometricManager.AuthenticationMode.Encryption -> {
                 catching { cryptographyManager.initEncryption() }
