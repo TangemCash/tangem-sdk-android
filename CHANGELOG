@@ -1,214 +1,63 @@
-*   a4e81e76 - (HEAD -> release/3.8.0, tag: develop-231, origin/develop, develop) Merge pull request #264 from tangem/AND-3503_merge_master_into_dev
+*   5a76da21 - (HEAD -> release/3.8.2, tag: develop-246, origin/release_3.8.2, release_3.8.2) Merge pull request #278 from tangem/task/AND-3578_add_curve_selection
 |\  
-| * 1ff19c0b - Merge branch 'master' of https://github.com/tangem/tangem-sdk-android into AND-3503_merge_master_into_dev
-|/  
-*   6d4aedef - (tag: develop-229) Merge pull request #261 from tangem/task/AND-3394_attestation_jsonrpc
-|\  
-| * 3ab60ff2 - AND-3394: add AttestKey method to TangemSDK, support JSON-RPC for it
-|/  
-*   6563d9a5 - (tag: develop-228) Merge pull request #260 from tangem/task/AND-3375_fix_json_rpc_tests
-|\  
-| *   87fc60df - Merge branch 'develop' into task/AND-3375_fix_json_rpc_tests
+| *   21c95e79 - Merge branch 'develop' into task/AND-3578_add_curve_selection
 | |\  
 | |/  
 |/|   
-* |   ba83391c - (tag: develop-227) Merge pull request #259 from tangem/task/AND-3436_refactor_import_wallet_facade
+* |   e3437c53 - (tag: develop-245) Merge pull request #282 from tangem/AND-3539-custom_card_image
 |\ \  
-| | * 13bcd688 - AND-3375: fix JSON-RPC tests
-| |/  
-| * 968fca9a - AND-3436: Refactor import wallet, update v6 minor, add JSONRPC test
-|/  
-*   f4fa28fa - (tag: develop-226) Merge pull request #258 from tangem/task/AND-3461_fix_card_to_json
-|\  
-| *   f94eccbf - Merge branch 'develop' into task/AND-3461_fix_card_to_json
+| * | 1fb5a51b - AND-3539 added the ability to set custom image on the scan dialog
+|/ /  
+| *   783afcc9 - Merge branch 'develop' into task/AND-3578_add_curve_selection
 | |\  
 | |/  
 |/|   
-* |   9cc31030 - (tag: develop-225) Merge pull request #257 from tangem/task/AND-3396_add_backup_pre-check
+* |   54a8c4fd - (tag: develop-244) Merge pull request #281 from tangem/AND-3533_Clear_SDK_keys_in_localise
 |\ \  
-| * \   74a0c273 - Merge branch 'develop' into task/AND-3396_add_backup_pre-check
+| * | 35b1448b - AND-3533 Clear SDK keys in localise
+|/ /  
+| *   005c73ba - Merge branch 'develop' into task/AND-3578_add_curve_selection
+| |\  
+| |/  
+|/|   
+* |   91ffdd49 - (tag: develop-243) Merge pull request #279 from tangem/bugfix/AND-3579_Error_code_is_missed_for_several_backup's_error
+|\ \  
+| * | edb2dd2d - AND-3579 Error code is missed for several backup's error
+|/ /  
+* |   d8bd4371 - (tag: develop-242) Merge pull request #280 from tangem/release_4.5
+|\ \  
+| * \   94c3ad0e - (origin/release_4.5) Merge branch 'develop' into release_4.5
 | |\ \  
 | |/ /  
 |/| |   
-| * |   f23bafcd - Merge branch 'develop' into task/AND-3396_add_backup_pre-check
+| * |   a54b58a6 - (tag: release_4.5-240, tag: release/4.5-239) Merge pull request #276 from tangem/bugfix/AND-3542_cherrypick_fix_biometric_auth_canceled_exception_handling
 | |\ \  
-| * | | 0e08bc52 - AND-3396: add pre-check for already backed-up card
-| | | *   100f62ac - Merge branch 'develop' into task/AND-3461_fix_card_to_json
-| | | |\  
-| |_|_|/  
-|/| | |   
-* | | |   11fb6aa6 - (tag: develop-224) Merge pull request #241 from tangem/bugfix/AND-3233_fix_key_invalidated_exception
-|\ \ \ \  
-| |_|/ /  
-|/| | |   
-| * | | 358ca170 - AND-3233 Divide invalid cryptography key exceptions handling
-|/ / /  
-| | * dffd6005 - AND-3461: fix Card's fields conversion for JSON_RPC
-| |/  
-|/|   
-* |   1db7cb22 - (tag: develop-223) Merge pull request #256 from tangem/bugfix/AND-3362_fix_encryption
-|\ \  
-| * \   f5e23432 - Merge branch 'develop' into bugfix/AND-3362_fix_encryption
-| |\ \  
+| | * | fdf8ed8c - AND-3542 Fix handling of biometric authentication cancellation exception
 | |/ /  
+| | *   be626117 - Merge branch 'develop' into task/AND-3578_add_curve_selection
+| | |\  
+| |_|/  
 |/| |   
-* | |   79e8a233 - (tag: develop-222) Merge pull request #255 from tangem/revert-254-revert-253-task/AND-3406_add_new_backup_prechecks
+* | |   e1fbdb14 - (tag: develop-241) Merge pull request #277 from tangem/task/AND-3577_add_curves
 |\ \ \  
-| * | | a794cd07 - Revert "Revert "AND-3406: add new backup pre-checks""
+| * | | 6cc59d74 - AND-3577: add Schnorr and BLS (allow to create wallets)
 |/ / /  
-| * |   3c6659ff - Merge branch 'develop' into bugfix/AND-3362_fix_encryption
-| |\ \  
-| |/ /  
-|/| |   
-* | |   a57073b3 - (tag: develop-221) Merge pull request #252 from tangem/AND-3437-fix-sending-change-callback-usercancelled
-|\ \ \  
-| * | | 576dd729 - AND-3437 changed call dismiss dialog for correct handle UserCancelled
-|/ / /  
-* | |   81c97324 - (tag: develop-220) Merge pull request #254 from tangem/revert-253-task/AND-3406_add_new_backup_prechecks
-|\ \ \  
-| * | | ed9670a7 - Revert "AND-3406: add new backup pre-checks"
-|/ / /  
-* | |   565b73ee - (tag: develop-219) Merge pull request #253 from tangem/task/AND-3406_add_new_backup_prechecks
-|\ \ \  
-| * \ \   174339db - Merge branch 'develop' into task/AND-3406_add_new_backup_prechecks
-| |\ \ \  
-| |/ / /  
-|/| | /   
-| | |/    
-| |/|     
-* | |   cb57997a - (tag: develop-218) Merge pull request #250 from tangem/bugfix/AND-3388_fix_access_code_requesting
-|\ \ \  
-| * \ \   3849131f - Merge branch 'develop' into bugfix/AND-3388_fix_access_code_requesting
-| |\ \ \  
-| |/ / /  
-|/| | |   
-* | | |   501ee120 - (tag: develop-217) Merge pull request #251 from tangem/task/AND-3429_max_firmware_for_card_filter
-|\ \ \ \  
-| * | | | 2a652f22 - AND-3429: add check for max firmware version in CardFilter
-|/ / / /  
-| * / / bf61959c - AND-3388 Fix user codes saving
-|/ / /  
-| * / f646f44e - AND-3406: add new backup pre-checks
-|/ /  
-| * 919d9b7c - AND-3362: fix handling encrypted cards
-|/  
-*   f695feba - (tag: develop-216) Merge pull request #249 from tangem/task/AND-3309_usersetting_code_recovery
-|\  
-| * 5dedf113 - AND-3309: Add user settings support
-|/  
-*   b60d2c70 - (tag: develop-215) Merge pull request #248 from tangem/task/AND-3308_check_wallet_status
-|\  
-| *   081ad111 - Merge branch 'develop' into task/AND-3308_check_wallet_status
-| |\  
+| | * 5c112c17 - AND-3578: allow to select any available curve in DemoApp
 | |/  
 |/|   
-* |   ebb2920e - (tag: develop-214) Merge pull request #247 from tangem/task/AND-3310_get_entropy_command
+* |   3a81ebdc - (tag: develop-237) Merge pull request #275 from tangem/bugfix/AND-3542_fix_biometric_auth_canceled_exception_handling
 |\ \  
-| * | a1237e0a - AND-3310: support GetEntropy Command
+| * | 7065389b - AND-3542 Fix handling of biometric authentication cancellation exception
 |/ /  
-| * 57d49b56 - AND-3308: check wallet status in attestation command
-|/  
-*   a20fecf2 - (tag: develop-213) Merge pull request #246 from tangem/bugfix/AND-3379_fix_crash_on_session_dialog_launch
-|\  
-| *   7c83bdb2 - Merge branch 'develop' into bugfix/AND-3379_fix_crash_on_session_dialog_launch
-| |\  
+* |   f70eb25a - (tag: develop-236) Merge pull request #274 from tangem/bugfix/AND-3525_There_is_no_error_code_in_CardSDK_bottom_sheet_dialog_on_scan_or_biometric
+|\ \  
 | |/  
 |/|   
-* |   6f0e24f2 - (tag: develop-212) Merge pull request #245 from tangem/task/AND-3307_create_wallet_from_seed
-|\ \  
-| * | 0396f9f7 - AND-3307: support ImportWallet - creating wallet from seed
-|/ /  
-| * 93626eba - AND-3379 Fix crash when launching session dialog
+| * 304f3a46 - AND-3525 There is no error code in CardSDK bottom sheet dialog on scan or biometric
 |/  
-*   171b1381 - (tag: develop-211) Merge pull request #244 from tangem/task/AND-3324_add_tests_for_extended_master_key
+*   b70d8269 - (tag: release/4.5-238, tag: develop-235) Merge pull request #273 from tangem/AND-3557_Fix_CardSDK_upload.gradle
 |\  
-| * 0b5ed26c - AND-3324: add tests for extended keys and master key from seed
+| * 759ad800 - AND-3557 Fix CardSDK upload.gradle
 |/  
-*   f0564610 - (tag: develop-210) Merge pull request #243 from tangem/task/AND-3323_key_from_seed
-|\  
-| * 61b84b81 - AND-3323: implement ExtendedPrivateKey and its creation from seed
-|/  
-*   7fe39c45 - (tag: develop-209) Merge pull request #242 from tangem/bugfix/AND-3345_fix_strings_finding
-|\  
-| * 07e1902f - AND-3245 Fix mapping of core string IDs to Android string resources
-|/  
-*   261f6227 - (tag: develop-208) Merge pull request #240 from tangem/AND-3300_Add_trailing_comma_rule_in_detekt
-|\  
-| * d97d989f - AND-3300 Add trailing comma rule in detekt
-|/  
-*   c9765a56 - (tag: develop-207) Merge pull request #239 from tangem/AND-3204-tests-and-parse-words
-|\  
-| * d781fc1a - AND-3204 added tests for bip39
-|/  
-*   0675b9ad - (tag: develop-206) Merge pull request #238 from tangem/bugfix/AND-3290_fix_crash_when_unable_to_find_resource
-|\  
-| * ff8f7dfb - AND-3290 Fix app crash when unable to find string resource
-|/  
-*   3a087d96 - Merge pull request #235 from tangem/AND-3202-mnemonic-bip39-impl
-|\  
-| * 8184154f - AND-3202 added mnemonic and bip39 implementation
-|/  
-*   b9988345 - (tag: develop-205) Merge pull request #232 from tangem/AND-3237-created_contact_bip39
-|\  
-| * 05e64ba5 - AND-3237 contract mnemonic and bip39
-|/  
-*   eebaa8b8 - (tag: develop-204) Merge pull request #231 from tangem/AND-3196_Add_detekt_to_CI_test_lane_config_in_Card_SDK
-|\  
-| * f1720390 - AND-3196 Add detekt to CI test lane config in Card SDK
-|/  
-*   9fca7515 - (tag: develop-203) Merge pull request #229 from tangem/AND-3139-Fix_detekt_warnings_in_CardSDK
-|\  
-| * e7ffbfc8 - AND-3139 Fix detekt warnings in CardSDK
-|/  
-*   1a6d1f28 - (tag: develop-202) Merge pull request #230 from tangem/bugfix/AND-3197
-|\  
-| * ff913bd1 - AND-3197 Fix a Card SDK's issue with artifact loading
-|/  
-*   5eb353a2 - (tag: develop-201) Merge pull request #228 from tangem/AND-3138-Add_detekt_to_CardSDK
-|\  
-| * aa56f69d - AND-3138 Add detekt to CardSDK
-|/  
-*   09b14209 - (tag: develop-200) Merge pull request #227 from tangem/bugfix/AND-3150_fix_key_invalidation
-|\  
-| * 8022dbcf - AND-3150 Fix biometrics manager behavior after master key invalidation
-|/  
-*   60431171 - (tag: develop-199) Merge pull request #226 from tangem/bugfix/AND-3137_fix_access_code_saving
-|\  
-| * 9d252fda - AND-3137 Fix the card session re-closing
-|/  
-*   52db5e6d - (tag: develop-198) Merge pull request #223 from tangem/AND-3096-set-code-style
-|\  
-| * aa8725c2 - AND-3096 set code style (without reformatting)
-|/  
-*   3ba7a7cf - (tag: develop-197) Merge pull request #224 from tangem/AND-3105-restore_showing_error_code_with_error_message
-|\  
-| * 8960ff00 - AND-3105 restored showing error codes for error with generic translation
-|/  
-*   218f05a8 - (tag: develop-196) Merge pull request #221 from tangem/AND-3082-add_an_ability_to_send_a_raw_apdu
-|\  
-| * 81afd979 - AND-3083 selects the wallet applet by default
-| * 3c6259a5 - AND-3082 added an ability to send a raw apdu
-|/  
-*   64716af8 - (tag: develop-195) Merge pull request #219 from tangem/demo/AND-3081-add_ResetToFactory_method
-|\  
-| * a402a182 - AND-3081 demo: added ResetToFactory method
-|/  
-*   665c4f62 - (tag: develop-194) Merge pull request #222 from tangem/AND-2896-Add_description_for_part_of_signed_hashes_v2
-|\  
-| * f6d9f29f - AND-2896 fixed by PR comments
-| * 97e971ad - AND-2896 added the message of a signed part
-|/  
-*   63dc24b8 - (tag: develop-191) Merge pull request #212 from tangem/bugfix/AND-2907_add_biometric_failure_cause
-|\  
-| * 5bd3243f - AND-2907 Add the new error types for the biometry
-|/  
-*   aca25141 - (tag: develop-190) Merge pull request #216 from tangem/AND-2974-fix-pin-code-dialog-callback
-|\  
-| * f6d98c9a - AND-2974 fixed callback on pin dialog dismiss
-|/  
-*   2da1ef20 - (tag: develop-186) Merge pull request #215 from tangem/bugfix/AND-2911_fix_crash_on_access_code_request
-|\  
-| * 6f614ed5 - AND-2911 Fix the crash when requesting access code
-|/  
-* beb838ac - (tag: develop-185) Merge pull request #214 from tangem/bugfix/AND-2915_fix_biometric_manager_initialization
-* f1fd0058 - AND-2915 Fix the biometric manager initialization
+* c0f282c7 - (tag: develop-234) Merge pull request #272 from tangem/bugfix/AND-3542_Biometry_and_Save_cards_biometry_appears_again_and_again_when_trying_to_enter_app_via_scanning_the_card
+* ef152641 - AND-3542 Biometry and Save cards: biometry appears again and again when trying to enter app via scanning the card
