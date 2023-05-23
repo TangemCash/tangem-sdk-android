@@ -11,10 +11,12 @@ import com.tangem.Log
 import com.tangem.LogFormat
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
+import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.bip39.Wordlist
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.demo.ui.separtedCommands.CommandListFragment
 import com.tangem.demo.ui.settings.SettingsFragment
 import com.tangem.demo.ui.viewDelegate.ViewDelegateFragment
@@ -75,6 +77,12 @@ class DemoActivity : AppCompatActivity() {
             linkedTerminal = false
             allowUntrustedCards = true
             filter.allowedCardTypes = FirmwareVersion.FirmwareType.values().toList()
+            defaultDerivationPaths = mutableMapOf(
+                EllipticCurve.Secp256k1 to listOf(
+                    DerivationPath(rawPath = "m/44/0"),
+                    DerivationPath(rawPath = "m/44/1"),
+                ),
+            )
         }
         val secureStorage = SecureStorage.create(this)
         val nfcManager = TangemSdk.initNfcManager(this)

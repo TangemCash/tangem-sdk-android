@@ -140,8 +140,9 @@ class CommandListFragment : BaseFragment() {
                 R.id.chipAttestNormal -> AttestationTask.Mode.Normal
                 else -> AttestationTask.Mode.Full
             }
-            attestCard(mode)
+            attest(mode)
         }
+        btnAttestCardKey.setOnClickListener { attestCardKey() }
 
         val adapter = ArrayAdapter(
             view.context,

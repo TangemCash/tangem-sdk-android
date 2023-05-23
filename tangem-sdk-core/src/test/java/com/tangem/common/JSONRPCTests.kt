@@ -244,6 +244,7 @@ class JSONRPCTests {
             salt = "BBBBBBBBBBBB".hexToBytes(),
             cardSignature = "AAAAAAAAAAAA".hexToBytes(),
             challenge = "000000000000".hexToBytes(),
+            linkedCardsPublicKeys = emptyList(),
         )
         testMethod("AttestCardKey", response)
     }

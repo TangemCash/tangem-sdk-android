@@ -46,6 +46,7 @@ import com.tangem.demo.ui.extension.copyToClipboard
 import com.tangem.demo.ui.settings.SettingsFragment
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
+import com.tangem.operations.attestation.AttestCardKeyCommand
 import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.files.FileHashHelper
 import com.tangem.operations.files.FileToWrite
@@ -151,8 +152,13 @@ abstract class BaseFragment : Fragment() {
         sdk.loadCardInfo(card?.cardPublicKey!!, card?.cardId!!) { handleResult(it) }
     }
 
-    protected fun attestCard(mode: AttestationTask.Mode) {
+    protected fun attest(mode: AttestationTask.Mode) {
         val command = AttestationTask(mode, sdk.secureStorage)
+        sdk.startSessionWithRunnable(command, card?.cardId, initialMessage) { handleResult(it) }
+    }
+
+    protected fun attestCardKey() {
+        val command = AttestCardKeyCommand(AttestCardKeyCommand.Mode.Full)
         sdk.startSessionWithRunnable(command, card?.cardId, initialMessage) { handleResult(it) }
     }
 

@@ -26,7 +26,7 @@ import com.tangem.operations.read.ReadWalletsListCommand
  *
  * @property curve Elliptic curve of the wallet. [com.tangem.common.card.Card.supportedCurves] contains all curves
  * supported by the card
- * @property seed: BIP39 seed to create wallet from. COS v6.16+.
+ * @property seed: BIP39 seed to create wallet from. COS v6+.
  */
 class CreateWalletTask(
     private val curve: EllipticCurve,

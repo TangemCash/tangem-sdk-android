@@ -80,7 +80,7 @@ class ReadBackupDataCommand(
                     val status = session.environment.card?.backupStatus
                     if (status is Card.BackupStatus.CardLinked) {
                         session.environment.card = session.environment.card?.copy(
-                            backupStatus = Card.BackupStatus.Active(status.cardCount),
+                            backupStatus = Card.BackupStatus.Active(status.cardsCount),
                         )
                         val wallets = session.environment.card?.wallets
                             ?.map { it.copy(hasBackup = true) }

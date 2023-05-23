@@ -254,7 +254,7 @@ class TangemSdkAdapter {
     }
 
     class SigningMethodAdapter : JsonAdapter<SigningMethod>() {
-        override fun fromJson(reader: JsonReader): SigningMethod? {
+        override fun fromJson(reader: JsonReader): SigningMethod {
             try {
                 reader.beginArray()
                 val list = mutableListOf<String>()
@@ -418,8 +418,8 @@ class TangemSdkAdapter {
         fun toJson(src: Card.BackupStatus): Map<String, Any> {
             val result = mutableMapOf("status" to EnumConverter.toJson(src.toRawStatus()))
             when (src) {
-                is Card.BackupStatus.CardLinked -> result["cardsCount"] = src.cardCount.toString()
-                is Card.BackupStatus.Active -> result["cardsCount"] = src.cardCount.toString()
+                is Card.BackupStatus.CardLinked -> result["cardsCount"] = src.cardsCount.toString()
+                is Card.BackupStatus.Active -> result["cardsCount"] = src.cardsCount.toString()
             }
             return result
         }
