@@ -4,6 +4,7 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.card.Card
+import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
@@ -69,7 +70,7 @@ class FinalizePrimaryCardTask(
 
     private fun readBackupData(session: CardSession, index: Int, callback: CompletionCallback<Card>) {
         if (index > backupCards.lastIndex) {
-            callback(CompletionResult.Success(session.environment.card!!))
+            finalizeBackupData(session, callback)
             return
         }
         val currentBackupCard = backupCards[index]
@@ -83,6 +84,23 @@ class FinalizePrimaryCardTask(
                     readBackupData(session, index + 1, callback)
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+            }
+        }
+    }
+
+    private fun finalizeBackupData(session: CardSession, callback: CompletionCallback<Card>) {
+        val card = session.environment.card.guard {
+            callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+            return
+        }
+        if (card.firmwareVersion < FirmwareVersion.KeysImportAvailable) {
+            callback(CompletionResult.Success(card))
+            return
+        }
+        FinalizeReadBackupDataCommand(accessCode).run(session) { result ->
+            when (result) {
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+                is CompletionResult.Success -> callback(CompletionResult.Success(card))
             }
         }
     }
