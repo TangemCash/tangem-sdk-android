@@ -2,6 +2,7 @@ package com.tangem.sdk.ui.widget
 
 import android.view.View
 import android.widget.TextView
+import androidx.annotation.StringRes
 import com.tangem.LocatorMessage
 import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
@@ -30,60 +31,85 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
         val message = getMessage(params)
         when (params) {
             is SessionViewDelegateState.Ready -> {
-                setText(tvTaskTitle, message?.header, R.string.view_delegate_scan)
-                setText(tvTaskMessage, message?.body, R.string.view_delegate_scan_description)
-            }
-            is SessionViewDelegateState.Success -> {
-                setText(tvTaskTitle, message?.header, R.string.common_success)
-                setText(tvTaskMessage, message?.body ?: "")
-            }
-            is SessionViewDelegateState.Error -> {
-                setText(tvTaskTitle, null, R.string.common_error)
-
-                val errorMessage = getErrorString(params.error)
-                setText(tvTaskMessage, errorMessage)
-            }
-            is SessionViewDelegateState.SecurityDelay -> {
-                setText(tvTaskTitle, message?.header, R.string.view_delegate_security_delay)
-                setText(tvTaskMessage, message?.body, R.string.view_delegate_security_delay_description)
-            }
-            is SessionViewDelegateState.Delay -> {
-                setText(tvTaskTitle, message?.header, R.string.view_delegate_delay)
-                setText(tvTaskMessage, message?.body, R.string.view_delegate_security_delay_description)
-            }
-            is SessionViewDelegateState.PinRequested -> {
-            }
-            is SessionViewDelegateState.PinChangeRequested -> {
-            }
-            is SessionViewDelegateState.TagLost -> {
-                setText(tvTaskTitle, message?.header, R.string.view_delegate_scan)
-                setText(tvTaskMessage, message?.body, R.string.view_delegate_scan_description)
-            }
-            is SessionViewDelegateState.TagConnected -> {
-            }
-            is SessionViewDelegateState.WrongCard -> {
-                setText(tv = tvTaskTitle, text = null, id = R.string.common_error)
-
-                val description = when (params.wrongValueType) {
-                    WrongValueType.CardId -> getString(R.string.error_wrong_card_number)
-                    WrongValueType.CardType -> getString(R.string.error_wrong_card_type)
-                }
-                setText(
-                    tv = tvTaskMessage,
-                    text = "${getString(R.string.error_wrong_card)}: $description",
+                setTaskBlock(
+                    message = message,
+                    titleId = R.string.view_delegate_scan,
+                    messageId = R.string.view_delegate_scan_description,
                 )
             }
+
+            is SessionViewDelegateState.Success -> {
+                setTaskBlock(message = message, messageText = "", titleId = R.string.common_success)
+            }
+
+            is SessionViewDelegateState.Error -> {
+                setTaskBlock(
+                    message = message,
+                    titleText = null,
+                    messageText = getErrorString(params.error),
+                    titleId = R.string.common_error,
+                )
+            }
+
+            is SessionViewDelegateState.SecurityDelay -> {
+                setTaskBlock(
+                    message = message,
+                    titleId = R.string.view_delegate_security_delay,
+                    messageId = R.string.view_delegate_security_delay_description,
+                )
+            }
+
+            is SessionViewDelegateState.Delay -> {
+                setTaskBlock(
+                    message = message,
+                    titleId = R.string.view_delegate_delay,
+                    messageId = R.string.view_delegate_security_delay_description,
+                )
+            }
+
+            is SessionViewDelegateState.TagLost -> {
+                setTaskBlock(
+                    message = message,
+                    titleId = R.string.view_delegate_scan,
+                    messageId = R.string.view_delegate_scan_description,
+                )
+            }
+
+            is SessionViewDelegateState.WrongCard -> {
+                val description = when (params.wrongValueType) {
+                    is WrongValueType.CardId -> {
+                        val value = params.wrongValueType.value
+                        if (value != null) {
+                            getFormattedString(R.string.error_wrong_card_number_with_card_id, value)
+                        } else {
+                            getString(R.string.error_wrong_card_number_without_card_id)
+                        }
+                    }
+
+                    is WrongValueType.CardType -> {
+                        getString(R.string.error_wrong_card_number_without_card_id)
+                    }
+                }
+
+                setTaskBlock(
+                    message = message,
+                    titleText = null,
+                    messageText = description,
+                    titleId = R.string.common_error,
+                )
+            }
+
+            else -> Unit
         }
     }
 
     fun setInitialMessage(message: ViewDelegateMessage?) {
-        this.initialMessage = message
+        initialMessage = message
     }
 
     fun setMessage(message: ViewDelegateMessage?) {
-        this.externalMessage = message
-        setText(tvTaskTitle, message?.header)
-        setText(tvTaskMessage, message?.body)
+        externalMessage = message
+        setTaskBlock(message)
     }
 
     private fun getMessage(params: SessionViewDelegateState): ViewDelegateMessage? {
@@ -93,24 +119,36 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
             is SessionViewDelegateState.Success -> params.message
             else -> externalMessage
         }.apply {
-            if (this is LocatorMessage) this.fetchMessages(stringLocator)
+            if (this is LocatorMessage) fetchMessages(locator = stringLocator)
         }
+    }
+
+    private fun setTaskBlock(
+        message: ViewDelegateMessage?,
+        titleText: String? = message?.header,
+        messageText: String? = message?.body,
+        @StringRes titleId: Int? = null,
+        @StringRes messageId: Int? = null,
+    ) {
+        setText(tv = tvTaskTitle, text = titleText, id = titleId)
+        setText(tv = tvTaskMessage, text = messageText, id = messageId)
     }
 
     private fun getErrorString(error: TangemError): String {
         return if (error is TangemSdkError) {
             error.localizedDescription(mainView.context)
+        } else if (error.messageResId != null) {
+            mainView.context.getString(requireNotNull(error.messageResId))
         } else {
-            val localizedMessage = error.messageResId?.let { mainView.context.getString(it) }
-            localizedMessage ?: error.customMessage
+            error.customMessage
         }
     }
 
     private fun setText(tv: TextView, text: String?, id: Int? = null) {
-        text?.let {
-            tv.text = it
-            return
+        if (text != null) {
+            tv.text = text
+        } else if (id != null) {
+            tv.text = getString(id)
         }
-        id?.let { tv.text = getString(it) }
     }
 }

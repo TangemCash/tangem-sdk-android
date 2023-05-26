@@ -205,7 +205,7 @@ class WrongCard : BaseDelegateAction() {
         delay(timeMillis = 2000)
         withMainContext { delegate.onTagConnected() }
         delay(timeMillis = 2000)
-        withMainContext { delegate.onWrongCard(WrongValueType.CardId) }
+        withMainContext { delegate.onWrongCard(WrongValueType.CardId()) }
         delay(timeMillis = 6000)
         withMainContext { delegate.onWrongCard(WrongValueType.CardType) }
         delay(timeMillis = 6000)

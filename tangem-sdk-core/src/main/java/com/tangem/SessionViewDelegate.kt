@@ -126,4 +126,9 @@ data class LocatorMessage(
     )
 }
 
-enum class WrongValueType { CardId, CardType }
+sealed interface WrongValueType {
+
+    data class CardId(val value: String? = null) : WrongValueType
+
+    object CardType : WrongValueType
+}

@@ -50,9 +50,9 @@ object AttestationFailedDialog {
             setCancelable(false)
             setTitle(title)
             setMessage(message)
-            setPositiveButton(R.string.common_ok) { dialog, wich -> positive() }
-            negative?.let { setNegativeButton(R.string.common_cancel) { dialog, wich -> it() } }
-            neutral?.let { setNeutralButton(R.string.common_retry) { dialog, wich -> it() } }
+            setPositiveButton(R.string.common_understand) { _, _ -> positive() }
+            negative?.let { setNegativeButton(R.string.common_cancel) { _, _ -> it() } }
+            neutral?.let { setNeutralButton(R.string.common_retry) { _, _ -> it() } }
         }
     }
 }
