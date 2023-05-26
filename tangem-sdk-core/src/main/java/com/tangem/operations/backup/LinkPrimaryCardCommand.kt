@@ -47,7 +47,7 @@ class LinkPrimaryCardCommand(
             return TangemSdkError.BackupFailedFirmware()
         }
         if (card.wallets.isNotEmpty()) {
-            return TangemSdkError.BackupFailedNotEmptyWallets()
+            return TangemSdkError.BackupFailedNotEmptyWallets(cardId = card.cardId)
         }
         if (!card.settings.isBackupAllowed) {
             return TangemSdkError.BackupNotAllowed()
