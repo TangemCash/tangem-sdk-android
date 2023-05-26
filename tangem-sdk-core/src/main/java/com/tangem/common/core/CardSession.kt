@@ -308,7 +308,7 @@ class CardSession(
                 is CompletionResult.Failure -> {
                     val wrongType = when (result.error) {
                         is TangemSdkError.WrongCardType -> WrongValueType.CardType
-                        is TangemSdkError.WrongCardNumber -> WrongValueType.CardId
+                        is TangemSdkError.WrongCardNumber -> WrongValueType.CardId(result.error.cardId)
                         else -> null
                     }
                     if (wrongType != null) {

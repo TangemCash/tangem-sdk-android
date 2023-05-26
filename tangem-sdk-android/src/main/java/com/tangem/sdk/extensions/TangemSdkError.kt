@@ -33,7 +33,6 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.ResetBackupFailedHasBackedUpWallets,
         is TangemSdkError.ResetPinNoCardsToReset,
         is TangemSdkError.TooMuchBackupCards,
-        is TangemSdkError.IssuerSignatureLoadingFailed,
         is TangemSdkError.UserForgotTheCode,
         is TangemSdkError.BiometricsAuthenticationFailed,
         is TangemSdkError.BiometricsUnavailable,
@@ -46,12 +45,9 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.MnemonicException,
         is TangemSdkError.KeysImportDisabled,
         is TangemSdkError.WalletAlreadyCreated,
-        is TangemSdkError.UserCodeRecoveryDisabled,
         is TangemSdkError.BiometricCryptographyKeyInvalidated,
         is TangemSdkError.UnsupportedCurve,
         is TangemSdkError.InvalidParams,
-        -> null
-
         is TangemSdkError.SerializeCommandError,
         is TangemSdkError.DeserializeApduFailed,
         is TangemSdkError.UnknownStatus,
@@ -59,12 +55,30 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.InvalidState,
         is TangemSdkError.InsNotSupported,
         is TangemSdkError.NeedEncryption,
-        is TangemSdkError.FileNotFound,
-        is TangemSdkError.AccessCodeRequired,
-        is TangemSdkError.PasscodeRequired,
         is TangemSdkError.UnknownError,
         is TangemSdkError.MissingPreflightRead,
-        -> R.string.error_operation
+        is TangemSdkError.AlreadyPersonalized,
+        is TangemSdkError.Busy,
+        is TangemSdkError.CardError,
+        is TangemSdkError.CardWithMaxZeroWallets,
+        is TangemSdkError.OverwritingDataIsProhibited,
+        is TangemSdkError.DataCannotBeWritten,
+        is TangemSdkError.DataSizeTooLarge,
+        is TangemSdkError.EmptyHashes,
+        is TangemSdkError.InvalidResponse,
+        is TangemSdkError.MissingCounter,
+        is TangemSdkError.MaxNumberOfWalletsCreated,
+        is TangemSdkError.NotPersonalized,
+        is TangemSdkError.TagLost,
+        is TangemSdkError.VerificationFailed,
+        is TangemSdkError.WalletCannotBeCreated,
+        is TangemSdkError.UnsupportedWalletConfig,
+        is TangemSdkError.WalletIsNotCreated,
+        is TangemSdkError.WalletIsPurged,
+        is TangemSdkError.HashSizeMustBeEqual,
+        is TangemSdkError.SignHashesNotAvailable,
+        is TangemSdkError.CardVerificationFailed,
+        -> null
 
         is TangemSdkError.BackupFailedEmptyWallets,
         is TangemSdkError.BackupFailedHDWalletSettings,
@@ -79,24 +93,12 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.BackupFailedAlreadyCreated,
         -> R.string.error_backup_wrong_card
 
-        is TangemSdkError.TagLost -> R.string.error_tag_lost
         is TangemSdkError.ExtendedLengthNotSupported -> R.string.error_extended_apdu_not_supported
-        is TangemSdkError.AlreadyPersonalized -> R.string.error_already_personalized
-        is TangemSdkError.CannotBeDepersonalized -> R.string.error_cannot_be_depersonalized
         is TangemSdkError.AlreadyCreated -> R.string.error_already_created
         is TangemSdkError.PurgeWalletProhibited -> R.string.error_purge_prohibited
         is TangemSdkError.AccessCodeCannotBeChanged,
         is TangemSdkError.PasscodeCannotBeChanged,
         -> R.string.error_pin_cannot_be_changed_format
-
-        is TangemSdkError.HashSizeMustBeEqual,
-        is TangemSdkError.SignHashesNotAvailable,
-        is TangemSdkError.TooManyHashesInOneTransaction,
-        -> R.string.error_cannot_be_signed
-
-        is TangemSdkError.OverwritingDataIsProhibited,
-        is TangemSdkError.DataCannotBeWritten,
-        -> R.string.error_data_cannot_be_written
 
         is TangemSdkError.WrongPasscode,
         is TangemSdkError.WrongAccessCode,
@@ -108,34 +110,18 @@ fun TangemSdkError.localizedDescription(context: Context): String {
 
         is TangemSdkError.AccessCodeCannotBeDefault -> R.string.error_pin_cannot_be_default_format
         is TangemSdkError.NoRemainingSignatures -> R.string.error_no_remaining_signatures
-        is TangemSdkError.EmptyHashes -> R.string.error_empty_hashes
-        is TangemSdkError.WalletIsNotCreated -> R.string.error_wallet_is_not_created
-        is TangemSdkError.WalletIsPurged -> R.string.error_wallet_is_purged
-        is TangemSdkError.NotPersonalized -> R.string.error_not_personalized
         is TangemSdkError.NotActivated -> R.string.error_not_activated
-        is TangemSdkError.VerificationFailed -> R.string.error_verification_failed
-        is TangemSdkError.DataSizeTooLarge -> R.string.error_data_size_too_large
-        is TangemSdkError.ExtendedDataSizeTooLarge -> R.string.error_data_size_too_large_extended
-        is TangemSdkError.MissingCounter -> R.string.error_missing_counter
-        is TangemSdkError.MissingIssuerPubicKey -> R.string.error_missing_issuer_public_key
-        is TangemSdkError.CardVerificationFailed -> R.string.error_card_verification_failed
         is TangemSdkError.UserCancelled -> R.string.error_user_cancelled
-        is TangemSdkError.Busy -> R.string.error_busy
-        is TangemSdkError.WrongCardNumber -> R.string.error_wrong_card_number
+        is TangemSdkError.WrongCardNumber -> R.string.error_wrong_card_number_with_card_id
         is TangemSdkError.WrongCardType -> R.string.error_wrong_card_type
-        is TangemSdkError.CardError -> R.string.error_card_error
-        is TangemSdkError.InvalidResponse -> R.string.error_invalid_response
         is TangemSdkError.NotSupportedFirmwareVersion -> R.string.error_old_firmware
-        is TangemSdkError.MaxNumberOfWalletsCreated -> R.string.error_no_space_for_new_wallet
-        is TangemSdkError.CardReadWrongWallet -> R.string.error_card_read_wrong_wallet
         is TangemSdkError.WalletNotFound -> R.string.wallet_not_found
-        is TangemSdkError.CardWithMaxZeroWallets -> R.string.error_card_with_max_zero_wallets
-        is TangemSdkError.WalletError -> R.string.error_wallet_error
-        is TangemSdkError.UnsupportedWalletConfig -> R.string.error_wallet_index_not_correct
-        is TangemSdkError.WalletCannotBeCreated -> R.string.error_wallet_cannot_be_created
         is TangemSdkError.BackupFailedNotEmptyWallets -> R.string.error_backup_not_empty_wallets
         is TangemSdkError.ResetPinWrongCard -> R.string.error_reset_wrong_card
-        is TangemSdkError.WrongInteractionMode -> R.string.error_wrong_interaction_mode
+        is TangemSdkError.UserCodeRecoveryDisabled -> R.string.error_user_code_recovery_disabled
+        is TangemSdkError.IssuerSignatureLoadingFailed -> R.string.issuer_signature_loading_failed
+        is TangemSdkError.FileNotFound -> R.string.error_file_not_found
+        is TangemSdkError.AccessCodeRequired, is TangemSdkError.PasscodeRequired -> R.string.error_pin_required_format
     }
 
     return if (resId == null) {
@@ -164,6 +150,8 @@ fun TangemSdkError.localizedDescription(context: Context): String {
             is TangemSdkError.PasscodeCannotBeChanged,
             is TangemSdkError.WrongPasscode,
             -> context.getString(resId, context.getString(R.string.pin2))
+
+            is TangemSdkError.WrongCardNumber -> context.getString(resId, cardId)
 
             else -> context.getString(resId)
         }

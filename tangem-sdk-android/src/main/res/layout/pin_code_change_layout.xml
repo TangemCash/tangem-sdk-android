@@ -99,6 +99,6 @@
         android:layout_marginBottom="16dp"
         android:insetTop="0dp"
         android:insetBottom="0dp"
-        android:text="@string/common_save" />
+        android:text="@string/common_continue" />
 
 </LinearLayout>
