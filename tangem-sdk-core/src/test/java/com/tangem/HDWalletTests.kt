@@ -97,6 +97,13 @@ class HDWalletTests {
         assertThrows<HDWalletError> { DerivationPath("44'/m'/0'/1/0") }
         assertThrows<HDWalletError> { DerivationPath("m /") }
         assertThrows<HDWalletError> { DerivationPath("m|44'|0'|0'|1|0") }
+
+        val derivationPathNormalized = DerivationPath(rawPath = "m/44'/0'/0/1'/1/5/5'/9/9'")
+        val derivationPathNotNormalized = DerivationPath(
+            rawPath =
+            "m/044'/00'/00/001'/001/00005/00005'/00000000000000000000000000009/00000000000000000000000000009'",
+        )
+        assertEquals(derivationPathNormalized, derivationPathNotNormalized)
     }
 
     @Test
