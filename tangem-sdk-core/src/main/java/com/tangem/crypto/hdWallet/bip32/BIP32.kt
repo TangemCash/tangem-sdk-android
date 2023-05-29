@@ -51,11 +51,10 @@ object BIP32 {
 
 private val EllipticCurve.hmacKey: BIP32.HMACKey
     get() = when (this) {
-        EllipticCurve.Secp256k1 -> BIP32.HMACKey.Secp256k1
+        EllipticCurve.Secp256k1, EllipticCurve.Bip0340 -> BIP32.HMACKey.Secp256k1
         EllipticCurve.Ed25519 -> BIP32.HMACKey.Ed25519
         EllipticCurve.Secp256r1 -> BIP32.HMACKey.Secp256r1
         EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop ->
             // https://eips.ethereum.org/EIPS/eip-2333#derive_master_sk
             throw TangemSdkError.UnsupportedCurve() // TODO: implement
-        EllipticCurve.Bip0340 -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
     }
