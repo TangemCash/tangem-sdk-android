@@ -98,6 +98,7 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
                     }
                 }
             }
+            else -> Unit
         }
     }
 }

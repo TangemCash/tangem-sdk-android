@@ -74,7 +74,7 @@ object CryptoUtils {
      * to the provided public key.
      *
      * @param publicKey Corresponding to the private key that was used to sing a message
-     * @param message The data that was signed
+     * @param hash The hash that was signed
      * @param signature Signed data
      * @param curve Elliptic curve used
      *
@@ -114,7 +114,7 @@ object CryptoUtils {
             EllipticCurve.Secp256r1 -> Secp256r1.generatePublicKey(privateKey, compressed)
             EllipticCurve.Ed25519 -> Ed25519.generatePublicKey(privateKey)
             EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop ->
-                throw TangemSdkError.UnsupportedCurve() // TODO: implement
+                Bls.generatePublicKey(privateKey)
             EllipticCurve.Bip0340 -> Bip0340.generatePublicKey(privateKey)
         }
     }
@@ -125,7 +125,7 @@ object CryptoUtils {
             EllipticCurve.Secp256r1 -> Secp256r1.loadPublicKey(publicKey)
             EllipticCurve.Ed25519 -> Ed25519.loadPublicKey(publicKey)
             EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop ->
-                throw TangemSdkError.UnsupportedCurve() // TODO: implement
+                throw UnsupportedOperationException()
         }
     }
 

@@ -149,6 +149,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
             is CompletionResult.Failure -> {
                 if (result.error is TangemSdkError.UserCancelled) return
             }
+            is CompletionResult.Success -> Unit
         }
         commandState.isActive = false
     }
