@@ -41,6 +41,13 @@ internal class CryptoUtilsTest {
             .isTrue()
     }
 
+    @Test
+    internal fun verifyBip0340Sign() {
+        val verified = verifySignature_withSampleData(EllipticCurve.Bip0340)
+        assertThat(verified)
+            .isTrue()
+    }
+
     private fun verifySignature_withSampleData(curve: EllipticCurve): Boolean {
         val privateKey = ByteArray(32) { 1 }
         val publicKey = generatePublicKey(privateKey, curve)
@@ -94,5 +101,35 @@ internal class CryptoUtilsTest {
                 EllipticCurve.Secp256r1,
             ),
         )
+    }
+
+    @Test
+    fun testSchnorrVerifyByHash() {
+        val pubKey = "208BDB9C192B5DE5DDEBA9CA8500EEC10DECB9A0980C4664F5B168F6B37EB92A".hexToBytes()
+        val hash = "0000000000000000000000000000000000000000000000000000000000000000".hexToBytes()
+        val signature =
+            "735951D8481B99777AB0ABADEFDA903E485756DE3599E75AF655B7F26CB7634956DEDEB89DB3E40A7B9ED095E5855290F8EB85C22E57A001A4A64385AB11A5B3".hexToBytes()
+        val verify = CryptoUtils.verifyHash(
+            publicKey = pubKey,
+            hash = hash,
+            signature = signature,
+            curve = EllipticCurve.Bip0340,
+        )
+        assertTrue(verify)
+    }
+
+    @Test
+    fun testSchnorrVerifyByMessage() {
+        val pubKey = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659".hexToBytes()
+        val message = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89".hexToBytes()
+        val signature =
+            "0560D3B34117AAE83F028AB92B3F8C16E3FDA34D55D3C7A2E1F2EDFE0A0071491D8D2302A6810FC017EE4CBF6BF13ADF36F9C0967FFCFE1A64BCBBDA73CA813B".hexToBytes()
+        val verify = verify(
+            publicKey = pubKey,
+            message = message,
+            signature = signature,
+            curve = EllipticCurve.Bip0340,
+        )
+        assertTrue(verify)
     }
 }
