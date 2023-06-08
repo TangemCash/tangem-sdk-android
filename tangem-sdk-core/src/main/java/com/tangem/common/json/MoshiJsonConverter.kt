@@ -18,9 +18,9 @@ import com.tangem.common.card.SigningMethod
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
+import com.tangem.crypto.hdWallet.BIP44
 import com.tangem.crypto.hdWallet.DerivationNode
 import com.tangem.crypto.hdWallet.DerivationPath
-import com.tangem.crypto.hdWallet.BIP44
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
@@ -227,22 +227,28 @@ class TangemSdkAdapter {
     }
 
     class FirmwareVersionAdapter : JsonAdapter<FirmwareVersion>() {
+
         @FromJson
-        override fun fromJson(reader: JsonReader): FirmwareVersion {
+        override fun fromJson(reader: JsonReader): FirmwareVersion? {
             var version: FirmwareVersion? = null
+
             reader.beginObject()
             while (reader.hasNext()) {
                 when (reader.nextName()) {
-                    "stringValue" -> version = FirmwareVersion(reader.nextString())
+                    "stringValue" -> {
+                        version = FirmwareVersion(version = reader.nextString())
+                    }
                     else -> reader.skipValue()
                 }
             }
             reader.endObject()
-            return version ?: error("Error")
+
+            return version
         }
 
         @ToJson
         override fun toJson(writer: JsonWriter, value: FirmwareVersion?) {
+            // All fields must be filled in to display accurate information in the logs
             writer.beginObject()
             value?.major?.let { writer.name("major").value(it) }
             value?.minor?.let { writer.name("minor").value(it) }
