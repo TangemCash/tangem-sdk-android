@@ -426,6 +426,7 @@ class TangemSdkAdapter {
             when (src) {
                 is Card.BackupStatus.CardLinked -> result["cardsCount"] = src.cardsCount.toString()
                 is Card.BackupStatus.Active -> result["cardsCount"] = src.cardsCount.toString()
+                else -> Unit
             }
             return result
         }

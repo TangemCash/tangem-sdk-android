@@ -3,6 +3,7 @@ package com.tangem.operations.wallet
 import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
 import com.tangem.common.MaskBuilder
+import com.tangem.common.MasterKeyFactory
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -22,7 +23,6 @@ import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
-import com.tangem.crypto.hdWallet.bip32.BIP32
 import com.tangem.crypto.hdWallet.bip32.ExtendedPrivateKey
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
@@ -63,7 +63,7 @@ internal class CreateWalletCommand @Throws constructor(
         private set
 
     private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
-    private val privateKey: ExtendedPrivateKey? = seed?.let { BIP32.makeMasterKey(seed, curve) }
+    private val privateKey: ExtendedPrivateKey? = seed?.let { MasterKeyFactory.makePrivateKey(seed, curve) }
 
     override fun requiresPasscode(): Boolean = true
 
