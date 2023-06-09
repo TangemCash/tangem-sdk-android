@@ -1,15 +1,15 @@
-apply plugin: "kotlin"
-apply plugin: 'org.jetbrains.dokka'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'com.squareup.sqldelight'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'org.jetbrains.dokka'
+    id 'com.squareup.sqldelight'
+}
 apply from: '../dependencies.gradle'
 apply from: '../artifactConfig.gradle'
-apply from: '../upload.gradle'
 
 dependencies {
     // kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$versions.kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$libs.versions.kotlin"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.3.9"
 
@@ -31,7 +31,7 @@ dependencies {
     // tests
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
     testImplementation "com.google.truth:truth:1.1.3"
-    testImplementation "org.jetbrains.kotlin:kotlin-test:$versions.kotlin"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:1.7.10"
 }
 
 sqldelight {
@@ -40,30 +40,17 @@ sqldelight {
     }
 }
 
-sourceCompatibility = "8"
-targetCompatibility = "8"
+sourceCompatibility = "11"
+targetCompatibility = "11"
 
-buildscript {
-    ext.dokka_version = '0.10.0'
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-    }
-}
-repositories {
-    mavenCentral()
-}
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = '11'
     }
 }
 compileTestKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = '1.11'
     }
 }
 

@@ -1,10 +1,11 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply from: '../dependencies.gradle'
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.android.extensions'
+    id 'maven-publish'
+}
+
 apply from: '../artifactConfig.gradle'
-apply from: '../upload.gradle'
-apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 32
@@ -28,11 +29,50 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = "$artifactConfig.group"
+                artifactId = "$project.artifactId"
+                version = "$artifactConfig.version"
+
+                if (artifactId == "android") {
+                    from components.release
+                    artifact(sourceJar)
+
+                    pom.withXml {
+                        Node pomNode = asNode()
+                        pomNode.dependencies.'*'.findAll() {
+                            it.groupId.text() == artifactConfig.group
+                        }.each() { it.parent().remove(it) }
+
+                        pomNode.dependencies.'*'.findAll() {
+                            it.scope.text() == 'runtime'
+                        }.each { it.scope*.value = 'compile' }
+                    }
+                } else if (artifactId == "core") {
+                    from components.java
+                }
+            }
+        }
+        repositories {
+            maven {
+                url = "https://nexus.tangem-tech.com/repository/maven-releases"
+                credentials {
+                    username = "$nexusUser"
+                    password = "$nexusPass"
+                }
+            }
+        }
     }
 }
 
@@ -46,8 +86,8 @@ dependencies {
     implementation project(':tangem-sdk-core')
 
     // kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$versions.kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$libs.versions.kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$libs.versions.kotlin"
 
     // coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9'
