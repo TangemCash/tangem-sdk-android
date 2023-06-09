@@ -1,6 +1,6 @@
 ext {
     versions = [
-        kotlin            : '1.5.30',
+        kotlin            : '1.7.21',
         build_gradle      : '7.4.2',
         detekt            : '1.22.0',
         composeDetektRules: '1.2.2'
