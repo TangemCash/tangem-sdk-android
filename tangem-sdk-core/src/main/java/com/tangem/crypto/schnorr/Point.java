@@ -1,6 +1,5 @@
 package com.tangem.crypto.schnorr;
 
-import com.sun.tools.javac.util.Pair;
 
 import org.junit.Assert;
 
@@ -44,11 +43,11 @@ class Point  {
     }
 
     public BigInteger getX() {
-        return pair.fst;
+        return pair.getLeft();
     }
 
     public BigInteger getY() {
-        return pair.snd;
+        return pair.getRight();
     }
 
     public static BigInteger getX(Point P) {
@@ -64,7 +63,7 @@ class Point  {
     }
 
     public boolean isInfinite() {
-        return pair == null || pair.fst == null || pair.snd == null;
+        return pair == null || pair.getLeft() == null || pair.getRight() == null;
     }
 
     public static boolean isInfinite(Point P) {

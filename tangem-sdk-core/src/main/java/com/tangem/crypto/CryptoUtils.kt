@@ -64,7 +64,7 @@ object CryptoUtils {
             EllipticCurve.Secp256r1 -> Secp256r1.verify(publicKey, message, signature)
             EllipticCurve.Ed25519 -> Ed25519.verify(publicKey, message, signature)
             EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop ->
-                throw TangemSdkError.UnsupportedCurve()
+                Bls.verify(publicKey, message, signature, curve)
             EllipticCurve.Bip0340 -> Bip0340.verify(publicKey, message, signature)
         }
     }
@@ -91,7 +91,7 @@ object CryptoUtils {
             EllipticCurve.Secp256r1 -> Secp256r1.verify(publicKey, hash, signature)
             EllipticCurve.Ed25519 -> Ed25519.verifyHash(publicKey, hash, signature)
             EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop ->
-                throw TangemSdkError.UnsupportedCurve()
+                Bls.verifyHash(publicKey, hash, signature)
             EllipticCurve.Bip0340 -> Bip0340.verifyHash(publicKey, hash, signature)
         }
     }
@@ -156,7 +156,7 @@ object CryptoUtils {
             EllipticCurve.Secp256r1 -> Secp256r1.isPrivateKeyValid(privateKey)
             EllipticCurve.Ed25519 -> Ed25519.isPrivateKeyValid(privateKey)
             EllipticCurve.Bls12381G2, EllipticCurve.Bls12381G2Aug, EllipticCurve.Bls12381G2Pop,
-            -> throw TangemSdkError.UnsupportedCurve() // TODO: implement
+            -> Bls.isPrivateKeyValid(privateKey)
         }
     }
 }
