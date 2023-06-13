@@ -56,9 +56,15 @@ class PinCodeModificationWidget(
     override fun setState(params: SessionViewDelegateState) {
         if (params is SessionViewDelegateState.PinChangeRequested) {
             userCodeType = params.type
+            clearFields()
             setStateByMode()
             postUI(msTime = 1000) { etPinCode.showSoftKeyboard() }
         }
+    }
+
+    private fun clearFields() {
+        etPinCode.setText("")
+        etPinCodeConfirm.setText("")
     }
 
     private fun setStateByMode() {
