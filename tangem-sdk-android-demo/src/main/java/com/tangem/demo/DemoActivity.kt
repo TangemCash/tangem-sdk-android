@@ -11,6 +11,7 @@ import com.tangem.Log
 import com.tangem.LogFormat
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
+import com.tangem.TangemSdkLogger
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.Config
@@ -21,17 +22,31 @@ import com.tangem.demo.ui.separtedCommands.CommandListFragment
 import com.tangem.demo.ui.settings.SettingsFragment
 import com.tangem.demo.ui.viewDelegate.ViewDelegateFragment
 import com.tangem.sdk.DefaultSessionViewDelegate
-import com.tangem.sdk.extensions.createLogger
 import com.tangem.sdk.extensions.getWordlist
 import com.tangem.sdk.extensions.initBiometricManager
 import com.tangem.sdk.extensions.initNfcManager
 import com.tangem.sdk.storage.create
 import com.tangem.tangem_demo.R
 import kotlinx.android.synthetic.main.activity_demo.*
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class DemoActivity : AppCompatActivity() {
 
-    val logger = TangemSdk.createLogger(LogFormat.StairsFormatter())
+    val logCollector = LogCollector(
+        listOf(
+            Log.Level.ApduCommand,
+            Log.Level.Apdu,
+            Log.Level.Tlv,
+            Log.Level.Nfc,
+            Log.Level.Command,
+            Log.Level.Session,
+            Log.Level.View,
+            Log.Level.Network,
+            Log.Level.Error,
+        ),
+        LogFormat.StairsFormatter(),
+    )
 
     lateinit var sdk: TangemSdk
         private set
@@ -50,7 +65,7 @@ class DemoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
 
-        Log.addLogger(logger)
+        Log.addLogger(logCollector)
         viewPager.adapter = ViewPagerAdapter(fragmentPages, this)
         viewPager.registerOnPageChangeCallback(
             object : ViewPager2.OnPageChangeCallback() {
@@ -111,4 +126,28 @@ class DemoActivity : AppCompatActivity() {
 
         override fun createFragment(position: Int): Fragment = fgList[position].newInstance()
     }
+}
+
+class LogCollector(
+    private val levels: List<Log.Level>,
+    private val messageFormatter: LogFormat,
+) : TangemSdkLogger {
+
+    private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
+    private val logs = mutableListOf<String>()
+    private val mutex = Object()
+
+    override fun log(message: () -> String, level: Log.Level) {
+        if (!levels.contains(level)) return
+
+        synchronized(mutex) {
+            val formattedMessage = messageFormatter.format(message, level)
+            val logMessage = "${dateFormatter.format(Date())}: $formattedMessage"
+            logs.add("$logMessage\n")
+        }
+    }
+
+    fun getLogs(): List<String> = synchronized(mutex) { logs.toList() }
+
+    fun clearLogs() = synchronized(mutex) { logs.clear() }
 }

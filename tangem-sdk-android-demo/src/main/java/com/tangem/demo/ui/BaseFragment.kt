@@ -2,6 +2,7 @@ package com.tangem.demo.ui
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,6 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Message
 import com.tangem.TangemSdk
-import com.tangem.TangemSdkLogger
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
@@ -37,6 +37,7 @@ import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.sign
 import com.tangem.demo.DemoActivity
 import com.tangem.demo.DemoApplication
+import com.tangem.demo.LogCollector
 import com.tangem.demo.Personalization
 import com.tangem.demo.PurgeAllWalletsTask
 import com.tangem.demo.Utils
@@ -64,7 +65,7 @@ abstract class BaseFragment : Fragment() {
 
     protected val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
     protected val sdk: TangemSdk by lazy { (requireActivity() as DemoActivity).sdk }
-    protected val logger: TangemSdkLogger by lazy { (requireActivity() as DemoActivity).logger }
+    protected val logCollector: LogCollector by lazy { (requireActivity() as DemoActivity).logCollector }
 
     protected lateinit var shPrefs: SharedPreferences
     protected var bshDlg: BottomSheetDialog? = null
@@ -490,6 +491,9 @@ abstract class BaseFragment : Fragment() {
         tv.text = message
         dlg.btnCopyResponse.setOnClickListener { tv.context.copyToClipboard(message) }
         dlg.show()
+
+        logCollector.getLogs().forEach { Log.d("LOG", it) }
+        logCollector.clearLogs()
     }
 
     protected fun showToast(message: String) {
