@@ -1,0 +1,3 @@
+[submodule "tangem-android-tools"]
+	path = tangem-android-tools
+	url = git@github.com:tangem/tangem-android-tools.git

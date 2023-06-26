@@ -17,7 +17,7 @@ detekt {
     ignoreFailures = false
     autoCorrect = true
     buildUponDefaultConfig = true
-    config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+    config.setFrom(rootProject.files("tangem-android-tools/detekt-config.yml"))
 }
 
 tasks.withType(io.gitlab.arturbosch.detekt.Detekt) {
