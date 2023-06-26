@@ -34,7 +34,10 @@ internal class BIP32Test {
         )
 
         val masterKey2 = BIP32.makeMasterKey(
-            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes(),
+            (
+                "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6" +
+                    "c696663605d5a5754514e4b484542"
+                ).hexToBytes(),
             EllipticCurve.Secp256k1,
         )
         assertEquals(
@@ -61,7 +64,10 @@ internal class BIP32Test {
 
         val masterKey2 =
             BIP32.makeMasterKey(
-                "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes(),
+                (
+                    "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b78757" +
+                        "26f6c696663605d5a5754514e4b484542"
+                    ).hexToBytes(),
                 EllipticCurve.Secp256r1,
             )
         assertEquals(
@@ -89,7 +95,10 @@ internal class BIP32Test {
 
         val masterKey2 =
             BIP32.makeMasterKey(
-                "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes(),
+                (
+                    "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b78757" +
+                        "26f6c696663605d5a5754514e4b484542"
+                    ).hexToBytes(),
                 EllipticCurve.Ed25519,
             )
         assertEquals(
@@ -125,7 +134,10 @@ internal class BIP32Test {
         val seed: ByteArray = mnemonic.generateSeed().successOrNull()!!
         assertEquals(
             seed.toHexString().lowercase(),
-            "d3eea633215dc4cb8ec2acd0d413adec1ebccb597ecf279886e584e9cb9ceb0788eb6f17a585acc12bc58fd586df6bbbdf39af955656f24215cceab174344e62".lowercase(),
+            (
+                "d3eea633215dc4cb8ec2acd0d413adec1ebccb597ecf279886e584e9cb9ceb0788eb6f17a585acc12bc58fd586df6bbbdf3" +
+                    "9af955656f24215cceab174344e62"
+                ).lowercase(),
         )
 
         val extendedPrivateKey = BIP32.makeMasterKey(seed, EllipticCurve.Secp256k1)
@@ -148,20 +160,25 @@ internal class BIP32Test {
         val xpriv = mPriv.serialize(NetworkType.Mainnet)
         assertEquals(
             xpriv,
-            "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi",
+            "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBe" +
+                "Jgk33yuGBxrMPHi",
         )
 
         val xpub = mPub.serialize(NetworkType.Mainnet)
         assertEquals(
             xpub,
-            "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8",
+            "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7us" +
+                "UDFdp6W1EGMcet8",
         )
     }
 
     @Test
     fun testMasterVector2() {
         val seed =
-            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes()
+            (
+                "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6" +
+                    "c696663605d5a5754514e4b484542"
+                ).hexToBytes()
 
         val mPriv = BIP32.makeMasterKey(seed, EllipticCurve.Secp256k1)
         val mPub = mPriv.makePublicKey(EllipticCurve.Secp256k1)
@@ -169,13 +186,15 @@ internal class BIP32Test {
         val xpriv = mPriv.serialize(NetworkType.Mainnet)
         assertEquals(
             xpriv,
-            "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U",
+            "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFt" +
+                "T2emdEXVYsCzC2U",
         )
 
         val xpub = mPub.serialize(NetworkType.Mainnet)
         assertEquals(
             xpub,
-            "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB",
+            "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47L" +
+                "JhkJ8UB7WEGuduB",
         )
 
         // Chain m/0
@@ -183,14 +202,18 @@ internal class BIP32Test {
         val derivedXPub = derivedPub.serialize(NetworkType.Mainnet)
         assertEquals(
             derivedXPub,
-            "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH",
+            "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1" +
+                "D3tgFxHmwMkQTPH",
         )
     }
 
     @Test
     fun testMasterVector3() {
         val seed =
-            "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be".hexToBytes()
+            (
+                "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2" +
+                    "e8a1e7d1457df2e5a3c51c73235be"
+                ).hexToBytes()
 
         val mPriv = BIP32.makeMasterKey(seed, EllipticCurve.Secp256k1)
         val mPub = mPriv.makePublicKey(EllipticCurve.Secp256k1)
@@ -198,12 +221,14 @@ internal class BIP32Test {
         val xpriv = mPriv.serialize(NetworkType.Mainnet)
         assertEquals(
             xpriv,
-            "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6",
+            "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pX" +
+                "eTzjuxBrCmmhgC6",
         )
         val xpub = mPub.serialize(NetworkType.Mainnet)
         assertEquals(
             xpub,
-            "xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z3GC8vBgp2epUt13",
+            "xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z" +
+                "3GC8vBgp2epUt13",
         )
     }
 
@@ -217,13 +242,15 @@ internal class BIP32Test {
         val xpriv = mPriv.serialize(NetworkType.Mainnet)
         assertEquals(
             xpriv,
-            "xprv9s21ZrQH143K48vGoLGRPxgo2JNkJ3J3fqkirQC2zVdk5Dgd5w14S7fRDyHH4dWNHUgkvsvNDCkvAwcSHNAQwhwgNMgZhLtQC63zxwhQmRv",
+            "xprv9s21ZrQH143K48vGoLGRPxgo2JNkJ3J3fqkirQC2zVdk5Dgd5w14S7fRDyHH4dWNHUgkvsvNDCkvAwcSHNAQwhwgNMgZ" +
+                "hLtQC63zxwhQmRv",
         )
 
         val xpub = mPub.serialize(NetworkType.Mainnet)
         assertEquals(
             xpub,
-            "xpub661MyMwAqRbcGczjuMoRm6dXaLDEhW1u34gKenbeYqAix21mdUKJyuyu5F1rzYGVxyL6tmgBUAEPrEz92mBXjByMRiJdba9wpnN37RLLAXa",
+            "xpub661MyMwAqRbcGczjuMoRm6dXaLDEhW1u34gKenbeYqAix21mdUKJyuyu5F1rzYGVxyL6tmgBUAEPrEz92mBXjByMRiJd" +
+                "ba9wpnN37RLLAXa",
         )
     }
 
@@ -265,7 +292,8 @@ internal class BIP32Test {
     }
 
     private fun getSeed(): ByteArray {
-        val mnemonicString = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        val mnemonicString = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon " +
+            "abandon about"
         val bip39 = createDefaultBIP39()
         val parsedMnemonic = bip39.parse(mnemonicString)
         return bip39.generateSeed(parsedMnemonic).successOrNull()!!
@@ -273,7 +301,7 @@ internal class BIP32Test {
     // endregion
 
     private fun createDefaultWordlist(): Wordlist {
-        val wordlistStream = getInputStreamForFile(BIP39WordlistTest.TEST_DICTIONARY_FILE_NAME)
+        val wordlistStream = getInputStreamForTestFile()
         return BIP39Wordlist(wordlistStream)
     }
 
@@ -281,7 +309,7 @@ internal class BIP32Test {
         return DefaultBIP39(createDefaultWordlist())
     }
 
-    private fun getInputStreamForFile(fileName: String): InputStream {
-        return object {}.javaClass.classLoader.getResourceAsStream(fileName)!!
+    private fun getInputStreamForTestFile(): InputStream {
+        return object {}.javaClass.classLoader.getResourceAsStream(BIP39WordlistTest.TEST_DICTIONARY_FILE_NAME)!!
     }
 }
