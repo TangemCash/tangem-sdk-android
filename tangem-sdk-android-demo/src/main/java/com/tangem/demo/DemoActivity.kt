@@ -138,7 +138,7 @@ class LogCollector(
     private val mutex = Object()
 
     override fun log(message: () -> String, level: Log.Level) {
-        if (!levels.contains(level)) return
+        if (level !in levels) return
 
         synchronized(mutex) {
             val formattedMessage = messageFormatter.format(message, level)
