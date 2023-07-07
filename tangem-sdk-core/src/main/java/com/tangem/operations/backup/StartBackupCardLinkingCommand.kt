@@ -30,7 +30,7 @@ class StartBackupCardLinkingCommand(
         if (!card.settings.isBackupAllowed) {
             return TangemSdkError.BackupNotAllowed()
         }
-        if (card.backupStatus != null && card.backupStatus.isActive) {
+        if (card.backupStatus?.canBackup != true) {
             return TangemSdkError.BackupFailedAlreadyCreated()
         }
         if (card.wallets.isNotEmpty()) {
