@@ -19,7 +19,7 @@ data class UserSettings(
 
     internal constructor(
         mask: UserSettingsMask,
-    ) : this(mask.contains(UserSettingsMask.Code.ForbidResetPIN))
+    ) : this(!mask.contains(UserSettingsMask.Code.ForbidResetPIN))
 }
 
 class UserSettingsMask(override var rawValue: Int) : BaseMask() {
