@@ -16,6 +16,9 @@ import com.tangem.operations.Command
  */
 class StartPrimaryCardLinkingCommand : Command<RawPrimaryCard>() {
 
+    override val allowsRequestAccessCodeFromRepository: Boolean
+        get() = false
+
     override fun requiresPasscode(): Boolean = false
 
     override fun performPreCheck(card: Card): TangemSdkError? {
