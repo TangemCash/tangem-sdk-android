@@ -16,6 +16,9 @@ import kotlinx.coroutines.launch
 
 class StartPrimaryCardLinkingTask : CardSessionRunnable<PrimaryCard> {
 
+    override val allowsRequestAccessCodeFromRepository: Boolean
+        get() = false
+
     private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
     override fun run(session: CardSession, callback: CompletionCallback<PrimaryCard>) {
