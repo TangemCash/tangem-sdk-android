@@ -88,6 +88,11 @@ data class CardWallet(
         Purged(code = 3),
 
         /**
+         * Empty wallet created because of error during backup
+         */
+        EmptyBackedUp(code = 0x81),
+
+        /**
          * Wallet created and can be used for signing, backup data read
          */
         BackedUp(code = 0x82),
@@ -122,7 +127,7 @@ data class CardWallet(
 
         val isAvailable: Boolean
             get() = when (this) {
-                Empty, Purged, BackedUpAndPurged -> false
+                Empty, Purged, BackedUpAndPurged, EmptyBackedUp -> false
                 else -> true
             }
 

@@ -195,7 +195,10 @@ data class Card internal constructor(
         data class Active(val cardsCount: Int) : BackupStatus()
 
         val isActive: Boolean
-            get() = this is Active || this is CardLinked
+            get() = this is Active
+
+        val canBackup: Boolean
+            get() = this is NoBackup
 
         val linkedCardsCount: Int
             get() = when (this) {
