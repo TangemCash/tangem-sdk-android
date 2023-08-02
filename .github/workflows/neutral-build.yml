@@ -44,7 +44,7 @@ jobs:
     - name: Build and publish
       run: |
         echo sdk.dir = $ANDROID_HOME > local.properties
-        ./gradlew -PnexusUser=${{ secrets.NEXUS_USERNAME }} -PnexusPass=${{ secrets.NEXUS_PASSWORD }} -PartifactVersion=${{ steps.extract_branch.outputs.branch }}-${{ github.run_number }} publish
+        ./gradlew -PgithubUser=${{ secrets.GITHUB_ACTOR }} -PgithubPass=${{ secrets.GITHUB_TOKEN }} -PartifactVersion=${{ steps.extract_branch.outputs.branch }}-${{ github.run_number }} publish
     
     - name: Build notification
       if: always()

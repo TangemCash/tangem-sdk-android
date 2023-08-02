@@ -4,7 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.squareup.sqldelight'
 apply from: '../dependencies.gradle'
 apply from: '../artifactConfig.gradle'
-apply from: '../upload.gradle'
+apply from: '../upload-github.gradle'
 
 dependencies {
     // kotlin
