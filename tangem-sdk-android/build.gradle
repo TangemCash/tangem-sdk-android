@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply from: '../dependencies.gradle'
 apply from: '../artifactConfig.gradle'
-apply from: '../upload.gradle'
+apply from: '../upload-github.gradle'
 apply plugin: 'maven-publish'
 
 android {
