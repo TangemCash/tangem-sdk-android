@@ -134,6 +134,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     // Read Errors
     class AccessCodeRequired : TangemSdkError(code = 40401)
+    class NonHardenedDerivationNotSupported : TangemSdkError(code = 40402)
     class WalletCannotBeCreated : TangemSdkError(code = 40403)
     class CardWithMaxZeroWallets : TangemSdkError(code = 40404)
     class WalletAlreadyCreated : TangemSdkError(code = 40405)

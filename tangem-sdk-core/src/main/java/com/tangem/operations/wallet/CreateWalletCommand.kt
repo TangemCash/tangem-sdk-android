@@ -3,7 +3,6 @@ package com.tangem.operations.wallet
 import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
 import com.tangem.common.MaskBuilder
-import com.tangem.common.MasterKeyFactory
 import com.tangem.common.apdu.CommandApdu
 import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
@@ -52,18 +51,17 @@ class CreateWalletResponse(
  * RemainingSignature is set to MaxSignatures.
  *
  *  @property curve: Elliptic curve of the wallet
- *  @param seed: BIP39 seed to create wallet from. COS v6+.
+ *  @param privateKey: A private key to import. COS v6+.
  */
 internal class CreateWalletCommand @Throws constructor(
     private val curve: EllipticCurve,
-    seed: ByteArray? = null,
+    private val privateKey: ExtendedPrivateKey? = null,
 ) : Command<CreateWalletResponse>() {
 
     var walletIndex: Int = 0
         private set
 
     private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
-    private val privateKey: ExtendedPrivateKey? = seed?.let { MasterKeyFactory.makePrivateKey(seed, curve) }
 
     override fun requiresPasscode(): Boolean = true
 

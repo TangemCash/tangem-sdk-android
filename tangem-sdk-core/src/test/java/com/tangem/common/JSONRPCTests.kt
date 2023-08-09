@@ -138,23 +138,6 @@ class JSONRPCTests {
     }
 
     @Test
-    fun testImportWalletSeed() {
-        val wallet = CardWallet(
-            publicKey = "5130869115a2ff91959774c99d4dc2873f0c41af3e0bb23d027ab16d39de1348".hexToBytes(),
-            chainCode = null,
-            curve = EllipticCurve.Secp256r1,
-            settings = CardWallet.Settings(true),
-            totalSignedHashes = 10,
-            remainingSignatures = 100,
-            index = 1,
-            isImported = false,
-            hasBackup = false,
-        )
-        val response = CreateWalletResponse(cardId = "c000111122223333", wallet = wallet)
-        testMethod(name = "ImportWalletSeed", response = response)
-    }
-
-    @Test
     fun testImportWalletMnemonic() {
         val wallet = CardWallet(
             publicKey = "029983A77B155ED3B3B9E1DDD223BD5AA073834C8F61113B2F1B883AAA70971B5F".hexToBytes(),

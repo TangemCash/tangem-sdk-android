@@ -1,5 +1,6 @@
 package com.tangem.crypto
 
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha512
 import net.i2p.crypto.eddsa.EdDSAEngine
 import net.i2p.crypto.eddsa.EdDSAPrivateKey
@@ -11,6 +12,8 @@ import java.security.MessageDigest
 import java.security.PublicKey
 
 object Ed25519 {
+
+    private const val ED25519_PRIVATE_KEY_SIZE = 32
 
     internal fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray): Boolean {
         val messageSha512 = message.calculateSha512()
@@ -47,6 +50,9 @@ object Ed25519 {
     }
 
     internal fun generatePublicKey(privateKeyArray: ByteArray): ByteArray {
+        if (privateKeyArray.size > ED25519_PRIVATE_KEY_SIZE) {
+            throw TangemSdkError.UnsupportedCurve()
+        }
         val spec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519)
         val privateKeySpec = EdDSAPrivateKeySpec(privateKeyArray, spec)
         val publicKeySpec = EdDSAPublicKeySpec(privateKeySpec.a, spec)

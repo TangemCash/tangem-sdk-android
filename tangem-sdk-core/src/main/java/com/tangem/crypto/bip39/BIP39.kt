@@ -28,4 +28,11 @@ interface BIP39 {
      *  @return The generated seed
      */
     fun generateSeed(mnemonicComponents: List<String>, passphrase: String = ""): CompletionResult<ByteArray>
+
+    /** Calculate initial entropy from mnemonic components.
+     * @param mnemonicComponents: Menemonic components to use
+     * @return Initial entropy
+     */
+    @Throws(TangemSdkError.MnemonicException::class)
+    fun getEntropy(mnemonicComponents: List<String>): ByteArray
 }
