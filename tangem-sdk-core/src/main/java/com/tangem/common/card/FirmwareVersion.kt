@@ -114,7 +114,12 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         /**
          * Keys import support
          */
-        val KeysImportAvailable = FirmwareVersion(6, 33)
+        val KeysImportAvailable = FirmwareVersion(6, 21)
+
+        /**
+         * Ed25519Slip support
+         */
+        val Ed25519Slip0010Available = FirmwareVersion(6, 33)
 
         val visaRange = 5.25..5.30
     }
