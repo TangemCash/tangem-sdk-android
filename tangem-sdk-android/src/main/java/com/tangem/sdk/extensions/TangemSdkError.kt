@@ -78,6 +78,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         is TangemSdkError.HashSizeMustBeEqual,
         is TangemSdkError.SignHashesNotAvailable,
         is TangemSdkError.CardVerificationFailed,
+        is TangemSdkError.NonHardenedDerivationNotSupported,
         -> null
 
         is TangemSdkError.BackupFailedEmptyWallets,

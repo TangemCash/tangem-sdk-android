@@ -5,6 +5,7 @@ sealed class MnemonicErrorResult {
     object InvalidEntropyLength : MnemonicErrorResult()
     object InvalidWordsFile : MnemonicErrorResult()
     object InvalidChecksum : MnemonicErrorResult()
+    object InvalidMnemonic : MnemonicErrorResult()
     object MnenmonicCreationFailed : MnemonicErrorResult()
     object NormalizationFailed : MnemonicErrorResult()
     object UnsupportedLanguage : MnemonicErrorResult()

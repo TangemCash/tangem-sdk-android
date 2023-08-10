@@ -87,6 +87,11 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
         val MultiWalletAvailable = FirmwareVersion(4, 0)
 
         /**
+         * BLS
+         */
+        val BlsAvailable = FirmwareVersion(4, 45)
+
+        /**
          * Field on card that describes is passcode is default value or not
          */
         val IsPasscodeStatusAvailable = FirmwareVersion(4, 1)
@@ -121,6 +126,9 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          */
         val Ed25519Slip0010Available = FirmwareVersion(6, 33)
 
+        /**
+         * Temporary range for visa cards
+         */
         val visaRange = 5.25..5.30
     }
 

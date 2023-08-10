@@ -8,6 +8,7 @@ import com.tangem.common.extensions.leadingZeroPadding
 import com.tangem.common.extensions.toBits
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.pbkdf2sha512
+import java.math.BigInteger
 import java.text.Normalizer
 
 internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
@@ -53,6 +54,38 @@ internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
         return CompletionResult.Success(normalizedMnemonic.pbkdf2sha512(salt = normalizedSalt, iterations = 2048))
     }
 
+    @Suppress("MagicNumber")
+    override fun getEntropy(mnemonicComponents: List<String>): ByteArray {
+        val wordlist = getWordlist(mnemonicComponents[0]).words
+        val wordlistDictionary = wordlist.withIndex().associate { it.value to it.index }
+
+        val concatenatedBits = mnemonicComponents.joinToString("") { word ->
+            val wordIndex = wordlistDictionary[word]
+                ?: throw TangemSdkError.MnemonicException(MnemonicErrorResult.InvalidMnemonic)
+            wordIndex.toString(2).leadingZeroPadding(11)
+        }
+
+        val checksumBitsCount = mnemonicComponents.size / 3
+        val entropyBitsCount = concatenatedBits.length - checksumBitsCount
+        val entropyBits = concatenatedBits.substring(0, entropyBitsCount)
+
+        val entropyData = try {
+            bitStringToByteArray(entropyBits)
+        } catch (exception: Exception) {
+            throw TangemSdkError.MnemonicException(MnemonicErrorResult.InvalidMnemonic)
+        }
+        return entropyData
+    }
+
+    private fun bitStringToByteArray(bitString: String): ByteArray {
+        val dataWithSignBit = BigInteger(bitString, 2).toByteArray()
+        return if (dataWithSignBit[0] == 0.toByte()) {
+            dataWithSignBit.drop(1).toByteArray()
+        } else {
+            dataWithSignBit
+        }
+    }
+
     @OptIn(ExperimentalUnsignedTypes::class)
     @Throws(TangemSdkError.MnemonicException::class)
     private fun validate(mnemonicComponents: List<String>) {
@@ -68,11 +101,8 @@ internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
         }
 
         // Validate wordlist by the first word
-        val wordlistWords = try {
-            getWordlist(mnemonicComponents[0]).words
-        } catch (e: TangemSdkError.MnemonicException) {
-            throw TangemSdkError.MnemonicException(MnemonicErrorResult.UnsupportedLanguage)
-        }
+        val wordlist = getWordlist(mnemonicComponents[0]).words
+        val wordlistDictionary = wordlist.withIndex().associate { it.value to it.index }
 
         // Validate all the words
         val invalidWords = mutableSetOf<String>()
@@ -81,8 +111,8 @@ internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
         val concatenatedBits = StringBuilder()
 
         mnemonicComponents.forEach { word ->
-            val wordIndex = wordlistWords.indexOfFirst { it == word }
-            if (wordIndex == -1) {
+            val wordIndex = wordlistDictionary[word]
+            if (wordIndex == null) {
                 invalidWords.add(word)
             } else {
                 val indexBits = Integer.toBinaryString(wordIndex).leadingZeroPadding(newLength = 11)
@@ -123,7 +153,7 @@ internal class DefaultBIP39(override val wordlist: Wordlist) : BIP39 {
         if (wordlist.words.contains(word)) {
             return wordlist
         }
-        throw TangemSdkError.MnemonicException(MnemonicErrorResult.InvalidWordsFile)
+        throw TangemSdkError.MnemonicException(MnemonicErrorResult.UnsupportedLanguage)
     }
 
     private fun generateMnemonic(entropyData: ByteArray, wordlist: Wordlist): List<String> {

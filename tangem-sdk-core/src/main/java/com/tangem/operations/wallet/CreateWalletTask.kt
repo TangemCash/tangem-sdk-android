@@ -8,8 +8,8 @@ import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.core.toTangemSdkError
 import com.tangem.common.extensions.guard
+import com.tangem.crypto.hdWallet.bip32.ExtendedPrivateKey
 import com.tangem.operations.derivation.DeriveWalletPublicKeysTask
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.read.ReadWalletsListCommand
@@ -26,21 +26,17 @@ import com.tangem.operations.read.ReadWalletsListCommand
  *
  * @property curve Elliptic curve of the wallet. [com.tangem.common.card.Card.supportedCurves] contains all curves
  * supported by the card
- * @property seed: BIP39 seed to create wallet from. COS v6+.
+ * @property privateKey: A private key to import. COS v6+.
  */
 class CreateWalletTask(
     private val curve: EllipticCurve,
-    private val seed: ByteArray? = null,
+    private val privateKey: ExtendedPrivateKey? = null,
 ) : CardSessionRunnable<CreateWalletResponse> {
 
     private var derivationTask: DeriveWalletPublicKeysTask? = null
 
     override fun run(session: CardSession, callback: CompletionCallback<CreateWalletResponse>) {
-        val command = try {
-            CreateWalletCommand(curve, seed)
-        } catch (e: Exception) {
-            return callback(CompletionResult.Failure(e.toTangemSdkError()))
-        }
+        val command = CreateWalletCommand(curve, privateKey)
 
         command.run(session) { result ->
             when (result) {

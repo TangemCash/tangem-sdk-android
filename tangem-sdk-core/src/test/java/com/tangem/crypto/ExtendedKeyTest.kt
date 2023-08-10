@@ -1,17 +1,24 @@
 package com.tangem.crypto
 
+import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateRipemd160
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.hexToBytes
+import com.tangem.common.extensions.toHexString
+import com.tangem.common.successOrNull
+import com.tangem.crypto.bip39.BIP39Wordlist
+import com.tangem.crypto.bip39.BIP39WordlistTest
+import com.tangem.crypto.bip39.DefaultMnemonic
+import com.tangem.crypto.bip39.Wordlist
 import com.tangem.crypto.hdWallet.DerivationNode
 import com.tangem.crypto.hdWallet.bip32.ExtendedPrivateKey
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
+import java.io.InputStream
 import kotlin.test.assertContentEquals
-import kotlin.test.assertFailsWith
 
 internal class ExtendedKeyTest {
 
@@ -104,152 +111,33 @@ internal class ExtendedKeyTest {
         )
     }
 
-    // https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#user-content-Test_Vectors
-    @Suppress("LongMethod")
     @Test
-    fun testBadKeys() {
-        // (invalid pubkey 020000000000000000000000000000000000000000000000000000000000000007)
-        assertFailsWith<Exception> {
-            ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Q5JXayek4PRsn35jii4ve" +
-                    "Mimro1xefsM58PgBMrvdYre8QyULY",
-                NetworkType.Mainnet,
-            )
-        }
+    fun testMetaMaskTwCompatible() {
+        val mnemonicPhrase = "scale wave venue cloth fruit empower afford one domain blouse romance artist"
+        val mnemonic = DefaultMnemonic(mnemonicPhrase, createDefaultWordlist())
+        val seed = mnemonic.generateSeed().successOrNull()!!
+        assertEquals(
+            seed.toHexString().lowercase(),
+            "d3eea633215dc4cb8ec2acd0d413adec1ebccb597ecf279886e584e9cb9ceb0788eb6f17a585acc12bc58fd586df6bbbdf39af955656f24215cceab174344e62",
+        )
 
-        // (unknown extended key version)
-        assertFailsWith<Exception> {
-            ExtendedPublicKey.from(
-                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHPmHJiEDXkTiJTVV9rHEBU" +
-                    "em2mwVbbNfvT2MTcAqj3nesx8uBf9",
-                NetworkType.Mainnet,
-            )
-        }
+        val extendedPrivateKey = com.tangem.crypto.hdWallet.bip32.BIP32.makeMasterKey(seed, EllipticCurve.Secp256k1)
 
-        // (unknown extended key version)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHGMQzT7ayAmfo4z3gY5Kfb" +
-                    "rZWZ6St24UVf2Qgo6oujFktLHdHY4",
-                NetworkType.Mainnet,
-            )
-        }
+        val pk = extendedPrivateKey.privateKey.toHexString().lowercase()
+        assertEquals(pk, "589aeb596710f33d7ac31598ec10440a7df8808cf2c3d69ba670ff3fae66aafb")
 
-        // (zero depth with non-zero index)
-        assertFailsWith<Exception> {
-            ExtendedPublicKey.from(
-                "xpub661MyMwAuDcm6CRQ5N4qiHKrJ39Xe1R1NyfouMKTTWcguwVcfrZJaNvhpebzGerh7gucBvzEQWRugZ" +
-                    "DuDXjNDRmXzSZe4c7mnTK97pTvGS8",
-                NetworkType.Mainnet,
-            )
-        }
+        assertEquals(
+            extendedPrivateKey.serializeToWIFCompressed(NetworkType.Mainnet),
+            "KzBwvPW6L5iwJSiE5vgS52Y69bUxfwizW3wF4C4Xa3ba3pdd7j63",
+        )
+    }
 
-        // (zero depth with non-zero parent fingerprint)
-        assertFailsWith<Exception> {
-            ExtendedPublicKey.from(
-                "xpub661no6RGEX3uJkY4bNnPcw4URcQTrSibUZ4NqJEw5eBkv7ovTwgiT91XX27VbEXGENhYRCf7hyEbWr" +
-                    "R3FewATdCEebj6znwMfQkhRYHRLpJ",
-                NetworkType.Mainnet,
-            )
-        }
+    private fun createDefaultWordlist(): Wordlist {
+        val wordlistStream = getInputStreamForTestFile()
+        return BIP39Wordlist(wordlistStream)
+    }
 
-        // (pubkey version / prvkey mismatch)
-        assertFailsWith<Exception> {
-            ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU521" +
-                    "AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (prvkey version / pubkey mismatch)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGTQQD3dC4H2D5GBj7vWvS" +
-                    "QaaBv5cxi9gafk7NF3pnBju6dwKvH",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (invalid pubkey prefix 04)
-        assertFailsWith<Exception> {
-            ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Txnt3siSujt9RCVYsx4qH" +
-                    "ZGc62TG4McvMGcAUjeuwZdduYEvFn",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (invalid prvkey prefix 04)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGpWnsj83BHtEy5Zt8CcDr" +
-                    "1UiRXuWCmTQLxEK9vbz5gPstX92JQ",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (invalid pubkey prefix 01)
-        assertFailsWith<Exception> {
-            ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6N8ZMMXctdiCjxTNq964yK" +
-                    "kwrkBJJwpzZS4HS2fxvyYUA4q2Xe4",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (invalid prvkey prefix 01)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMt" +
-                    "D9y5gkZ6Eq3Rjuahrv17fEQ3Qen6J",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (zero depth with non-zero parent fingerprint)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s2SPatNQ9Vc6GTbVMFPFo7jsaZySyzk7L8n2uqKXJen3KUmvQNTuLh3fhZMBoG3G4ZW1N2kZuHEPY" +
-                    "53qmbZzCHshoQnNf4GvELZfqTUrcv",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (zero depth with non-zero index)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s21ZrQH4r4TsiLvyLXqM9P7k1K3EYhA1kkD6xuquB5i39AU8KF42acDyL3qsDbU9NmZn6MsGSUYZE" +
-                    "suoePmjzsB3eFKSUEh3Gu1N3cqVUN",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (private key 0 not in 1..n-1)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzF93Y5wvzdUayhgkkFoicQZ" +
-                    "cP3y52uPPxFnfoLZB21Teqt1VvEHx",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (private key n not in 1..n-1)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMt" +
-                    "D5SDKr24z3aiUvKr9bJpdrcLg1y3G",
-                NetworkType.Mainnet,
-            )
-        }
-
-        // (invalid checksum)
-        assertFailsWith<Exception> {
-            ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5k" +
-                    "ejMRNNU3TGtRBeJgk33yuGBxrMPHL",
-                NetworkType.Mainnet,
-            )
-        }
+    private fun getInputStreamForTestFile(): InputStream {
+        return object {}.javaClass.classLoader.getResourceAsStream(BIP39WordlistTest.TEST_DICTIONARY_FILE_NAME)!!
     }
 }

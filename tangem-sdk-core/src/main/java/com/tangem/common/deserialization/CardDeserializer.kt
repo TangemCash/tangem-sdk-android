@@ -99,11 +99,25 @@ object CardDeserializer {
     }
 
     private fun supportedCurves(firmware: FirmwareVersion, defaultCurve: EllipticCurve?): List<EllipticCurve> {
-        return if (firmware < FirmwareVersion.MultiWalletAvailable) {
-            if (defaultCurve == null) listOf() else listOf(defaultCurve)
-        } else {
-            EllipticCurve.values().toList()
+        if (firmware < FirmwareVersion.MultiWalletAvailable) {
+            return if (defaultCurve == null) listOf() else listOf(defaultCurve)
         }
+        if (firmware < FirmwareVersion.BlsAvailable) {
+            return listOf(EllipticCurve.Secp256k1, EllipticCurve.Ed25519, EllipticCurve.Secp256r1)
+        }
+        if (firmware < FirmwareVersion.Ed25519Slip0010Available) {
+            return listOf(
+                EllipticCurve.Secp256k1,
+                EllipticCurve.Ed25519,
+                EllipticCurve.Secp256r1,
+                EllipticCurve.Bls12381G2,
+                EllipticCurve.Bls12381G2Aug,
+                EllipticCurve.Bls12381G2Pop,
+                EllipticCurve.Bip0340,
+            )
+        }
+
+        return EllipticCurve.values().toList()
     }
 
     private fun isAccessCodeSet(firmware: FirmwareVersion, decoder: TlvDecoder): Boolean? =

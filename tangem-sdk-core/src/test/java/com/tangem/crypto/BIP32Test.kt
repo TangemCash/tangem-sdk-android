@@ -11,10 +11,15 @@ import com.tangem.crypto.bip39.DefaultMnemonic
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.crypto.hdWallet.DerivationNode
 import com.tangem.crypto.hdWallet.bip32.BIP32
+import com.tangem.crypto.hdWallet.bip32.ExtendedPrivateKey
+import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.io.InputStream
+import kotlin.test.assertFailsWith
 
+// Tests for firmware 6.33
+// / https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#user-content-Test_Vectors
 internal class BIP32Test {
 
     init {
@@ -22,8 +27,139 @@ internal class BIP32Test {
     }
 
     @Test
+    fun testVector5() {
+        // (invalid pubkey 020000000000000000000000000000000000000000000000000000000000000007)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Q5JXayek4PRsn35jii4veMimro1xefsM58PgBMrvdYre8QyULY",
+                NetworkType.Mainnet,
+            )
+        }
+        // (unknown extended key version)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHPmHJiEDXkTiJTVV9rHEBUem2mwVbbNfvT2MTcAqj3nesx8uBf9",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (unknown extended key version)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHGMQzT7ayAmfo4z3gY5KfbrZWZ6St24UVf2Qgo6oujFktLHdHY4",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (zero depth with non-zero index)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "xpub661MyMwAuDcm6CRQ5N4qiHKrJ39Xe1R1NyfouMKTTWcguwVcfrZJaNvhpebzGerh7gucBvzEQWRugZDuDXjNDRmXzSZe4c7mnTK97pTvGS8",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (zero depth with non-zero parent fingerprint)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "xpub661no6RGEX3uJkY4bNnPcw4URcQTrSibUZ4NqJEw5eBkv7ovTwgiT91XX27VbEXGENhYRCf7hyEbWrR3FewATdCEebj6znwMfQkhRYHRLpJ",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (pubkey version / prvkey mismatch)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU521AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (prvkey version / pubkey mismatch)
+        assertFailsWith<Exception> {
+            ExtendedPrivateKey.from(
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGTQQD3dC4H2D5GBj7vWvSQaaBv5cxi9gafk7NF3pnBju6dwKvH",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (invalid pubkey prefix 04)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Txnt3siSujt9RCVYsx4qHZGc62TG4McvMGcAUjeuwZdduYEvFn",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (invalid prvkey prefix 04)
+        assertFailsWith<Exception> {
+            ExtendedPrivateKey.from(
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGpWnsj83BHtEy5Zt8CcDr1UiRXuWCmTQLxEK9vbz5gPstX92JQ",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (invalid pubkey prefix 01)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6N8ZMMXctdiCjxTNq964yKkwrkBJJwpzZS4HS2fxvyYUA4q2Xe4",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (invalid prvkey prefix 01)
+        assertFailsWith<Exception> {
+            ExtendedPrivateKey.from(
+                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMtD9y5gkZ6Eq3Rjuahrv17fEQ3Qen6J",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (zero depth with non-zero parent fingerprint)
+        assertFailsWith<Exception> {
+            ExtendedPrivateKey.from(
+                "xprv9s2SPatNQ9Vc6GTbVMFPFo7jsaZySyzk7L8n2uqKXJen3KUmvQNTuLh3fhZMBoG3G4ZW1N2kZuHEPY53qmbZzCHshoQnNf4GvELZfqTUrcv",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (zero depth with non-zero index)
+        assertFailsWith<Exception> {
+            ExtendedPrivateKey.from(
+                "xprv9s2SPatNQ9Vc9Umo8v8kmOT5XaBwKk2jMHhB9YGspgYh1qD9JTZT38pFZbtNkB7aBj6ZS3Hjag2SygmTPHDj3hHNuTzFQJfB9QgScSSisXT",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (pubkey version / prvkey mismatch)
+        assertFailsWith<Exception> {
+            ExtendedPrivateKey.from(
+                "xprv9s2SPatNQ9VcFJnClsD1XebPGCXrGqhSvkGkDLJj8C3s5Efi6Fkvi6MhUroj91qtHt2pMjehHf45yPPcA6xni5woQHVPUD9DkJxiD3TsFma",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (prvkey version / pubkey mismatch)
+        assertFailsWith<Exception> {
+            ExtendedPublicKey.from(
+                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU521AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
+                NetworkType.Mainnet,
+            )
+        }
+
+        // (invalid checksum)
+        assertFailsWith<Exception> {
+            ExtendedPrivateKey.from(
+                "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHL",
+                NetworkType.Mainnet,
+            )
+        }
+    }
+
+    @Test
     fun testSecp256k1MasterKeyGeneration() {
-        val masterKey = BIP32.makeMasterKey("000102030405060708090a0b0c0d0e0f".hexToBytes(), EllipticCurve.Secp256k1)
+        val masterKey =
+            BIP32.makeMasterKey("000102030405060708090a0b0c0d0e0f".hexToBytes(), EllipticCurve.Secp256k1)
         assertEquals(
             masterKey.privateKey.toHexString().lowercase(),
             "e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35".lowercase(),
@@ -52,7 +188,8 @@ internal class BIP32Test {
 
     @Test
     fun testSecp256r1MasterKeyGeneration() {
-        val masterKey = BIP32.makeMasterKey("000102030405060708090a0b0c0d0e0f".hexToBytes(), EllipticCurve.Secp256r1)
+        val masterKey =
+            BIP32.makeMasterKey("000102030405060708090a0b0c0d0e0f".hexToBytes(), EllipticCurve.Secp256r1)
         assertEquals(
             masterKey.privateKey.toHexString().lowercase(),
             "612091aaa12e22dd2abef664f8a01a82cae99ad7441b7ef8110424915c268bc2".lowercase(),
@@ -83,7 +220,7 @@ internal class BIP32Test {
     @Test
     fun testEd25519MasterKeyGeneration() {
         val masterKey =
-            BIP32.makeMasterKey("000102030405060708090a0b0c0d0e0f".hexToBytes(), EllipticCurve.Ed25519)
+            BIP32.makeMasterKey("000102030405060708090a0b0c0d0e0f".hexToBytes(), EllipticCurve.Ed25519Slip0010)
         assertEquals(
             masterKey.privateKey.toHexString().lowercase(),
             "2b4be7f19ee27bbf30c667b642d5f4aa69fd169872f8fc3059c08ebae2eb19e7".lowercase(),
@@ -99,7 +236,7 @@ internal class BIP32Test {
                     "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b78757" +
                         "26f6c696663605d5a5754514e4b484542"
                     ).hexToBytes(),
-                EllipticCurve.Ed25519,
+                EllipticCurve.Ed25519Slip0010,
             )
         assertEquals(
             masterKey2.privateKey.toHexString().lowercase(),
@@ -270,8 +407,8 @@ internal class BIP32Test {
     @Test
     fun testKeyImportEd25519() {
         val seed = getSeed()
-        val privKey = BIP32.makeMasterKey(seed, EllipticCurve.Ed25519)
-        val pubKey = privKey.makePublicKey(EllipticCurve.Ed25519)
+        val privKey = BIP32.makeMasterKey(seed, EllipticCurve.Ed25519Slip0010)
+        val pubKey = privKey.makePublicKey(EllipticCurve.Ed25519Slip0010)
 
         val publicKeyFromCard = "E96B1C6B8769FDB0B34FBECFDF85C33B053CECAD9517E1AB88CBA614335775C1"
         val chainCodeFromCard = "DDFA71109701BBF7C126C8C7AB5880B0DEC3D167A8FE6AFA7A9597DF0BBEE72B"
@@ -289,6 +426,68 @@ internal class BIP32Test {
         val chainCodeFromCard = "C7A888C4C670406E7AAEB6E86555CE0C4E738A337F9A9BC239F6D7E475110A4E"
         assertEquals(pubKey.publicKey.toHexString(), publicKeyFromCard)
         assertEquals(privKey.chainCode.toHexString(), chainCodeFromCard)
+    }
+
+    @Test
+    fun testVector2Ed5519Slip0010() {
+        val seed =
+            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes()
+        val masterKey = BIP32.makeMasterKey(seed, EllipticCurve.Ed25519Slip0010)
+
+        assertEquals(
+            masterKey.privateKey.toHexString(),
+            "171cb88b1b3c1db25add599712e36245d75bc65a1a5c9e18d76f9f2b1eab4012".uppercase(),
+        )
+        assertEquals(
+            masterKey.chainCode.toHexString(),
+            "ef70a74db9c3a5af931b5fe73ed8e1a53464133654fd55e7a66f8570b8e33c3b".uppercase(),
+        )
+        assertEquals(
+            masterKey.makePublicKey(EllipticCurve.Ed25519Slip0010).publicKey.toHexString(),
+            "008fe9693f8fa62a4305a140b9764c5ee01e455963744fe18204b4fb948249308a".drop(2).uppercase(),
+        )
+    }
+
+    @Test
+    fun testVector2() {
+        val seed =
+            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes()
+
+        val mPrv = BIP32.makeMasterKey(seed, curve = EllipticCurve.Secp256k1)
+        val mPub = mPrv.makePublicKey(EllipticCurve.Secp256k1)
+
+        val xPrv = mPrv.serialize(NetworkType.Mainnet)
+        assertEquals(
+            xPrv,
+            "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U",
+        )
+
+        val xPub = mPub.serialize(NetworkType.Mainnet)
+        assertEquals(
+            xPub,
+            "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB",
+        )
+    }
+
+    @Test
+    fun testVector3() {
+        val seed =
+            "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be".hexToBytes()
+
+        val mPrv = BIP32.makeMasterKey(seed, curve = EllipticCurve.Secp256k1)
+        val mPub = mPrv.makePublicKey(EllipticCurve.Secp256k1)
+
+        val xPrv = mPrv.serialize(NetworkType.Mainnet)
+        assertEquals(
+            xPrv,
+            "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6",
+        )
+
+        val xPub = mPub.serialize(NetworkType.Mainnet)
+        assertEquals(
+            xPub,
+            "xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z3GC8vBgp2epUt13",
+        )
     }
 
     private fun getSeed(): ByteArray {

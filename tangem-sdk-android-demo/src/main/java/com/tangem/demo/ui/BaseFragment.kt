@@ -32,7 +32,6 @@ import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
-import com.tangem.crypto.bip39.Mnemonic
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.sign
 import com.tangem.demo.DemoActivity
@@ -53,7 +52,6 @@ import com.tangem.operations.files.FileToWrite
 import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
-import com.tangem.sdk.extensions.initDefault
 import com.tangem.tangem_demo.R
 import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
 import kotlinx.coroutines.runBlocking
@@ -221,15 +219,16 @@ abstract class BaseFragment : Fragment() {
         if (mnemonic.isNullOrBlank()) {
             sdk.createWallet(curve, cardId, initialMessage) { handleResult(it, it is CompletionResult.Success) }
         } else {
-            val seedResult = Mnemonic.initDefault(mnemonic, requireContext()).generateSeed()
-            when (seedResult) {
-                is CompletionResult.Failure -> handleResult(seedResult)
-                is CompletionResult.Success -> sdk.importWallet(curve, cardId, seedResult.data, initialMessage) {
-                    handleResult(
-                        it,
-                        it is CompletionResult.Success,
-                    )
-                }
+            sdk.importWallet(
+                curve = curve,
+                cardId = cardId,
+                mnemonic = mnemonic,
+                initialMessage = initialMessage,
+            ) {
+                handleResult(
+                    it,
+                    it is CompletionResult.Success,
+                )
             }
         }
     }
@@ -373,6 +372,7 @@ abstract class BaseFragment : Fragment() {
                         }
                         postUi { showDialog(builder.toString()) }
                     }
+
                     is CompletionResult.Failure -> {
                         if (result.error is TangemSdkError.UserCancelled) {
                             showToast("${result.error.customMessage}: User was cancelled the operation")
@@ -470,11 +470,13 @@ abstract class BaseFragment : Fragment() {
                     }
                 }
             }
+
             result is CompletionResult.Success && result.data is Card -> {
                 card = result.data as Card
                 onCardChanged(card)
                 post(delay) { callback() }
             }
+
             else -> postUi(delay) { callback() }
         }
     }
