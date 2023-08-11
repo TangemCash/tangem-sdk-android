@@ -92,6 +92,8 @@ internal class CreateWalletCommand @Throws constructor(
                 if (card.wallet(extendedKey.publicKey) != null) {
                     return TangemSdkError.WalletAlreadyCreated()
                 }
+            } catch (e: TangemSdkError.UnsupportedCurve) {
+                // ignore exception
             } catch (e: Exception) {
                 return e.toTangemSdkError()
             }
