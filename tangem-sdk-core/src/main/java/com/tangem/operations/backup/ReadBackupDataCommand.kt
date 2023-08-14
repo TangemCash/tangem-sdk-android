@@ -97,6 +97,7 @@ class ReadBackupDataCommand(
                         ),
                     )
                 }
+
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
@@ -118,6 +119,7 @@ class ReadBackupDataCommand(
                         readData(session, callback)
                     }
                 }
+
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
@@ -128,6 +130,7 @@ class ReadBackupDataCommand(
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
         tlvBuilder.append(TlvTag.Pin, accessCode)
         tlvBuilder.append(TlvTag.BackupCardLinkingKey, backupCardLinkingKey)
+        tlvBuilder.append(TlvTag.WalletIndex, readIndex)
 
         return CommandApdu(Instruction.ReadBackupData, tlvBuilder.serialize())
     }

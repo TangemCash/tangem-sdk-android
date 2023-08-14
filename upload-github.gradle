@@ -12,6 +12,17 @@ afterEvaluate {
                 if (artifactId == "android") {
                     from components.release
                     artifact(sourceJar)
+
+                    pom.withXml {
+                        Node pomNode = asNode()
+                        pomNode.dependencies.'*'.findAll() {
+                            it.groupId.text() == artifactConfig.group
+                        }.each() { it.parent().remove(it) }
+
+                        pomNode.dependencies.'*'.findAll() {
+                            it.scope.text() == 'runtime'
+                        }.each { it.scope*.value = 'compile' }
+                    }
                 } else if (artifactId == "core") {
                     from components.java
                 }
