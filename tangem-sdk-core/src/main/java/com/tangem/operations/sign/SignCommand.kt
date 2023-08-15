@@ -27,6 +27,8 @@ import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.sign
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * @property cardId CID, Unique Tangem card ID number
@@ -55,12 +57,18 @@ internal class SignCommand(
     private var terminalKeys: KeyPair? = null
 
     private val hashSizes = if (hashes.isNotEmpty()) hashes.first().size else 0
-    private val hashesChunked = hashes.asList().chunked(CHUNK_SIZE)
+    private val chunkSize: Int = if (hashSizes > 0) {
+        val estimatedChunkSize = PACKAGE_SIZE / hashSizes
+        max(1, min(estimatedChunkSize, MAX_CHUNK_SIZE))
+    } else {
+        MAX_CHUNK_SIZE
+    }
+    private val hashesChunked = hashes.asList().chunked(chunkSize)
     private var environment: SessionEnvironment? = null
 
     private val signatures = mutableListOf<ByteArray>()
     private val currentChunkNumber: Int
-        get() = signatures.size / CHUNK_SIZE
+        get() = signatures.size / chunkSize
 
     override fun requiresPasscode(): Boolean = true
 
@@ -209,8 +217,8 @@ internal class SignCommand(
     }
 
     private fun getChunk(): IntRange {
-        val from = currentChunkNumber * CHUNK_SIZE
-        val to = kotlin.math.min(from + CHUNK_SIZE, hashes.size)
+        val from = currentChunkNumber * chunkSize
+        val to = min(from + chunkSize, hashes.size)
         return from until to
     }
 
@@ -235,7 +243,11 @@ internal class SignCommand(
         return environment.terminalKeys
     }
 
-    companion object {
-        const val CHUNK_SIZE = 10
+    private companion object {
+        // The max answer is 1152 bytes (unencrypted) and 1120 (encrypted).
+        // The worst case is 8 hashes * 64 bytes for ed + 512 bytes of signatures + cardId, SignedHashes + TLV + SW is ok.
+        const val PACKAGE_SIZE = 512
+        // Card limitation
+        const val MAX_CHUNK_SIZE = 10
     }
 }
