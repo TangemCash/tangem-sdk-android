@@ -13,7 +13,7 @@ data class UserSettings(
     val mask: UserSettingsMask
         get() {
             val builder = MaskBuilder()
-            if (isUserCodeRecoveryAllowed) builder.add(UserSettingsMask.Code.ForbidResetPIN)
+            if (!isUserCodeRecoveryAllowed) builder.add(UserSettingsMask.Code.ForbidResetPIN)
             return builder.build()
         }
 
