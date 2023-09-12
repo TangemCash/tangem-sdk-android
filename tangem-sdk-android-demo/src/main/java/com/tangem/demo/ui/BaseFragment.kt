@@ -1,7 +1,11 @@
 package com.tangem.demo.ui
 
+import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -52,8 +56,14 @@ import com.tangem.operations.files.FileToWrite
 import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
+import com.tangem.sdk.DefaultSessionViewDelegate
+import com.tangem.sdk.nfc.NfcManager
 import com.tangem.tangem_demo.R
 import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.collections.set
 
@@ -62,6 +72,10 @@ abstract class BaseFragment : Fragment() {
 
     protected val jsonConverter: MoshiJsonConverter = MoshiJsonConverter.default()
     protected val sdk: TangemSdk by lazy { (requireActivity() as DemoActivity).sdk }
+    protected val nfcManager: NfcManager by
+    lazy {
+        ((requireActivity() as DemoActivity).viewDelegate as DefaultSessionViewDelegate).nfcManager
+    }
     protected val logger: TangemSdkLogger by lazy { (requireActivity() as DemoActivity).logger }
 
     protected lateinit var shPrefs: SharedPreferences
@@ -303,6 +317,33 @@ abstract class BaseFragment : Fragment() {
 
     protected fun readUserData() {
         sdk.readUserData(card?.cardId, initialMessage) { handleResult(it) }
+    }
+
+    protected fun discoverNfc() {
+        val vibrator = requireContext().getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        nfcManager.readingIsActive = true
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
+            suspend fun callDiscover() {
+                sdk.discoverNfcTags(
+                    onReadPerform = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+                        } else {
+                            vibrator.vibrate(100)
+                        }
+                    },
+                    Message(),
+                    null
+                ) {
+                    scope.launch {
+                        delay(200)
+                        callDiscover()
+                    }
+                }
+            }
+            callDiscover()
+        }
     }
 
     protected fun writeUserData() {

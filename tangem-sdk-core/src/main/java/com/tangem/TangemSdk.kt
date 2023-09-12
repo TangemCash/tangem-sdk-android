@@ -4,16 +4,22 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
+import com.tangem.common.apdu.CommandApdu
+import com.tangem.common.apdu.Instruction
 import com.tangem.common.biometric.BiometricManager
 import com.tangem.common.biometric.DummyBiometricManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
+import com.tangem.common.doOnFailure
+import com.tangem.common.doOnSuccess
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
+import com.tangem.common.tlv.TlvBuilder
+import com.tangem.common.tlv.TlvTag
 import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.CryptoUtils
 import com.tangem.crypto.bip39.DefaultMnemonic
@@ -36,11 +42,12 @@ import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
 import com.tangem.operations.personalization.entities.*
 import com.tangem.operations.pins.SetUserCodeCommand
+import com.tangem.operations.read.ReadCommand
+import com.tangem.operations.read.ReadMode
 import com.tangem.operations.sign.*
 import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.operations.wallet.*
 import kotlinx.coroutines.*
-import java.lang.Exception
 
 /**
  * The main interface of Tangem SDK that allows your app to communicate with Tangem cards.
@@ -993,6 +1000,36 @@ class TangemSdk(
             accessCode = null,
             callback = callback,
         )
+    }
+
+    fun discoverNfcTags(
+        onReadPerform: () -> Unit,
+        initialMessage: Message? = null,
+        cardId: String? = null,
+        onFailure: () -> Unit,
+    ) {
+        // val command = DiscoverCommand(onReadPerform)
+        val tlvBuilder = TlvBuilder()
+        tlvBuilder.append(TlvTag.Pin, ByteArray(0))
+        tlvBuilder.append(TlvTag.InteractionMode, ReadMode.Card)
+        tlvBuilder.append(TlvTag.TerminalPublicKey, ByteArray(0))
+
+        val command = CommandApdu(Instruction.Read, tlvBuilder.serialize())
+        reader.transceiveApdu(command) {
+            it.doOnFailure {
+                onFailure()
+            }.doOnSuccess {
+                onReadPerform()
+                discoverNfcTags(onReadPerform = onReadPerform, onFailure = onFailure)
+            }
+        }
+        // startSessionWithRunnable(
+        //     runnable = command,
+        //     cardId = cardId,
+        //     initialMessage = initialMessage,
+        //     accessCode = null,
+        //     callback = callback,
+        // )
     }
 
     // endregion Card operations

@@ -26,7 +26,7 @@ import com.tangem.sdk.ui.NfcSessionDialog
  * If no customisation is required, this is the preferred way to use Tangem SDK.
  */
 class DefaultSessionViewDelegate(
-    private val nfcManager: NfcManager,
+    val nfcManager: NfcManager,
     private val reader: CardReader,
     private val activity: Activity,
 ) : SessionViewDelegate {

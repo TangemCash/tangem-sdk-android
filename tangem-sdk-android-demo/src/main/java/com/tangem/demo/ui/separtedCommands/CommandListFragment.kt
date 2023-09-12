@@ -184,7 +184,9 @@ class CommandListFragment : BaseFragment() {
         btnReadIssuerExData.setOnClickListener { readIssuerExtraData() }
         btnWriteIssuerExData.setOnClickListener { writeIssuerExtraData() }
 
-        btnReadUserData.setOnClickListener { readUserData() }
+        btnReadUserData.setOnClickListener {
+            discoverNfc()//readUserData()
+        }
         btnWriteUserData.setOnClickListener { writeUserData() }
         btnWriteUserProtectedData.setOnClickListener { writeUserProtectedData() }
 

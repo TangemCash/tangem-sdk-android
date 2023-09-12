@@ -39,7 +39,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
 
     private val rvConsoleAdapter = RvConsoleAdapter()
 
-    private lateinit var nfcManager: NfcManager
+    // private lateinit var nfcManager: NfcManager
     private var commandState = ActiveCommandState()
 
     private val tagDiscoveredListener = onDiscovered@{

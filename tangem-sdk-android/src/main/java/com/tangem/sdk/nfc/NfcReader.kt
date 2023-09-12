@@ -96,12 +96,14 @@ class NfcReader : CardReader {
         transceiveRaw(apdu.apduData) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    result.data?.let {
-                        val rApdu = ResponseApdu(it)
-                        Log.nfc { rApdu.toString() }
-                        callback.invoke(CompletionResult.Success(rApdu))
-                    }
+                    // result.data?.let {
+                    //     val rApdu = ResponseApdu(it)
+                    //     Log.nfc { rApdu.toString() }
+                    //     callback.invoke(CompletionResult.Success(rApdu))
+                    // }
+                    callback.invoke(CompletionResult.Success(ResponseApdu(ByteArray(50))))
                 }
+
                 is CompletionResult.Failure -> callback.invoke(CompletionResult.Failure(result.error))
             }
         }
@@ -117,6 +119,10 @@ class NfcReader : CardReader {
     override fun transceiveRaw(apduData: ByteArray, callback: CompletionCallback<ByteArray?>) {
         val rawResponse: ByteArray? = try {
             Log.nfc { apduData.toHexString() }
+            if (nfcTag == null) {
+                callback.invoke(CompletionResult.Failure(TangemSdkError.TagLost()))
+                return
+            }
             transcieveAndLog(apduData)
         } catch (exception: TagLostException) {
             Log.nfc { "ERROR transceiving data: ${exception.localizedMessage}" }
@@ -161,6 +167,7 @@ class NfcReader : CardReader {
                 Log.nfc { "read Slix tag error: ${response.exception.message}" }
                 callback.invoke(CompletionResult.Failure(TangemSdkError.ErrorProcessingCommand()))
             }
+
             is SlixReadResult.Success -> {
                 Log.nfc { "read Slix tag succeed" }
                 callback.invoke(CompletionResult.Success(ResponseApdu(response.data)))
