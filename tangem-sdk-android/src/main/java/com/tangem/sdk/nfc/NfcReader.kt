@@ -34,7 +34,7 @@ class NfcReader : CardReader {
 
     var listener: ReadingActiveListener? = null
 
-    private var nfcTag: NfcTag? = null
+    var nfcTag: NfcTag? = null
         set(value) {
             field = value
             Log.nfc { "received tag: ${value?.type?.name?.uppercase()}" }

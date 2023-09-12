@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -63,9 +64,12 @@ import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.collections.set
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 @Suppress("LargeClass", "TooManyFunctions")
 abstract class BaseFragment : Fragment() {
@@ -322,28 +326,80 @@ abstract class BaseFragment : Fragment() {
     protected fun discoverNfc() {
         val vibrator = requireContext().getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         nfcManager.readingIsActive = true
-        val scope = CoroutineScope(Dispatchers.Default)
-        suspend fun callDiscover() {
+        val scope = CoroutineScope(Dispatchers.IO)
+        val scopeDefault = CoroutineScope(Dispatchers.Default)
+        var lastSuccessRead = System.currentTimeMillis()
+        fun vibrate() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                vibrator.vibrate(100)
+            }
+        }
+
+        var isTickerActive = true
+        fun ticker() {
+            scope.launch {
+                while (true) {
+                    if (isTickerActive) {
+                        vibrate()
+                    }
+                    delay(1000)
+                }
+            }
+        }
+        ticker()
+
+        fun callDiscover() {
             sdk.discoverNfcTags(
                 Message(),
                 null,
                 onSuccess = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
-                    } else {
-                        vibrator.vibrate(100)
-                    }
+                    vibrate()
+                    Log.e("timer---", "success")
+                    lastSuccessRead = System.currentTimeMillis()
                     scope.launch {
+                        delay(50)
                         callDiscover()
                     }
                 }
             ) {
+                Log.e("timer---", "failed")
+                isTickerActive = true
             }
         }
+
         sdk.reader.onTagDiscoveredListener = {
             scope.launch {
+                Log.e("timer---", "discovered")
+                isTickerActive = false
+                lastSuccessRead = System.currentTimeMillis()
                 callDiscover()
             }
+        }
+
+        scopeDefault.launch {
+            while (true) {
+                delay(100)
+                Log.e("timer---", "diff: ${System.currentTimeMillis() - lastSuccessRead}")
+                Log.e("timer---", "isTickerActive: $isTickerActive")
+                if (System.currentTimeMillis() - lastSuccessRead > 500 && !isTickerActive) {
+                    Log.e("timer---", "start ticker")
+                    isTickerActive = true
+                    Log.e("timer---", "ignoreLastTagImmediately")
+                    nfcManager.ignoreLastTagImmediately()
+                    Log.e("timer---", "ignoreLastTagImmediately DONE")
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun tickerFlow(period: Duration, initialDelay: Duration = Duration.ZERO) = flow {
+        delay(initialDelay)
+        while (true) {
+            emit(Unit)
+            delay(period)
         }
     }
 

@@ -68,6 +68,7 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
         if (readingIsActive) reader.onTagDiscovered(tag) else ignoreTag(tag)
     }
 
+
     fun onStart() {
         val filter = IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)
         activity?.registerReceiver(mBroadcastReceiver, filter)
@@ -95,6 +96,15 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
     fun onDestroy() {
         activity = null
         nfcAdapter = null
+    }
+
+    fun ignoreLastTagImmediately() {
+        Log.nfc { "NFC tag is ignored" }
+        val tag = reader.nfcTag?.isoDep?.tag
+        // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        //     nfcAdapter?.ignore(tag, 0, null, null)
+        // }
+        IsoDep.get(tag)?.close()
     }
 
     private fun enableReaderMode() {
