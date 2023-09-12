@@ -17,6 +17,7 @@ interface CardReader {
 
     val tag: BroadcastChannel<TagType?>
     var scope: CoroutineScope?
+    var onTagDiscoveredListener: (() -> Unit)?
 
     /**
      * Sends data to the card and receives the reply in an asynchronous way using coroutines.

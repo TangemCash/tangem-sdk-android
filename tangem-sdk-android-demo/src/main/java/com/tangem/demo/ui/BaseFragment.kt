@@ -322,27 +322,28 @@ abstract class BaseFragment : Fragment() {
     protected fun discoverNfc() {
         val vibrator = requireContext().getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         nfcManager.readingIsActive = true
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
-            suspend fun callDiscover() {
-                sdk.discoverNfcTags(
-                    onReadPerform = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
-                        } else {
-                            vibrator.vibrate(100)
-                        }
-                    },
-                    Message(),
-                    null
-                ) {
+        val scope = CoroutineScope(Dispatchers.Default)
+        suspend fun callDiscover() {
+            sdk.discoverNfcTags(
+                Message(),
+                null,
+                onSuccess = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        vibrator.vibrate(100)
+                    }
                     scope.launch {
-                        delay(200)
                         callDiscover()
                     }
                 }
+            ) {
             }
-            callDiscover()
+        }
+        sdk.reader.onTagDiscoveredListener = {
+            scope.launch {
+                callDiscover()
+            }
         }
     }
 

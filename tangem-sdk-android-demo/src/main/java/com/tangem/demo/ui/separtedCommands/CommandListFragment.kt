@@ -108,18 +108,19 @@ class CommandListFragment : BaseFragment() {
             userCodeRequestPolicyDivider.isVisible = showTypeSelector
         }
         btnScanCard.setOnClickListener {
-            val type = when (chipGroupUserCodeType.checkedChipId) {
-                R.id.chipTypeAccessCode -> UserCodeType.AccessCode
-                R.id.chipTypePasscode -> UserCodeType.Passcode
-                else -> UserCodeType.AccessCode
-            }
-            val policy = when (chipGroupUserCodeRequestPolicy.checkedChipId) {
-                R.id.chipPolicyDefault -> UserCodeRequestPolicy.Default
-                R.id.chipPolicyAlways -> UserCodeRequestPolicy.Always(type)
-                R.id.chipPolicyAlwaysWithBiometrics -> UserCodeRequestPolicy.AlwaysWithBiometrics(type)
-                else -> Config().userCodeRequestPolicy
-            }
-            scanCard(policy)
+            discoverNfc()
+            // val type = when (chipGroupUserCodeType.checkedChipId) {
+            //     R.id.chipTypeAccessCode -> UserCodeType.AccessCode
+            //     R.id.chipTypePasscode -> UserCodeType.Passcode
+            //     else -> UserCodeType.AccessCode
+            // }
+            // val policy = when (chipGroupUserCodeRequestPolicy.checkedChipId) {
+            //     R.id.chipPolicyDefault -> UserCodeRequestPolicy.Default
+            //     R.id.chipPolicyAlways -> UserCodeRequestPolicy.Always(type)
+            //     R.id.chipPolicyAlwaysWithBiometrics -> UserCodeRequestPolicy.AlwaysWithBiometrics(type)
+            //     else -> Config().userCodeRequestPolicy
+            // }
+            // scanCard(policy)
         }
         btnLoadCardInfo.setOnClickListener { loadCardInfo() }
 
@@ -185,7 +186,7 @@ class CommandListFragment : BaseFragment() {
         btnWriteIssuerExData.setOnClickListener { writeIssuerExtraData() }
 
         btnReadUserData.setOnClickListener {
-            discoverNfc()//readUserData()
+            // discoverNfc()//readUserData()
         }
         btnWriteUserData.setOnClickListener { writeUserData() }
         btnWriteUserProtectedData.setOnClickListener { writeUserProtectedData() }

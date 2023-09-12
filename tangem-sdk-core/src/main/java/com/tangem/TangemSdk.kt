@@ -62,7 +62,7 @@ import kotlinx.coroutines.*
  */
 @Suppress("LargeClass", "TooManyFunctions")
 class TangemSdk(
-    private val reader: CardReader,
+    val reader: CardReader,
     private val viewDelegate: SessionViewDelegate,
     val secureStorage: SecureStorage,
     val biometricManager: BiometricManager = DummyBiometricManager(),
@@ -1003,9 +1003,9 @@ class TangemSdk(
     }
 
     fun discoverNfcTags(
-        onReadPerform: () -> Unit,
         initialMessage: Message? = null,
         cardId: String? = null,
+        onSuccess: () -> Unit,
         onFailure: () -> Unit,
     ) {
         // val command = DiscoverCommand(onReadPerform)
@@ -1019,8 +1019,7 @@ class TangemSdk(
             it.doOnFailure {
                 onFailure()
             }.doOnSuccess {
-                onReadPerform()
-                discoverNfcTags(onReadPerform = onReadPerform, onFailure = onFailure)
+                onSuccess()
             }
         }
         // startSessionWithRunnable(

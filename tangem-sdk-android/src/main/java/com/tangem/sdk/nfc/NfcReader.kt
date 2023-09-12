@@ -30,6 +30,7 @@ data class NfcTag(val type: TagType, val isoDep: IsoDep?, val nfcV: NfcV? = null
 class NfcReader : CardReader {
     override val tag = ConflatedBroadcastChannel<TagType?>()
     override var scope: CoroutineScope? = null
+    override var onTagDiscoveredListener: (() -> Unit)? = null
 
     var listener: ReadingActiveListener? = null
 
@@ -64,6 +65,7 @@ class NfcReader : CardReader {
         IsoDep.get(tag)?.let { isoDep ->
             connect(isoDep)
             nfcTag = NfcTag(TagType.Nfc, isoDep)
+            onTagDiscoveredListener?.invoke()
         }
     }
 
