@@ -224,7 +224,8 @@ class NfcSessionDialog(
     private fun onTagLost(state: SessionViewDelegateState) {
         if (currentState is SessionViewDelegateState.Success ||
             currentState is SessionViewDelegateState.PinRequested ||
-            currentState is SessionViewDelegateState.PinChangeRequested
+            currentState is SessionViewDelegateState.PinChangeRequested ||
+            currentState is SessionViewDelegateState.Error
         ) {
             return
         }
