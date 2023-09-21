@@ -10,6 +10,6 @@
     <color name="log">#000000</color>
     <color name="log_warning">#977F04</color>
 
-    <color name="backgroundLightGray">#F9F9F9</color>
+    <color name="background">#F9F9F9</color>
 
 </resources>

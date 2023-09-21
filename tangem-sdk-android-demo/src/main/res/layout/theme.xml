@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/flCardContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:paddingStart="@dimen/box_padding_horizontal"
+    android:paddingTop="@dimen/box_padding_vertical"
+    android:paddingEnd="@dimen/box_padding_horizontal"
+    android:paddingBottom="@dimen/box_padding_vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/rounded_corner" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?android:windowBackground"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="Theme"
+        android:translationX="10dp"
+        android:translationY="-10dp" />
+
+    <FrameLayout
+        android:id="@+id/contentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupTheme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipThemeLight"
+                    style="@style/TapChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Light" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipThemeDark"
+                    style="@style/TapChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dark" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipThemeSystem"
+                    style="@style/TapChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="System" />
+
+            </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>
