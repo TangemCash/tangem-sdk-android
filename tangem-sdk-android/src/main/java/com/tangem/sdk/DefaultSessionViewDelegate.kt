@@ -148,7 +148,11 @@ class DefaultSessionViewDelegate(
         message: ViewDelegateMessage? = null,
     ) {
         postUI {
-            if (readingDialog == null) createReadingDialog(activity)
+            if (readingDialog == null) {
+                createReadingDialog(activity)
+            } else {
+                readingDialog?.dismissInternal()
+            }
             readingDialog?.showHowTo(enableHowTo)
             readingDialog?.setInitialMessage(message)
             readingDialog?.setScanImage(sdkConfig.scanTagImage)
