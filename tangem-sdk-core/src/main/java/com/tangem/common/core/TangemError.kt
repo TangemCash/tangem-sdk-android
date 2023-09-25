@@ -6,7 +6,6 @@ import com.tangem.common.card.Card
 import com.tangem.crypto.bip39.MnemonicErrorResult
 import com.tangem.operations.ScanTask
 import com.tangem.operations.read.ReadCommand
-import java.security.InvalidKeyException
 
 /**
  * An interface for any error that may occur when performing Tangem SDK tasks.
@@ -270,22 +269,22 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     class NetworkError(override var customMessage: String) : TangemSdkError(code = 50014)
 
-    class BiometricsUnavailable : TangemSdkError(code = 50015) {
+    class AuthenticationUnavailable : TangemSdkError(code = 50015) {
         override var customMessage: String = "Biometrics feature unavailable: $code"
     }
 
     /**
-     * Generic biometric authentication error
+     * Generic authentication error.
      *
-     * @param errorCode Biometric operation error code.
+     * @param errorCode Operation error code.
      * For android see [androidx.biometric.BiometricPrompt] errors.
-     * @param customMessage Biometric operation error message.
+     * @param customMessage Operation error message.
      *
-     * @see BiometricsAuthenticationLockout
-     * @see BiometricsAuthenticationPermanentLockout
-     * @see UserCanceledBiometricsAuthentication
+     * @see AuthenticationLockout
+     * @see AuthenticationPermanentLockout
+     * @see UserCanceledAuthentication
      */
-    class BiometricsAuthenticationFailed(
+    class AuthenticationFailed(
         val errorCode: Int,
         override var customMessage: String,
     ) : TangemSdkError(code = 50016)
@@ -294,53 +293,30 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      * The operation was canceled because the API is locked out due to too many attempts. This
      * occurs after 5 failed attempts, and lasts for 30 seconds
      */
-    class BiometricsAuthenticationLockout : TangemSdkError(code = 50017)
+    class AuthenticationLockout : TangemSdkError(code = 50017)
 
     /**
-     * The operation was canceled because [BiometricsAuthenticationLockout] occurred too many times. Biometric
-     * authentication is disabled until the user unlocks with their device credential (i.e. PIN,
+     * The operation was canceled because [AuthenticationLockout] occurred too many times. Authentication is disabled
+     * until the user unlocks with their device credential (i.e. PIN,
      * pattern, or password).
      */
-    class BiometricsAuthenticationPermanentLockout : TangemSdkError(code = 50018)
+    class AuthenticationPermanentLockout : TangemSdkError(code = 50018)
 
     /**
      * The user canceled the operation.
      */
-    class UserCanceledBiometricsAuthentication : TangemSdkError(code = 50019) {
+    class UserCanceledAuthentication : TangemSdkError(code = 50019) {
         override val silent: Boolean = true
     }
 
     /**
-     * The cryptography operation with biometrics authentication failed with the [cause]
-     *
-     * @see InvalidBiometricCryptographyKey
-     * @see BiometricCryptographyKeyInvalidated
-     * */
-    class BiometricCryptographyOperationFailed(
-        override var customMessage: String,
-        override val cause: Throwable?,
-    ) : TangemSdkError(code = 50020)
-
-    /**
-     * The cryptography operation with biometric authentication failed with the invalid key exception
-     * e.g. user not authenticated or key expired
-     *
-     * @see BiometricCryptographyOperationFailed
-     * @see InvalidBiometricCryptographyKey
-     * */
-    class InvalidBiometricCryptographyKey(
-        override var customMessage: String,
-        override val cause: InvalidKeyException?,
-    ) : TangemSdkError(code = 50021)
-
-    /**
-     * The cryptography operation with biometric authentication failed with the key permanently invalidated exception
+     * The cryptography operation with authentication failed with the key permanently invalidated exception
      * e.g. new biometric enrollment
      *
-     * @see BiometricCryptographyOperationFailed
-     * @see InvalidBiometricCryptographyKey
+     * @see CryptographyOperationFailed
+     * @see InvalidCryptographyKey
      * */
-    class BiometricCryptographyKeyInvalidated : TangemSdkError(code = 50024)
+    class KeystoreInvalidated(override val cause: Throwable?) : TangemSdkError(code = 50024)
 
     class KeyGenerationException(override var customMessage: String) : TangemSdkError(code = 50022)
 

@@ -5,26 +5,27 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
-import com.tangem.common.biometric.BiometricManager
-import com.tangem.common.biometric.BiometricStorage
+import com.tangem.common.authentication.AuthenticatedStorage
+import com.tangem.common.authentication.KeystoreManager
 import com.tangem.common.catching
-import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
-import com.tangem.common.fold
+import com.tangem.common.flatMap
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.map
 import com.tangem.common.services.secure.SecureStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@Suppress("unused")
 class UserCodeRepository(
-    private val biometricManager: BiometricManager,
+    keystoreManager: KeystoreManager,
     private val secureStorage: SecureStorage,
 ) {
-    private val biometricStorage = BiometricStorage(
-        biometricManager = biometricManager,
+    private val authenticatedStorage = AuthenticatedStorage(
         secureStorage = secureStorage,
+        keystoreManager = keystoreManager,
     )
+
     private val moshi: Moshi = MoshiJsonConverter.INSTANCE.moshi
     private val cardsIdsAdapter: JsonAdapter<Set<String>> = moshi.adapter(
         Types.newParameterizedType(Set::class.java, String::class.java),
@@ -35,20 +36,16 @@ class UserCodeRepository(
 
     private val cardIdToUserCode: HashMap<String, UserCode> = hashMapOf()
 
-    suspend fun unlock(): CompletionResult<Unit> {
-        if (!biometricManager.canAuthenticate) {
-            return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
-        }
-
+    suspend fun unlock(): CompletionResult<Unit> = withContext(Dispatchers.IO) {
         val cardIdToUserCodeInternal = getSavedCardsIds()
             .associateWith { cardId ->
                 when (val result = getSavedUserCode(cardId)) {
                     is CompletionResult.Success -> result.data
-                    is CompletionResult.Failure -> return CompletionResult.Failure(result.error)
+                    is CompletionResult.Failure -> return@withContext CompletionResult.Failure(result.error)
                 }
             }
 
-        return catching {
+        catching {
             cardIdToUserCode.clear()
             cardIdToUserCodeInternal.forEach { (cardId, userCode) ->
                 if (userCode != null) {
@@ -67,16 +64,14 @@ class UserCodeRepository(
     }
 
     suspend fun save(cardsIds: Set<String>, userCode: UserCode): CompletionResult<Unit> {
-        if (!biometricManager.canAuthenticate) {
-            return CompletionResult.Failure(TangemSdkError.BiometricsUnavailable())
-        }
-
         if (!updateCodesIfNeeded(cardsIds, userCode)) {
             return CompletionResult.Success(Unit) // Nothing changed. Return
         }
 
-        return saveUserCode(cardsIds, userCode)
-            .map { saveCardsIds(cardsIds = getSavedCardsIds() + cardsIds) }
+        return withContext(Dispatchers.IO) {
+            saveUserCode(cardsIds, userCode)
+                .map { saveCardsIds(cardsIds = getSavedCardsIds() + cardsIds) }
+        }
     }
 
     fun get(cardId: String): UserCode? {
@@ -84,17 +79,22 @@ class UserCodeRepository(
     }
 
     suspend fun delete(cardsIds: Set<String>): CompletionResult<Unit> {
-        return cardsIds
-            .map { cardId -> deleteUserCode(cardId) }
-            .fold()
-            .map { deleteCardsIds(cardsIds) }
+        return withContext(Dispatchers.IO) {
+            catching {
+                cardsIds.forEach { cardId ->
+                    deleteUserCode(cardId)
+                }
+
+                deleteCardsIds(cardsIds)
+            }
+        }
     }
 
     suspend fun clear(): CompletionResult<Unit> {
-        return getSavedCardsIds()
-            .map { cardId -> deleteUserCode(cardId) }
-            .fold()
-            .map { clearSavedCardsIds() }
+        return withContext(Dispatchers.IO) {
+            catching { getSavedCardsIds() }
+                .flatMap { cardsIds -> delete(cardsIds) }
+        }
     }
 
     suspend fun hasSavedUserCodes(): Boolean = getSavedCardsIds().isNotEmpty()
@@ -114,6 +114,7 @@ class UserCodeRepository(
                     cardIdToUserCode.remove(cardId)
                     hasChanges = true
                 }
+
                 else -> {
                     // Save a new code
                     cardIdToUserCode[cardId] = userCode
@@ -126,19 +127,22 @@ class UserCodeRepository(
     }
 
     private suspend fun getSavedUserCode(cardId: String): CompletionResult<UserCode?> {
-        return biometricStorage.get(StorageKey.UserCode(cardId).name)
-            .map { it.decodeToUserCode() }
+        return catching {
+            authenticatedStorage.get(StorageKey.UserCode(cardId).name)
+                .decodeToUserCode()
+        }
     }
 
     private suspend fun saveUserCode(cardsIds: Set<String>, userCode: UserCode): CompletionResult<Unit> {
-        return cardsIds.map { cardId ->
-            biometricStorage.store(StorageKey.UserCode(cardId).name, userCode.encode())
+        return catching {
+            cardsIds.forEach { cardId ->
+                authenticatedStorage.store(StorageKey.UserCode(cardId).name, userCode.encode())
+            }
         }
-            .fold()
     }
 
-    private suspend fun deleteUserCode(cardId: String): CompletionResult<Unit> {
-        return biometricStorage.delete(StorageKey.UserCode(cardId).name)
+    private fun deleteUserCode(cardId: String) {
+        return authenticatedStorage.delete(StorageKey.UserCode(cardId).name)
     }
 
     private suspend fun getSavedCardsIds(): Set<String> {
