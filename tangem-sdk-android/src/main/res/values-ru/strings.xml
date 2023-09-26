@@ -11,7 +11,6 @@
     <string name="backup_prepare_primary_card_message">Соедините телефон и основную карту в точности, как показано выше.</string>
     <string name="backup_prepare_primary_card_message_format">Соедините телефон и основную карту с номером %s в точности, как показано выше.</string>
     <string name="biometric_prompt_title">Разблокировка хранилища</string>
-    <string name="cid_format">Карта #%s</string>
     <string name="common_cancel">Отменить</string>
     <string name="common_continue">Продолжить</string>
     <string name="common_error">Ошибка</string>
@@ -80,6 +79,7 @@
     <string name="reset_codes_success_message">Код успешно сброшен</string>
     <string name="sign_multiple_chunks_part">Подпись части %1$d из %2$d</string>
     <string name="view_delegate_delay">Операция в процессе</string>
+    <string name="view_delegate_header_card">Карта</string>
     <string name="view_delegate_scan">Готово к сканированию</string>
     <string name="view_delegate_scan_description">Поднесите карту, как показано выше, и удерживайте до конца операции</string>
     <string name="view_delegate_security_delay">Удерживайте карту</string>

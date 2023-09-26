@@ -90,7 +90,7 @@ class PinCodeModificationWidget(
     }
 
     private fun setupInnerLogic() {
-        getEtForCodeChecks().debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
+        etPinCode.debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
             setErrorStateVisibility(getInputFieldsState())
         }
         etPinCodeConfirm.debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
@@ -123,8 +123,6 @@ class PinCodeModificationWidget(
         }
     }
 
-    private fun getEtForCodeChecks(): TextInputEditText = etPinCode
-
     private fun setErrorStateVisibility(state: CheckCodesState) {
         val errorMessage = when (state) {
             CheckCodesState.TOO_SHORT -> getFormattedString(
@@ -155,7 +153,7 @@ class PinCodeModificationWidget(
     }
 
     private fun getInputFieldsState(): CheckCodesState {
-        val code1 = getEtForCodeChecks().text?.toString() ?: ""
+        val code1 = etPinCode.text?.toString() ?: ""
         val code2 = etPinCodeConfirm.text?.toString() ?: ""
 
         if (code1.isEmpty() || code2.isEmpty()) return CheckCodesState.UNDEFINED
@@ -168,7 +166,7 @@ class PinCodeModificationWidget(
 
     private fun onPasswordToggleClicked() {
         isPasswordEnabled = !isPasswordEnabled
-        getEtForCodeChecks().togglePasswordInputType()
+        etPinCode.togglePasswordInputType()
         etPinCodeConfirm.togglePasswordInputType()
     }
 
