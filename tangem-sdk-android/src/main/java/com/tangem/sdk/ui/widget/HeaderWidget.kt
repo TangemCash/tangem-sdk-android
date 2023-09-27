@@ -17,6 +17,7 @@ import com.tangem.sdk.extensions.show
 class HeaderWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     private val tvCard = mainView.findViewById<TextView>(R.id.tvCard)
+    private val tvCardId = mainView.findViewById<TextView>(R.id.tvCardId)
     private val imvClose = mainView.findViewById<ImageView>(R.id.imvClose)
     private val btnHowTo = mainView.findViewById<Button>(R.id.btnHowTo)
 
@@ -51,30 +52,25 @@ class HeaderWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 btnHowTo.isEnabled = true
                 btnHowTo.show()
             }
-
             is SessionViewDelegateState.PinChangeRequested -> {
                 cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show()
             }
-
             is SessionViewDelegateState.PinRequested -> {
                 cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show(true)
             }
-
             is SessionViewDelegateState.TagLost -> btnHowTo.isEnabled = true
             is SessionViewDelegateState.TagConnected, is SessionViewDelegateState.Error,
             is SessionViewDelegateState.WrongCard,
             -> btnHowTo.isEnabled = false
-
             is SessionViewDelegateState.ResetCodes -> {
                 cardId = params.cardId
                 btnHowTo.hide()
                 imvClose.show()
             }
-
             else -> {
                 imvClose.hide()
                 btnHowTo.show()
@@ -85,11 +81,13 @@ class HeaderWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     private fun setCardId() {
         val scannedCardId = cardId
-        if (scannedCardId != null) {
-            tvCard.text = getFormattedString(R.string.cid_format, scannedCardId)
-            tvCard.show()
-        } else {
+        if (scannedCardId == null) {
             tvCard.text = ""
+        } else {
+            tvCard.show()
+            tvCard.text = getString(R.string.view_delegate_header_card)
+            tvCardId.show()
+            tvCardId.text = scannedCardId
         }
     }
 }
