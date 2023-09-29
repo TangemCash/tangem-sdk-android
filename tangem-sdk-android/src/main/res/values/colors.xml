@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="sdk_primary">#0029FF</color>
+    <color name="sdk_primary">#0099FF</color>
     <color name="sdk_on_primary">#FFFFFF</color>
     <color name="sdk_secondary">@color/sdk_primary</color>
     <color name="sdk_on_secondary">@color/sdk_on_primary</color>
@@ -36,7 +36,7 @@
     <color name="sdk_progress_bar_error">@color/sdk_error</color>
     <color name="sdk_progress_bar_warning">#EFC313</color>
 
-    <color name="sdk_ripple_background">#2c5ac4</color>
+    <color name="sdk_ripple_background">@color/sdk_primary</color>
 
     <color name="sdk_drawable_card">#ffffff</color>
     <color name="sdk_drawable_icon">#000000</color>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#027aff</color>
-    <color name="primary_dark">#0a02ff</color>
+    <color name="primary">#0099FF</color>
+    <color name="primary_dark">#0099FF</color>
     <color name="on_primary">#FFFFFF</color>
 
     <color name="log_debug">#9E9F9E</color>
-    <color name="log_tlv">#ff0099cc</color>
+    <color name="log_tlv">@color/primary</color>
     <color name="log_error">#ffff4444</color>
     <color name="log">#000000</color>
     <color name="log_warning">#977F04</color>
