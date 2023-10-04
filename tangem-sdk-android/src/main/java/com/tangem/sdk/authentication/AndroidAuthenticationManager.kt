@@ -13,6 +13,9 @@ import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.sdk.R
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -37,18 +40,24 @@ internal class AndroidAuthenticationManager(
     }
 
     private val authenticationMutex = Mutex()
+    private val canAuthenticateInternal: MutableStateFlow<Boolean?> = MutableStateFlow(value = null)
+    private val needEnrollBiometricsInternal: MutableStateFlow<Boolean?> = MutableStateFlow(value = null)
 
-    override var canAuthenticate: Boolean = false
-        private set
-    override var canEnrollBiometrics: Boolean = false
-        private set
+    override val canAuthenticate: Boolean
+        get() = requireNotNull(canAuthenticateInternal.value) {
+            "`canAuthenticate` has not been initialized"
+        }
+    override val needEnrollBiometrics: Boolean
+        get() = requireNotNull(needEnrollBiometricsInternal.value) {
+            "`needEnrollBiometrics` has not been initialized"
+        }
 
     override fun onResume(owner: LifecycleOwner) {
-        owner.lifecycleScope.launch(Dispatchers.Main) {
+        owner.lifecycleScope.launch {
             val (available, canBeEnrolled) = checkBiometricsAvailabilityStatus()
 
-            canAuthenticate = available
-            canEnrollBiometrics = canBeEnrolled
+            canAuthenticateInternal.value = available
+            needEnrollBiometricsInternal.value = canBeEnrolled
         }
     }
 
@@ -60,6 +69,7 @@ internal class AndroidAuthenticationManager(
         authenticationMutex.withLock {
             Log.debug { "$TAG - Trying to authenticate a user" }
 
+            val canAuthenticate = canAuthenticateInternal.filterNotNull().first()
             if (canAuthenticate) {
                 withContext(Dispatchers.Main) {
                     authenticateInternal()

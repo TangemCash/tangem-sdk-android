@@ -24,7 +24,7 @@ import com.tangem.sdk.DefaultSessionViewDelegate
 import com.tangem.sdk.extensions.createLogger
 import com.tangem.sdk.extensions.getWordlist
 import com.tangem.sdk.extensions.initBiometricManager
-import com.tangem.sdk.extensions.initCryptographyManager
+import com.tangem.sdk.extensions.initKeystoreManager
 import com.tangem.sdk.extensions.initNfcManager
 import com.tangem.sdk.storage.create
 import com.tangem.tangem_demo.R
@@ -100,7 +100,7 @@ class DemoActivity : AppCompatActivity() {
             wordlist = Wordlist.getWordlist(this),
             config = config,
             authenticationManager = authenticationManager,
-            keystoreManager = TangemSdk.initCryptographyManager(authenticationManager, secureStorage),
+            keystoreManager = TangemSdk.initKeystoreManager(authenticationManager, secureStorage),
         )
     }
 

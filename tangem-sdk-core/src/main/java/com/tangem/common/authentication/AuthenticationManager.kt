@@ -17,7 +17,7 @@ interface AuthenticationManager {
      * Checks if biometrics can be enrolled. Returns `true` if the hardware is available
      * but there is no biometric data enrolled.
      */
-    val canEnrollBiometrics: Boolean
+    val needEnrollBiometrics: Boolean
 
     /**
      * Initiates the authentication process. Depending on the implementation,
