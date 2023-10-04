@@ -56,8 +56,8 @@ fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: C
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
         secureStorage = secureStorage,
-        authenticationManager = initBiometricManager(activity),
-        keystoreManager = initCryptographyManager(authenticationManager, secureStorage),
+        authenticationManager = authenticationManager,
+        keystoreManager = initKeystoreManager(authenticationManager, secureStorage),
         wordlist = Wordlist.getWordlist(activity),
         config = config,
     )
@@ -122,7 +122,7 @@ fun TangemSdk.Companion.initBiometricManager(activity: FragmentActivity): Authen
     }
 }
 
-fun TangemSdk.Companion.initCryptographyManager(
+fun TangemSdk.Companion.initKeystoreManager(
     authenticationManager: AuthenticationManager,
     secureStorage: SecureStorage,
 ): KeystoreManager {
