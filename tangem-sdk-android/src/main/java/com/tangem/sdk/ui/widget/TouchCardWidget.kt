@@ -154,6 +154,16 @@ class TouchCardWidget(
         customBitmapHolder?.bitmap?.recycle()
     }
 
+    fun setIconScanRes(iconScanRes: Int?) {
+        if (iconScanRes != null) {
+            ivHandCardHorizontal.setImageResource(iconScanRes)
+            ivHandCardVertical.setImageResource(iconScanRes)
+        } else {
+            ivHandCardHorizontal.setImageResource(R.drawable.hand_full_card_horizontal)
+            ivHandCardVertical.setImageResource(R.drawable.hand_full_card_vertical)
+        }
+    }
+
     private data class BitmapImageHolder(
         val bitmapArray: ByteArray,
         val bitmap: Bitmap = BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.size, BitmapFactory.Options()),

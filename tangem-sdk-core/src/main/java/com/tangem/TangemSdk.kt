@@ -1021,6 +1021,7 @@ class TangemSdk(
         cardId: String? = null,
         initialMessage: Message? = null,
         accessCode: String? = null,
+        iconScanRes: Int? = null,
         callback: CompletionCallback<T>,
     ) {
         if (checkSession()) {
@@ -1030,7 +1031,13 @@ class TangemSdk(
 
         configure()
         cardSession = makeSession(cardId, initialMessage, accessCode)
-        Thread().run { cardSession?.startWithRunnable(runnable, callback) }
+        Thread().run {
+            cardSession?.startWithRunnable(
+                iconScanRes = iconScanRes,
+                runnable = runnable,
+                callback = callback,
+            )
+        }
     }
 
     /**
@@ -1103,7 +1110,7 @@ class TangemSdk(
                 val jsonrpcLinker = linkersList[0]
                 cardSession = makeSession(cardId, message, accessCode)
                 Thread().run {
-                    cardSession?.startWithRunnable(jsonrpcLinker.runnable!!) {
+                    cardSession?.startWithRunnable(runnable = jsonrpcLinker.runnable!!) {
                         jsonrpcLinker.linkResult(it)
                         callback(jsonrpcLinker.response.toJson())
                     }
@@ -1111,7 +1118,7 @@ class TangemSdk(
             } else {
                 val task = RunnablesTask(linkersList)
                 cardSession = makeSession(cardId, message, accessCode)
-                cardSession!!.startWithRunnable(task) { result ->
+                cardSession!!.startWithRunnable(runnable = task) { result ->
                     when (result) {
                         is CompletionResult.Success -> callback(converter.toJson(result.data.responses))
                         is CompletionResult.Failure -> {

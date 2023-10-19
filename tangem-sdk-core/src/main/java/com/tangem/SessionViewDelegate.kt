@@ -21,7 +21,12 @@ interface SessionViewDelegate {
     /**
      * It is called when user is expected to scan a Tangem Card with an Android device.
      */
-    fun onSessionStarted(cardId: String?, message: ViewDelegateMessage? = null, enableHowTo: Boolean)
+    fun onSessionStarted(
+        cardId: String?,
+        message: ViewDelegateMessage? = null,
+        enableHowTo: Boolean,
+        iconScanRes: Int? = null,
+    )
 
     /**
      * It is called when security delay is triggered by the card.
