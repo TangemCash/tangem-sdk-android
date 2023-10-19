@@ -38,9 +38,14 @@ class DefaultSessionViewDelegate(
     private var readingDialog: NfcSessionDialog? = null
     private var stoppedBySession: Boolean = false
 
-    override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {
+    override fun onSessionStarted(
+        cardId: String?,
+        message: ViewDelegateMessage?,
+        enableHowTo: Boolean,
+        iconScanRes: Int?,
+    ) {
         Log.view { "session started" }
-        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message)
+        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message, iconScanRes)
     }
 
     override fun onSessionStopped(message: Message?) {
@@ -146,10 +151,11 @@ class DefaultSessionViewDelegate(
         state: SessionViewDelegateState,
         enableHowTo: Boolean,
         message: ViewDelegateMessage? = null,
+        iconScanRes: Int? = null,
     ) {
         postUI {
             if (readingDialog == null) {
-                createReadingDialog(activity)
+                createReadingDialog(activity, iconScanRes)
             } else {
                 readingDialog?.dismissInternal()
             }
@@ -160,12 +166,13 @@ class DefaultSessionViewDelegate(
         }
     }
 
-    private fun createReadingDialog(activity: Activity) {
+    private fun createReadingDialog(activity: Activity, iconScanRes: Int? = null) {
         val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
         readingDialog = NfcSessionDialog(
             context = activity.sdkThemeContext(),
             nfcManager = nfcManager,
             nfcLocationProvider = nfcLocationProvider,
+            iconScanRes = iconScanRes,
         ).apply {
             setOwnerActivity(activity)
             dismissWithAnimation = true

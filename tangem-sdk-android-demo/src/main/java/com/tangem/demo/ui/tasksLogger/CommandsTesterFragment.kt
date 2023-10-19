@@ -175,7 +175,12 @@ class SdkTaskSpinnerFragment : BaseFragment() {
 
     class EmptyViewDelegate : SessionViewDelegate {
         override val resetCodesViewDelegate: ResetCodesViewDelegate = EmptyResetCodesViewDelegate()
-        override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {}
+        override fun onSessionStarted(
+            cardId: String?,
+            message: ViewDelegateMessage?,
+            enableHowTo: Boolean,
+            iconScanRes: Int?,
+        ) {}
         override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {}
         override fun onDelay(total: Int, current: Int, step: Int) {}
         override fun onTagLost() {}
