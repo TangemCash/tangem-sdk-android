@@ -28,6 +28,7 @@ class StartPrimaryCardLinkingTask : CardSessionRunnable<PrimaryCard> {
                     is CompletionResult.Success -> {
                         loadIssuerSignature(result.data, session, callback)
                     }
+
                     is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 }
             }
@@ -59,6 +60,7 @@ class StartPrimaryCardLinkingTask : CardSessionRunnable<PrimaryCard> {
                     val primaryCard = PrimaryCard(rawCard, issuerSignature = signature.hexToBytes())
                     callback(CompletionResult.Success(primaryCard))
                 }
+
                 is Result.Failure ->
                     callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed()))
             }

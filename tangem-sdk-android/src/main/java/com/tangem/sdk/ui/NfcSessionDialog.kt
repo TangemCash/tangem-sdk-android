@@ -34,6 +34,7 @@ class NfcSessionDialog(
     context: Context,
     private val nfcManager: NfcManager,
     private val nfcLocationProvider: NfcLocationProvider,
+    private val iconScanRes: Int? = null,
 ) : BaseSdkDialog(context) {
 
     private lateinit var taskContainer: ViewGroup
@@ -67,6 +68,7 @@ class NfcSessionDialog(
 
         headerWidget = HeaderWidget(view.findViewById(R.id.llHeader))
         touchCardWidget = TouchCardWidget(view.findViewById(R.id.flImageContainer), nfcLocation)
+        touchCardWidget.setIconScanRes(iconScanRes)
         progressStateWidget = ProgressbarStateWidget(view.findViewById(R.id.clProgress))
         pinCodeRequestWidget = PinCodeRequestWidget(view.findViewById(R.id.csPinCode))
         pinCodeSetChangeWidget = PinCodeModificationWidget(

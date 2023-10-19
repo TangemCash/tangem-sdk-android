@@ -45,6 +45,7 @@ class BackupService(
             is State.FinalizingPrimaryCard,
             is State.FinalizingBackupCard,
             -> true
+
             else -> false
         }
 
@@ -126,10 +127,11 @@ class BackupService(
         return CompletionResult.Success(Unit)
     }
 
-    fun proceedBackup(callback: CompletionCallback<Card>) {
+    fun proceedBackup(iconScanRes: Int? = null, callback: CompletionCallback<Card>) {
         when (val currentState = currentState) {
             State.FinalizingPrimaryCard ->
-                handleFinalizePrimaryCard { result -> handleCompletion(result, callback) }
+                handleFinalizePrimaryCard(iconScanRes = iconScanRes) { result -> handleCompletion(result, callback) }
+
             is State.FinalizingBackupCard ->
                 handleWriteBackupCard(currentState.index) { result ->
                     handleCompletion(result, callback)
@@ -145,7 +147,7 @@ class BackupService(
         updateState()
     }
 
-    fun readPrimaryCard(cardId: String? = null, callback: CompletionCallback<Unit>) {
+    fun readPrimaryCard(iconScanRes: Int? = null, cardId: String? = null, callback: CompletionCallback<Unit>) {
         val formattedCardId = cardId?.let { CardIdFormatter(sdk.config.cardIdDisplayFormat).getFormattedCardId(it) }
 
         val message = formattedCardId?.let {
@@ -159,12 +161,14 @@ class BackupService(
             runnable = StartPrimaryCardLinkingTask(),
             cardId = cardId,
             initialMessage = message,
+            iconScanRes = iconScanRes,
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     setPrimaryCard(result.data)
                     callback(CompletionResult.Success(Unit))
                 }
+
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
@@ -176,6 +180,7 @@ class BackupService(
                 updateState()
                 callback(result)
             }
+
             is CompletionResult.Failure -> callback(result)
         }
     }
@@ -184,10 +189,13 @@ class BackupService(
         currentState = when {
             repo.data.accessCode == null || repo.data.primaryCard == null || repo.data.backupCards.isEmpty() ->
                 State.Preparing
+
             repo.data.attestSignature == null || repo.data.backupData.isEmpty() ->
                 State.FinalizingPrimaryCard
+
             repo.data.finalizedBackupCardsCount < repo.data.backupCards.size ->
                 State.FinalizingBackupCard(repo.data.finalizedBackupCardsCount + 1)
+
             else -> {
                 onBackupCompleted()
                 State.Finished
@@ -221,12 +229,13 @@ class BackupService(
                     addBackupCard(result.data)
                     callback(CompletionResult.Success(Unit))
                 }
+
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
     }
 
-    private fun handleFinalizePrimaryCard(callback: CompletionCallback<Card>) {
+    private fun handleFinalizePrimaryCard(iconScanRes: Int? = null, callback: CompletionCallback<Card>) {
         try {
             if (handleErrors && repo.data.accessCode == null && repo.data.passcode == null) {
                 throw TangemSdkError.AccessCodeOrPasscodeRequired()
@@ -278,6 +287,7 @@ class BackupService(
                 runnable = task,
                 cardId = primaryCard.cardId,
                 initialMessage = message,
+                iconScanRes = iconScanRes,
                 callback = callback,
             )
         } catch (error: TangemSdkError) {
@@ -347,6 +357,7 @@ class BackupService(
                         )
                         callback(CompletionResult.Success(result.data))
                     }
+
                     is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 }
             }
