@@ -157,7 +157,6 @@ internal class AndroidKeystoreManager(
             .let { builder ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     builder
-                        .setUnlockedDeviceRequired(true)
                         .setUserAuthenticationParameters(
                             MASTER_KEY_TIMEOUT_SECONDS,
                             KeyProperties.AUTH_BIOMETRIC_STRONG,
