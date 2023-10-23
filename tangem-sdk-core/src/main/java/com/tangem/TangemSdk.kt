@@ -4,8 +4,10 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
-import com.tangem.common.biometric.BiometricManager
-import com.tangem.common.biometric.DummyBiometricManager
+import com.tangem.common.authentication.AuthenticationManager
+import com.tangem.common.authentication.DummyAuthenticationManager
+import com.tangem.common.authentication.DummyKeystoreManager
+import com.tangem.common.authentication.KeystoreManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
@@ -40,7 +42,6 @@ import com.tangem.operations.sign.*
 import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.operations.wallet.*
 import kotlinx.coroutines.*
-import java.lang.Exception
 
 /**
  * The main interface of Tangem SDK that allows your app to communicate with Tangem cards.
@@ -58,9 +59,10 @@ class TangemSdk(
     private val reader: CardReader,
     private val viewDelegate: SessionViewDelegate,
     val secureStorage: SecureStorage,
-    val biometricManager: BiometricManager = DummyBiometricManager(),
     val wordlist: Wordlist,
     var config: Config = Config(),
+    val authenticationManager: AuthenticationManager = DummyAuthenticationManager(),
+    val keystoreManager: KeystoreManager = DummyKeystoreManager(),
 ) {
 
     private var cardSession: CardSession? = null
@@ -1150,14 +1152,17 @@ class TangemSdk(
         viewDelegate.setConfig(config)
     }
 
-    private fun createUserCodeRepository(secureStorage: SecureStorage, config: Config): UserCodeRepository? {
-        val safeBiometricsManager = biometricManager
-
-        return if (safeBiometricsManager.canAuthenticate &&
+    private fun createUserCodeRepository(
+        authenticationManager: AuthenticationManager,
+        keystoreManager: KeystoreManager,
+        secureStorage: SecureStorage,
+        config: Config,
+    ): UserCodeRepository? {
+        return if (authenticationManager.canAuthenticate &&
             config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics
         ) {
             UserCodeRepository(
-                biometricManager = safeBiometricsManager,
+                keystoreManager = keystoreManager,
                 secureStorage = secureStorage,
             )
         } else {
@@ -1181,7 +1186,12 @@ class TangemSdk(
             cardId = cardId,
             viewDelegate = viewDelegate,
             environment = environment,
-            userCodeRepository = createUserCodeRepository(secureStorage, config),
+            userCodeRepository = createUserCodeRepository(
+                authenticationManager = authenticationManager,
+                keystoreManager = keystoreManager,
+                secureStorage = secureStorage,
+                config = config,
+            ),
             reader = reader,
             jsonRpcConverter = jsonRpcConverter,
             secureStorage = secureStorage,

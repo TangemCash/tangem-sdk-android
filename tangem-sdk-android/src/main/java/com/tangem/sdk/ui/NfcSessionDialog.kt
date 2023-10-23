@@ -224,13 +224,19 @@ class NfcSessionDialog(
     }
 
     private fun onTagLost(state: SessionViewDelegateState) {
-        if (currentState is SessionViewDelegateState.Success ||
-            currentState is SessionViewDelegateState.PinRequested ||
-            currentState is SessionViewDelegateState.PinChangeRequested
-        ) {
-            return
+        when (currentState) {
+            is SessionViewDelegateState.Success,
+            is SessionViewDelegateState.PinRequested,
+            is SessionViewDelegateState.PinChangeRequested,
+            is SessionViewDelegateState.Error,
+            -> {
+                return
+            }
+
+            else -> {
+                setStateAndShow(state, headerWidget, touchCardWidget, messageWidget)
+            }
         }
-        setStateAndShow(state, headerWidget, touchCardWidget, messageWidget)
     }
 
     private fun onTagConnected(state: SessionViewDelegateState) {
@@ -303,12 +309,15 @@ class NfcSessionDialog(
             SessionViewDelegateState.TagConnected -> {
                 emulateSecurityDelayTimer?.period?.let { activateTrickySecurityDelay(it) }
             }
+
             SessionViewDelegateState.TagLost -> {
                 emulateSecurityDelayTimer?.cancel()
             }
+
             is SessionViewDelegateState.SecurityDelay -> {
                 // do nothing for saving the securityDelay timer logic
             }
+
             else -> {
                 emulateSecurityDelayTimer?.cancel()
                 emulateSecurityDelayTimer = null

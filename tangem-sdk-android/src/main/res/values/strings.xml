@@ -11,7 +11,6 @@
     <string name="backup_prepare_primary_card_message">Connect your phone and the primary card exactly as it shown above.</string>
     <string name="backup_prepare_primary_card_message_format">Connect your phone and the primary card with number %s exactly as it shown above.</string>
     <string name="biometric_prompt_title">Vault unlocking</string>
-    <string name="cid_format">Card #%s</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_continue">Continue</string>
     <string name="common_error">Error</string>
@@ -80,6 +79,7 @@
     <string name="reset_codes_success_message">Code was reset successfully</string>
     <string name="sign_multiple_chunks_part">Signing part %1$d of %2$d</string>
     <string name="view_delegate_delay">Operation is in progress</string>
+    <string name="view_delegate_header_card">Card</string>
     <string name="view_delegate_scan">Ready to scan</string>
     <string name="view_delegate_scan_description">Tap the card as shown above and hold until the end of the operation</string>
     <string name="view_delegate_security_delay">Long tap</string>

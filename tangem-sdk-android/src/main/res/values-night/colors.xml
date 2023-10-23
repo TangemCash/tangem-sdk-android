@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="sdk_primary">#00aaff</color>
+    <color name="sdk_primary">#0099FF</color>
     <color name="sdk_on_primary">#121212</color>
     <color name="sdk_secondary">@color/sdk_primary</color>
     <color name="sdk_on_secondary">@color/sdk_on_primary</color>
@@ -18,7 +18,7 @@
     <color name="medium_gray">#707070</color>
     <color name="dark_gray">#E4E4E4</color>
 
-    <color name="light_blue">#74B6FF</color>
+    <color name="light_blue">@color/sdk_primary</color>
 
     <color name="sdk_header_background">#2B2B2D</color>
     <color name="sdk_header_card_text">@color/sdk_text</color>

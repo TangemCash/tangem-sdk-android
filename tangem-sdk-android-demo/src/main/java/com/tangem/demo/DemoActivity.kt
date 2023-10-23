@@ -24,6 +24,7 @@ import com.tangem.sdk.DefaultSessionViewDelegate
 import com.tangem.sdk.extensions.createLogger
 import com.tangem.sdk.extensions.getWordlist
 import com.tangem.sdk.extensions.initBiometricManager
+import com.tangem.sdk.extensions.initKeystoreManager
 import com.tangem.sdk.extensions.initNfcManager
 import com.tangem.sdk.storage.create
 import com.tangem.tangem_demo.R
@@ -86,7 +87,7 @@ class DemoActivity : AppCompatActivity() {
         }
         val secureStorage = SecureStorage.create(this)
         val nfcManager = TangemSdk.initNfcManager(this)
-        val authManager = TangemSdk.initBiometricManager(this, secureStorage)
+        val authenticationManager = TangemSdk.initBiometricManager(this)
 
         val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, this)
         viewDelegate.sdkConfig = config
@@ -98,7 +99,8 @@ class DemoActivity : AppCompatActivity() {
             secureStorage = secureStorage,
             wordlist = Wordlist.getWordlist(this),
             config = config,
-            biometricManager = authManager,
+            authenticationManager = authenticationManager,
+            keystoreManager = TangemSdk.initKeystoreManager(authenticationManager, secureStorage),
         )
     }
 

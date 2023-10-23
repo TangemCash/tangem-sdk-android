@@ -11,7 +11,6 @@
     <string name="backup_prepare_primary_card_message">完全按照上圖所示連接手機和主卡</string>
     <string name="backup_prepare_primary_card_message_format">完全按照上面顯示的方式連接您的手機和編號為 %s 的主卡</string>
     <string name="biometric_prompt_title">金庫解鎖</string>
-    <string name="cid_format">卡片 ＃%s</string>
     <string name="common_cancel">取消</string>
     <string name="common_continue">繼續</string>
     <string name="common_error">錯誤</string>
@@ -80,6 +79,7 @@
     <string name="reset_codes_success_message">密碼重置成功</string>
     <string name="sign_multiple_chunks_part">簽署第 %1$d 部分，共 %2$d</string>
     <string name="view_delegate_delay">操作進行中</string>
+    <string name="view_delegate_header_card">卡片</string>
     <string name="view_delegate_scan">已準備好掃描</string>
     <string name="view_delegate_scan_description">如上圖觸碰卡片並按住直到操作結束</string>
     <string name="view_delegate_security_delay">長按</string>
