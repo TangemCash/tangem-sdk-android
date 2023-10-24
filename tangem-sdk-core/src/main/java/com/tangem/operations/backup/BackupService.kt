@@ -57,6 +57,7 @@ class BackupService(
     val passcodeIsSet: Boolean get() = repo.data.passcode != null
     val primaryCardIsSet: Boolean get() = repo.data.primaryCard != null
     val primaryCardId: String? get() = repo.data.primaryCard?.cardId
+    val primaryPublicKey: ByteArray? get() = repo.data.primaryCard?.cardPublicKey
     val backupCardIds: List<String> get() = repo.data.backupCards.map { it.cardId }
 
     /**
