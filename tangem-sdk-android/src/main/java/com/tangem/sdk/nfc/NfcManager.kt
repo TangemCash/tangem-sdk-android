@@ -13,7 +13,6 @@ import android.os.Bundle
 import com.tangem.Log
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.nfc.ReadingActiveListener
-import com.tangem.sdk.ui.NfcEnableDialog
 
 /**
  * Helps use NFC, leveraging Android NFC functionality.
