@@ -33,10 +33,12 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
 
     val reader = NfcReader()
 
+    val isNfcEnabled: Boolean
+        get() = nfcAdapter?.isEnabled == true
+
     private val onTagDiscoveredListeners: MutableList<VoidCallback> = mutableListOf()
     private var activity: Activity? = null
     private var nfcAdapter: NfcAdapter? = null
-    private var nfcEnableDialog: NfcEnableDialog? = null
 
     private val mBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -47,6 +49,12 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
                 enableReaderMode()
             }
         }
+    }
+
+    override fun onTagDiscovered(tag: Tag?) {
+        Log.debug { "NFC tag is discovered" }
+        onTagDiscoveredListeners.forEach { it.invoke() }
+        if (readingIsActive) reader.onTagDiscovered(tag) else ignoreTag(tag)
     }
 
     fun addTagDiscoveredListener(listener: VoidCallback) {
@@ -62,27 +70,11 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
         nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
     }
 
-    override fun onTagDiscovered(tag: Tag?) {
-        Log.debug { "NFC tag is discovered" }
-        onTagDiscoveredListeners.forEach { it.invoke() }
-        if (readingIsActive) reader.onTagDiscovered(tag) else ignoreTag(tag)
-    }
-
     fun onStart() {
         val filter = IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)
         activity?.registerReceiver(mBroadcastReceiver, filter)
-        handleNfcEnabled(nfcAdapter?.isEnabled == true)
+        enableReaderModeIfEnabled()
         reader.listener = this
-    }
-
-    private fun handleNfcEnabled(nfcEnabled: Boolean) {
-        if (nfcEnabled) {
-            enableReaderMode()
-            nfcEnableDialog?.cancel()
-        } else {
-            nfcEnableDialog = NfcEnableDialog()
-            activity?.let { nfcEnableDialog?.show(it) }
-        }
     }
 
     fun onStop() {
@@ -95,6 +87,14 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
     fun onDestroy() {
         activity = null
         nfcAdapter = null
+    }
+
+    private fun enableReaderModeIfEnabled() {
+        val nfcEnabled = nfcAdapter?.isEnabled == true
+
+        if (nfcEnabled) {
+            enableReaderMode()
+        }
     }
 
     private fun enableReaderMode() {

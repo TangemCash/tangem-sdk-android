@@ -19,6 +19,7 @@ import com.tangem.sdk.extensions.sdkThemeContext
 import com.tangem.sdk.nfc.NfcAntennaLocationProvider
 import com.tangem.sdk.nfc.NfcManager
 import com.tangem.sdk.ui.AttestationFailedDialog
+import com.tangem.sdk.ui.NfcEnableDialog
 import com.tangem.sdk.ui.NfcSessionDialog
 
 /**
@@ -36,11 +37,23 @@ class DefaultSessionViewDelegate(
     override val resetCodesViewDelegate: ResetCodesViewDelegate = AndroidResetCodesViewDelegate(activity)
 
     private var readingDialog: NfcSessionDialog? = null
+    private var nfcEnableDialog: NfcEnableDialog? = null
     private var stoppedBySession: Boolean = false
 
     override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {
         Log.view { "session started" }
         createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message)
+        checkNfcEnabled()
+    }
+
+    private fun checkNfcEnabled() {
+        postUI(msTime = 500) {
+            if (!nfcManager.isNfcEnabled) {
+                nfcEnableDialog?.cancel()
+                nfcEnableDialog = NfcEnableDialog()
+                activity.let { nfcEnableDialog?.show(it) }
+            }
+        }
     }
 
     override fun onSessionStopped(message: Message?) {
