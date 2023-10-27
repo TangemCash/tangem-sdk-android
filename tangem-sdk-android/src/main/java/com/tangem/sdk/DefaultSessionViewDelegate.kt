@@ -28,7 +28,6 @@ import com.tangem.sdk.ui.NfcSessionDialog
  */
 class DefaultSessionViewDelegate(
     private val nfcManager: NfcManager,
-    private val reader: CardReader,
     private val activity: Activity,
 ) : SessionViewDelegate {
 
@@ -185,7 +184,7 @@ class DefaultSessionViewDelegate(
             stoppedBySession = false
             create()
             setOnCancelListener {
-                if (!stoppedBySession) reader.stopSession(true)
+                if (!stoppedBySession) nfcManager.reader.stopSession(true)
                 readingDialog = null
             }
         }
