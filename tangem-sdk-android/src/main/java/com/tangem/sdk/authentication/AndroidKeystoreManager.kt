@@ -92,18 +92,18 @@ internal class AndroidKeystoreManager(
         return try {
             RSACipherOperations.initUnwrapKeyCipher(masterPrivateKey)
         } catch (e: UserNotAuthenticatedException) {
-            Log.warning { "$TAG - Unable to initialize the cipher because the user is not authenticated" }
-
-            authenticationManager.authenticate()
-
-            initUnwrapCipherAfterAuthentication()
+            authenticateAndInitUnwrapCipher()
+        } catch (e: InvalidKeyException) {
+            handleInvalidKeyException(e)
         }
     }
 
-    private fun initUnwrapCipherAfterAuthentication(): Cipher {
-        Log.debug { "$TAG - Reinitializing the unwrap cipher" }
+    private suspend fun authenticateAndInitUnwrapCipher(): Cipher {
+        Log.warning { "$TAG - Unable to initialize the cipher because the user is not authenticated" }
 
         return try {
+            authenticationManager.authenticate()
+
             RSACipherOperations.initUnwrapKeyCipher(masterPrivateKey)
         } catch (e: InvalidKeyException) {
             handleInvalidKeyException(e)
