@@ -92,18 +92,18 @@ internal class AndroidKeystoreManager(
         return try {
             RSACipherOperations.initUnwrapKeyCipher(masterPrivateKey)
         } catch (e: UserNotAuthenticatedException) {
-            Log.warning { "$TAG - Unable to initialize the cipher because the user is not authenticated" }
-
-            authenticationManager.authenticate()
-
-            initUnwrapCipherAfterAuthentication()
+            authenticateAndInitUnwrapCipher()
+        } catch (e: InvalidKeyException) {
+            handleInvalidKeyException(e)
         }
     }
 
-    private fun initUnwrapCipherAfterAuthentication(): Cipher {
-        Log.debug { "$TAG - Reinitializing the unwrap cipher" }
+    private suspend fun authenticateAndInitUnwrapCipher(): Cipher {
+        Log.warning { "$TAG - Unable to initialize the cipher because the user is not authenticated" }
 
         return try {
+            authenticationManager.authenticate()
+
             RSACipherOperations.initUnwrapKeyCipher(masterPrivateKey)
         } catch (e: InvalidKeyException) {
             handleInvalidKeyException(e)
@@ -157,7 +157,6 @@ internal class AndroidKeystoreManager(
             .let { builder ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     builder
-                        .setUnlockedDeviceRequired(true)
                         .setUserAuthenticationParameters(
                             MASTER_KEY_TIMEOUT_SECONDS,
                             KeyProperties.AUTH_BIOMETRIC_STRONG,
