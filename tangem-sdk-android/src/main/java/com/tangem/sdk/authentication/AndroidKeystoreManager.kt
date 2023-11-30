@@ -35,17 +35,23 @@ internal class AndroidKeystoreManager(
         get() = keyStore.getCertificate(MASTER_KEY_ALIAS)?.publicKey ?: generateMasterKey().public
 
     private val masterPrivateKey: PrivateKey
-        get() = keyStore.getKey(MASTER_KEY_ALIAS, null) as? PrivateKey
-            ?: throw TangemSdkError.KeystoreInvalidated(
-                cause = IllegalStateException("The master key is not stored in the keystore"),
-            )
+        get() {
+            val privateKey = keyStore.getKey(MASTER_KEY_ALIAS, null) as? PrivateKey
+            if (privateKey == null) {
+                Log.biometric { "$TAG The master key is not stored in the keystore" }
+                throw TangemSdkError.KeystoreInvalidated(
+                    cause = IllegalStateException("The master key is not stored in the keystore"),
+                )
+            }
+            return privateKey
+        }
 
     override suspend fun authenticateAndGetKey(keyAlias: String): SecretKey? = withContext(Dispatchers.IO) {
         val wrappedKeyBytes = secureStorage.get(getStorageKeyForWrappedSecretKey(keyAlias))
             ?.takeIf { it.isNotEmpty() }
 
         if (wrappedKeyBytes == null) {
-            Log.warning {
+            Log.biometric {
                 """
                     $TAG - The secret key is not stored
                     |- Key alias: $keyAlias
@@ -62,7 +68,7 @@ internal class AndroidKeystoreManager(
             wrappedKeyAlgorithm = AESCipherOperations.KEY_ALGORITHM,
         )
 
-        Log.debug {
+        Log.biometric {
             """
                 $TAG - The secret key was retrieved
                 |- Key alias: $keyAlias
@@ -87,7 +93,7 @@ internal class AndroidKeystoreManager(
     }
 
     private suspend fun initUnwrapCipher(): Cipher {
-        Log.debug { "$TAG - Initializing the unwrap cipher" }
+        Log.biometric { "$TAG - Initializing the unwrap cipher" }
 
         return try {
             RSACipherOperations.initUnwrapKeyCipher(masterPrivateKey)
@@ -99,7 +105,7 @@ internal class AndroidKeystoreManager(
     }
 
     private suspend fun authenticateAndInitUnwrapCipher(): Cipher {
-        Log.warning { "$TAG - Unable to initialize the cipher because the user is not authenticated" }
+        Log.biometric { "$TAG - Unable to initialize the cipher because the user is not authenticated" }
 
         return try {
             authenticationManager.authenticate()
@@ -117,7 +123,7 @@ internal class AndroidKeystoreManager(
      * @see KeyGenParameterSpec.Builder.setInvalidatedByBiometricEnrollment
      * */
     private fun handleInvalidKeyException(e: InvalidKeyException): Nothing {
-        Log.error {
+        Log.biometric {
             """
                 $TAG - Unable to initialize the unwrap cipher because the master key is invalid
                 |- Cause: $e
@@ -127,10 +133,12 @@ internal class AndroidKeystoreManager(
         keyStore.deleteEntry(MASTER_KEY_ALIAS)
         keyStore.load(null)
 
+        Log.biometric { "handleInvalidKeyException KeystoreInvalidated" }
         throw TangemSdkError.KeystoreInvalidated(e)
     }
 
     private fun generateMasterKey(): KeyPair {
+        Log.biometric { "generateMasterKey" }
         return RSACipherOperations.generateKeyPair(
             keyStoreProvider = keyStore.provider.name,
             keyGenSpec = buildMasterKeyGenSpec(),
@@ -138,6 +146,7 @@ internal class AndroidKeystoreManager(
     }
 
     private fun buildMasterKeyGenSpec(): KeyGenParameterSpec {
+        Log.biometric { "buildMasterKeyGenSpec" }
         return KeyGenParameterSpec.Builder(
             MASTER_KEY_ALIAS,
             KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,

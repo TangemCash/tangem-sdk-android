@@ -142,6 +142,7 @@ class CardSession(
                                 is CompletionResult.Success -> {
                                     stop()
                                 }
+
                                 is CompletionResult.Failure -> {
                                     stopWithError(result.error)
                                 }
@@ -150,6 +151,7 @@ class CardSession(
                         }
                     }
                 }
+
                 is CompletionResult.Failure -> {
                     Log.error { "${prepareResult.error}" }
                     stopWithError(prepareResult.error)
@@ -260,6 +262,7 @@ class CardSession(
                 UserCodeType.AccessCode -> {
                     environment.accessCode = UserCode(codeType, null)
                 }
+
                 UserCodeType.Passcode -> {
                     environment.passcode = UserCode(codeType, null)
                 }
@@ -294,9 +297,11 @@ class CardSession(
                     }
                 }
             }
+
             is UserCodeRequestPolicy.Always -> {
                 requestUserCode(policy.codeType)
             }
+
             is UserCodeRequestPolicy.Default -> {
                 runnable.prepare(this, callback)
             }
@@ -311,6 +316,7 @@ class CardSession(
                 is CompletionResult.Success -> {
                     onSessionStarted(this, null)
                 }
+
                 is CompletionResult.Failure -> {
                     val wrongType = when (result.error) {
                         is TangemSdkError.WrongCardType -> WrongValueType.CardType
@@ -395,6 +401,7 @@ class CardSession(
                             subscription.cancel()
                             callback(result)
                         }
+
                         is CompletionResult.Failure -> {
                             when (result.error) {
                                 is TangemSdkError.TagLost -> Log.session { "tag lost. Waiting for tag..." }
@@ -460,6 +467,7 @@ class CardSession(
 
                 return CompletionResult.Success(true)
             }
+
             is CompletionResult.Failure -> return CompletionResult.Failure(response.error)
         }
     }
@@ -473,6 +481,7 @@ class CardSession(
                     CompletionResult.Failure(error)
                 }
             }
+
             is CompletionResult.Failure -> result
         }
     }
@@ -505,6 +514,7 @@ class CardSession(
                     updateEnvironment(type, result.data)
                     callback(CompletionResult.Success(Unit))
                 }
+
                 is CompletionResult.Failure -> {
                     if (result.error is TangemSdkError.UserForgotTheCode) {
                         viewDelegate.dismiss()
@@ -515,6 +525,7 @@ class CardSession(
                                     resetCodesController = null
                                     callback(CompletionResult.Success(Unit))
                                 }
+
                                 is CompletionResult.Failure -> {
                                     callback(CompletionResult.Failure(restoreCodeResult.error))
                                 }
@@ -535,6 +546,7 @@ class CardSession(
             userCode?.type == UserCodeType.AccessCode && card.isAccessCodeSet -> {
                 environment.accessCode = userCode
             }
+
             userCode?.type == UserCodeType.Passcode && card.isPasscodeSet == true -> {
                 environment.passcode = userCode
             }
@@ -560,6 +572,7 @@ class CardSession(
                 environment.accessCode.value != null && card.isAccessCodeSet -> {
                     saveCodeAndLock(card.cardId, environment.accessCode)
                 }
+
                 environment.passcode.value != null && card.isPasscodeSet == true -> {
                     saveCodeAndLock(card.cardId, environment.passcode)
                 }

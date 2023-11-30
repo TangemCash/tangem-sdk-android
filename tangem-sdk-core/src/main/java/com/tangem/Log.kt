@@ -65,6 +65,10 @@ object Log {
         logInternal(message, Level.Info)
     }
 
+    fun biometric(message: () -> String) {
+        logInternal(message, Level.Biometric)
+    }
+
     private fun logInternal(message: () -> String, level: Level) {
         if (loggers.isEmpty()) return
 
@@ -92,6 +96,7 @@ object Log {
         Apdu(""),
         Nfc("NFCReader: "),
         Tlv(""),
+        Biometric("Biometric: "),
     }
 
     enum class Config(val levels: List<Level>) {

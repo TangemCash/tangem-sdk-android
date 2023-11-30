@@ -75,6 +75,7 @@ class AuthenticatedStorage(
     }
 
     private suspend fun decrypt(keyAlias: String, encryptedData: ByteArray): ByteArray? {
+        Log.biometric { "decrypt" }
         val key = keystoreManager.authenticateAndGetKey(keyAlias)
 
         if (key == null) {
