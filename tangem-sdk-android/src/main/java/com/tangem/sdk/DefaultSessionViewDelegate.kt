@@ -13,7 +13,6 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
-import com.tangem.common.nfc.CardReader
 import com.tangem.operations.resetcode.ResetCodesViewDelegate
 import com.tangem.sdk.extensions.sdkThemeContext
 import com.tangem.sdk.nfc.NfcAntennaLocationProvider
