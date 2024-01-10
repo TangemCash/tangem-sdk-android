@@ -109,6 +109,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     fun setMessage(message: ViewDelegateMessage?) {
         externalMessage = message
+        if (message is LocatorMessage) message.fetchMessages(locator = stringLocator)
         setTaskBlock(message)
     }
 
