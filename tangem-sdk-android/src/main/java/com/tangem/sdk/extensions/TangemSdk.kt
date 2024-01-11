@@ -32,7 +32,7 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
+    val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
     return TangemSdk(
@@ -49,7 +49,7 @@ fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: C
     val nfcManager = TangemSdk.initNfcManager(activity)
     val authenticationManager = initBiometricManager(activity)
 
-    val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
+    val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
     return TangemSdk(
@@ -71,7 +71,7 @@ fun TangemSdk.Companion.customDelegate(
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val safeViewDelegate = viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
+    val safeViewDelegate = viewDelegate ?: DefaultSessionViewDelegate(nfcManager, activity).apply {
         this.sdkConfig = config
     }
 
