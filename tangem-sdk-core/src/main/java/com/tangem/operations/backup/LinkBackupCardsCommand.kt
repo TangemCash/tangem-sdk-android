@@ -103,7 +103,7 @@ class LinkBackupCardsCommand(
                 TlvBuilder().apply {
                     append(TlvTag.FileIndex, index)
                     append(TlvTag.BackupCardLinkingKey, card.linkingKey)
-                    append(TlvTag.Certificate, card.generateCertificate())
+                    append(TlvTag.Certificate, card.certificate)
                     append(TlvTag.CardSignature, card.attestSignature)
                 }.serialize()
             }

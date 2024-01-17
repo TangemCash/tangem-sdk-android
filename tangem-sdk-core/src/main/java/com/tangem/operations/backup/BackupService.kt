@@ -1,6 +1,7 @@
 package com.tangem.operations.backup
 
 import com.squareup.moshi.JsonClass
+import com.tangem.Log
 import com.tangem.Message
 import com.tangem.TangemSdk
 import com.tangem.common.CardIdFormatter
@@ -16,11 +17,17 @@ import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.guard
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.services.secure.SecureStorage
-import com.tangem.common.tlv.TlvBuilder
-import com.tangem.common.tlv.TlvTag
 import com.tangem.operations.CommandResponse
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
+import java.io.PrintWriter
+import java.io.StringWriter
 
 @Suppress("LargeClass")
 class BackupService(
@@ -65,7 +72,16 @@ class BackupService(
      */
     var skipCompatibilityChecks: Boolean = false
 
+    private val backupScope = CoroutineScope(Dispatchers.IO) + CoroutineExceptionHandler { _, throwable ->
+        val sw = StringWriter()
+        throwable.printStackTrace(PrintWriter(sw))
+        val exceptionAsString: String = sw.toString()
+        Log.error { exceptionAsString }
+        throw throwable
+    }
+
     private val handleErrors = sdk.config.handleErrors
+    private val backupCertificateProvider = BackupCertificateProvider()
 
     init {
         updateState()
@@ -85,7 +101,22 @@ class BackupService(
             callback(CompletionResult.Failure(TangemSdkError.TooMuchBackupCards()))
             return
         }
-        readBackupCard(primaryCard, callback)
+
+        if (primaryCard.certificate != null) {
+            readBackupCard(primaryCard, callback)
+            return
+        }
+        backupScope.launch {
+            fetchCertificate(
+                cardId = primaryCard.cardId,
+                cardPublicKey = primaryCard.cardPublicKey,
+                onFailed = { callback(CompletionResult.Failure(it)) },
+            ) {
+                val updatedPrimaryCard = primaryCard.copy(certificate = it)
+                repo.data = repo.data.copy(primaryCard = updatedPrimaryCard)
+                readBackupCard(updatedPrimaryCard, callback)
+            }
+        }
     }
 
     fun setAccessCode(code: String): CompletionResult<Unit> {
@@ -159,7 +190,7 @@ class BackupService(
         } ?: Message(header = stringsLocator.getString(StringsLocator.ID.BACKUP_PREPARE_PRIMARY_CARD_MESSAGE))
 
         sdk.startSessionWithRunnable(
-            runnable = StartPrimaryCardLinkingTask(),
+            runnable = StartPrimaryCardLinkingCommand(),
             cardId = cardId,
             initialMessage = message,
             iconScanRes = iconScanRes,
@@ -172,6 +203,28 @@ class BackupService(
 
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
+        }
+    }
+
+    private suspend fun fetchCertificate(
+        cardId: String,
+        cardPublicKey: ByteArray,
+        onFailed: (TangemSdkError) -> Unit,
+        onLoaded: (ByteArray) -> Unit,
+    ) {
+        backupCertificateProvider.getCertificate(
+            cardId = cardId,
+            cardPublicKey = cardPublicKey,
+            developmentMode = false,
+        ) {
+            val certificate = when (it) {
+                is CompletionResult.Success -> it.data
+                is CompletionResult.Failure -> {
+                    onFailed(TangemSdkError.IssuerSignatureLoadingFailed())
+                    return@getCertificate
+                }
+            }
+            onLoaded(certificate)
         }
     }
 
@@ -205,13 +258,21 @@ class BackupService(
         return currentState
     }
 
-    private fun addBackupCard(backupCard: BackupCard) {
-        val updatedList = repo.data.backupCards
-            .filter { it.cardId != backupCard.cardId }
-            .plus(backupCard)
-
-        repo.data = repo.data.copy(backupCards = updatedList)
-        updateState()
+    private fun addBackupCard(backupCard: BackupCard, callback: CompletionCallback<Unit>) {
+        backupScope.launch {
+            fetchCertificate(
+                backupCard.cardId,
+                backupCard.cardPublicKey,
+                onFailed = { callback(CompletionResult.Failure(it)) },
+            ) { cert ->
+                val updatedBackupCard = backupCard.copy(certificate = cert)
+                val updatedList = repo.data.backupCards
+                    .filter { it.cardId != updatedBackupCard.cardId }
+                    .plus(updatedBackupCard)
+                repo.data = repo.data.copy(backupCards = updatedList)
+                updateState()
+            }
+        }
     }
 
     private fun readBackupCard(primaryCard: PrimaryCard, callback: CompletionCallback<Unit>) {
@@ -227,7 +288,7 @@ class BackupService(
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    addBackupCard(result.data)
+                    addBackupCard(result.data, callback)
                     callback(CompletionResult.Success(Unit))
                 }
 
@@ -370,6 +431,7 @@ class BackupService(
 
     private fun onBackupCompleted() {
         repo.reset()
+        backupScope.cancel()
     }
 
     sealed class State {
@@ -402,11 +464,10 @@ class RawPrimaryCard(
 
 @Suppress("LongParameterList")
 @JsonClass(generateAdapter = true)
-class PrimaryCard(
+data class PrimaryCard(
     val cardId: String,
-    override val cardPublicKey: ByteArray,
+    val cardPublicKey: ByteArray,
     val linkingKey: ByteArray,
-    override val issuerSignature: ByteArray,
     // For compatibility check with backup card
     val existingWalletsCount: Int,
     val isHDWalletAllowed: Boolean,
@@ -415,12 +476,12 @@ class PrimaryCard(
     val batchId: String?, // for compatibility with interrupted backups
     val firmwareVersion: FirmwareVersion?, // for compatibility with interrupted backups
     val isKeysImportAllowed: Boolean?, // for compatibility with interrupted backups
-) : CertificateProvider {
-    constructor(rawPrimaryCard: RawPrimaryCard, issuerSignature: ByteArray) : this(
+    val certificate: ByteArray?,
+) : CommandResponse {
+    constructor(rawPrimaryCard: RawPrimaryCard, certificate: ByteArray) : this(
         cardId = rawPrimaryCard.cardId,
         cardPublicKey = rawPrimaryCard.cardPublicKey,
         linkingKey = rawPrimaryCard.linkingKey,
-        issuerSignature = issuerSignature,
         existingWalletsCount = rawPrimaryCard.existingWalletsCount,
         isHDWalletAllowed = rawPrimaryCard.isHDWalletAllowed,
         issuer = rawPrimaryCard.issuer,
@@ -428,6 +489,7 @@ class PrimaryCard(
         batchId = rawPrimaryCard.batchId,
         firmwareVersion = rawPrimaryCard.firmwareVersion,
         isKeysImportAllowed = rawPrimaryCard.isKeysImportAllowed,
+        certificate = certificate,
     )
 }
 
@@ -440,19 +502,19 @@ class RawBackupCard(
 ) : CommandResponse
 
 @JsonClass(generateAdapter = true)
-class BackupCard(
+data class BackupCard(
     val cardId: String,
-    override val cardPublicKey: ByteArray,
+    val cardPublicKey: ByteArray,
     val linkingKey: ByteArray,
     val attestSignature: ByteArray,
-    override val issuerSignature: ByteArray,
-) : CertificateProvider {
-    constructor(rawBackupCard: RawBackupCard, issuerSignature: ByteArray) : this(
+    val certificate: ByteArray?,
+) {
+    constructor(rawBackupCard: RawBackupCard, certificate: ByteArray) : this(
         cardId = rawBackupCard.cardId,
         cardPublicKey = rawBackupCard.cardPublicKey,
         linkingKey = rawBackupCard.linkingKey,
         attestSignature = rawBackupCard.attestSignature,
-        issuerSignature = issuerSignature,
+        certificate = certificate,
     )
 }
 
@@ -515,18 +577,4 @@ class BackupRepo(
     }
 
     enum class StorageKey { BackupData }
-}
-
-interface CertificateProvider {
-    val cardPublicKey: ByteArray
-    val issuerSignature: ByteArray
-}
-
-@Throws(TangemSdkError::class)
-fun CertificateProvider.generateCertificate(): ByteArray {
-    return TlvBuilder().run {
-        append(TlvTag.CardPublicKey, cardPublicKey)
-        append(TlvTag.IssuerDataSignature, issuerSignature)
-        serialize()
-    }
 }

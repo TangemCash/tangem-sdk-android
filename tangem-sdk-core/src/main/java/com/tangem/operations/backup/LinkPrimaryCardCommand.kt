@@ -108,7 +108,7 @@ class LinkPrimaryCardCommand(
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.PrimaryCardLinkingKey, primaryCard.linkingKey)
-        tlvBuilder.append(TlvTag.Certificate, primaryCard.generateCertificate())
+        tlvBuilder.append(TlvTag.Certificate, primaryCard.certificate)
         tlvBuilder.append(TlvTag.BackupAttestSignature, attestSignature)
         tlvBuilder.append(TlvTag.NewPin, accessCode)
         tlvBuilder.append(TlvTag.NewPin2, passcode)
