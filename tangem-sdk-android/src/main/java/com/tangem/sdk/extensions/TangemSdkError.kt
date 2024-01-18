@@ -1,6 +1,7 @@
 package com.tangem.sdk.extensions
 
 import android.content.Context
+import androidx.annotation.StringRes
 import com.tangem.common.core.TangemSdkError
 import com.tangem.sdk.R
 
@@ -17,9 +18,7 @@ data class TangemSdkErrorDescription(
 
         data class StringType(override val value: String) : Type()
 
-        data class IntType(override val value: Int) : Type()
-
-        data class ResIdType(override val value: Int) : Type()
+        data class StringResId(@StringRes override val value: Int) : Type()
     }
 }
 
@@ -128,22 +127,22 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
 
         is TangemSdkError.AccessCodeCannotBeChanged -> TangemSdkErrorDescription(
             resId = R.string.error_pin_cannot_be_changed_format,
-            args = listOf(TangemSdkErrorDescription.Type.ResIdType(R.string.pin1)),
+            args = listOf(TangemSdkErrorDescription.Type.StringResId(R.string.pin1)),
         )
 
         is TangemSdkError.PasscodeCannotBeChanged -> TangemSdkErrorDescription(
             resId = R.string.error_pin_cannot_be_changed_format,
-            args = listOf(TangemSdkErrorDescription.Type.ResIdType(R.string.pin2)),
+            args = listOf(TangemSdkErrorDescription.Type.StringResId(R.string.pin2)),
         )
 
         is TangemSdkError.WrongPasscode -> TangemSdkErrorDescription(
             resId = R.string.error_wrong_pin_format,
-            args = listOf(TangemSdkErrorDescription.Type.ResIdType(R.string.pin2)),
+            args = listOf(TangemSdkErrorDescription.Type.StringResId(R.string.pin2)),
         )
 
         is TangemSdkError.WrongAccessCode -> TangemSdkErrorDescription(
             resId = R.string.error_wrong_pin_format,
-            args = listOf(TangemSdkErrorDescription.Type.ResIdType(R.string.pin1)),
+            args = listOf(TangemSdkErrorDescription.Type.StringResId(R.string.pin1)),
         )
 
         is TangemSdkError.BackupCardAlreadyAdded,
@@ -153,7 +152,7 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.AccessCodeCannotBeDefault ->
             TangemSdkErrorDescription(
                 resId = R.string.error_pin_cannot_be_default_format,
-                args = listOf(TangemSdkErrorDescription.Type.ResIdType(R.string.pin1)),
+                args = listOf(TangemSdkErrorDescription.Type.StringResId(R.string.pin1)),
             )
 
         is TangemSdkError.NoRemainingSignatures ->
@@ -198,12 +197,12 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
 
         is TangemSdkError.AccessCodeRequired -> TangemSdkErrorDescription(
             resId = R.string.error_pin_required_format,
-            args = listOf(TangemSdkErrorDescription.Type.ResIdType(R.string.pin1)),
+            args = listOf(TangemSdkErrorDescription.Type.StringResId(R.string.pin1)),
         )
 
         is TangemSdkError.PasscodeRequired -> TangemSdkErrorDescription(
             resId = R.string.error_pin_required_format,
-            args = listOf(TangemSdkErrorDescription.Type.ResIdType(R.string.pin2)),
+            args = listOf(TangemSdkErrorDescription.Type.StringResId(R.string.pin2)),
         )
     }
 }
@@ -221,7 +220,7 @@ fun TangemSdkError.localizedDescription(context: Context): String {
         if (args.isNotEmpty()) {
             val argsArray = args.map {
                 when (it) {
-                    is TangemSdkErrorDescription.Type.ResIdType -> context.getString(it.value)
+                    is TangemSdkErrorDescription.Type.StringResId -> context.getString(it.value)
                     else -> it.value
                 }
             }.toTypedArray()
