@@ -52,8 +52,10 @@ internal class Slip10Tests {
 
     @Test
     fun testVector2Secp256r1() {
-        val seed =
-            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes()
+        val seed = (
+            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b78757" +
+                "26f6c696663605d5a5754514e4b484542"
+            ).hexToBytes()
 
         val masterKey = BIP32.makeMasterKey(seed, curve = EllipticCurve.Secp256r1)
         val masterKeyPublic = Secp256r1.generatePublicKey(masterKey.privateKey, compressed = true)
@@ -111,8 +113,10 @@ internal class Slip10Tests {
 
     @Test
     fun testVector2Ed5519Slip0010() {
-        val seed =
-            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes()
+        val seed = (
+            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b78757" +
+                "26f6c696663605d5a5754514e4b484542"
+            ).hexToBytes()
 
         val masterKey = BIP32.makeMasterKey(seed, curve = EllipticCurve.Ed25519Slip0010)
 
