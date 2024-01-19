@@ -118,7 +118,8 @@ internal class ExtendedKeyTest {
         val seed = mnemonic.generateSeed().successOrNull()!!
         assertEquals(
             seed.toHexString().lowercase(),
-            "d3eea633215dc4cb8ec2acd0d413adec1ebccb597ecf279886e584e9cb9ceb0788eb6f17a585acc12bc58fd586df6bbbdf39af955656f24215cceab174344e62",
+            "d3eea633215dc4cb8ec2acd0d413adec1ebccb597ecf279886e584e9cb9ceb0788eb6f17a585acc12bc58fd586df6bbb" +
+                "df39af955656f24215cceab174344e62",
         )
 
         val extendedPrivateKey = com.tangem.crypto.hdWallet.bip32.BIP32.makeMasterKey(seed, EllipticCurve.Secp256k1)

@@ -20,138 +20,156 @@ import kotlin.test.assertFailsWith
 
 // Tests for firmware 6.33
 // / https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#user-content-Test_Vectors
+@Suppress("LargeClass")
 internal class BIP32Test {
 
     init {
         CryptoUtils.initCrypto()
     }
 
+    @Suppress("LongMethod")
     @Test
     fun testVector5() {
         // (invalid pubkey 020000000000000000000000000000000000000000000000000000000000000007)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Q5JXayek4PRsn35jii4veMimro1xefsM58PgBMrvdYre8QyULY",
-                NetworkType.Mainnet,
+                extendedKeyString = "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Q5JXayek4PRsn35jii" +
+                    "4veMimro1xefsM58PgBMrvdYre8QyULY",
+                networkType = NetworkType.Mainnet,
             )
         }
         // (unknown extended key version)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHPmHJiEDXkTiJTVV9rHEBUem2mwVbbNfvT2MTcAqj3nesx8uBf9",
-                NetworkType.Mainnet,
+                extendedKeyString = "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHPmHJiEDXkTiJTVV9rH" +
+                    "EBUem2mwVbbNfvT2MTcAqj3nesx8uBf9",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (unknown extended key version)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHGMQzT7ayAmfo4z3gY5KfbrZWZ6St24UVf2Qgo6oujFktLHdHY4",
-                NetworkType.Mainnet,
+                extendedKeyString = "DMwo58pR1QLEFihHiXPVykYB6fJmsTeHvyTp7hRThAtCX8CvYzgPcn8XnmdfHGMQzT7ayAmfo4z3gY5" +
+                    "KfbrZWZ6St24UVf2Qgo6oujFktLHdHY4",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (zero depth with non-zero index)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "xpub661MyMwAuDcm6CRQ5N4qiHKrJ39Xe1R1NyfouMKTTWcguwVcfrZJaNvhpebzGerh7gucBvzEQWRugZDuDXjNDRmXzSZe4c7mnTK97pTvGS8",
-                NetworkType.Mainnet,
+                extendedKeyString = "xpub661MyMwAuDcm6CRQ5N4qiHKrJ39Xe1R1NyfouMKTTWcguwVcfrZJaNvhpebzGerh7gucBvzEQWR" +
+                    "ugZDuDXjNDRmXzSZe4c7mnTK97pTvGS8",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (zero depth with non-zero parent fingerprint)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "xpub661no6RGEX3uJkY4bNnPcw4URcQTrSibUZ4NqJEw5eBkv7ovTwgiT91XX27VbEXGENhYRCf7hyEbWrR3FewATdCEebj6znwMfQkhRYHRLpJ",
-                NetworkType.Mainnet,
+                extendedKeyString = "xpub661no6RGEX3uJkY4bNnPcw4URcQTrSibUZ4NqJEw5eBkv7ovTwgiT91XX27VbEXGENhYRCf7hyE" +
+                    "bWrR3FewATdCEebj6znwMfQkhRYHRLpJ",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (pubkey version / prvkey mismatch)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU521AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
-                NetworkType.Mainnet,
+                extendedKeyString = "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU" +
+                    "521AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (prvkey version / pubkey mismatch)
         assertFailsWith<Exception> {
             ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGTQQD3dC4H2D5GBj7vWvSQaaBv5cxi9gafk7NF3pnBju6dwKvH",
-                NetworkType.Mainnet,
+                extendedKeyString = "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGTQQD3dC4H2D5GBj7v" +
+                    "WvSQaaBv5cxi9gafk7NF3pnBju6dwKvH",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (invalid pubkey prefix 04)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Txnt3siSujt9RCVYsx4qHZGc62TG4McvMGcAUjeuwZdduYEvFn",
-                NetworkType.Mainnet,
+                extendedKeyString = "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6Txnt3siSujt9RCVYsx" +
+                    "4qHZGc62TG4McvMGcAUjeuwZdduYEvFn",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (invalid prvkey prefix 04)
         assertFailsWith<Exception> {
             ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGpWnsj83BHtEy5Zt8CcDr1UiRXuWCmTQLxEK9vbz5gPstX92JQ",
-                NetworkType.Mainnet,
+                extendedKeyString = "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFGpWnsj83BHtEy5Zt8C" +
+                    "cDr1UiRXuWCmTQLxEK9vbz5gPstX92JQ",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (invalid pubkey prefix 01)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6N8ZMMXctdiCjxTNq964yKkwrkBJJwpzZS4HS2fxvyYUA4q2Xe4",
-                NetworkType.Mainnet,
+                extendedKeyString = "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6N8ZMMXctdiCjxTNq96" +
+                    "4yKkwrkBJJwpzZS4HS2fxvyYUA4q2Xe4",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (invalid prvkey prefix 01)
         assertFailsWith<Exception> {
             ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPLcMtD9y5gkZ6Eq3Rjuahrv17fEQ3Qen6J",
-                NetworkType.Mainnet,
+                extendedKeyString = "xprv9s21ZrQH143K24Mfq5zL5MhWK9hUhhGbd45hLXo2Pq2oqzMMo63oStZzFAzHGBP2UuGCqWLTAPL" +
+                    "cMtD9y5gkZ6Eq3Rjuahrv17fEQ3Qen6J",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (zero depth with non-zero parent fingerprint)
         assertFailsWith<Exception> {
             ExtendedPrivateKey.from(
-                "xprv9s2SPatNQ9Vc6GTbVMFPFo7jsaZySyzk7L8n2uqKXJen3KUmvQNTuLh3fhZMBoG3G4ZW1N2kZuHEPY53qmbZzCHshoQnNf4GvELZfqTUrcv",
-                NetworkType.Mainnet,
+                extendedKeyString = "xprv9s2SPatNQ9Vc6GTbVMFPFo7jsaZySyzk7L8n2uqKXJen3KUmvQNTuLh3fhZMBoG3G4ZW1N2kZuH" +
+                    "EPY53qmbZzCHshoQnNf4GvELZfqTUrcv",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (zero depth with non-zero index)
         assertFailsWith<Exception> {
             ExtendedPrivateKey.from(
-                "xprv9s2SPatNQ9Vc9Umo8v8kmOT5XaBwKk2jMHhB9YGspgYh1qD9JTZT38pFZbtNkB7aBj6ZS3Hjag2SygmTPHDj3hHNuTzFQJfB9QgScSSisXT",
-                NetworkType.Mainnet,
+                extendedKeyString = "xprv9s2SPatNQ9Vc9Umo8v8kmOT5XaBwKk2jMHhB9YGspgYh1qD9JTZT38pFZbtNkB7aBj6ZS3Hjag2" +
+                    "SygmTPHDj3hHNuTzFQJfB9QgScSSisXT",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (pubkey version / prvkey mismatch)
         assertFailsWith<Exception> {
             ExtendedPrivateKey.from(
-                "xprv9s2SPatNQ9VcFJnClsD1XebPGCXrGqhSvkGkDLJj8C3s5Efi6Fkvi6MhUroj91qtHt2pMjehHf45yPPcA6xni5woQHVPUD9DkJxiD3TsFma",
-                NetworkType.Mainnet,
+                extendedKeyString = "xprv9s2SPatNQ9VcFJnClsD1XebPGCXrGqhSvkGkDLJj8C3s5Efi6Fkvi6MhUroj91qtHt2pMjehHf4" +
+                    "5yPPcA6xni5woQHVPUD9DkJxiD3TsFma",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (prvkey version / pubkey mismatch)
         assertFailsWith<Exception> {
             ExtendedPublicKey.from(
-                "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU521AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
-                NetworkType.Mainnet,
+                extendedKeyString = "xpub661MyMwAqRbcEYS8w7XLSVeEsBXy79zSzH1J8vCdxAZningWLdN3zgtU6LBpB85b3D2yc8sfvZU" +
+                    "521AAwdZafEz7mnzBBsz4wKY5fTtTQBm",
+                networkType = NetworkType.Mainnet,
             )
         }
 
         // (invalid checksum)
         assertFailsWith<Exception> {
             ExtendedPrivateKey.from(
-                "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHL",
-                NetworkType.Mainnet,
+                extendedKeyString = "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6Ln" +
+                    "F5kejMRNNU3TGtRBeJgk33yuGBxrMPHL",
+                networkType = NetworkType.Mainnet,
             )
         }
     }
@@ -430,8 +448,10 @@ internal class BIP32Test {
 
     @Test
     fun testVector2Ed5519Slip0010() {
-        val seed =
-            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes()
+        val seed = (
+            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b78757" +
+                "26f6c696663605d5a5754514e4b484542"
+            ).hexToBytes()
         val masterKey = BIP32.makeMasterKey(seed, EllipticCurve.Ed25519Slip0010)
 
         assertEquals(
@@ -450,8 +470,10 @@ internal class BIP32Test {
 
     @Test
     fun testVector2() {
-        val seed =
-            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542".hexToBytes()
+        val seed = (
+            "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b78757" +
+                "26f6c696663605d5a5754514e4b484542"
+            ).hexToBytes()
 
         val mPrv = BIP32.makeMasterKey(seed, curve = EllipticCurve.Secp256k1)
         val mPub = mPrv.makePublicKey(EllipticCurve.Secp256k1)
@@ -459,20 +481,24 @@ internal class BIP32Test {
         val xPrv = mPrv.serialize(NetworkType.Mainnet)
         assertEquals(
             xPrv,
-            "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U",
+            "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFt" +
+                "T2emdEXVYsCzC2U",
         )
 
         val xPub = mPub.serialize(NetworkType.Mainnet)
         assertEquals(
             xPub,
-            "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB",
+            "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47L" +
+                "JhkJ8UB7WEGuduB",
         )
     }
 
     @Test
     fun testVector3() {
-        val seed =
-            "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be".hexToBytes()
+        val seed = (
+            "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45d239319ac14f863b8d5ab5a0d0c" +
+                "64d2e8a1e7d1457df2e5a3c51c73235be"
+            ).hexToBytes()
 
         val mPrv = BIP32.makeMasterKey(seed, curve = EllipticCurve.Secp256k1)
         val mPub = mPrv.makePublicKey(EllipticCurve.Secp256k1)
@@ -480,13 +506,15 @@ internal class BIP32Test {
         val xPrv = mPrv.serialize(NetworkType.Mainnet)
         assertEquals(
             xPrv,
-            "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6",
+            "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pX" +
+                "eTzjuxBrCmmhgC6",
         )
 
         val xPub = mPub.serialize(NetworkType.Mainnet)
         assertEquals(
             xPub,
-            "xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z3GC8vBgp2epUt13",
+            "xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z" +
+                "3GC8vBgp2epUt13",
         )
     }
 

@@ -42,7 +42,9 @@ internal class Slip23Tests {
 
     @Test
     fun testNoPassphrase() {
-        val expectedPrivateKey = "c065afd2832cd8b087c4d9ab7011f481ee1e0721e78ea5dd609f3ab3f156d245d176bd8fd4ec60b4731c3918a2a72a0226c0cd119ec35b47e4d55884667f552a23f7fdcd4a10c6cd2c7393ac61d877873e248f417634aa3d812af327ffe9d620"
+        val expectedPrivateKey = "c065afd2832cd8b087c4d9ab7011f481ee1e0721e78ea5dd609f3ab3f156d245d176bd8fd4ec60b473" +
+            "1c3918a2a72a0226c0cd119ec35b47e4d55884667f552a23f7fdcd4a10c6cd2c7393ac61d877873e248f417634aa3d812af327f" +
+            "fe9d620"
         val mnemonic = DefaultMnemonic(
             "eight country switch draw meat scout mystery blade tip drift useless good keep usage title",
             createDefaultWordlist(),
@@ -55,7 +57,9 @@ internal class Slip23Tests {
 
     @Test
     fun testWithPassphrase() {
-        val expectedPrivateKey = "70531039904019351e1afb361cd1b312a4d0565d4ff9f8062d38acf4b15cce41d7b5738d9c893feea55512a3004acb0d222c35d3e3d5cde943a15a9824cbac59443cf67e589614076ba01e354b1a432e0e6db3b59e37fc56b5fb0222970a010e"
+        val expectedPrivateKey = "70531039904019351e1afb361cd1b312a4d0565d4ff9f8062d38acf4b15cce41d7b5738d9c893feea5" +
+            "5512a3004acb0d222c35d3e3d5cde943a15a9824cbac59443cf67e589614076ba01e354b1a432e0e6db3b59e37fc56b5fb02229" +
+            "70a010e"
         val mnemonic = DefaultMnemonic(
             "eight country switch draw meat scout mystery blade tip drift useless good keep usage title",
             createDefaultWordlist(),

@@ -107,8 +107,9 @@ internal class KeysImportTests {
 
         // validate with WalletCore
         assertEquals(
-            prvKey.privateKey.toHexString().lowercase(),
-            "58b41cb27297be1fbf192a65e526179f43b779a383f5d72f14e5db8a82bd77525f65dbfe80724cd61254ec14b351312b63b51c87238ebd3c880a6ad158a161cb",
+            expected = prvKey.privateKey.toHexString().lowercase(),
+            actual = "58b41cb27297be1fbf192a65e526179f43b779a383f5d72f14e5db8a82bd77525f65dbfe80724cd61254ec14b35131" +
+                "2b63b51c87238ebd3c880a6ad158a161cb",
         )
         assertEquals(
             prvKey.chainCode.toHexString().lowercase(),
@@ -142,9 +143,10 @@ internal class KeysImportTests {
         // https://iancoleman.io/blsttc_ui/
         // https://github.com/Chia-Network/bls-signatures
         // https://iancoleman.io/eip2333/
+        val publicKey = "a6d8551cfcf8aefa062c60ffa246466c158e017fba12570327f47a004d5846cf2fabc2952b8f1653f7d224efd9d" +
+            "9b826"
         val pubKey = ExtendedPublicKey(
-            publicKey =
-            "a6d8551cfcf8aefa062c60ffa246466c158e017fba12570327f47a004d5846cf2fabc2952b8f1653f7d224efd9d9b826".hexToBytes(),
+            publicKey = publicKey.hexToBytes(),
             chainCode = byteArrayOf(),
         )
 
