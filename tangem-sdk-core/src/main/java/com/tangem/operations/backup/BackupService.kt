@@ -110,6 +110,7 @@ class BackupService(
             fetchCertificate(
                 cardId = primaryCard.cardId,
                 cardPublicKey = primaryCard.cardPublicKey,
+                isDevMode = primaryCard.firmwareVersion?.type == FirmwareVersion.FirmwareType.Sdk,
                 onFailed = { callback(CompletionResult.Failure(it)) },
             ) {
                 val updatedPrimaryCard = primaryCard.copy(certificate = it)
@@ -209,13 +210,14 @@ class BackupService(
     private suspend fun fetchCertificate(
         cardId: String,
         cardPublicKey: ByteArray,
+        isDevMode: Boolean,
         onFailed: (TangemSdkError) -> Unit,
         onLoaded: (ByteArray) -> Unit,
     ) {
         backupCertificateProvider.getCertificate(
             cardId = cardId,
             cardPublicKey = cardPublicKey,
-            developmentMode = false,
+            developmentMode = isDevMode,
         ) {
             val certificate = when (it) {
                 is CompletionResult.Success -> it.data
@@ -261,9 +263,10 @@ class BackupService(
     private fun addBackupCard(backupCard: BackupCard, callback: CompletionCallback<Unit>) {
         backupScope.launch {
             fetchCertificate(
-                backupCard.cardId,
-                backupCard.cardPublicKey,
-                onFailed = { callback(CompletionResult.Failure(it)) },
+                cardId = backupCard.cardId,
+                cardPublicKey = backupCard.cardPublicKey,
+                isDevMode = backupCard.firmwareVersion?.type == FirmwareVersion.FirmwareType.Sdk,
+                onFailed = { callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed())) },
             ) { cert ->
                 val updatedBackupCard = backupCard.copy(certificate = cert)
                 val updatedList = repo.data.backupCards
@@ -271,6 +274,7 @@ class BackupService(
                     .plus(updatedBackupCard)
                 repo.data = repo.data.copy(backupCards = updatedList)
                 updateState()
+                callback(CompletionResult.Success(Unit))
             }
         }
     }
@@ -289,7 +293,6 @@ class BackupService(
             when (result) {
                 is CompletionResult.Success -> {
                     addBackupCard(result.data, callback)
-                    callback(CompletionResult.Success(Unit))
                 }
 
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
@@ -507,8 +510,9 @@ data class BackupCard(
     val cardPublicKey: ByteArray,
     val linkingKey: ByteArray,
     val attestSignature: ByteArray,
+    val firmwareVersion: FirmwareVersion? = null,
     val certificate: ByteArray?,
-) {
+) : CommandResponse {
     constructor(rawBackupCard: RawBackupCard, certificate: ByteArray) : this(
         cardId = rawBackupCard.cardId,
         cardPublicKey = rawBackupCard.cardPublicKey,
