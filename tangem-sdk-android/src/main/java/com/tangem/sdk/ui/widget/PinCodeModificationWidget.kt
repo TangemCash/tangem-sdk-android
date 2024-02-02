@@ -1,19 +1,14 @@
 package com.tangem.sdk.ui.widget
 
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.InputType
-import android.text.TextWatcher
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import androidx.core.os.postDelayed
-import androidx.core.widget.addTextChangedListener
 import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -41,7 +36,6 @@ class PinCodeModificationWidget(
     private val tilPinCodeConfirm: TextInputLayout = mainView.findViewById(R.id.tilPinCodeConfirm)
 
     private val etPinCode: TextInputEditText = mainView.findViewById(R.id.etPinCode)
-    private val etNewPinCode: TextInputEditText = mainView.findViewById(R.id.etNewPinCode)
     private val etPinCodeConfirm: TextInputEditText = mainView.findViewById(R.id.etPinCodeConfirm)
 
     private val btnSave: Button = mainView.findViewById(R.id.btnSaveCode)
@@ -62,14 +56,15 @@ class PinCodeModificationWidget(
     override fun setState(params: SessionViewDelegateState) {
         if (params is SessionViewDelegateState.PinChangeRequested) {
             userCodeType = params.type
+            clearFields()
             setStateByMode()
             postUI(msTime = 1000) { etPinCode.showSoftKeyboard() }
         }
     }
 
-    fun switchModeTo(mode: Mode) {
-        this.mode = mode
-        setStateByMode()
+    private fun clearFields() {
+        etPinCode.setText("")
+        etPinCodeConfirm.setText("")
     }
 
     private fun setStateByMode() {
@@ -80,14 +75,7 @@ class PinCodeModificationWidget(
                 tilPinCode.hint = nameOfPin
                 tilNewPinCode.visibility = View.GONE
                 tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
-                btnSave.text = getString(R.string.common_save)
-            }
-            Mode.CHANGE -> {
-                tvScreenTitle.text = getFormattedString(R.string.pin_change_code_format, nameOfPin)
-                tilPinCode.hint = getFormattedString(R.string.pin_change_current_code_format, nameOfPin)
-                tilNewPinCode.hint = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
-                tilPinCodeConfirm.hint = getFormattedString(R.string.pin_change_new_code_confirm_format, nameOfPin)
-                btnSave.text = getString(R.string.common_save)
+                btnSave.text = getString(R.string.common_continue)
             }
             Mode.RESET -> {
                 tvScreenTitle.text = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
@@ -102,7 +90,7 @@ class PinCodeModificationWidget(
     }
 
     private fun setupInnerLogic() {
-        getEtForCodeChecks().debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
+        etPinCode.debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
             setErrorStateVisibility(getInputFieldsState())
         }
         etPinCodeConfirm.debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
@@ -135,8 +123,6 @@ class PinCodeModificationWidget(
         }
     }
 
-    private fun getEtForCodeChecks(): TextInputEditText = if (mode == Mode.CHANGE) etNewPinCode else etPinCode
-
     private fun setErrorStateVisibility(state: CheckCodesState) {
         val errorMessage = when (state) {
             CheckCodesState.TOO_SHORT -> getFormattedString(
@@ -167,7 +153,7 @@ class PinCodeModificationWidget(
     }
 
     private fun getInputFieldsState(): CheckCodesState {
-        val code1 = getEtForCodeChecks().text?.toString() ?: ""
+        val code1 = etPinCode.text?.toString() ?: ""
         val code2 = etPinCodeConfirm.text?.toString() ?: ""
 
         if (code1.isEmpty() || code2.isEmpty()) return CheckCodesState.UNDEFINED
@@ -180,7 +166,7 @@ class PinCodeModificationWidget(
 
     private fun onPasswordToggleClicked() {
         isPasswordEnabled = !isPasswordEnabled
-        getEtForCodeChecks().togglePasswordInputType()
+        etPinCode.togglePasswordInputType()
         etPinCodeConfirm.togglePasswordInputType()
     }
 
@@ -194,50 +180,19 @@ class PinCodeModificationWidget(
         setSelection(text?.length ?: 0)
     }
 
-    enum class CheckCodesState(val isSaveButtonEnabled: Boolean = false) {
-        NOT_MATCH(isSaveButtonEnabled = true),
+    enum class CheckCodesState {
+        NOT_MATCH,
         UNDEFINED,
         TOO_SHORT,
-        MATCH(isSaveButtonEnabled = true),
+        MATCH,
     }
 
     enum class Mode {
-        SET, CHANGE, RESET
+        SET, RESET
     }
 
     companion object {
         private const val INPUT_FIELD_DEBOUNCE_DELAY = 400L
         private const val PIN_CODE_MIN_LENGTH = 4
-    }
-}
-
-class DebounceAfterTextChanged(
-    val view: EditText,
-    var debounce: Long = 300,
-    var afterTextChanged: ((Editable?) -> Unit)? = null,
-) {
-
-    var textWatcher: TextWatcher? = null
-        private set
-
-    private val handler = Handler(Looper.getMainLooper())
-    private val runnable = Runnable {
-        afterTextChanged?.invoke(editable)
-    }
-
-    private var editable: Editable? = null
-
-    init {
-        textWatcher = view.addTextChangedListener(
-            afterTextChanged = {
-                editable = it
-                handler.removeCallbacks(runnable)
-                handler.postDelayed(runnable, debounce)
-            },
-        )
-    }
-
-    fun removeWatcher() {
-        view.removeTextChangedListener(textWatcher)
     }
 }

@@ -1,18 +1,11 @@
 package com.tangem.operations.backup
 
 import com.tangem.common.CompletionResult
-import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
-import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.services.Result
-import com.tangem.crypto.sign
-import com.tangem.operations.attestation.OnlineCardVerifier
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class StartBackupCardLinkingTask(
     private val primaryCard: PrimaryCard,
@@ -22,8 +15,6 @@ class StartBackupCardLinkingTask(
 
     override val allowsRequestAccessCodeFromRepository: Boolean
         get() = false
-
-    private val onlineCardVerifier: OnlineCardVerifier = OnlineCardVerifier()
 
     @Suppress("CyclomaticComplexMethod")
     override fun run(session: CardSession, callback: CompletionCallback<BackupCard>) {
@@ -88,43 +79,12 @@ class StartBackupCardLinkingTask(
             .run(session) { result ->
                 when (result) {
                     is CompletionResult.Success -> {
-                        loadIssuerSignature(result.data, session, callback)
+                        callback(CompletionResult.Success(result.data))
                     }
+
                     is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 }
             }
-    }
-
-    private fun loadIssuerSignature(
-        rawCard: RawBackupCard,
-        session: CardSession,
-        callback: CompletionCallback<BackupCard>,
-    ) {
-        if (session.environment.card?.firmwareVersion?.type == FirmwareVersion.FirmwareType.Sdk) {
-            val issuerPrivateKey =
-                "11121314151617184771ED81F2BACF57479E4735EB1405083927372D40DA9E92".hexToBytes()
-            val issuerSignature = rawCard.cardPublicKey.sign(issuerPrivateKey)
-            callback(CompletionResult.Success(BackupCard(rawCard, issuerSignature)))
-            return
-        }
-
-        session.scope.launch(Dispatchers.IO) {
-            when (
-                val result =
-                    onlineCardVerifier.getCardData(rawCard.cardId, rawCard.cardPublicKey)
-            ) {
-                is Result.Success -> {
-                    val signature = result.data.issuerSignature.guard {
-                        callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed()))
-                        return@launch
-                    }
-                    val backupCard = BackupCard(rawCard, signature.hexToBytes())
-                    callback(CompletionResult.Success(backupCard))
-                }
-                is Result.Failure ->
-                    callback(CompletionResult.Failure(TangemSdkError.IssuerSignatureLoadingFailed()))
-            }
-        }
     }
 
     private fun isBatchIdCompatible(batchId: String): Boolean {

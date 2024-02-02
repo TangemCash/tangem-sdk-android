@@ -4,13 +4,13 @@ import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
-import com.tangem.common.biometric.BiometricManager
-import com.tangem.common.biometric.DummyBiometricManager
+import com.tangem.common.authentication.AuthenticationManager
+import com.tangem.common.authentication.DummyAuthenticationManager
+import com.tangem.common.authentication.DummyKeystoreManager
+import com.tangem.common.authentication.KeystoreManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
-import com.tangem.common.doOnFailure
-import com.tangem.common.doOnSuccess
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.services.Result
@@ -22,6 +22,7 @@ import com.tangem.crypto.bip39.DefaultMnemonic
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
+import com.tangem.crypto.hdWallet.masterkey.AnyMasterKeyFactory
 import com.tangem.operations.*
 import com.tangem.operations.attestation.AttestCardKeyCommand
 import com.tangem.operations.attestation.AttestCardKeyResponse
@@ -58,9 +59,10 @@ class TangemSdk(
     private val reader: CardReader,
     private val viewDelegate: SessionViewDelegate,
     val secureStorage: SecureStorage,
-    val biometricManager: BiometricManager = DummyBiometricManager(),
     val wordlist: Wordlist,
     var config: Config = Config(),
+    val authenticationManager: AuthenticationManager = DummyAuthenticationManager(),
+    val keystoreManager: KeystoreManager = DummyKeystoreManager(),
 ) {
 
     private var cardSession: CardSession? = null
@@ -110,6 +112,8 @@ class TangemSdk(
      * it obtains the card data. Optionally, if the card contains a wallet (private and public key pair),
      * it proves that the wallet owns a private key that corresponds to a public one.
      *
+     * @param attestationMode Attestation mode to use. Full attestation available only for COS v6+.
+     * It can be used to get all public keys of linked cards.
      * @param challenge Optional challenge. If null, it will be created automatically and returned in command response.
      * @param cardId CID, Unique Tangem card ID number.
      * @param initialMessage A custom description that shows at the beginning of the NFC session.
@@ -118,13 +122,14 @@ class TangemSdk(
      * in the form of [Card] if the task was performed successfully or [TangemSdkError] in case of an error.
      */
     fun attestCardKey(
+        attestationMode: AttestCardKeyCommand.Mode = AttestCardKeyCommand.Mode.Default,
         challenge: ByteArray? = null,
         cardId: String? = null,
         initialMessage: Message? = null,
         callback: CompletionCallback<AttestCardKeyResponse>,
     ) {
         startSessionWithRunnable(
-            runnable = AttestCardKeyCommand(challenge),
+            runnable = AttestCardKeyCommand(mode = attestationMode, challenge = challenge),
             cardId = cardId,
             initialMessage = initialMessage,
             accessCode = null,
@@ -304,36 +309,8 @@ class TangemSdk(
      * This command will import an existing wallet.
      *
      * @param curve: Wallet's elliptic curve
-     * @param seed: BIP39 seed to create wallet from. COS v.6.16+.
-     * @param cardId: CID, Unique Tangem card ID number.
-     * @param initialMessage: A custom description that shows at the beginning of the NFC session.
-     * If null, default message will be used
-     * @param callback: is triggered on the completion of the [CreateWalletTask] and provides
-     * card response in the form of [CreateWalletResponse] if the task was performed successfully
-     * or [TangemSdkError] in case of an error.
-     */
-    fun importWallet(
-        curve: EllipticCurve,
-        cardId: String,
-        seed: ByteArray,
-        initialMessage: Message? = null,
-        callback: CompletionCallback<CreateWalletResponse>,
-    ) {
-        startSessionWithRunnable(
-            runnable = CreateWalletTask(curve, seed),
-            cardId = cardId,
-            initialMessage = initialMessage,
-            accessCode = null,
-            callback = callback,
-        )
-    }
-
-    /**
-     * This command will import an existing wallet.
-     *
-     * @param curve: Wallet's elliptic curve
-     * @param mnemonic: BIP39 mnemonic to create wallet from. COS v.6.16+.
-     * @param passphrase: BIP39 passphrase to create wallet from. COS v.6.16+. Empty passphrase by default.
+     * @param mnemonic: BIP39 mnemonic to create wallet from. COS v.6+.
+     * @param passphrase: BIP39 passphrase to create wallet from. COS v.6+. Empty passphrase by default.
      * @param cardId: CID, Unique Tangem card ID number.
      * @param initialMessage: A custom description that shows at the beginning of the NFC session.
      * If null, default message will be used
@@ -349,19 +326,21 @@ class TangemSdk(
         initialMessage: Message? = null,
         callback: CompletionCallback<CreateWalletResponse>,
     ) {
-        DefaultMnemonic(mnemonic, wordlist).generateSeed(passphrase)
-            .doOnSuccess { seed ->
-                startSessionWithRunnable(
-                    runnable = CreateWalletTask(curve, seed),
-                    cardId = cardId,
-                    initialMessage = initialMessage,
-                    accessCode = null,
-                    callback = callback,
-                )
-            }
-            .doOnFailure { error ->
-                callback(CompletionResult.Failure(error))
-            }
+        try {
+            val mnemonic = DefaultMnemonic(mnemonic, wordlist)
+            val factory = AnyMasterKeyFactory(mnemonic, passphrase)
+            val privateKey = factory.makeMasterKey(curve)
+
+            startSessionWithRunnable(
+                runnable = CreateWalletTask(curve, privateKey),
+                cardId = cardId,
+                initialMessage = initialMessage,
+                accessCode = null,
+                callback = callback,
+            )
+        } catch (error: Exception) {
+            callback(CompletionResult.Failure(error.toTangemSdkError()))
+        }
     }
 
     /**
@@ -1042,6 +1021,7 @@ class TangemSdk(
         cardId: String? = null,
         initialMessage: Message? = null,
         accessCode: String? = null,
+        iconScanRes: Int? = null,
         callback: CompletionCallback<T>,
     ) {
         if (checkSession()) {
@@ -1051,7 +1031,13 @@ class TangemSdk(
 
         configure()
         cardSession = makeSession(cardId, initialMessage, accessCode)
-        Thread().run { cardSession?.startWithRunnable(runnable, callback) }
+        Thread().run {
+            cardSession?.startWithRunnable(
+                iconScanRes = iconScanRes,
+                runnable = runnable,
+                callback = callback,
+            )
+        }
     }
 
     /**
@@ -1124,7 +1110,7 @@ class TangemSdk(
                 val jsonrpcLinker = linkersList[0]
                 cardSession = makeSession(cardId, message, accessCode)
                 Thread().run {
-                    cardSession?.startWithRunnable(jsonrpcLinker.runnable!!) {
+                    cardSession?.startWithRunnable(runnable = jsonrpcLinker.runnable!!) {
                         jsonrpcLinker.linkResult(it)
                         callback(jsonrpcLinker.response.toJson())
                     }
@@ -1132,7 +1118,7 @@ class TangemSdk(
             } else {
                 val task = RunnablesTask(linkersList)
                 cardSession = makeSession(cardId, message, accessCode)
-                cardSession!!.startWithRunnable(task) { result ->
+                cardSession!!.startWithRunnable(runnable = task) { result ->
                     when (result) {
                         is CompletionResult.Success -> callback(converter.toJson(result.data.responses))
                         is CompletionResult.Failure -> {
@@ -1166,14 +1152,17 @@ class TangemSdk(
         viewDelegate.setConfig(config)
     }
 
-    private fun createUserCodeRepository(secureStorage: SecureStorage, config: Config): UserCodeRepository? {
-        val safeBiometricsManager = biometricManager
-
-        return if (safeBiometricsManager.canAuthenticate &&
+    private fun createUserCodeRepository(
+        authenticationManager: AuthenticationManager,
+        keystoreManager: KeystoreManager,
+        secureStorage: SecureStorage,
+        config: Config,
+    ): UserCodeRepository? {
+        return if (authenticationManager.canAuthenticate &&
             config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics
         ) {
             UserCodeRepository(
-                biometricManager = safeBiometricsManager,
+                keystoreManager = keystoreManager,
                 secureStorage = secureStorage,
             )
         } else {
@@ -1197,7 +1186,12 @@ class TangemSdk(
             cardId = cardId,
             viewDelegate = viewDelegate,
             environment = environment,
-            userCodeRepository = createUserCodeRepository(secureStorage, config),
+            userCodeRepository = createUserCodeRepository(
+                authenticationManager = authenticationManager,
+                keystoreManager = keystoreManager,
+                secureStorage = secureStorage,
+                config = config,
+            ),
             reader = reader,
             jsonRpcConverter = jsonRpcConverter,
             secureStorage = secureStorage,

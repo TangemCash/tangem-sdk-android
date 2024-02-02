@@ -52,7 +52,7 @@ class PreflightReadTask(
                     if (session.environment.config.handleErrors && cardId != null &&
                         !cardId.equals(result.data.card.cardId, true)
                     ) {
-                        callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber()))
+                        callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber(cardId)))
                         return@readCommand
                     }
                     try {

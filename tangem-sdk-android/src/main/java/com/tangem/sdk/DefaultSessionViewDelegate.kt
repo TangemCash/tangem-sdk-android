@@ -13,12 +13,12 @@ import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
-import com.tangem.common.nfc.CardReader
 import com.tangem.operations.resetcode.ResetCodesViewDelegate
 import com.tangem.sdk.extensions.sdkThemeContext
 import com.tangem.sdk.nfc.NfcAntennaLocationProvider
 import com.tangem.sdk.nfc.NfcManager
 import com.tangem.sdk.ui.AttestationFailedDialog
+import com.tangem.sdk.ui.NfcEnableDialog
 import com.tangem.sdk.ui.NfcSessionDialog
 
 /**
@@ -27,7 +27,6 @@ import com.tangem.sdk.ui.NfcSessionDialog
  */
 class DefaultSessionViewDelegate(
     private val nfcManager: NfcManager,
-    private val reader: CardReader,
     private val activity: Activity,
 ) : SessionViewDelegate {
 
@@ -36,11 +35,28 @@ class DefaultSessionViewDelegate(
     override val resetCodesViewDelegate: ResetCodesViewDelegate = AndroidResetCodesViewDelegate(activity)
 
     private var readingDialog: NfcSessionDialog? = null
+    private var nfcEnableDialog: NfcEnableDialog? = null
     private var stoppedBySession: Boolean = false
 
-    override fun onSessionStarted(cardId: String?, message: ViewDelegateMessage?, enableHowTo: Boolean) {
+    override fun onSessionStarted(
+        cardId: String?,
+        message: ViewDelegateMessage?,
+        enableHowTo: Boolean,
+        iconScanRes: Int?,
+    ) {
         Log.view { "session started" }
-        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message)
+        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message, iconScanRes)
+        checkNfcEnabled()
+    }
+
+    private fun checkNfcEnabled() {
+        postUI(msTime = 500) {
+            if (!nfcManager.isNfcEnabled) {
+                nfcEnableDialog?.cancel()
+                nfcEnableDialog = NfcEnableDialog()
+                activity.let { nfcEnableDialog?.show(it) }
+            }
+        }
     }
 
     override fun onSessionStopped(message: Message?) {
@@ -146,9 +162,14 @@ class DefaultSessionViewDelegate(
         state: SessionViewDelegateState,
         enableHowTo: Boolean,
         message: ViewDelegateMessage? = null,
+        iconScanRes: Int? = null,
     ) {
         postUI {
-            if (readingDialog == null) createReadingDialog(activity)
+            if (readingDialog == null) {
+                createReadingDialog(activity, iconScanRes)
+            } else {
+                readingDialog?.dismissInternal()
+            }
             readingDialog?.showHowTo(enableHowTo)
             readingDialog?.setInitialMessage(message)
             readingDialog?.setScanImage(sdkConfig.scanTagImage)
@@ -156,19 +177,20 @@ class DefaultSessionViewDelegate(
         }
     }
 
-    private fun createReadingDialog(activity: Activity) {
+    private fun createReadingDialog(activity: Activity, iconScanRes: Int? = null) {
         val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
         readingDialog = NfcSessionDialog(
             context = activity.sdkThemeContext(),
             nfcManager = nfcManager,
             nfcLocationProvider = nfcLocationProvider,
+            iconScanRes = iconScanRes,
         ).apply {
             setOwnerActivity(activity)
             dismissWithAnimation = true
             stoppedBySession = false
             create()
             setOnCancelListener {
-                if (!stoppedBySession) reader.stopSession(true)
+                if (!stoppedBySession) nfcManager.reader.stopSession(true)
                 readingDialog = null
             }
         }

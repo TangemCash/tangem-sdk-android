@@ -22,7 +22,6 @@ import com.tangem.common.extensions.guard
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
-import com.tangem.crypto.hdWallet.bip32.BIP32
 import com.tangem.crypto.hdWallet.bip32.ExtendedPrivateKey
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
@@ -52,18 +51,17 @@ class CreateWalletResponse(
  * RemainingSignature is set to MaxSignatures.
  *
  *  @property curve: Elliptic curve of the wallet
- *  @param seed: BIP39 seed to create wallet from. COS v6.16+.
+ *  @param privateKey: A private key to import. COS v6+.
  */
 internal class CreateWalletCommand @Throws constructor(
     private val curve: EllipticCurve,
-    seed: ByteArray? = null,
+    private val privateKey: ExtendedPrivateKey? = null,
 ) : Command<CreateWalletResponse>() {
 
     var walletIndex: Int = 0
         private set
 
     private val signingMethod = SigningMethod.build(SigningMethod.Code.SignHash)
-    private val privateKey: ExtendedPrivateKey? = seed?.let { BIP32.makeMasterKey(seed, curve) }
 
     override fun requiresPasscode(): Boolean = true
 
@@ -94,6 +92,8 @@ internal class CreateWalletCommand @Throws constructor(
                 if (card.wallet(extendedKey.publicKey) != null) {
                     return TangemSdkError.WalletAlreadyCreated()
                 }
+            } catch (e: TangemSdkError.UnsupportedCurve) {
+                // ignore exception
             } catch (e: Exception) {
                 return e.toTangemSdkError()
             }

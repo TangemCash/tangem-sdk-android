@@ -4,7 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.squareup.sqldelight'
 apply from: '../dependencies.gradle'
 apply from: '../artifactConfig.gradle'
-apply from: '../upload.gradle'
+apply from: '../upload-github.gradle'
 
 dependencies {
     // kotlin
@@ -17,13 +17,15 @@ dependencies {
     implementation "com.madgag.spongycastle:core:1.58.0.0"
     implementation "com.madgag.spongycastle:prov:1.58.0.0"
     implementation 'net.i2p.crypto:eddsa:0.3.0'
+    implementation("org.chiachat:kbls:1.0.3")
+    implementation("com.ionspin.kotlin:bignum:0.3.8")
 
     //network
     implementation 'com.squareup.retrofit2:retrofit:2.8.1'
     implementation 'com.squareup.retrofit2:converter-moshi:2.6.0'
-    implementation 'com.squareup.moshi:moshi:1.12.0'
-    implementation "com.squareup.moshi:moshi-kotlin:1.12.0"
-    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.12.0")
+    implementation 'com.squareup.moshi:moshi:1.13.0'
+    implementation "com.squareup.moshi:moshi-kotlin:1.13.0"
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.13.0")
     implementation 'com.squareup.okhttp3:logging-interceptor:4.2.2'
 
     // tests

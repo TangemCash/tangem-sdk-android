@@ -73,6 +73,7 @@ class ResetCodesWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView
                     chipCardCurrent.show()
                 }
             }
+            ResetPinService.State.NeedCode, ResetPinService.State.Finished -> Unit
         }
     }
 }

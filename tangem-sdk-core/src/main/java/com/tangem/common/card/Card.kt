@@ -191,11 +191,21 @@ data class Card internal constructor(
 
     sealed class BackupStatus {
         object NoBackup : BackupStatus()
-        data class CardLinked(val cardCount: Int) : BackupStatus()
-        data class Active(val cardCount: Int) : BackupStatus()
+        data class CardLinked(val cardsCount: Int) : BackupStatus()
+        data class Active(val cardsCount: Int) : BackupStatus()
 
         val isActive: Boolean
-            get() = this is Active || this is CardLinked
+            get() = this is Active
+
+        val canBackup: Boolean
+            get() = this is NoBackup
+
+        val linkedCardsCount: Int
+            get() = when (this) {
+                is Active -> cardsCount
+                is CardLinked -> cardsCount
+                NoBackup -> 0
+            }
 
         fun toRawStatus(): BackupRawStatus {
             return when (this) {
@@ -272,7 +282,7 @@ data class Card internal constructor(
         val isBackupAllowed: Boolean,
 
         /**
-         * Is allowed to import  keys. COS. v6.16+
+         * Is allowed to import  keys. COS. v6+
          */
         val isKeysImportAllowed: Boolean,
 

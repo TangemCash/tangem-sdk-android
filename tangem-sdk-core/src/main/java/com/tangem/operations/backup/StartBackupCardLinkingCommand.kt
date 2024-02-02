@@ -16,7 +16,7 @@ import com.tangem.operations.Command
  */
 class StartBackupCardLinkingCommand(
     private val primaryCardLinkingKey: ByteArray,
-) : Command<RawBackupCard>() {
+) : Command<BackupCard>() {
 
     override val allowsRequestAccessCodeFromRepository: Boolean
         get() = false
@@ -30,11 +30,11 @@ class StartBackupCardLinkingCommand(
         if (!card.settings.isBackupAllowed) {
             return TangemSdkError.BackupNotAllowed()
         }
-        if (card.backupStatus != null && card.backupStatus.isActive) {
+        if (card.backupStatus?.canBackup != true) {
             return TangemSdkError.BackupFailedAlreadyCreated()
         }
         if (card.wallets.isNotEmpty()) {
-            return TangemSdkError.BackupFailedNotEmptyWallets()
+            return TangemSdkError.BackupFailedNotEmptyWallets(cardId = card.cardId)
         }
         return null
     }
@@ -48,16 +48,18 @@ class StartBackupCardLinkingCommand(
         return CommandApdu(Instruction.StartBackupCardLinking, tlvBuilder.serialize())
     }
 
-    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): RawBackupCard {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): BackupCard {
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
         val decoder = TlvDecoder(tlvData)
-        return RawBackupCard(
+        return BackupCard(
             cardId = decoder.decode(TlvTag.CardId),
             cardPublicKey = environment.card?.cardPublicKey ?: throw TangemSdkError.UnknownError(),
             linkingKey = decoder.decode(TlvTag.BackupCardLinkingKey),
+            firmwareVersion = environment.card?.firmwareVersion ?: throw TangemSdkError.UnknownError(),
             attestSignature = decoder.decode(TlvTag.CardSignature),
+            certificate = null,
         )
     }
 }

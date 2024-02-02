@@ -36,6 +36,8 @@
 
         <include layout="@layout/utils" />
 
+        <include layout="@layout/theme" />
+
     </LinearLayout>
 
 </ScrollView>

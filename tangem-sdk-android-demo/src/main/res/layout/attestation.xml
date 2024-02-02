@@ -75,6 +75,12 @@
                 android:layout_height="wrap_content"
                 android:text="Attest" />
 
+            <Button
+                android:id="@+id/btnAttestCardKey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Attest card" />
+
         </LinearLayout>
 
     </FrameLayout>

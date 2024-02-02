@@ -27,4 +27,7 @@ class DefaultMnemonic : Mnemonic {
     override fun generateSeed(passphrase: String): CompletionResult<ByteArray> {
         return bip39.generateSeed(mnemonicComponents, passphrase)
     }
+
+    @Throws(TangemSdkError.MnemonicException::class)
+    override fun getEntropy(): ByteArray = bip39.getEntropy(mnemonicComponents)
 }

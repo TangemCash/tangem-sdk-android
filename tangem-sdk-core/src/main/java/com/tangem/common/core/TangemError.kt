@@ -6,7 +6,6 @@ import com.tangem.common.card.Card
 import com.tangem.crypto.bip39.MnemonicErrorResult
 import com.tangem.operations.ScanTask
 import com.tangem.operations.read.ReadCommand
-import java.security.InvalidKeyException
 
 /**
  * An interface for any error that may occur when performing Tangem SDK tasks.
@@ -117,7 +116,6 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class MissingCounter : TangemSdkError(code = 40007)
     class OverwritingDataIsProhibited : TangemSdkError(code = 40008)
     class DataCannotBeWritten : TangemSdkError(code = 40009)
-    class MissingIssuerPubicKey : TangemSdkError(code = 40010)
     class CardVerificationFailed : TangemSdkError(code = 40011)
 
     /**
@@ -133,12 +131,9 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     // Personalization Errors
     class AlreadyPersonalized : TangemSdkError(code = 40101)
 
-    // Depersonalization Errors
-    class CannotBeDepersonalized : TangemSdkError(code = 40201)
-
     // Read Errors
     class AccessCodeRequired : TangemSdkError(code = 40401)
-    class CardReadWrongWallet : TangemSdkError(code = 40402)
+    class NonHardenedDerivationNotSupported : TangemSdkError(code = 40402)
     class WalletCannotBeCreated : TangemSdkError(code = 40403)
     class CardWithMaxZeroWallets : TangemSdkError(code = 40404)
     class WalletAlreadyCreated : TangemSdkError(code = 40405)
@@ -174,15 +169,6 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class WalletIsNotCreated : TangemSdkError(code = 40904)
     class SignHashesNotAvailable : TangemSdkError(code = 40905)
 
-    /**
-     * Tangem cards can sign currently up to 10 hashes during one [com.tangem.operations.SignCommand].
-     * This error is returned when a [com.tangem.operations.SignCommand] receives more than 10 hashes to sign.
-     */
-    class TooManyHashesInOneTransaction : TangemSdkError(code = 40906)
-
-    // Write Extra Issuer Data Errors
-    class ExtendedDataSizeTooLarge : TangemSdkError(code = 41101)
-
     class FileSettingsUnsupported : TangemSdkError(code = 42000)
     class FilesIsEmpty : TangemSdkError(code = 42001)
     class FilesDisabled : TangemSdkError(code = 42002)
@@ -197,7 +183,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class BackupCardRequired : TangemSdkError(code = 41207)
     class NoBackupDataForCard : TangemSdkError(code = 41208)
     class BackupFailedEmptyWallets : TangemSdkError(code = 41209)
-    class BackupFailedNotEmptyWallets : TangemSdkError(code = 41210)
+    class BackupFailedNotEmptyWallets(val cardId: String) : TangemSdkError(code = 41210)
     class CertificateSignatureRequired : TangemSdkError(code = 41211)
     class AccessCodeOrPasscodeRequired : TangemSdkError(code = 41212)
     class NoActiveBackup : TangemSdkError(code = 41220)
@@ -255,7 +241,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      * This error is returned when a [Task] expects a user to use a particular card,
      * but the user tries to use a different card.
      */
-    class WrongCardNumber : TangemSdkError(code = 50005)
+    class WrongCardNumber(val cardId: String) : TangemSdkError(code = 50005)
 
     /**
      * This error is returned when a user scans a card of a [com.tangem.common.extensions.CardType]
@@ -275,13 +261,6 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      */
     class NotSupportedFirmwareVersion : TangemSdkError(code = 50008)
 
-    /**
-     * This error is returned when the scanned wallet doesn't have some essential fields.
-     */
-    class WalletError : TangemSdkError(code = 50009)
-
-//    class FailedToGenerateRandomSequence : TangemSdkError(50010)
-
     class CryptoUtilsError(override var customMessage: String) : TangemSdkError(code = 50011)
 
     class Underlying(override var customMessage: String) : TangemSdkError(code = 50012)
@@ -290,24 +269,22 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     class NetworkError(override var customMessage: String) : TangemSdkError(code = 50014)
 
-    class WrongInteractionMode : TangemSdkError(code = 50027)
-
-    class BiometricsUnavailable : TangemSdkError(code = 50015) {
+    class AuthenticationUnavailable : TangemSdkError(code = 50015) {
         override var customMessage: String = "Biometrics feature unavailable: $code"
     }
 
     /**
-     * Generic biometric authentication error
+     * Generic authentication error.
      *
-     * @param errorCode Biometric operation error code.
+     * @param errorCode Operation error code.
      * For android see [androidx.biometric.BiometricPrompt] errors.
-     * @param customMessage Biometric operation error message.
+     * @param customMessage Operation error message.
      *
-     * @see BiometricsAuthenticationLockout
-     * @see BiometricsAuthenticationPermanentLockout
-     * @see UserCanceledBiometricsAuthentication
+     * @see AuthenticationLockout
+     * @see AuthenticationPermanentLockout
+     * @see UserCanceledAuthentication
      */
-    class BiometricsAuthenticationFailed(
+    class AuthenticationFailed(
         val errorCode: Int,
         override var customMessage: String,
     ) : TangemSdkError(code = 50016)
@@ -316,53 +293,30 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      * The operation was canceled because the API is locked out due to too many attempts. This
      * occurs after 5 failed attempts, and lasts for 30 seconds
      */
-    class BiometricsAuthenticationLockout : TangemSdkError(code = 50017)
+    class AuthenticationLockout : TangemSdkError(code = 50017)
 
     /**
-     * The operation was canceled because [BiometricsAuthenticationLockout] occurred too many times. Biometric
-     * authentication is disabled until the user unlocks with their device credential (i.e. PIN,
+     * The operation was canceled because [AuthenticationLockout] occurred too many times. Authentication is disabled
+     * until the user unlocks with their device credential (i.e. PIN,
      * pattern, or password).
      */
-    class BiometricsAuthenticationPermanentLockout : TangemSdkError(code = 50018)
+    class AuthenticationPermanentLockout : TangemSdkError(code = 50018)
 
     /**
      * The user canceled the operation.
      */
-    class UserCanceledBiometricsAuthentication : TangemSdkError(code = 50019) {
+    class UserCanceledAuthentication : TangemSdkError(code = 50019) {
         override val silent: Boolean = true
     }
 
     /**
-     * The cryptography operation with biometrics authentication failed with the [cause]
-     *
-     * @see InvalidBiometricCryptographyKey
-     * @see BiometricCryptographyKeyInvalidated
-     * */
-    class BiometricCryptographyOperationFailed(
-        override var customMessage: String,
-        override val cause: Throwable?,
-    ) : TangemSdkError(code = 50020)
-
-    /**
-     * The cryptography operation with biometric authentication failed with the invalid key exception
-     * e.g. user not authenticated or key expired
-     *
-     * @see BiometricCryptographyOperationFailed
-     * @see InvalidBiometricCryptographyKey
-     * */
-    class InvalidBiometricCryptographyKey(
-        override var customMessage: String,
-        override val cause: InvalidKeyException?,
-    ) : TangemSdkError(code = 50021)
-
-    /**
-     * The cryptography operation with biometric authentication failed with the key permanently invalidated exception
+     * The cryptography operation with authentication failed with the key permanently invalidated exception
      * e.g. new biometric enrollment
      *
-     * @see BiometricCryptographyOperationFailed
-     * @see InvalidBiometricCryptographyKey
+     * @see CryptographyOperationFailed
+     * @see InvalidCryptographyKey
      * */
-    class BiometricCryptographyKeyInvalidated : TangemSdkError(code = 50024)
+    class KeystoreInvalidated(override val cause: Throwable?) : TangemSdkError(code = 50024)
 
     class KeyGenerationException(override var customMessage: String) : TangemSdkError(code = 50022)
 
