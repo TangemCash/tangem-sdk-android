@@ -37,6 +37,7 @@ enum class Instruction(var code: Int) {
     GenerateOTP(code = 0xE2),
     GetEntropy(code = 0xE7),
     SetUserSettings(code = 0xD5),
+    FinalizeReadBackupData(code = 0xEF),
     ;
 
     companion object {

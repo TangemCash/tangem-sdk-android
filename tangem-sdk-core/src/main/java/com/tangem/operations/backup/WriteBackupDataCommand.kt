@@ -51,7 +51,7 @@ class WriteBackupDataCommand(
             return TangemSdkError.BackupFailedCardNotLinked()
         }
         if (card.wallets.isNotEmpty()) {
-            return TangemSdkError.BackupFailedNotEmptyWallets()
+            return TangemSdkError.BackupFailedNotEmptyWallets(cardId = card.cardId)
         }
         return null
     }
@@ -70,7 +70,7 @@ class WriteBackupDataCommand(
                             session.environment.card = session.environment.card?.copy(
                                 backupStatus = Card.BackupStatus.from(
                                     rawStatus = result.data.backupStatus,
-                                    cardsCount = backupStatus.cardCount,
+                                    cardsCount = backupStatus.cardsCount,
                                 ),
                             )
                         }

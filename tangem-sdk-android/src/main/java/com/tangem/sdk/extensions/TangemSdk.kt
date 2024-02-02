@@ -10,14 +10,17 @@ import com.tangem.LogFormat
 import com.tangem.SessionViewDelegate
 import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
-import com.tangem.common.biometric.BiometricManager
-import com.tangem.common.biometric.DummyBiometricManager
+import com.tangem.common.authentication.AuthenticationManager
+import com.tangem.common.authentication.DummyAuthenticationManager
+import com.tangem.common.authentication.DummyKeystoreManager
+import com.tangem.common.authentication.KeystoreManager
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.sdk.DefaultSessionViewDelegate
 import com.tangem.sdk.NfcLifecycleObserver
-import com.tangem.sdk.biometrics.AndroidBiometricManager
+import com.tangem.sdk.authentication.AndroidAuthenticationManager
+import com.tangem.sdk.authentication.AndroidKeystoreManager
 import com.tangem.sdk.nfc.NfcManager
 import com.tangem.sdk.storage.create
 import java.text.DateFormat
@@ -29,7 +32,7 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
+    val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
     return TangemSdk(
@@ -44,16 +47,17 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
 fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: Config = Config()): TangemSdk {
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
-    val biometricManager = TangemSdk.initBiometricManager(activity, secureStorage)
+    val authenticationManager = initBiometricManager(activity)
 
-    val viewDelegate = DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity)
+    val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
     return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
         secureStorage = secureStorage,
-        biometricManager = biometricManager,
+        authenticationManager = authenticationManager,
+        keystoreManager = initKeystoreManager(authenticationManager, secureStorage),
         wordlist = Wordlist.getWordlist(activity),
         config = config,
     )
@@ -67,7 +71,7 @@ fun TangemSdk.Companion.customDelegate(
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
 
-    val safeViewDelegate = viewDelegate ?: DefaultSessionViewDelegate(nfcManager, nfcManager.reader, activity).apply {
+    val safeViewDelegate = viewDelegate ?: DefaultSessionViewDelegate(nfcManager, activity).apply {
         this.sdkConfig = config
     }
 
@@ -109,14 +113,22 @@ fun TangemSdk.Companion.createLogger(formatter: LogFormat? = null): TangemSdkLog
     }
 }
 
-fun TangemSdk.Companion.initBiometricManager(
-    activity: FragmentActivity,
-    secureStorage: SecureStorage,
-): BiometricManager {
+fun TangemSdk.Companion.initBiometricManager(activity: FragmentActivity): AuthenticationManager {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        AndroidBiometricManager(secureStorage, activity)
+        AndroidAuthenticationManager(activity)
             .also { activity.lifecycle.addObserver(it) }
     } else {
-        DummyBiometricManager()
+        DummyAuthenticationManager()
+    }
+}
+
+fun TangemSdk.Companion.initKeystoreManager(
+    authenticationManager: AuthenticationManager,
+    secureStorage: SecureStorage,
+): KeystoreManager {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        AndroidKeystoreManager(authenticationManager, secureStorage)
+    } else {
+        DummyKeystoreManager()
     }
 }

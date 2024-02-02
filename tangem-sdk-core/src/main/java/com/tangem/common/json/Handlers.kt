@@ -4,14 +4,13 @@ import com.tangem.common.SuccessResponse
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.CardSessionRunnable
-import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.hexToBytes
-import com.tangem.common.successOrNull
 import com.tangem.crypto.bip39.DefaultMnemonic
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.crypto.hdWallet.HDWalletError
+import com.tangem.crypto.hdWallet.masterkey.AnyMasterKeyFactory
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.ScanTask
 import com.tangem.operations.attestation.AttestCardKeyCommand
@@ -92,24 +91,14 @@ class ImportWalletHandler(private val wordlist: Wordlist) : JSONRPCHandler<Creat
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<CreateWalletResponse> {
         val curve: EllipticCurve = (params["curve"] as? String)?.let { EllipticCurve.byName(it) }
             ?: EllipticCurve.Secp256k1
-        val seedParam: ByteArray? = (params["seed"] as? String)?.hexToBytes()
 
-        val mnemonicString: String? = params["mnemonic"] as? String
+        val mnemonicString: String = params["mnemonic"] as String
         val passphrase: String = params["passphrase"] as? String ?: ""
-        val seedFromMnemonic = mnemonicString?.let { DefaultMnemonic(it, wordlist).generateSeed(passphrase) }
 
-        val seed: ByteArray? = seedParam ?: seedFromMnemonic?.successOrNull()
-        seed.guard {
-            val error = JSONRPCError(
-                type = JSONRPCErrorType.InvalidParams,
-                data = ErrorData(
-                    code = JSONRPCErrorType.InvalidParams.errorData.code,
-                    message = "You should pass a seed or a mnemonic and an optional passphrase",
-                ),
-            )
-            throw error.asException()
-        }
-        return CreateWalletCommand(curve, seed)
+        val mnemonic = DefaultMnemonic(mnemonicString, wordlist)
+        val privateKey = AnyMasterKeyFactory(mnemonic, passphrase).makeMasterKey(curve)
+
+        return CreateWalletCommand(curve, privateKey)
     }
 }
 
@@ -263,7 +252,6 @@ class AttestCardKeyHandler : JSONRPCHandler<AttestCardKeyResponse> {
     override val method: String = "ATTEST_CARD_KEY"
 
     override fun makeRunnable(params: Map<String, Any?>): CardSessionRunnable<AttestCardKeyResponse> {
-        val challenge = (params["challenge"] as? String)?.hexToBytes()
-        return AttestCardKeyCommand(challenge)
+        return make<AttestCardKeyCommand>(params)
     }
 }

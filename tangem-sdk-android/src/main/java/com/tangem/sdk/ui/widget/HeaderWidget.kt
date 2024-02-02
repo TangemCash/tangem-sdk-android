@@ -14,9 +14,7 @@ import com.tangem.sdk.extensions.show
 /**
  * Created by Anton Zhilenkov on 09/08/2020.
  */
-class HeaderWidget(
-    mainView: View,
-) : BaseSessionDelegateStateWidget(mainView) {
+class HeaderWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
 
     private val tvCard = mainView.findViewById<TextView>(R.id.tvCard)
     private val tvCardId = mainView.findViewById<TextView>(R.id.tvCardId)
@@ -25,7 +23,6 @@ class HeaderWidget(
 
     var onClose: VoidCallback? = null
     var onHowTo: VoidCallback? = null
-//    var isFullScreenMode: Boolean = true
 
     var cardId: String? = null
         private set
@@ -83,13 +80,14 @@ class HeaderWidget(
     }
 
     private fun setCardId() {
-        if (cardId == null) {
+        val scannedCardId = cardId
+        if (scannedCardId == null) {
             tvCard.text = ""
         } else {
-            tvCard.text = getString(R.string.view_delegate_header_card)
             tvCard.show()
+            tvCard.text = getString(R.string.view_delegate_header_card)
             tvCardId.show()
-            tvCardId.text = cardId
+            tvCardId.text = scannedCardId
         }
     }
 }

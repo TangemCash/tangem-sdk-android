@@ -12,6 +12,7 @@ import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toByteArray
 import com.tangem.crypto.hdWallet.DerivationNode.Companion.serialize
 import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.operations.attestation.AttestCardKeyCommand
 import com.tangem.operations.files.FileDataMode
 import com.tangem.operations.issuerAndUserData.IssuerExtraDataMode
 import com.tangem.operations.personalization.entities.ProductMask
@@ -132,6 +133,7 @@ class TlvEncoder {
                     ReadMode::class -> byteArrayOf((value as ReadMode).rawValue.toByte())
                     AuthorizeMode::class -> byteArrayOf((value as AuthorizeMode).rawValue.toByte())
                     FileDataMode::class -> byteArrayOf((value as FileDataMode).rawValue.toByte())
+                    AttestCardKeyCommand.RawMode::class -> byteArrayOf((value as AttestCardKeyCommand.RawMode).value)
                     else -> {
                         val error = getEncodingError<T>(tag)
                         Log.error { error.customMessage }

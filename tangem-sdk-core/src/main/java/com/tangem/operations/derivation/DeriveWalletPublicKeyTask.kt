@@ -1,6 +1,7 @@
 package com.tangem.operations.derivation
 
 import com.tangem.common.CompletionResult
+import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
@@ -23,12 +24,19 @@ class DeriveWalletPublicKeyTask(
 ) : CardSessionRunnable<ExtendedPublicKey> {
 
     override fun run(session: CardSession, callback: CompletionCallback<ExtendedPublicKey>) {
-        val walletIndex = session.environment.card?.wallet(walletPublicKey)?.index.guard {
+        val wallet = session.environment.card?.wallet(walletPublicKey).guard {
             callback(CompletionResult.Failure(TangemSdkError.WalletNotFound()))
             return
         }
+        if (!wallet.curve.supportsDerivation()) {
+            callback(CompletionResult.Failure(TangemSdkError.UnsupportedCurve()))
+            return
+        }
+        if (wallet.curve == EllipticCurve.Ed25519Slip0010 && derivationPath.nodes.any { !it.isHardened }) {
+            callback(CompletionResult.Failure(TangemSdkError.NonHardenedDerivationNotSupported()))
+        }
 
-        val readWallet = ReadWalletCommand(walletIndex, derivationPath)
+        val readWallet = ReadWalletCommand(wallet.index, derivationPath)
         readWallet.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {

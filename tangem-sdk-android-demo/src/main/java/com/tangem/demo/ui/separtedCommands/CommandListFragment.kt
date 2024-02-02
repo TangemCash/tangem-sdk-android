@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.slider.Slider
@@ -34,6 +35,7 @@ import com.tangem.tangem_demo.R
 import kotlinx.android.synthetic.main.attestation.*
 import kotlinx.android.synthetic.main.backup.*
 import kotlinx.android.synthetic.main.card.*
+import kotlinx.android.synthetic.main.card.flCardContainer
 import kotlinx.android.synthetic.main.file_data.*
 import kotlinx.android.synthetic.main.hd_wallet.*
 import kotlinx.android.synthetic.main.issuer_data.*
@@ -41,6 +43,7 @@ import kotlinx.android.synthetic.main.issuer_ex_data.*
 import kotlinx.android.synthetic.main.json_rpc.*
 import kotlinx.android.synthetic.main.set_pin.*
 import kotlinx.android.synthetic.main.sign.*
+import kotlinx.android.synthetic.main.theme.*
 import kotlinx.android.synthetic.main.user_data.*
 import kotlinx.android.synthetic.main.utils.*
 import kotlinx.android.synthetic.main.wallet.*
@@ -140,8 +143,9 @@ class CommandListFragment : BaseFragment() {
                 R.id.chipAttestNormal -> AttestationTask.Mode.Normal
                 else -> AttestationTask.Mode.Full
             }
-            attestCard(mode)
+            attest(mode)
         }
+        btnAttestCardKey.setOnClickListener { attestCardKey() }
 
         val adapter = ArrayAdapter(
             view.context,
@@ -245,6 +249,20 @@ class CommandListFragment : BaseFragment() {
                 cardId = card?.cardId,
                 initialMessage = initialMessage,
             ) { postUi { handleCommandResult(it) } }
+        }
+
+        chipGroupTheme.fitChipsByGroupWidth()
+        chipGroupTheme.setOnCheckedChangeListener { _, checkedId ->
+            val mode = when (checkedId) {
+                R.id.chipThemeLight -> AppCompatDelegate.MODE_NIGHT_NO
+                R.id.chipThemeDark -> AppCompatDelegate.MODE_NIGHT_YES
+                R.id.chipThemeSystem -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                else -> null
+            }
+
+            if (mode != null) {
+                AppCompatDelegate.setDefaultNightMode(mode)
+            }
         }
 
         sliderWallet.stepSize = 1f

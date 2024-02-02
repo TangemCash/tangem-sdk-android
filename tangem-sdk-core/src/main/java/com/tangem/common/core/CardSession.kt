@@ -109,10 +109,15 @@ class CardSession(
     /**
      * This method starts a card session, performs preflight [ReadCommand],
      * invokes [CardSessionRunnable.run] and closes the session.
+     * @param iconScanRes iconResource to replace on Scan Bottom Sheet
      * @param runnable [CardSessionRunnable] that will be performed in the session.
      * @param callback will be triggered with a [CompletionResult] of a session.
      */
-    fun <T : CardSessionRunnable<R>, R> startWithRunnable(runnable: T, callback: CompletionCallback<R>) {
+    fun <T : CardSessionRunnable<R>, R> startWithRunnable(
+        iconScanRes: Int? = null,
+        runnable: T,
+        callback: CompletionCallback<R>,
+    ) {
         if (state != CardSessionState.Inactive) {
             val error = TangemSdkError.Busy()
             Log.error { "$error" }
@@ -124,7 +129,7 @@ class CardSession(
         prepareSession(runnable) { prepareResult ->
             when (prepareResult) {
                 is CompletionResult.Success -> {
-                    start { _, error ->
+                    start(iconScanRes) { _, error ->
                         if (error != null) {
                             Log.error { "$error" }
                             callback(CompletionResult.Failure(error))
@@ -156,12 +161,13 @@ class CardSession(
 
     /**
      * Starts a card session and performs preflight [ReadCommand].
+     * @param iconScanRes iconResource to replace on Scan Bottom Sheet
      * @param onSessionStarted: callback with the card session. Can contain [TangemSdkError] if something goes wrong.
      */
-    fun start(onSessionStarted: SessionStartedCallback) {
+    fun start(iconScanRes: Int? = null, onSessionStarted: SessionStartedCallback) {
         Log.session { "start card session with delegate" }
         state = CardSessionState.Active
-        viewDelegate.onSessionStarted(cardId, initialMessage, environment.config.howToIsEnabled)
+        viewDelegate.onSessionStarted(cardId, initialMessage, environment.config.howToIsEnabled, iconScanRes)
 
         reader.scope = scope
         reader.startSession()
@@ -308,7 +314,7 @@ class CardSession(
                 is CompletionResult.Failure -> {
                     val wrongType = when (result.error) {
                         is TangemSdkError.WrongCardType -> WrongValueType.CardType
-                        is TangemSdkError.WrongCardNumber -> WrongValueType.CardId
+                        is TangemSdkError.WrongCardNumber -> WrongValueType.CardId(result.error.cardId)
                         else -> null
                     }
                     if (wrongType != null) {

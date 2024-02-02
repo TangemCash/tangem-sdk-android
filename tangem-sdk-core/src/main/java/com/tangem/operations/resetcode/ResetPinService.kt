@@ -79,8 +79,7 @@ class ResetPinService(
             State.NeedScanResetCard -> scanResetPinCard(resetCardId) { handleCompletion(it) }
             State.NeedScanConfirmationCard -> scanConfirmationCard { handleCompletion(it) }
             State.NeedWriteResetCard -> writeResetPinCard { handleCompletion(it) }
-            State.Finished -> {
-            }
+            State.Finished, State.NeedCode -> Unit
         }
     }
 

@@ -21,7 +21,7 @@ import com.tangem.operations.CommandResponse
 import com.tangem.operations.PreflightReadMode
 
 /**
- * Deserialized response from the Tangem card after [SetUserSettingsCommand]. COS v.6.16+
+ * Deserialized response from the Tangem card after [SetUserSettingsCommand]. COS v.6+
  */
 @JsonClass(generateAdapter = true)
 class SetUserSettingsCommandResponse(

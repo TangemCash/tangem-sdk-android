@@ -24,6 +24,7 @@ import com.tangem.crypto.IssuerDataToVerify
 import com.tangem.crypto.IssuerDataVerifier
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
+import kotlin.math.min
 
 /**
  * Deserialized response for [WriteFileCommand]
@@ -190,7 +191,7 @@ class WriteFileCommand private constructor(
                 }
             }
             FileDataMode.WriteFile -> {
-                val partSize = kotlin.math.min(SINGLE_WRITE_SIZE, data.size - offset)
+                val partSize = min(SINGLE_WRITE_SIZE, data.size - offset)
                 val dataChunk = data.copyOfRange(offset, offset + partSize)
 
                 tlvBuilder.append(TlvTag.IssuerData, dataChunk)
@@ -206,6 +207,7 @@ class WriteFileCommand private constructor(
                     tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
                 }
             }
+            FileDataMode.DeleteFile, FileDataMode.ChangeFileSettings, FileDataMode.ReadFileHash -> Unit
         }
 
         return CommandApdu(Instruction.WriteFileData, tlvBuilder.serialize())
@@ -243,6 +245,7 @@ class WriteFileCommand private constructor(
                         FileDataMode.ConfirmWritingFile -> {
                             callback(CompletionResult.Success(WriteFileResponse(result.data.cardId, fileIndex)))
                         }
+                        FileDataMode.DeleteFile, FileDataMode.ChangeFileSettings, FileDataMode.ReadFileHash -> Unit
                     }
                 }
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
