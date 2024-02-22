@@ -40,7 +40,7 @@ internal class AndroidKeystoreManager(
                 cause = IllegalStateException("The master key is not stored in the keystore"),
             )
 
-    override suspend fun authenticateAndGetKey(keyAlias: String): SecretKey? = withContext(Dispatchers.IO) {
+    override suspend fun get(keyAlias: String): SecretKey? = withContext(Dispatchers.IO) {
         val wrappedKeyBytes = secureStorage.get(getStorageKeyForWrappedSecretKey(keyAlias))
             ?.takeIf { it.isNotEmpty() }
 
@@ -55,7 +55,7 @@ internal class AndroidKeystoreManager(
             return@withContext null
         }
 
-        val cipher = initUnwrapCipher()
+        val cipher = authenticateAndInitUnwrapCipher()
         val unwrappedKey = RSACipherOperations.unwrapKey(
             cipher = cipher,
             wrappedKeyBytes = wrappedKeyBytes,
@@ -72,7 +72,49 @@ internal class AndroidKeystoreManager(
         unwrappedKey
     }
 
-    override suspend fun storeKey(keyAlias: String, key: SecretKey) = withContext(Dispatchers.IO) {
+    override suspend fun get(keyAliases: Collection<String>): Map<String, SecretKey> = withContext(Dispatchers.IO) {
+        val wrappedKeysBytes = keyAliases
+            .mapNotNull { keyAlias ->
+                val wrappedKeyBytes = secureStorage.get(getStorageKeyForWrappedSecretKey(keyAlias))
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: return@mapNotNull null
+
+                keyAlias to wrappedKeyBytes
+            }
+            .toMap()
+
+        if (wrappedKeysBytes.isEmpty()) {
+            Log.warning {
+                """
+                    $TAG - The secret keys are not stored
+                    |- Key aliases: $keyAliases
+                """.trimIndent()
+            }
+
+            return@withContext emptyMap()
+        }
+
+        val cipher = authenticateAndInitUnwrapCipher()
+        val unwrappedKeys = wrappedKeysBytes
+            .mapValues { (_, wrappedKeyBytes) ->
+                RSACipherOperations.unwrapKey(
+                    cipher = cipher,
+                    wrappedKeyBytes = wrappedKeyBytes,
+                    wrappedKeyAlgorithm = AESCipherOperations.KEY_ALGORITHM,
+                )
+            }
+
+        Log.debug {
+            """
+                $TAG - The secret keys were retrieved
+                |- Key aliases: $keyAliases
+            """.trimIndent()
+        }
+
+        unwrappedKeys
+    }
+
+    override suspend fun store(keyAlias: String, key: SecretKey) = withContext(Dispatchers.IO) {
         val masterCipher = RSACipherOperations.initWrapKeyCipher(masterPublicKey)
         val wrappedKey = RSACipherOperations.wrapKey(masterCipher, key)
 
@@ -86,20 +128,14 @@ internal class AndroidKeystoreManager(
         }
     }
 
-    private suspend fun initUnwrapCipher(): Cipher {
-        Log.debug { "$TAG - Initializing the unwrap cipher" }
-
-        return try {
-            RSACipherOperations.initUnwrapKeyCipher(masterPrivateKey)
-        } catch (e: UserNotAuthenticatedException) {
-            authenticateAndInitUnwrapCipher()
-        } catch (e: InvalidKeyException) {
-            handleInvalidKeyException(e)
-        }
-    }
-
+    /**
+     * If the master key has been invalidated due to new biometric enrollment, the [UserNotAuthenticatedException]
+     * will be thrown anyway because the master key has the positive timeout.
+     *
+     * @see KeyGenParameterSpec.Builder.setInvalidatedByBiometricEnrollment
+     * */
     private suspend fun authenticateAndInitUnwrapCipher(): Cipher {
-        Log.warning { "$TAG - Unable to initialize the cipher because the user is not authenticated" }
+        Log.debug { "$TAG - Initializing the unwrap cipher" }
 
         return try {
             authenticationManager.authenticate()
@@ -110,16 +146,11 @@ internal class AndroidKeystoreManager(
         }
     }
 
-    /**
-     * If the master key has been invalidated due to new biometric enrollment, the [UserNotAuthenticatedException]
-     * will be thrown anyway because the master key has the positive timeout.
-     *
-     * @see KeyGenParameterSpec.Builder.setInvalidatedByBiometricEnrollment
-     * */
     private fun handleInvalidKeyException(e: InvalidKeyException): Nothing {
         Log.error {
             """
-                $TAG - Unable to initialize the unwrap cipher because the master key is invalid
+                $TAG - Unable to initialize the unwrap cipher because the master key is invalidated, 
+                master key will be deleted
                 |- Cause: $e
             """.trimIndent()
         }
@@ -137,6 +168,7 @@ internal class AndroidKeystoreManager(
         )
     }
 
+    /** Key regeneration is required to edit these parameters */
     private fun buildMasterKeyGenSpec(): KeyGenParameterSpec {
         return KeyGenParameterSpec.Builder(
             MASTER_KEY_ALIAS,
