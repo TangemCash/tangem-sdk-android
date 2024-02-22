@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.tangem.Log
@@ -29,7 +30,8 @@ import androidx.biometric.BiometricManager as SystemBiometricManager
 internal class AndroidAuthenticationManager(
     private val activity: FragmentActivity,
 ) : AuthenticationManager,
-    DefaultLifecycleObserver {
+    DefaultLifecycleObserver,
+    LifecycleOwner by activity {
 
     private val biometricPromptInfo by lazy {
         BiometricPrompt.PromptInfo.Builder()
@@ -62,8 +64,11 @@ internal class AndroidAuthenticationManager(
     }
 
     override suspend fun authenticate() {
+        if (lifecycle.currentState != Lifecycle.State.RESUMED) return
+
         if (authenticationMutex.isLocked) {
             Log.warning { "$TAG - A user authentication has already been launched" }
+            return
         }
 
         authenticationMutex.withLock {
@@ -194,6 +199,8 @@ internal class AndroidAuthenticationManager(
                 Log.warning {
                     """
                         $TAG - Biometric authentication error
+                        |- Code: $errorCode
+                        |- Message: $errString
                         |- Cause: $error
                     """.trimIndent()
                 }
