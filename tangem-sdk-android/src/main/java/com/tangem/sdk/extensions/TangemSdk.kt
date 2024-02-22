@@ -47,7 +47,7 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
 fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: Config = Config()): TangemSdk {
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
-    val authenticationManager = initBiometricManager(activity)
+    val authenticationManager = initAuthenticationManager(activity)
 
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
@@ -113,7 +113,7 @@ fun TangemSdk.Companion.createLogger(formatter: LogFormat? = null): TangemSdkLog
     }
 }
 
-fun TangemSdk.Companion.initBiometricManager(activity: FragmentActivity): AuthenticationManager {
+fun TangemSdk.Companion.initAuthenticationManager(activity: FragmentActivity): AuthenticationManager {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         AndroidAuthenticationManager(activity)
             .also { activity.lifecycle.addObserver(it) }

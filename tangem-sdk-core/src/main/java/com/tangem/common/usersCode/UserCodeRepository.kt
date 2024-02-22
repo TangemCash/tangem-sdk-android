@@ -9,6 +9,7 @@ import com.tangem.common.authentication.AuthenticatedStorage
 import com.tangem.common.authentication.KeystoreManager
 import com.tangem.common.catching
 import com.tangem.common.extensions.calculateSha256
+import com.tangem.common.extensions.mapNotNullValues
 import com.tangem.common.flatMap
 import com.tangem.common.json.MoshiJsonConverter
 import com.tangem.common.map
@@ -37,22 +38,22 @@ class UserCodeRepository(
     private val cardIdToUserCode: HashMap<String, UserCode> = hashMapOf()
 
     suspend fun unlock(): CompletionResult<Unit> = withContext(Dispatchers.IO) {
-        val cardIdToUserCodeInternal = getSavedCardsIds()
-            .associateWith { cardId ->
-                when (val result = getSavedUserCode(cardId)) {
-                    is CompletionResult.Success -> result.data
-                    is CompletionResult.Failure -> return@withContext CompletionResult.Failure(result.error)
-                }
-            }
-
         catching {
+            val cardsIds = getSavedCardsIds()
+            val userCodes = getSavedUserCodes(cardsIds)
+
             cardIdToUserCode.clear()
-            cardIdToUserCodeInternal.forEach { (cardId, userCode) ->
-                if (userCode != null) {
-                    cardIdToUserCode[cardId] = userCode
-                }
-            }
+            cardIdToUserCode.putAll(userCodes)
         }
+    }
+
+    private suspend fun getSavedUserCodes(cardsIds: Set<String>): Map<String, UserCode> {
+        val keys = cardsIds.map { StorageKey.UserCode(it).name }
+        val encodedData = authenticatedStorage.get(keys)
+
+        return encodedData
+            .mapKeys { (key, _) -> key.removePrefix(StorageKey.UserCode.PREFIX) }
+            .mapNotNullValues { (_, value) -> value.decodeToUserCode() }
     }
 
     fun lock() {
@@ -126,13 +127,6 @@ class UserCodeRepository(
         return hasChanges
     }
 
-    private suspend fun getSavedUserCode(cardId: String): CompletionResult<UserCode?> {
-        return catching {
-            authenticatedStorage.get(StorageKey.UserCode(cardId).name)
-                .decodeToUserCode()
-        }
-    }
-
     private suspend fun saveUserCode(cardsIds: Set<String>, userCode: UserCode): CompletionResult<Unit> {
         return catching {
             cardsIds.forEach { cardId ->
@@ -173,44 +167,40 @@ class UserCodeRepository(
         }
     }
 
-    private suspend fun UserCode.encode(): ByteArray {
-        return withContext(Dispatchers.Default) {
-            this@encode
-                .let(userCodeAdapter::toJson)
-                .encodeToByteArray(throwOnInvalidSequence = true)
-        }
+    private fun UserCode.encode(): ByteArray {
+        return this@encode
+            .let(userCodeAdapter::toJson)
+            .encodeToByteArray(throwOnInvalidSequence = true)
     }
 
-    private suspend fun Set<String>.encode(): ByteArray {
-        return withContext(Dispatchers.Default) {
-            this@encode
-                .let(cardsIdsAdapter::toJson)
-                .encodeToByteArray(throwOnInvalidSequence = true)
-        }
+    private fun Set<String>.encode(): ByteArray {
+        return this@encode
+            .let(cardsIdsAdapter::toJson)
+            .encodeToByteArray(throwOnInvalidSequence = true)
     }
 
-    private suspend fun ByteArray?.decodeToUserCode(): UserCode? {
-        return withContext(Dispatchers.Default) {
-            this@decodeToUserCode
-                ?.decodeToString(throwOnInvalidSequence = true)
-                ?.let(userCodeAdapter::fromJson)
-        }
+    private fun ByteArray?.decodeToUserCode(): UserCode? {
+        return this@decodeToUserCode
+            ?.decodeToString(throwOnInvalidSequence = true)
+            ?.let(userCodeAdapter::fromJson)
     }
 
-    private suspend fun ByteArray?.decodeToCardsIds(): Set<String> {
-        return withContext(Dispatchers.Default) {
-            this@decodeToCardsIds
-                ?.decodeToString(throwOnInvalidSequence = true)
-                ?.let(cardsIdsAdapter::fromJson)
-                .orEmpty()
-        }
+    private fun ByteArray?.decodeToCardsIds(): Set<String> {
+        return this@decodeToCardsIds
+            ?.decodeToString(throwOnInvalidSequence = true)
+            ?.let(cardsIdsAdapter::fromJson)
+            .orEmpty()
     }
 
     private sealed interface StorageKey {
         val name: String
 
         class UserCode(cardId: String) : StorageKey {
-            override val name: String = "user_code_$cardId"
+            override val name: String = PREFIX + cardId
+
+            companion object {
+                const val PREFIX = "user_code_"
+            }
         }
 
         object CardsWithSavedUserCode : StorageKey {
