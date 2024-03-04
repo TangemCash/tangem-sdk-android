@@ -64,10 +64,12 @@ internal class AndroidAuthenticationManager(
     override suspend fun authenticate() {
         if (authenticationMutex.isLocked) {
             Log.warning { "$TAG - A user authentication has already been launched" }
+            Log.biometric { "A user authentication has already been launched" }
         }
 
         authenticationMutex.withLock {
             Log.debug { "$TAG - Trying to authenticate a user" }
+            Log.biometric { "Try to authenticate a user" }
 
             val canAuthenticate = canAuthenticateInternal.filterNotNull().first()
             if (canAuthenticate) {
@@ -76,6 +78,7 @@ internal class AndroidAuthenticationManager(
                 }
             } else {
                 Log.warning { "$TAG - Unable to authenticate the user as the biometrics feature is unavailable" }
+                Log.biometric { "Unable to authenticate the user as the biometrics feature is unavailable" }
 
                 throw TangemSdkError.AuthenticationUnavailable()
             }
@@ -110,6 +113,7 @@ internal class AndroidAuthenticationManager(
             when (biometricManager.canAuthenticate(AUTHENTICATORS)) {
                 SystemBiometricManager.BIOMETRIC_SUCCESS -> {
                     Log.debug { "$TAG - Biometric features are available" }
+                    Log.biometric { "Biometric features are available" }
                     continuation.resume(
                         BiometricsAvailability(
                             available = true,
@@ -120,6 +124,7 @@ internal class AndroidAuthenticationManager(
 
                 SystemBiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
                     Log.debug { "$TAG - No biometric features enrolled" }
+                    Log.biometric { "No biometric features enrolled" }
                     continuation.resume(
                         BiometricsAvailability(
                             available = false,
@@ -129,6 +134,7 @@ internal class AndroidAuthenticationManager(
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
                     Log.debug { "$TAG - No biometric features available on this device" }
+                    Log.biometric { "No biometric features available on this device" }
                     continuation.resume(
                         BiometricsAvailability(
                             available = false,
@@ -138,6 +144,7 @@ internal class AndroidAuthenticationManager(
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                     Log.debug { "$TAG - Biometric features are currently unavailable" }
+                    Log.biometric { "Biometric features are currently unavailable" }
                     continuation.resume(
                         BiometricsAvailability(
                             available = false,
@@ -147,6 +154,7 @@ internal class AndroidAuthenticationManager(
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
                     Log.debug { "$TAG - Biometric features are currently unavailable, security update required" }
+                    Log.biometric { "Biometric features are currently unavailable, security update required" }
                     continuation.resume(
                         BiometricsAvailability(
                             available = false,
@@ -156,6 +164,7 @@ internal class AndroidAuthenticationManager(
                 }
                 SystemBiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
                     Log.debug { "$TAG - Biometric features are in unknown status" }
+                    Log.biometric { "Biometric features are in unknown status" }
                     continuation.resume(
                         BiometricsAvailability(
                             available = false,
@@ -165,6 +174,7 @@ internal class AndroidAuthenticationManager(
                 }
                 SystemBiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
                     Log.debug { "$TAG - Biometric features are unsupported" }
+                    Log.biometric { "Biometric features are unsupported" }
                     continuation.resume(
                         BiometricsAvailability(
                             available = false,
@@ -197,17 +207,20 @@ internal class AndroidAuthenticationManager(
                         |- Cause: $error
                     """.trimIndent()
                 }
+                Log.biometric { "Biometric authentication error:\n$error" }
 
                 result(BiometricAuthenticationResult.Failure(error))
             }
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 Log.debug { "$TAG - Biometric authentication succeed" }
+                Log.biometric { "Biometric authentication succeed" }
                 result(BiometricAuthenticationResult.Success(result))
             }
 
             override fun onAuthenticationFailed() {
                 Log.warning { "$TAG - Biometric authentication failed" }
+                Log.biometric { "Biometric authentication failed" }
             }
         }
     }
