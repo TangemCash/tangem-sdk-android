@@ -1,7 +1,8 @@
-package com.tangem.common.authentication
+package com.tangem.common.authentication.keystore
 
 import com.tangem.common.core.TangemSdkError
 import javax.crypto.SecretKey
+import kotlin.time.Duration
 
 /**
  * Represents a manager for managing and accessing encrypted keys in a secure manner.
@@ -13,31 +14,47 @@ interface KeystoreManager {
      *
      * This operation requires user authentication.
      *
+     * @param masterKeyConfig The configuration for the master key.
      * @param keyAlias The alias of the key to be retrieved.
      * @return The [SecretKey] if found. If the key cannot be found, then `null` will be returned.
      *
      * @throws TangemSdkError.KeystoreInvalidated if the keystore is invalidated.
      */
-    suspend fun get(keyAlias: String): SecretKey?
+    suspend fun get(masterKeyConfig: MasterKeyConfig, keyAlias: String): SecretKey?
 
     /**
      * Retrieves the map of key alias to [SecretKey] for a given [keyAliases].
      *
      * This operation requires user authentication.
      *
+     * @param masterKeyConfig The configuration for the master key.
      * @param keyAliases The aliases of the keys to be retrieved.
      * @return The map of key alias to [SecretKey] if found. If the key cannot be found, then the key will not be
      * included in the map.
      *
      * @throws TangemSdkError.KeystoreInvalidated if the keystore is invalidated.
      */
-    suspend fun get(keyAliases: Collection<String>): Map<String, SecretKey>
+    suspend fun get(masterKeyConfig: MasterKeyConfig, keyAliases: Collection<String>): Map<String, SecretKey>
 
     /**
      * Stores the given [SecretKey] with a specified [keyAlias] in the keystore.
      *
+     * @param masterKeyConfig The configuration for the master key.
      * @param keyAlias The alias under which the key should be stored.
      * @param key The [SecretKey] to be stored.
      */
-    suspend fun store(keyAlias: String, key: SecretKey)
+    suspend fun store(masterKeyConfig: MasterKeyConfig, keyAlias: String, key: SecretKey)
+
+    /**
+     * The configuration for the master key.
+     *
+     * @property alias The alias of the master key.
+     * @property securityDelaySeconds The delay in seconds before the user is required to authenticate again.
+     * @property userConfirmationRequired Whether the user confirmation is required for the authentication.
+     * */
+    interface MasterKeyConfig {
+        val alias: String
+        val securityDelay: Duration
+        val userConfirmationRequired: Boolean
+    }
 }

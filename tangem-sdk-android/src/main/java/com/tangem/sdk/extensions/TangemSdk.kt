@@ -12,8 +12,8 @@ import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
 import com.tangem.common.authentication.AuthenticationManager
 import com.tangem.common.authentication.DummyAuthenticationManager
-import com.tangem.common.authentication.DummyKeystoreManager
-import com.tangem.common.authentication.KeystoreManager
+import com.tangem.common.authentication.keystore.DummyKeystoreManager
+import com.tangem.common.authentication.keystore.KeystoreManager
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.bip39.Wordlist
