@@ -282,7 +282,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      *
      * @see AuthenticationLockout
      * @see AuthenticationPermanentLockout
-     * @see UserCanceledAuthentication
+     * @see AuthenticationCanceled
      */
     class AuthenticationFailed(
         val errorCode: Int,
@@ -302,10 +302,11 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      */
     class AuthenticationPermanentLockout : TangemSdkError(code = 50018)
 
-    /**
-     * The user canceled the operation.
-     */
-    class UserCanceledAuthentication : TangemSdkError(code = 50019) {
+    class AuthenticationCanceled : TangemSdkError(code = 50019) {
+        override val silent: Boolean = true
+    }
+
+    class AuthenticationAlreadyInProgress : TangemSdkError(code = 50025) {
         override val silent: Boolean = true
     }
 

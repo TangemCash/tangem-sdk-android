@@ -7,5 +7,5 @@ class DummyAuthenticationManager : AuthenticationManager {
     override val needEnrollBiometrics: Boolean
         get() = false
 
-    override suspend fun authenticate() = Unit
+    override suspend fun authenticate(params: AuthenticationManager.AuthenticationParams) = Unit
 }
