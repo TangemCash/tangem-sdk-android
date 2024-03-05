@@ -24,6 +24,8 @@ interface AuthenticationManager {
      * this might trigger biometric prompts or other authentication mechanisms.
      *
      * @throws TangemSdkError.AuthenticationUnavailable if authentication is unavailable.
+     * @throws TangemSdkError.UserCanceledAuthentication if the user cancels the authentication process.
+     * @throws TangemSdkError.AuthenticationFailed if authentication fails for any other reason.
      */
     suspend fun authenticate()
 }

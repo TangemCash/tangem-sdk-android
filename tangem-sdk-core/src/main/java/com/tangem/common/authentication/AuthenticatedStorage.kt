@@ -21,38 +21,70 @@ class AuthenticatedStorage(
     /**
      * Retrieves and decrypts data from the storage after necessary user authentication.
      *
-     * @param key The unique identifier for the stored encrypted data.
+     * @param keyAlias The unique identifier for the stored encrypted data.
      *
      * @return The decrypted data as [ByteArray] or `null` if data is not found.
      */
-    suspend fun get(key: String): ByteArray? = withContext(Dispatchers.IO) {
-        val encryptedData = secureStorage.get(key)
+    suspend fun get(keyAlias: String): ByteArray? = withContext(Dispatchers.IO) {
+        val encryptedData = secureStorage.get(keyAlias)
             ?.takeIf(ByteArray::isNotEmpty)
 
         if (encryptedData == null) {
             Log.warning {
                 """
                     $TAG - Data not found in storage
-                    |- Key: $key
+                    |- Key: $keyAlias
                 """.trimIndent()
             }
 
             return@withContext null
         }
 
-        decrypt(key, encryptedData)
+        decrypt(keyAlias, encryptedData)
+    }
+
+    /**
+     * Retrieves and decrypts data from the storage after necessary user authentication.
+     *
+     * @param keysAliases The unique identifiers for the stored encrypted data.
+     *
+     * @return The decrypted data as a map of key-alias to [ByteArray] or an empty map if data is not found.
+     */
+    suspend fun get(keysAliases: Collection<String>): Map<String, ByteArray> = withContext(Dispatchers.IO) {
+        val encryptedData = keysAliases
+            .mapNotNull { keyAlias ->
+                val data = secureStorage.get(keyAlias)
+                    ?.takeIf(ByteArray::isNotEmpty)
+                    ?: return@mapNotNull null
+
+                keyAlias to data
+            }
+            .toMap()
+
+        if (encryptedData.isEmpty()) {
+            Log.warning {
+                """
+                    $TAG - Data not found in storage
+                    |- Keys: $keysAliases
+                """.trimIndent()
+            }
+
+            return@withContext emptyMap()
+        }
+
+        decrypt(encryptedData)
     }
 
     /**
      * Encrypts and stores data securely in the storage.
      *
-     * @param key The unique identifier which will be associated with the encrypted data.
+     * @param keyAlias The unique identifier which will be associated with the encrypted data.
      * @param data The plain data to be encrypted and stored.
      */
-    suspend fun store(key: String, data: ByteArray) = withContext(Dispatchers.IO) {
-        val encryptedData = encrypt(key, data)
+    suspend fun store(keyAlias: String, data: ByteArray) = withContext(Dispatchers.IO) {
+        val encryptedData = encrypt(keyAlias, data)
 
-        secureStorage.store(encryptedData, key)
+        secureStorage.store(encryptedData, keyAlias)
     }
 
     /**
@@ -75,7 +107,7 @@ class AuthenticatedStorage(
     }
 
     private suspend fun decrypt(keyAlias: String, encryptedData: ByteArray): ByteArray? {
-        val key = keystoreManager.authenticateAndGetKey(keyAlias)
+        val key = keystoreManager.get(keyAlias)
 
         if (key == null) {
             Log.warning {
@@ -94,10 +126,36 @@ class AuthenticatedStorage(
         return AESCipherOperations.decrypt(decryptionCipher, encryptedData)
     }
 
+    private suspend fun decrypt(keyAliasToEncryptedData: Map<String, ByteArray>): Map<String, ByteArray> {
+        val keys = keystoreManager.get(keyAliasToEncryptedData.keys)
+
+        if (keys.isEmpty()) {
+            Log.warning {
+                """
+                    $TAG - The data keys are not stored
+                    |- Key aliases: ${keyAliasToEncryptedData.keys}
+                """.trimIndent()
+            }
+
+            return emptyMap()
+        }
+
+        return keyAliasToEncryptedData
+            .mapNotNull { (keyAlias, encryptedData) ->
+                val key = keys[keyAlias] ?: return@mapNotNull null
+                val iv = getDataIv(keyAlias)
+                val decryptionCipher = AESCipherOperations.initDecryptionCipher(key, iv)
+                val decryptedData = AESCipherOperations.decrypt(decryptionCipher, encryptedData)
+
+                keyAlias to decryptedData
+            }
+            .toMap()
+    }
+
     private suspend fun generateAndStoreDataKey(keyAlias: String): SecretKey {
         val dataKey = AESCipherOperations.generateKey()
 
-        keystoreManager.storeKey(keyAlias, dataKey)
+        keystoreManager.store(keyAlias, dataKey)
 
         return dataKey
     }
