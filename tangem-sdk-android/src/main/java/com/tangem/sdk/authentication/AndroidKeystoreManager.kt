@@ -35,9 +35,9 @@ internal class AndroidKeystoreManager(
             ?.takeIf { it.isNotEmpty() }
 
         if (wrappedKeyBytes == null) {
-            Log.warning {
+            Log.biometric {
                 """
-                    $TAG - The secret key is not stored
+                    The secret key is not stored
                     |- Key alias: $keyAlias
                 """.trimIndent()
             }
@@ -53,9 +53,9 @@ internal class AndroidKeystoreManager(
             wrappedKeyAlgorithm = AESCipherOperations.KEY_ALGORITHM,
         )
 
-        Log.debug {
+        Log.biometric {
             """
-                $TAG - The secret key was retrieved
+                The secret key was retrieved
                 |- Key alias: $keyAlias
             """.trimIndent()
         }
@@ -78,9 +78,9 @@ internal class AndroidKeystoreManager(
             .toMap()
 
         if (wrappedKeysBytes.isEmpty()) {
-            Log.warning {
+            Log.biometric {
                 """
-                    $TAG - The secret keys are not stored
+                    The secret keys are not stored
                     |- Key aliases: $keyAliases
                 """.trimIndent()
             }
@@ -99,9 +99,9 @@ internal class AndroidKeystoreManager(
                 )
             }
 
-        Log.debug {
+        Log.biometric {
             """
-                $TAG - The secret keys were retrieved
+                The secret keys were retrieved
                 |- Key aliases: $keyAliases
             """.trimIndent()
         }
@@ -111,9 +111,9 @@ internal class AndroidKeystoreManager(
 
     private fun getPrivateMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): PrivateKey? {
         return keyStore.getKey(masterKeyConfig.alias, null) as? PrivateKey ?: run {
-            Log.warning {
+            Log.biometric {
                 """
-                    $TAG - The master key is not stored
+                    The master key is not stored
                     |- Alias: ${masterKeyConfig.alias}
                 """.trimIndent()
             }
@@ -129,9 +129,9 @@ internal class AndroidKeystoreManager(
 
         secureStorage.store(wrappedKey, getStorageKeyForWrappedSecretKey(keyAlias))
 
-        Log.debug {
+        Log.biometric {
             """
-                $TAG - The secret key was stored
+                The secret key was stored
                 |- Key alias: $keyAlias
             """.trimIndent()
         }
@@ -152,7 +152,7 @@ internal class AndroidKeystoreManager(
         privateKey: PrivateKey,
         masterKeyConfig: KeystoreManager.MasterKeyConfig,
     ): Cipher {
-        Log.debug { "$TAG - Initializing the unwrap cipher" }
+        Log.biometric { "Initializing the unwrap cipher" }
 
         /**
          * Authentication timeout is reduced by [AUTHENTICATION_TIMEOUT_MULTIPLIER] of the master key timeout
@@ -172,9 +172,9 @@ internal class AndroidKeystoreManager(
     }
 
     private fun handleInvalidKeyException(privateKeyAlias: String, e: InvalidKeyException): Nothing {
-        Log.error {
+        Log.biometric {
             """
-                $TAG - Unable to initialize the unwrap cipher because the master key is invalidated, 
+                Unable to initialize the unwrap cipher because the master key is invalidated, 
                 master key will be deleted
                 |- Cause: $e
             """.trimIndent()
@@ -236,7 +236,5 @@ internal class AndroidKeystoreManager(
         const val KEY_STORE_PROVIDER = "AndroidKeyStore"
         const val MASTER_KEY_SIZE = 1024
         const val AUTHENTICATION_TIMEOUT_MULTIPLIER = 0.9
-
-        const val TAG = "Keystore Manager"
     }
 }
