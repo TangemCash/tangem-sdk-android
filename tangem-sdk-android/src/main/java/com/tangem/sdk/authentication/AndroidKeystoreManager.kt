@@ -110,16 +110,18 @@ internal class AndroidKeystoreManager(
     }
 
     private fun getPrivateMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): PrivateKey? {
-        return keyStore.getKey(masterKeyConfig.alias, null) as? PrivateKey ?: run {
+        val key = keyStore.getKey(masterKeyConfig.alias, null) as? PrivateKey
+
+        if (key == null) {
             Log.biometric {
                 """
-                    The master key is not stored
+                    The private master key is not generated
                     |- Alias: ${masterKeyConfig.alias}
                 """.trimIndent()
             }
-
-            null
         }
+
+        return key
     }
 
     override suspend fun store(masterKeyConfig: KeystoreManager.MasterKeyConfig, keyAlias: String, key: SecretKey) {
@@ -138,8 +140,20 @@ internal class AndroidKeystoreManager(
     }
 
     private fun getPublicMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): PublicKey {
-        return keyStore.getCertificate(masterKeyConfig.alias)?.publicKey
-            ?: generateMasterKey(masterKeyConfig).public
+        var key = keyStore.getCertificate(masterKeyConfig.alias)?.publicKey
+
+        if (key == null) {
+            Log.biometric {
+                """
+                    The public master key is not generated, generating new
+                    |- Alias: ${masterKeyConfig.alias}
+                """.trimIndent()
+            }
+
+            key = generateMasterKey(masterKeyConfig).public!!
+        }
+
+        return key
     }
 
     /**

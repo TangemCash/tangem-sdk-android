@@ -63,15 +63,15 @@ internal class AndroidAuthenticationManager(
         }
 
     override fun onResume(owner: LifecycleOwner) {
-        Log.biometric { "Owner has been resumed" }
-
         owner.lifecycleScope.launch {
             biometricsStatus.value = getBiometricsAvailabilityStatus()
+
+            Log.biometric { "Owner has been resumed, biometrics status: ${biometricsStatus.value}" }
         }
     }
 
     override fun onPause(owner: LifecycleOwner) {
-        Log.biometric { "Owner has been paused" }
+        Log.biometric { "Owner has been paused, biometrics was uninitialized" }
 
         biometricsStatus.value = BiometricsStatus.UNINITIALIZED
     }

@@ -30,16 +30,17 @@ class AuthenticatedStorage(
     suspend fun get(keyAlias: String): ByteArray? = withContext(Dispatchers.IO) {
         val encryptedData = secureStorage.get(keyAlias)
             ?.takeIf(ByteArray::isNotEmpty)
-            ?: run {
-                Log.warning {
-                    """
-                        $TAG - Data not found in storage
-                        |- Key: $keyAlias
-                    """.trimIndent()
-                }
 
-                return@withContext null
+        if (encryptedData == null) {
+            Log.warning {
+                """
+                    $TAG - Data not found in storage
+                    |- Key: $keyAlias
+                """.trimIndent()
             }
+
+            return@withContext null
+        }
 
         val (config, key) = getSecretKey(keyAlias) ?: run {
             Log.warning {
@@ -93,16 +94,17 @@ class AuthenticatedStorage(
             }
             .takeIf { it.isNotEmpty() }
             ?.toMap()
-            ?: run {
-                Log.warning {
-                    """
-                        $TAG - Data not found in storage
-                        |- Keys: $keysAliases
-                    """.trimIndent()
-                }
 
-                return@withContext emptyMap()
+        if (encryptedData == null) {
+            Log.warning {
+                """
+                    $TAG - Data not found in storage
+                    |- Keys: $keysAliases
+                """.trimIndent()
             }
+
+            return@withContext emptyMap()
+        }
 
         val (config, keys) = getSecretKeys(keysAliases) ?: run {
             Log.warning {
