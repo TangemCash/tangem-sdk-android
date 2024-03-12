@@ -7,13 +7,12 @@ import android.security.keystore.UserNotAuthenticatedException
 import androidx.annotation.RequiresApi
 import com.tangem.Log
 import com.tangem.common.authentication.AuthenticationManager
-import com.tangem.common.authentication.KeystoreManager
+import com.tangem.common.authentication.keystore.KeystoreManager
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.operations.AESCipherOperations
 import com.tangem.crypto.operations.RSACipherOperations
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.tangem.sdk.authentication.AndroidAuthenticationManager.AndroidAuthenticationParams
 import java.security.InvalidKeyException
 import java.security.KeyPair
 import java.security.KeyStore
@@ -31,48 +30,43 @@ internal class AndroidKeystoreManager(
     private val keyStore: KeyStore = KeyStore.getInstance(KEY_STORE_PROVIDER)
         .apply { load(null) }
 
-    private val masterPublicKey: PublicKey
-        get() = keyStore.getCertificate(MASTER_KEY_ALIAS)?.publicKey ?: generateMasterKey().public
-
-    private val masterPrivateKey: PrivateKey
-        get() = keyStore.getKey(MASTER_KEY_ALIAS, null) as? PrivateKey
-            ?: throw TangemSdkError.KeystoreInvalidated(
-                cause = IllegalStateException("The master key is not stored in the keystore"),
-            )
-
-    override suspend fun get(keyAlias: String): SecretKey? = withContext(Dispatchers.IO) {
+    override suspend fun get(masterKeyConfig: KeystoreManager.MasterKeyConfig, keyAlias: String): SecretKey? {
         val wrappedKeyBytes = secureStorage.get(getStorageKeyForWrappedSecretKey(keyAlias))
             ?.takeIf { it.isNotEmpty() }
 
         if (wrappedKeyBytes == null) {
-            Log.warning {
+            Log.biometric {
                 """
-                    $TAG - The secret key is not stored
+                    The secret key is not stored
                     |- Key alias: $keyAlias
                 """.trimIndent()
             }
 
-            return@withContext null
+            return null
         }
 
-        val cipher = authenticateAndInitUnwrapCipher()
+        val privateKey = getPrivateMasterKey(masterKeyConfig) ?: return null
+        val cipher = authenticateAndInitUnwrapCipher(privateKey, masterKeyConfig)
         val unwrappedKey = RSACipherOperations.unwrapKey(
             cipher = cipher,
             wrappedKeyBytes = wrappedKeyBytes,
             wrappedKeyAlgorithm = AESCipherOperations.KEY_ALGORITHM,
         )
 
-        Log.debug {
+        Log.biometric {
             """
-                $TAG - The secret key was retrieved
+                The secret key was retrieved
                 |- Key alias: $keyAlias
             """.trimIndent()
         }
 
-        unwrappedKey
+        return unwrappedKey
     }
 
-    override suspend fun get(keyAliases: Collection<String>): Map<String, SecretKey> = withContext(Dispatchers.IO) {
+    override suspend fun get(
+        masterKeyConfig: KeystoreManager.MasterKeyConfig,
+        keyAliases: Collection<String>,
+    ): Map<String, SecretKey> {
         val wrappedKeysBytes = keyAliases
             .mapNotNull { keyAlias ->
                 val wrappedKeyBytes = secureStorage.get(getStorageKeyForWrappedSecretKey(keyAlias))
@@ -84,17 +78,18 @@ internal class AndroidKeystoreManager(
             .toMap()
 
         if (wrappedKeysBytes.isEmpty()) {
-            Log.warning {
+            Log.biometric {
                 """
-                    $TAG - The secret keys are not stored
+                    The secret keys are not stored
                     |- Key aliases: $keyAliases
                 """.trimIndent()
             }
 
-            return@withContext emptyMap()
+            return emptyMap()
         }
 
-        val cipher = authenticateAndInitUnwrapCipher()
+        val privateKey = getPrivateMasterKey(masterKeyConfig) ?: return emptyMap()
+        val cipher = authenticateAndInitUnwrapCipher(privateKey, masterKeyConfig)
         val unwrappedKeys = wrappedKeysBytes
             .mapValues { (_, wrappedKeyBytes) ->
                 RSACipherOperations.unwrapKey(
@@ -104,28 +99,61 @@ internal class AndroidKeystoreManager(
                 )
             }
 
-        Log.debug {
+        Log.biometric {
             """
-                $TAG - The secret keys were retrieved
+                The secret keys were retrieved
                 |- Key aliases: $keyAliases
             """.trimIndent()
         }
 
-        unwrappedKeys
+        return unwrappedKeys
     }
 
-    override suspend fun store(keyAlias: String, key: SecretKey) = withContext(Dispatchers.IO) {
-        val masterCipher = RSACipherOperations.initWrapKeyCipher(masterPublicKey)
-        val wrappedKey = RSACipherOperations.wrapKey(masterCipher, key)
+    private fun getPrivateMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): PrivateKey? {
+        val key = keyStore.getKey(masterKeyConfig.alias, null) as? PrivateKey
+
+        if (key == null) {
+            Log.biometric {
+                """
+                    The private master key is not generated
+                    |- Alias: ${masterKeyConfig.alias}
+                """.trimIndent()
+            }
+        }
+
+        return key
+    }
+
+    override suspend fun store(masterKeyConfig: KeystoreManager.MasterKeyConfig, keyAlias: String, key: SecretKey) {
+        val publicKey = getPublicMasterKey(masterKeyConfig)
+        val cipher = RSACipherOperations.initWrapKeyCipher(publicKey)
+        val wrappedKey = RSACipherOperations.wrapKey(cipher, key)
 
         secureStorage.store(wrappedKey, getStorageKeyForWrappedSecretKey(keyAlias))
 
-        Log.debug {
+        Log.biometric {
             """
-                $TAG - The secret key was stored
+                The secret key was stored
                 |- Key alias: $keyAlias
             """.trimIndent()
         }
+    }
+
+    private fun getPublicMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): PublicKey {
+        var key = keyStore.getCertificate(masterKeyConfig.alias)?.publicKey
+
+        if (key == null) {
+            Log.biometric {
+                """
+                    The public master key is not generated, generating new
+                    |- Alias: ${masterKeyConfig.alias}
+                """.trimIndent()
+            }
+
+            key = generateMasterKey(masterKeyConfig).public!!
+        }
+
+        return key
     }
 
     /**
@@ -134,44 +162,57 @@ internal class AndroidKeystoreManager(
      *
      * @see KeyGenParameterSpec.Builder.setInvalidatedByBiometricEnrollment
      * */
-    private suspend fun authenticateAndInitUnwrapCipher(): Cipher {
-        Log.debug { "$TAG - Initializing the unwrap cipher" }
+    private suspend fun authenticateAndInitUnwrapCipher(
+        privateKey: PrivateKey,
+        masterKeyConfig: KeystoreManager.MasterKeyConfig,
+    ): Cipher {
+        Log.biometric { "Initializing the unwrap cipher" }
+
+        /**
+         * Authentication timeout is reduced by [AUTHENTICATION_TIMEOUT_MULTIPLIER] of the master key timeout
+         * to avoid the situation when the master key is invalidated due to the timeout while the user is authenticating.
+         * */
+        authenticationManager.authenticate(
+            params = AndroidAuthenticationParams(
+                timeout = masterKeyConfig.securityDelay * AUTHENTICATION_TIMEOUT_MULTIPLIER,
+            ),
+        )
 
         return try {
-            authenticationManager.authenticate()
-
-            RSACipherOperations.initUnwrapKeyCipher(masterPrivateKey)
+            RSACipherOperations.initUnwrapKeyCipher(privateKey)
         } catch (e: InvalidKeyException) {
-            handleInvalidKeyException(e)
+            handleInvalidKeyException(masterKeyConfig.alias, e)
         }
     }
 
-    private fun handleInvalidKeyException(e: InvalidKeyException): Nothing {
-        Log.error {
+    private fun handleInvalidKeyException(privateKeyAlias: String, e: InvalidKeyException): Nothing {
+        Log.biometric {
             """
-                $TAG - Unable to initialize the unwrap cipher because the master key is invalidated, 
+                Unable to initialize the unwrap cipher because the master key is invalidated, 
                 master key will be deleted
                 |- Cause: $e
             """.trimIndent()
         }
 
-        keyStore.deleteEntry(MASTER_KEY_ALIAS)
+        keyStore.deleteEntry(privateKeyAlias)
         keyStore.load(null)
 
         throw TangemSdkError.KeystoreInvalidated(e)
     }
 
-    private fun generateMasterKey(): KeyPair {
+    private fun generateMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): KeyPair {
         return RSACipherOperations.generateKeyPair(
             keyStoreProvider = keyStore.provider.name,
-            keyGenSpec = buildMasterKeyGenSpec(),
+            keyGenSpec = buildMasterKeyGenSpec(masterKeyConfig),
         )
     }
 
     /** Key regeneration is required to edit these parameters */
-    private fun buildMasterKeyGenSpec(): KeyGenParameterSpec {
+    private fun buildMasterKeyGenSpec(masterKeyConfig: KeystoreManager.MasterKeyConfig): KeyGenParameterSpec {
+        val securityDelaySeconds = masterKeyConfig.securityDelay.inWholeSeconds.toInt()
+
         return KeyGenParameterSpec.Builder(
-            MASTER_KEY_ALIAS,
+            masterKeyConfig.alias,
             KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
         )
             .setKeySize(MASTER_KEY_SIZE)
@@ -189,12 +230,13 @@ internal class AndroidKeystoreManager(
             .let { builder ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     builder
+                        .setUserConfirmationRequired(masterKeyConfig.userConfirmationRequired)
                         .setUserAuthenticationParameters(
-                            MASTER_KEY_TIMEOUT_SECONDS,
+                            securityDelaySeconds,
                             KeyProperties.AUTH_BIOMETRIC_STRONG,
                         )
                 } else {
-                    builder.setUserAuthenticationValidityDurationSeconds(MASTER_KEY_TIMEOUT_SECONDS)
+                    builder.setUserAuthenticationValidityDurationSeconds(securityDelaySeconds)
                 }
             }
             .build()
@@ -206,11 +248,7 @@ internal class AndroidKeystoreManager(
 
     private companion object {
         const val KEY_STORE_PROVIDER = "AndroidKeyStore"
-
-        const val MASTER_KEY_ALIAS = "master_key"
         const val MASTER_KEY_SIZE = 1024
-        const val MASTER_KEY_TIMEOUT_SECONDS = 5
-
-        const val TAG = "Keystore Manager"
+        const val AUTHENTICATION_TIMEOUT_MULTIPLIER = 0.9
     }
 }
