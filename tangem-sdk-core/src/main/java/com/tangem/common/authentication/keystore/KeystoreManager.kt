@@ -34,7 +34,7 @@ interface KeystoreManager {
      *
      * @throws TangemSdkError.KeystoreInvalidated if the keystore is invalidated.
      */
-    suspend fun get(masterKeyConfig: MasterKeyConfig, keyAliases: Collection<String>): Map<String, SecretKey>
+    suspend fun get(masterKeyConfig: MasterKeyConfig, keyAliases: Set<String>): Map<String, SecretKey>
 
     /**
      * Stores the given [SecretKey] with a specified [keyAlias] in the keystore.
