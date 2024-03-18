@@ -53,7 +53,7 @@ class AuthenticatedStorage(
             return@withContext null
         }
 
-        val decryptedData = getDecryptedData(keyAlias, key, encryptedData)
+        val decryptedData = decrypt(keyAlias, key, encryptedData)
 
         migrateIfNeeded(keyAlias, decryptedData, config)
 
@@ -84,7 +84,7 @@ class AuthenticatedStorage(
      * @return The decrypted data as a map of key-alias to [ByteArray] or an empty map if data is not found.
      */
     suspend fun get(keysAliases: Collection<String>): Map<String, ByteArray> = withContext(Dispatchers.IO) {
-        val encryptedData = keysAliases
+        val keyToEncryptedData = keysAliases
             .mapNotNull { keyAlias ->
                 val data = secureStorage.get(keyAlias)
                     ?.takeIf(ByteArray::isNotEmpty)
@@ -95,7 +95,7 @@ class AuthenticatedStorage(
             .takeIf { it.isNotEmpty() }
             ?.toMap()
 
-        if (encryptedData == null) {
+        if (keyToEncryptedData == null) {
             Log.warning {
                 """
                     $TAG - Data not found in storage
@@ -106,7 +106,7 @@ class AuthenticatedStorage(
             return@withContext emptyMap()
         }
 
-        val (config, keys) = getSecretKeys(keysAliases) ?: run {
+        val (config, keys) = getSecretKeys(keyToEncryptedData.keys) ?: run {
             Log.warning {
                 """
                     $TAG - The secret keys are not stored
@@ -117,10 +117,10 @@ class AuthenticatedStorage(
             return@withContext emptyMap()
         }
 
-        val decryptedData = encryptedData
+        val decryptedData = keyToEncryptedData
             .mapNotNull { (keyAlias, encryptedData) ->
                 val key = keys[keyAlias] ?: return@mapNotNull null
-                val decryptedData = getDecryptedData(keyAlias, key, encryptedData)
+                val decryptedData = decrypt(keyAlias, key, encryptedData)
 
                 keyAlias to decryptedData
             }
@@ -131,24 +131,24 @@ class AuthenticatedStorage(
         decryptedData
     }
 
-    private fun getDecryptedData(keyAlias: String, key: SecretKey, encryptedData: ByteArray): ByteArray {
-        val iv = getDataIv(keyAlias)
-        val decryptionCipher = AESCipherOperations.initDecryptionCipher(key, iv)
-
-        return AESCipherOperations.decrypt(decryptionCipher, encryptedData)
-    }
-
     private suspend fun getSecretKeys(
         keysAliases: Collection<String>,
     ): Pair<MasterKeyConfigs, Map<String, SecretKey>>? {
         return MasterKeyConfigs.all.reversed()
             .firstNotNullOfOrNull { masterKeyConfig ->
-                val keys = keystoreManager.get(masterKeyConfig, keysAliases)
+                val keys = keystoreManager.get(masterKeyConfig, keysAliases.toSet())
                     .takeIf { it.isNotEmpty() }
                     ?: return@firstNotNullOfOrNull null
 
                 masterKeyConfig to keys
             }
+    }
+
+    private fun decrypt(keyAlias: String, key: SecretKey, encryptedData: ByteArray): ByteArray {
+        val iv = getDataIv(keyAlias)
+        val decryptionCipher = AESCipherOperations.initDecryptionCipher(key, iv)
+
+        return AESCipherOperations.decrypt(decryptionCipher, encryptedData)
     }
 
     private suspend fun migrateIfNeeded(decryptedData: Map<String, ByteArray>, config: MasterKeyConfigs) {
