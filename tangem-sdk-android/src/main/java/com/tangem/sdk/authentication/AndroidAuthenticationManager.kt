@@ -19,7 +19,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
+import javax.crypto.Cipher
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
@@ -76,17 +77,18 @@ internal class AndroidAuthenticationManager(
         biometricsStatus.value = BiometricsStatus.UNINITIALIZED
     }
 
-    @OptIn(ExperimentalTime::class)
-    override suspend fun authenticate(params: AuthenticationManager.AuthenticationParams) {
-        when (biometricsStatus.value) {
+    override suspend fun authenticate(
+        params: AuthenticationManager.AuthenticationParams,
+    ): AuthenticationManager.AuthenticationResult {
+        return when (biometricsStatus.value) {
             BiometricsStatus.READY -> {
                 Log.biometric { "Authenticating a user: $params" }
 
                 val timeout = params.timeout
                 if (timeout != null) {
-                    withTimeout(timeout) { authenticate() }
+                    authenticateWithTimeout(timeout, params.cipher)
                 } else {
-                    authenticate()
+                    authenticate(params.cipher)
                 }
             }
             BiometricsStatus.AUTHENTICATING -> {
@@ -114,13 +116,23 @@ internal class AndroidAuthenticationManager(
         }
     }
 
-    private suspend fun authenticate(): BiometricPrompt.AuthenticationResult = withContext(Dispatchers.Main) {
+    @OptIn(ExperimentalTime::class)
+    private suspend fun authenticateWithTimeout(timeout: Duration, cipher: Cipher?): AndroidAuthenticationResult {
+        return withTimeoutOrNull(timeout) { authenticate(cipher) }
+            ?: throw TangemSdkError.AuthenticationCanceled()
+    }
+
+    private suspend fun authenticate(cipher: Cipher?): AndroidAuthenticationResult = withContext(Dispatchers.Main) {
         biometricsStatus.value = BiometricsStatus.AUTHENTICATING
 
-        suspendCancellableCoroutine { continuation ->
+        val promptResult = suspendCancellableCoroutine { continuation ->
             val biometricPrompt = createBiometricPrompt(continuation)
 
-            biometricPrompt.authenticate(biometricPromptInfo)
+            if (cipher == null) {
+                biometricPrompt.authenticate(biometricPromptInfo)
+            } else {
+                biometricPrompt.authenticate(biometricPromptInfo, BiometricPrompt.CryptoObject(cipher))
+            }
 
             continuation.invokeOnCancellation {
                 Log.biometric { "User authentication has been canceled" }
@@ -130,6 +142,8 @@ internal class AndroidAuthenticationManager(
                 biometricsStatus.value = BiometricsStatus.READY
             }
         }
+
+        AndroidAuthenticationResult(promptResult.cryptoObject?.cipher)
     }
 
     private fun createBiometricPrompt(continuation: CancellableContinuation<BiometricPrompt.AuthenticationResult>) =
@@ -231,8 +245,13 @@ internal class AndroidAuthenticationManager(
     }
 
     data class AndroidAuthenticationParams(
+        override val cipher: Cipher? = null,
         override val timeout: Duration? = null,
     ) : AuthenticationManager.AuthenticationParams
+
+    data class AndroidAuthenticationResult(
+        override val cipher: Cipher?,
+    ) : AuthenticationManager.AuthenticationResult
 
     private enum class BiometricsStatus {
         READY,
