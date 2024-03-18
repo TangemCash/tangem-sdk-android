@@ -8,7 +8,7 @@ class DummyKeystoreManager : KeystoreManager {
 
     override suspend fun get(
         masterKeyConfig: KeystoreManager.MasterKeyConfig,
-        keyAliases: Collection<String>,
+        keyAliases: Set<String>,
     ): Map<String, SecretKey> = emptyMap()
 
     override suspend fun store(masterKeyConfig: KeystoreManager.MasterKeyConfig, keyAlias: String, key: SecretKey) =

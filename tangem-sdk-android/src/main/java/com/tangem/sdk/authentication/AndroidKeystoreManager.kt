@@ -2,8 +2,8 @@ package com.tangem.sdk.authentication
 
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
-import android.security.keystore.UserNotAuthenticatedException
 import androidx.annotation.RequiresApi
 import com.tangem.Log
 import com.tangem.common.authentication.AuthenticationManager
@@ -13,7 +13,6 @@ import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.operations.AESCipherOperations
 import com.tangem.crypto.operations.RSACipherOperations
 import com.tangem.sdk.authentication.AndroidAuthenticationManager.AndroidAuthenticationParams
-import java.security.InvalidKeyException
 import java.security.KeyPair
 import java.security.KeyStore
 import java.security.PrivateKey
@@ -65,7 +64,7 @@ internal class AndroidKeystoreManager(
 
     override suspend fun get(
         masterKeyConfig: KeystoreManager.MasterKeyConfig,
-        keyAliases: Collection<String>,
+        keyAliases: Set<String>,
     ): Map<String, SecretKey> {
         val wrappedKeysBytes = keyAliases
             .mapNotNull { keyAlias ->
@@ -143,53 +142,82 @@ internal class AndroidKeystoreManager(
         var key = keyStore.getCertificate(masterKeyConfig.alias)?.publicKey
 
         if (key == null) {
-            Log.biometric {
-                """
-                    The public master key is not generated, generating new
-                    |- Alias: ${masterKeyConfig.alias}
-                """.trimIndent()
-            }
+            Log.biometric { "The public master key is not generated" }
 
+            generateInvalidationCheckKey()
             key = generateMasterKey(masterKeyConfig).public!!
         }
 
         return key
     }
 
-    /**
-     * If the master key has been invalidated due to new biometric enrollment, the [UserNotAuthenticatedException]
-     * will be thrown anyway because the master key has the positive timeout.
-     *
-     * @see KeyGenParameterSpec.Builder.setInvalidatedByBiometricEnrollment
-     * */
     private suspend fun authenticateAndInitUnwrapCipher(
         privateKey: PrivateKey,
         masterKeyConfig: KeystoreManager.MasterKeyConfig,
     ): Cipher {
         Log.biometric { "Initializing the unwrap cipher" }
 
-        /**
-         * Authentication timeout is reduced by [AUTHENTICATION_TIMEOUT_MULTIPLIER] of the master key timeout
-         * to avoid the situation when the master key is invalidated due to the timeout while the user is authenticating.
-         * */
-        authenticationManager.authenticate(
-            params = AndroidAuthenticationParams(
-                timeout = masterKeyConfig.securityDelay * AUTHENTICATION_TIMEOUT_MULTIPLIER,
-            ),
-        )
+        authenticateUser(masterKeyConfig)
 
         return try {
             RSACipherOperations.initUnwrapKeyCipher(privateKey)
-        } catch (e: InvalidKeyException) {
-            handleInvalidKeyException(masterKeyConfig.alias, e)
+        } catch (e: Throwable) {
+            Log.biometric {
+                """
+                    Unable to initialize the unwrap cipher
+                    |- Cause: $e
+                """.trimIndent()
+            }
+
+            throw e
         }
     }
 
-    private fun handleInvalidKeyException(privateKeyAlias: String, e: InvalidKeyException): Nothing {
+    private suspend fun authenticateUser(masterKeyConfig: KeystoreManager.MasterKeyConfig) {
+        try {
+            /**
+             * Authentication timeout is reduced by [AUTHENTICATION_TIMEOUT_MULTIPLIER] of the master key timeout
+             * to avoid the situation when the master key is invalidated due to the timeout while the user is authenticating.
+             * */
+            authenticationManager.authenticate(
+                params = AndroidAuthenticationParams(
+                    cipher = getInvalidationCheckCipher(),
+                    timeout = masterKeyConfig.securityDelay * AUTHENTICATION_TIMEOUT_MULTIPLIER,
+                ),
+            )
+        } catch (e: KeyPermanentlyInvalidatedException) {
+            handleKeyInvalidationException(masterKeyConfig.alias, e)
+        } catch (e: Throwable) {
+            Log.biometric {
+                """
+                    Unable to authenticate the user
+                    |- Cause: $e
+                """.trimIndent()
+            }
+
+            throw e
+        }
+    }
+
+    private fun getInvalidationCheckCipher(): Cipher {
+        var key = keyStore.getKey(INVALIDATION_CHECK_KEY_ALIAS, null) as? SecretKey
+
+        if (key == null) {
+            Log.biometric { "The invalidation check key is not generated" }
+
+            key = generateInvalidationCheckKey()
+        }
+
+        return AESCipherOperations.initEncryptionCipher(key)
+    }
+
+    private fun handleKeyInvalidationException(
+        privateKeyAlias: String,
+        e: KeyPermanentlyInvalidatedException,
+    ): Nothing {
         Log.biometric {
             """
-                Unable to initialize the unwrap cipher because the master key is invalidated, 
-                master key will be deleted
+                Unable to initialize the unwrap cipher because the key is permanently invalidated
                 |- Cause: $e
             """.trimIndent()
         }
@@ -201,14 +229,30 @@ internal class AndroidKeystoreManager(
     }
 
     private fun generateMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): KeyPair {
+        Log.biometric {
+            """
+                Generating the master key
+                |- Alias: ${masterKeyConfig.alias}
+            """.trimIndent()
+        }
+
         return RSACipherOperations.generateKeyPair(
             keyStoreProvider = keyStore.provider.name,
-            keyGenSpec = buildMasterKeyGenSpec(masterKeyConfig),
+            keyGenSpec = buildMasterKeySpec(masterKeyConfig),
+        )
+    }
+
+    private fun generateInvalidationCheckKey(): SecretKey {
+        Log.biometric { "Generating the key for invalidation check" }
+
+        return AESCipherOperations.generateKey(
+            keyStoreProvider = keyStore.provider.name,
+            keyGetSpec = buildInvalidationCheckKeySpec(),
         )
     }
 
     /** Key regeneration is required to edit these parameters */
-    private fun buildMasterKeyGenSpec(masterKeyConfig: KeystoreManager.MasterKeyConfig): KeyGenParameterSpec {
+    private fun buildMasterKeySpec(masterKeyConfig: KeystoreManager.MasterKeyConfig): KeyGenParameterSpec {
         val securityDelaySeconds = masterKeyConfig.securityDelay.inWholeSeconds.toInt()
 
         return KeyGenParameterSpec.Builder(
@@ -242,6 +286,38 @@ internal class AndroidKeystoreManager(
             .build()
     }
 
+    /** Key regeneration is required to edit these parameters */
+    private fun buildInvalidationCheckKeySpec(): KeyGenParameterSpec {
+        return KeyGenParameterSpec.Builder(
+            INVALIDATION_CHECK_KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT,
+        )
+            .setKeySize(AUTHENTICATION_CHECK_KEY_SIZE)
+            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+            .setUserAuthenticationRequired(true)
+            .let { builder ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    builder.setInvalidatedByBiometricEnrollment(true)
+                } else {
+                    builder
+                }
+            }
+            .let { builder ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    builder
+                        .setUserConfirmationRequired(false)
+                        .setUserAuthenticationParameters(
+                            0,
+                            KeyProperties.AUTH_BIOMETRIC_STRONG,
+                        )
+                } else {
+                    builder.setUserAuthenticationValidityDurationSeconds(-1)
+                }
+            }
+            .build()
+    }
+
     private fun getStorageKeyForWrappedSecretKey(keyAlias: String): String {
         return "data_key_$keyAlias"
     }
@@ -250,5 +326,8 @@ internal class AndroidKeystoreManager(
         const val KEY_STORE_PROVIDER = "AndroidKeyStore"
         const val MASTER_KEY_SIZE = 1024
         const val AUTHENTICATION_TIMEOUT_MULTIPLIER = 0.9
+
+        const val INVALIDATION_CHECK_KEY_ALIAS = "invalidation_check_key"
+        const val AUTHENTICATION_CHECK_KEY_SIZE = 128
     }
 }
