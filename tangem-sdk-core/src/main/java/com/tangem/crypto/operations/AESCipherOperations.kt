@@ -1,6 +1,7 @@
 package com.tangem.crypto.operations
 
 import com.tangem.Log
+import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -95,6 +96,12 @@ object AESCipherOperations {
     fun generateKey(keySize: Int = 256): SecretKey {
         return KeyGenerator.getInstance(KEY_ALGORITHM)
             .also { it.init(keySize) }
+            .generateKey()
+    }
+
+    fun generateKey(keyStoreProvider: String, keyGetSpec: AlgorithmParameterSpec): SecretKey {
+        return KeyGenerator.getInstance(KEY_ALGORITHM, keyStoreProvider)
+            .also { it.init(keyGetSpec) }
             .generateKey()
     }
 }

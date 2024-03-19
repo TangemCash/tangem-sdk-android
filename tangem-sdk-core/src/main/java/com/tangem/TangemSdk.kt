@@ -6,8 +6,8 @@ import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.authentication.AuthenticationManager
 import com.tangem.common.authentication.DummyAuthenticationManager
-import com.tangem.common.authentication.DummyKeystoreManager
-import com.tangem.common.authentication.KeystoreManager
+import com.tangem.common.authentication.keystore.DummyKeystoreManager
+import com.tangem.common.authentication.keystore.KeystoreManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*

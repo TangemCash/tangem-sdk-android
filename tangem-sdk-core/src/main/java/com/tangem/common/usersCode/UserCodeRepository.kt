@@ -5,8 +5,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
-import com.tangem.common.authentication.AuthenticatedStorage
-import com.tangem.common.authentication.KeystoreManager
+import com.tangem.common.authentication.keystore.KeystoreManager
+import com.tangem.common.authentication.storage.AuthenticatedStorage
 import com.tangem.common.catching
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.mapNotNullValues
