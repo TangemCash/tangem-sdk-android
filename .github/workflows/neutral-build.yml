@@ -4,6 +4,7 @@ on:
   push:
     branches: 
     - 'release/**'
+    - 'release-app_[0-9]+.[0-9]+'
     - 'develop'
   workflow_dispatch:  
 
