@@ -6,6 +6,8 @@ import com.tangem.common.authentication.keystore.MasterKeyConfigs
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.operations.AESCipherOperations
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.crypto.SecretKey
 
@@ -19,6 +21,8 @@ class AuthenticatedStorage(
     private val secureStorage: SecureStorage,
     private val keystoreManager: KeystoreManager,
 ) {
+
+    private val storeMutex = Mutex()
 
     /**
      * Retrieves and decrypts data from the storage after necessary user authentication.
@@ -166,10 +170,12 @@ class AuthenticatedStorage(
      * @param keyAlias The unique identifier which will be associated with the encrypted data.
      * @param data The plain data to be encrypted and stored.
      */
-    suspend fun store(keyAlias: String, data: ByteArray) = withContext(Dispatchers.IO) {
-        val encryptedData = encrypt(keyAlias, data)
+    suspend fun store(keyAlias: String, data: ByteArray) = storeMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val encryptedData = encrypt(keyAlias, data)
 
-        secureStorage.store(encryptedData, keyAlias)
+            secureStorage.store(encryptedData, keyAlias)
+        }
     }
 
     /**
