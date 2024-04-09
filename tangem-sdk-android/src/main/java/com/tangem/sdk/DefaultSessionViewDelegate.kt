@@ -2,6 +2,7 @@ package com.tangem.sdk
 
 import android.app.Activity
 import android.os.Build
+import androidx.core.app.ComponentActivity
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
@@ -27,7 +28,7 @@ import com.tangem.sdk.ui.NfcSessionDialog
  */
 class DefaultSessionViewDelegate(
     private val nfcManager: NfcManager,
-    private val activity: Activity,
+    private val activity: ComponentActivity,
 ) : SessionViewDelegate {
 
     var sdkConfig: Config = Config()
