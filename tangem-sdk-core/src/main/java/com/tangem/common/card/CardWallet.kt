@@ -145,7 +145,7 @@ data class CardWallet(
         }
     }
 
-    data class Settings internal constructor(
+    data class Settings(
         /**
          * If true, erasing the wallet will be prohibited
          */
