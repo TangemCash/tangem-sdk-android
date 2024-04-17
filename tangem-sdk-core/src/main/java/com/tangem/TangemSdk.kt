@@ -1157,8 +1157,8 @@ class TangemSdk(
         keystoreManager: KeystoreManager,
         secureStorage: SecureStorage,
         config: Config,
-    ): UserCodeRepository? {
-        return if (authenticationManager.canAuthenticate &&
+    ): UserCodeRepository? = runCatching {
+        if (authenticationManager.canAuthenticate &&
             config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics
         ) {
             UserCodeRepository(
@@ -1168,7 +1168,7 @@ class TangemSdk(
         } else {
             null
         }
-    }
+    }.getOrNull()
 
     private fun makeSession(
         cardId: String? = null,
