@@ -53,7 +53,7 @@ jobs:
       with:
         channel: '#development-android'
         status: ${{ job.status }}
-        success_text: 'Card SDK build (${{ steps.extract_branch.outputs.branch }}-${{ github.run_number }}) has been created and uploaded to Nexus.'
+        success_text: 'Card SDK build (${{ steps.extract_branch.outputs.branch }}-${{ github.run_number }}) has been created and uploaded to Github registry.'
         failure_text: 'GitHub Action #${{ github.run_number }} failed. Tag has not been not created.'
         cancelled_text: 'GitHub Action #${{ github.run_number }} was cancelled'
         fields: |
