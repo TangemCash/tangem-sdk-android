@@ -146,7 +146,7 @@ class NfcSessionDialog(
     private fun onSuccess(state: SessionViewDelegateState.Success) {
         setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
         performHapticFeedback()
-        postUI(msTime = 1000) { cancel() }
+        postUI(msTime = 1000) { dismissInternal() }
     }
 
     private fun onError(state: SessionViewDelegateState.Error) {
