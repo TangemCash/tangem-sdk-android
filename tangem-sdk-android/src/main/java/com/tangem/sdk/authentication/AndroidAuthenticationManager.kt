@@ -43,11 +43,11 @@ internal class AndroidAuthenticationManager(
             .build()
     }
 
-    private val biometricsStatus = MutableStateFlow(BiometricsStatus.UNINITIALIZED)
+    private val biometricsStatus = MutableStateFlow(BiometricsStatus.NOT_INITIALIZED)
 
     override val canAuthenticate: Boolean
         get() {
-            if (biometricsStatus.value == BiometricsStatus.UNAVAILABLE) {
+            if (biometricsStatus.value == BiometricsStatus.NOT_INITIALIZED) {
                 error("Biometrics status must be initialized before checking if biometrics can authenticate")
             }
 
@@ -56,7 +56,7 @@ internal class AndroidAuthenticationManager(
 
     override val needEnrollBiometrics: Boolean
         get() {
-            if (biometricsStatus.value == BiometricsStatus.UNAVAILABLE) {
+            if (biometricsStatus.value == BiometricsStatus.NOT_INITIALIZED) {
                 error("Biometrics status must be initialized before checking if biometrics need to be enrolled")
             }
 
@@ -74,7 +74,7 @@ internal class AndroidAuthenticationManager(
     override fun onPause(owner: LifecycleOwner) {
         Log.biometric { "Owner has been paused, biometrics was uninitialized" }
 
-        biometricsStatus.value = BiometricsStatus.UNINITIALIZED
+        biometricsStatus.value = BiometricsStatus.NOT_INITIALIZED
     }
 
     override suspend fun authenticate(
@@ -106,7 +106,7 @@ internal class AndroidAuthenticationManager(
 
                 throw TangemSdkError.AuthenticationUnavailable()
             }
-            BiometricsStatus.UNINITIALIZED -> {
+            BiometricsStatus.NOT_INITIALIZED -> {
                 Log.biometric { "Awaiting for the biometrics status to be initialized" }
 
                 awaitBiometricsInititialization()
@@ -164,7 +164,7 @@ internal class AndroidAuthenticationManager(
         )
 
     private suspend fun awaitBiometricsInititialization() {
-        biometricsStatus.first { it != BiometricsStatus.UNINITIALIZED }
+        biometricsStatus.first { it != BiometricsStatus.NOT_INITIALIZED }
     }
 
     @Suppress("LongMethod")
@@ -258,7 +258,7 @@ internal class AndroidAuthenticationManager(
         AUTHENTICATING,
         UNAVAILABLE,
         NEED_ENROLL,
-        UNINITIALIZED,
+        NOT_INITIALIZED,
     }
 
     private sealed interface BiometricAuthenticationResult {
