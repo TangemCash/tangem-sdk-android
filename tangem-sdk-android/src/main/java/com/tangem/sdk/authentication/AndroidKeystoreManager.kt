@@ -4,15 +4,18 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
+import android.security.keystore.UserNotAuthenticatedException
 import androidx.annotation.RequiresApi
 import com.tangem.Log
 import com.tangem.common.authentication.AuthenticationManager
 import com.tangem.common.authentication.keystore.KeystoreManager
 import com.tangem.common.core.TangemSdkError
+import com.tangem.common.extensions.mapNotNullValues
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.operations.AESCipherOperations
 import com.tangem.crypto.operations.RSACipherOperations
 import com.tangem.sdk.authentication.AndroidAuthenticationManager.AndroidAuthenticationParams
+import java.security.InvalidKeyException
 import java.security.KeyPair
 import java.security.KeyStore
 import java.security.PrivateKey
@@ -29,9 +32,12 @@ internal class AndroidKeystoreManager(
     private val keyStore: KeyStore = KeyStore.getInstance(KEY_STORE_PROVIDER)
         .apply { load(null) }
 
-    override suspend fun get(masterKeyConfig: KeystoreManager.MasterKeyConfig, keyAlias: String): SecretKey? {
-        val wrappedKeyBytes = secureStorage.get(getStorageKeyForWrappedSecretKey(keyAlias))
-            ?.takeIf { it.isNotEmpty() }
+    override suspend fun get(
+        masterKeyConfig: KeystoreManager.MasterKeyConfig,
+        keyAlias: String,
+        forceAuthentication: Boolean,
+    ): SecretKey? {
+        val wrappedKeyBytes = getWrappedKeyBytes(keyAlias)
 
         if (wrappedKeyBytes == null) {
             Log.biometric {
@@ -45,17 +51,19 @@ internal class AndroidKeystoreManager(
         }
 
         val privateKey = getPrivateMasterKey(masterKeyConfig) ?: return null
-        val cipher = authenticateAndInitUnwrapCipher(privateKey, masterKeyConfig)
-        val unwrappedKey = RSACipherOperations.unwrapKey(
-            cipher = cipher,
-            wrappedKeyBytes = wrappedKeyBytes,
-            wrappedKeyAlgorithm = AESCipherOperations.KEY_ALGORITHM,
-        )
+
+        if (forceAuthentication) {
+            authenticateUser(masterKeyConfig)
+        }
+
+        val cipher = initUnwrapCipher(privateKey, masterKeyConfig)
+        val unwrappedKey = unwrapKeyOrNull(keyAlias, cipher, wrappedKeyBytes)
 
         Log.biometric {
             """
                 The secret key was retrieved
                 |- Key alias: $keyAlias
+                |- Is key was unwrapped: ${unwrappedKey != null}
             """.trimIndent()
         }
 
@@ -65,11 +73,11 @@ internal class AndroidKeystoreManager(
     override suspend fun get(
         masterKeyConfig: KeystoreManager.MasterKeyConfig,
         keyAliases: Set<String>,
+        forceAuthentication: Boolean,
     ): Map<String, SecretKey> {
         val wrappedKeysBytes = keyAliases
             .mapNotNull { keyAlias ->
-                val wrappedKeyBytes = secureStorage.get(getStorageKeyForWrappedSecretKey(keyAlias))
-                    ?.takeIf { it.isNotEmpty() }
+                val wrappedKeyBytes = getWrappedKeyBytes(keyAlias)
                     ?: return@mapNotNull null
 
                 keyAlias to wrappedKeyBytes
@@ -88,24 +96,51 @@ internal class AndroidKeystoreManager(
         }
 
         val privateKey = getPrivateMasterKey(masterKeyConfig) ?: return emptyMap()
-        val cipher = authenticateAndInitUnwrapCipher(privateKey, masterKeyConfig)
-        val unwrappedKeys = wrappedKeysBytes
-            .mapValues { (_, wrappedKeyBytes) ->
-                RSACipherOperations.unwrapKey(
-                    cipher = cipher,
-                    wrappedKeyBytes = wrappedKeyBytes,
-                    wrappedKeyAlgorithm = AESCipherOperations.KEY_ALGORITHM,
-                )
-            }
+
+        if (forceAuthentication) {
+            authenticateUser(masterKeyConfig)
+        }
+
+        val cipher = initUnwrapCipher(privateKey, masterKeyConfig)
+        val unwrappedKeys = wrappedKeysBytes.mapNotNullValues { (keyAlias, wrappedKeyBytes) ->
+            unwrapKeyOrNull(keyAlias, cipher, wrappedKeyBytes)
+        }
 
         Log.biometric {
             """
                 The secret keys were retrieved
-                |- Key aliases: $keyAliases
+                |- Keys aliases: $keyAliases
+                |- Keys unwrapped: ${unwrappedKeys.size}
             """.trimIndent()
         }
 
         return unwrappedKeys
+    }
+
+    private fun getWrappedKeyBytes(keyAlias: String): ByteArray? {
+        val storageKey = getStorageKeyForWrappedSecretKey(keyAlias)
+
+        return secureStorage.get(storageKey)?.takeIf(ByteArray::isNotEmpty)
+    }
+
+    private fun unwrapKeyOrNull(keyAlias: String, cipher: Cipher, wrappedKeyBytes: ByteArray): SecretKey? {
+        return try {
+            RSACipherOperations.unwrapKey(
+                cipher = cipher,
+                wrappedKeyBytes = wrappedKeyBytes,
+                wrappedKeyAlgorithm = AESCipherOperations.KEY_ALGORITHM,
+            )
+        } catch (e: InvalidKeyException) {
+            Log.biometric {
+                """
+                    Unable to unwrap the key
+                    |- Alias: $keyAlias
+                    |- Cause: $e
+                """.trimIndent()
+            }
+
+            null
+        }
     }
 
     private fun getPrivateMasterKey(masterKeyConfig: KeystoreManager.MasterKeyConfig): PrivateKey? {
@@ -127,8 +162,9 @@ internal class AndroidKeystoreManager(
         val publicKey = getPublicMasterKey(masterKeyConfig)
         val cipher = RSACipherOperations.initWrapKeyCipher(publicKey)
         val wrappedKey = RSACipherOperations.wrapKey(cipher, key)
+        val storageKey = getStorageKeyForWrappedSecretKey(keyAlias)
 
-        secureStorage.store(wrappedKey, getStorageKeyForWrappedSecretKey(keyAlias))
+        secureStorage.store(wrappedKey, storageKey)
 
         Log.biometric {
             """
@@ -151,16 +187,20 @@ internal class AndroidKeystoreManager(
         return key
     }
 
-    private suspend fun authenticateAndInitUnwrapCipher(
+    private suspend fun initUnwrapCipher(
         privateKey: PrivateKey,
         masterKeyConfig: KeystoreManager.MasterKeyConfig,
     ): Cipher {
+        val initCipher = { RSACipherOperations.initUnwrapKeyCipher(privateKey) }
+
         Log.biometric { "Initializing the unwrap cipher" }
 
-        authenticateUser(masterKeyConfig)
-
         return try {
-            RSACipherOperations.initUnwrapKeyCipher(privateKey)
+            initCipher()
+        } catch (e: UserNotAuthenticatedException) {
+            authenticateUser(masterKeyConfig)
+
+            initCipher()
         } catch (e: Throwable) {
             Log.biometric {
                 """

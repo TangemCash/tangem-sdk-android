@@ -14,15 +14,15 @@ internal enum class MasterKeyConfigs : KeystoreManager.MasterKeyConfig {
         override val userConfirmationRequired = false
     }, ;
 
-    val isDeprecated: Boolean
-        get() = alias != current.alias
+    val isCurrent: Boolean
+        get() = alias == current.alias
 
     companion object {
 
-        val all: List<MasterKeyConfigs>
-            get() = values().toList()
+        val all: List<MasterKeyConfigs> = values().toList()
 
-        val current: MasterKeyConfigs
-            get() = all.last()
+        val current: MasterKeyConfigs = all.last()
+
+        val old: List<MasterKeyConfigs> = all.dropLast(n = 1)
     }
 }
