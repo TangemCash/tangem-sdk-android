@@ -16,11 +16,14 @@ interface KeystoreManager {
      *
      * @param masterKeyConfig The configuration for the master key.
      * @param keyAlias The alias of the key to be retrieved.
-     * @return The [SecretKey] if found. If the key cannot be found, then `null` will be returned.
+     * @param forceAuthentication Whether to force user authentication. If `true`, the user will be prompted
+     * to authenticate even if the master key security delay is not reached.
+     *
+     * @return The [SecretKey] if found. If the key cannot be found or unwrapped, then `null` will be returned.
      *
      * @throws TangemSdkError.KeystoreInvalidated if the keystore is invalidated.
      */
-    suspend fun get(masterKeyConfig: MasterKeyConfig, keyAlias: String): SecretKey?
+    suspend fun get(masterKeyConfig: MasterKeyConfig, keyAlias: String, forceAuthentication: Boolean): SecretKey?
 
     /**
      * Retrieves the map of key alias to [SecretKey] for a given [keyAliases].
@@ -29,12 +32,19 @@ interface KeystoreManager {
      *
      * @param masterKeyConfig The configuration for the master key.
      * @param keyAliases The aliases of the keys to be retrieved.
-     * @return The map of key alias to [SecretKey] if found. If the key cannot be found, then the key will not be
-     * included in the map.
+     * @param forceAuthentication Whether to force user authentication. If `true`, the user will be prompted
+     * to authenticate even if the master key security delay is not reached.
+     *
+     * @return The map of key alias to [SecretKey] if found. If the key cannot be found or unwrapped,
+     * then the key will not be included in the map.
      *
      * @throws TangemSdkError.KeystoreInvalidated if the keystore is invalidated.
      */
-    suspend fun get(masterKeyConfig: MasterKeyConfig, keyAliases: Set<String>): Map<String, SecretKey>
+    suspend fun get(
+        masterKeyConfig: MasterKeyConfig,
+        keyAliases: Set<String>,
+        forceAuthentication: Boolean,
+    ): Map<String, SecretKey>
 
     /**
      * Stores the given [SecretKey] with a specified [keyAlias] in the keystore.
