@@ -65,16 +65,23 @@ class AuthenticatedStorage(
     }
 
     private suspend fun getSecretKey(keyAlias: String): Pair<MasterKeyConfigs, SecretKey>? {
-        return MasterKeyConfigs.all.reversed()
-            .firstNotNullOfOrNull { masterKeyConfig ->
-                keystoreManager.get(masterKeyConfig, keyAlias)?.let { secretKey ->
-                    masterKeyConfig to secretKey
-                }
+        val currentConfig = MasterKeyConfigs.current
+        val dataKey = keystoreManager.get(currentConfig, keyAlias, forceAuthentication = true)
+
+        return if (dataKey == null) {
+            MasterKeyConfigs.old.firstNotNullOfOrNull { masterKeyConfig ->
+                val key = keystoreManager.get(masterKeyConfig, keyAlias, forceAuthentication = false)
+                    ?: return@firstNotNullOfOrNull null
+
+                masterKeyConfig to key
             }
+        } else {
+            currentConfig to dataKey
+        }
     }
 
     private suspend fun migrateIfNeeded(keyAlias: String, decryptedData: ByteArray, config: MasterKeyConfigs) {
-        if (!config.isDeprecated) return
+        if (config.isCurrent) return
 
         val encryptedData = encrypt(keyAlias, decryptedData)
         secureStorage.store(encryptedData, keyAlias)
@@ -138,14 +145,20 @@ class AuthenticatedStorage(
     private suspend fun getSecretKeys(
         keysAliases: Collection<String>,
     ): Pair<MasterKeyConfigs, Map<String, SecretKey>>? {
-        return MasterKeyConfigs.all.reversed()
-            .firstNotNullOfOrNull { masterKeyConfig ->
-                val keys = keystoreManager.get(masterKeyConfig, keysAliases.toSet())
+        val currentConfig = MasterKeyConfigs.current
+        val dataKeys = keystoreManager.get(currentConfig, keysAliases.toSet(), forceAuthentication = true)
+
+        return if (dataKeys.isEmpty()) {
+            MasterKeyConfigs.old.firstNotNullOfOrNull { masterKeyConfig ->
+                val keys = keystoreManager.get(masterKeyConfig, keysAliases.toSet(), forceAuthentication = false)
                     .takeIf { it.isNotEmpty() }
                     ?: return@firstNotNullOfOrNull null
 
                 masterKeyConfig to keys
             }
+        } else {
+            currentConfig to dataKeys
+        }
     }
 
     private fun decrypt(keyAlias: String, key: SecretKey, encryptedData: ByteArray): ByteArray {
@@ -156,7 +169,7 @@ class AuthenticatedStorage(
     }
 
     private suspend fun migrateIfNeeded(decryptedData: Map<String, ByteArray>, config: MasterKeyConfigs) {
-        if (!config.isDeprecated) return
+        if (config.isCurrent) return
 
         decryptedData.forEach { (keyAlias, data) ->
             val encryptedData = encrypt(keyAlias, data)
