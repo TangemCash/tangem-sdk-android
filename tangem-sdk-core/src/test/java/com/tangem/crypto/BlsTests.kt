@@ -3,6 +3,7 @@ package com.tangem.crypto
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.extensions.toHexString
+import com.tangem.crypto.hdWallet.bip32.ExtendedPrivateKey
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -59,6 +60,41 @@ internal class BlsTests {
         assertEquals(
             key.toHexString().lowercase(),
             "2a0e28ffa5fbbe2f8e7aad4ed94f745d6bf755c51182e119bb1694fe61d3afca",
+        )
+    }
+
+    @Test
+    fun testCaseZeroByte() {
+        val key = Bls.makeMasterKey(
+            (
+                "6f3bd932e83685cb02a2e3324db7eea4d8670c397646249d22ec489839fa961d9dcaadec956f5b03b17477beb55e025d14d98" +
+                    "f8e5de27ab85c54c367ff855005"
+                ).hexToBytes(),
+        )
+        val exKey = ExtendedPrivateKey(privateKey = key, chainCode = byteArrayOf())
+        val pubKey1 = exKey.makePublicKey(EllipticCurve.Bls12381G2)
+        val pubKey2 = exKey.makePublicKey(EllipticCurve.Bls12381G2Aug)
+        val pubKey3 = exKey.makePublicKey(EllipticCurve.Bls12381G2Pop)
+
+        val expectedPubKey =
+            "ac62719c49c0c90bb849e557e0e2f4fd37038088b2bc95caa1fcd3c74100e406126aab88e5b3919d070e653ca1f763a6"
+        assertEquals(
+            pubKey1.publicKey.toHexString().lowercase(),
+            expectedPubKey,
+        )
+        assertEquals(
+            pubKey2.publicKey.toHexString().lowercase(),
+            expectedPubKey,
+        )
+        assertEquals(
+            pubKey3.publicKey.toHexString().lowercase(),
+            expectedPubKey,
+        )
+
+        // 368437706163537652052594258159205315957211835831069816153467727017087780877 in decimal representation
+        assertEquals(
+            key.toHexString().lowercase(),
+            "00d087420ef7dce4f9b10d775a5b55d833aa1396ca5d09d7b4265bb15722c80d",
         )
     }
 
