@@ -55,7 +55,9 @@ class DefaultSessionViewDelegate(
             if (!nfcManager.isNfcEnabled) {
                 nfcEnableDialog?.cancel()
                 nfcEnableDialog = NfcEnableDialog()
-                activity.let { nfcEnableDialog?.show(it) }
+                if (!activity.isFinishing && !activity.isDestroyed) {
+                    activity.let { nfcEnableDialog?.show(it) }
+                }
             }
         }
     }
