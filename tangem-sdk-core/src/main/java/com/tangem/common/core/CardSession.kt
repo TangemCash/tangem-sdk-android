@@ -143,7 +143,7 @@ class CardSession(
                                     stop()
                                 }
                                 is CompletionResult.Failure -> {
-                                    stopWithError(result.error)
+                                    stopWithError(result.error, SessionErrorMoment.End)
                                 }
                             }
                             callback(result)
@@ -151,8 +151,7 @@ class CardSession(
                     }
                 }
                 is CompletionResult.Failure -> {
-                    Log.error { "${prepareResult.error}" }
-                    stopWithError(prepareResult.error)
+                    stopWithError(prepareResult.error, SessionErrorMoment.Preparation)
                     callback(CompletionResult.Failure(prepareResult.error))
                 }
             }
@@ -187,6 +186,7 @@ class CardSession(
                         }
                         .doOnFailure {
                             onSessionStarted(this@CardSession, it)
+                            stopWithError(it, SessionErrorMoment.AppletSelection)
                         }
                 }
         }
@@ -209,7 +209,7 @@ class CardSession(
             reader.tag.asFlow()
                 .onCompletion {
                     if (it is CancellationException && it.message == TangemSdkError.UserCancelled().customMessage) {
-                        stopWithError(TangemSdkError.UserCancelled())
+                        stopWithError(TangemSdkError.UserCancelled(), SessionErrorMoment.CancellingByUser)
                         viewDelegate.dismiss()
                         onSessionStarted(this@CardSession, TangemSdkError.UserCancelled())
                     }
@@ -324,7 +324,7 @@ class CardSession(
                             delay(timeMillis = 3500)
                             if (connectedTag == null) {
                                 onSessionStarted(this@CardSession, result.error)
-                                stopWithError(result.error)
+                                stopWithError(result.error, SessionErrorMoment.PreflightCheck)
                             } else {
                                 viewDelegate.onTagConnected()
                                 preflightCheck(onSessionStarted)
@@ -332,7 +332,7 @@ class CardSession(
                         }
                     } else {
                         onSessionStarted(this, result.error)
-                        stopWithError(result.error)
+                        stopWithError(result.error, SessionErrorMoment.PreflightCheck)
                     }
                 }
             }
@@ -343,7 +343,7 @@ class CardSession(
      * Stops the current session with the text message.
      * @param message If null, the default message will be shown.
      */
-    fun stop(message: Message? = null) {
+    private fun stop(message: Message? = null) {
         stopSessionIfActive()
         viewDelegate.onSessionStopped(message)
     }
@@ -352,13 +352,13 @@ class CardSession(
      * Stops the current session on error.
      * @param error An error that will be shown.
      */
-    fun stopWithError(error: TangemError) {
+    private fun stopWithError(error: TangemError, sessionErrorStage: SessionErrorMoment) {
         stopSessionIfActive()
         if (error !is TangemSdkError.UserCancelled) {
-            Log.error { "Finishing with error: ${error.code}" }
+            Log.error { "Finishing with error occurring at stage ${sessionErrorStage.name}: ${error.code}" }
             viewDelegate.onError(error)
         } else {
-            Log.debug { "User cancelled NFC session" }
+            Log.session { "User cancelled NFC session" }
         }
     }
 
