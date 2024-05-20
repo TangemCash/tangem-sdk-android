@@ -8,12 +8,15 @@ import com.chiachat.kbls.bls.constants.Schemes
 import com.chiachat.kbls.bls.ec.JacobianPoint
 import com.chiachat.kbls.bls.fields.Fq12
 import com.chiachat.kbls.bls.keys.PrivateKey
+import com.chiachat.kbls.bls.keys.SIZE
 import com.chiachat.kbls.bls.schemes.AugSchemeMPL
 import com.chiachat.kbls.bls.schemes.BasicSchemeMPL
 import com.chiachat.kbls.bls.schemes.PopSchemeMPL
 import com.chiachat.kbls.bls.util.Hkdf
 import com.chiachat.kbls.bls.util.OpSwuG2
 import com.chiachat.kbls.bls.util.Pairing
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.Sign
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
@@ -28,6 +31,7 @@ internal object Bls {
 
     // l, Calculated as ceil((3 * ceil(log2(r))) / 16). where r is s the order of the BLS 12-381
     private const val COUNT = 48
+    private const val KEY_SIZE = SIZE
 
     internal fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray, curve: EllipticCurve): Boolean {
         val publicKeyJacobianPoint = JacobianPoint.fromBytes(publicKey.toUByteArray(), isExtension = false)
@@ -78,8 +82,11 @@ internal object Bls {
     }
 
     internal fun generatePublicKey(privateKeyArray: ByteArray): ByteArray {
-        val privateKey = PrivateKey.fromBytes(bytes = privateKeyArray.toUByteArray())
-        return privateKey.getG1().toBytes().toByteArray()
+        val bytes = KHex(privateKeyArray.toUByteArray()).bigInt.mod(BLS12381.defaultEc.n).toByteArray()
+        val bytesEx = ByteArray(KEY_SIZE - bytes.size) { 0 } + bytes
+        val bi = BigInteger.fromUByteArray(bytesEx.toUByteArray(), Sign.POSITIVE)
+        val g1 = JacobianPoint.generateG1().times(bi)
+        return g1.toBytes().toByteArray()
     }
 
     internal fun isPrivateKeyValid(privateKey: ByteArray): Boolean {
@@ -93,7 +100,10 @@ internal object Bls {
             salt.toUByteArray(),
             listOf(0, COUNT).map { it.toUByte() }.toUByteArray(),
         )
-        return PrivateKey(KHex(okm).bigInt.mod(BLS12381.defaultEc.n)).toBytes().toByteArray()
+        val okmMod = KHex(okm).bigInt.mod(BLS12381.defaultEc.n)
+        val okmModBytes = okmMod.toByteArray()
+        val privateKey = ByteArray(KEY_SIZE - okmModBytes.size) { 0 } + okmModBytes
+        return privateKey
     }
 
     @Throws(TangemSdkError::class)
