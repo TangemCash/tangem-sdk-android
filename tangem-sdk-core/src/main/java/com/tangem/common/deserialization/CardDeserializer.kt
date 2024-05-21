@@ -75,7 +75,7 @@ object CardDeserializer {
         val userSettings: UserSettings = if (userSettingsMask != null) {
             UserSettings(userSettingsMask)
         } else {
-            UserSettings(isUserCodeRecoveryAllowed = firmware >= FirmwareVersion.BackupAvailable)
+            UserSettings(isUserCodeRecoveryAllowed = firmware >= FirmwareVersion.BackupAvailable, isPinRequired = false, isNdefDisabled = false)
         }
 
         return Card(
@@ -138,7 +138,7 @@ object CardDeserializer {
         Card.Manufacturer(
             decoder.decode(TlvTag.ManufacturerName),
             cardDataDecoder.decode(TlvTag.ManufactureDateTime),
-            cardDataDecoder.decode(TlvTag.CardIDManufacturerSignature),
+            cardDataDecoder.decodeOptional(TlvTag.CardIDManufacturerSignature),
         )
 
     private fun cardIssuer(decoder: TlvDecoder, cardDataDecoder: TlvDecoder): Card.Issuer = Card.Issuer(

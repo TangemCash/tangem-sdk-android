@@ -33,6 +33,7 @@ enum class Instruction(var code: Int) {
     WriteBackupData(code = 0xED),
     ManageFileOwners(code = 0xD2),
     Authorize(code = 0xD3),
+    ManageAccessTokens(0xD6),
     BackupReset(code = 0xEE),
     GenerateOTP(code = 0xE2),
     GetEntropy(code = 0xE7),

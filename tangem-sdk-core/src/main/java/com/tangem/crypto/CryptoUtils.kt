@@ -4,6 +4,7 @@ import com.tangem.common.KeyPair
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.TangemSdkError
 import net.i2p.crypto.eddsa.EdDSASecurityProvider
+import org.spongycastle.crypto.digests.SHA256Digest
 import org.spongycastle.crypto.digests.SHA512Digest
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator
 import org.spongycastle.crypto.macs.HMac
@@ -194,6 +195,15 @@ fun ByteArray.encrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, IvParameterSpec(ByteArray(16)))
     return cipher.doFinal(this)
 }
+@Suppress("MagicNumber")
+fun ByteArray.encryptCcm(key: ByteArray, nonce: ByteArray, associatedData: ByteArray): ByteArray {
+    val keySpec = SecretKeySpec(key, "AES/CCM/NoPadding")
+    val ivSpec = IvParameterSpec(nonce)
+    val cipher = Cipher.getInstance("AES/CCM/NoPadding", BouncyCastleProvider.PROVIDER_NAME)
+    cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec)
+    cipher.updateAAD(associatedData)
+    return cipher.doFinal(this)
+}
 
 @Suppress("MagicNumber")
 fun ByteArray.decrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
@@ -201,6 +211,17 @@ fun ByteArray.decrypt(key: ByteArray, usePkcs7: Boolean = true): ByteArray {
     val secretKeySpec = SecretKeySpec(key, spec)
     val cipher = Cipher.getInstance(spec)
     cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, IvParameterSpec(ByteArray(16)))
+    return cipher.doFinal(this.copyOfRange(0, this.size))
+}
+
+@Suppress("MagicNumber")
+fun ByteArray.decryptAesCcm(key: ByteArray, nonce: ByteArray, associatedData: ByteArray): ByteArray
+{
+    val keySpec = SecretKeySpec(key, "AES/CCM/NoPadding")
+    val ivSpec = IvParameterSpec(nonce)
+    val cipher = Cipher.getInstance("AES/CCM/NoPadding",  BouncyCastleProvider.PROVIDER_NAME)
+    cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec)
+    cipher.updateAAD(associatedData)
     return cipher.doFinal(this.copyOfRange(0, this.size))
 }
 
@@ -229,6 +250,19 @@ fun ByteArray.hmacSha512(input: ByteArray): ByteArray {
     return out
 }
 
+
+fun ByteArray.hmacSha256(input: ByteArray): ByteArray {
+    val key = this
+    val hMac = HMac(SHA256Digest())
+
+    hMac.init(KeyParameter(key))
+    hMac.update(input, 0, input.size)
+
+    val out = ByteArray(size = 32)
+    hMac.doFinal(out, 0)
+
+    return out
+}
 private const val ENCRYPTION_SPEC_PKCS7 = "AES/CBC/PKCS7PADDING"
 private const val ENCRYPTION_SPEC_NO_PADDING = "AES/CBC/NOPADDING"
 private const val BYTE_SIZE = 8

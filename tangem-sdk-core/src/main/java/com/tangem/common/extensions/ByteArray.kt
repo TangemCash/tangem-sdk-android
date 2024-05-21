@@ -159,3 +159,13 @@ fun Byte.toBits(): List<String> {
 
     return bits.map { it ?: "0" }
 }
+
+fun ByteArray.xor(challengeA: ByteArray): ByteArray {
+    if( size!=challengeA.size ) throw Exception("To do xor byte arrays should have the same length")
+    val result=this.copyOf()
+    for(i in challengeA.indices)
+    {
+        result[i]=result[i] xor challengeA[i]
+    }
+    return result
+}

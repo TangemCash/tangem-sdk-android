@@ -8,12 +8,14 @@ import com.tangem.common.apdu.Instruction
 import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
+import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.deserialization.CardDeserializer
 import com.tangem.common.extensions.calculateSha256
+import com.tangem.common.extensions.hexToBytes
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvTag
 import com.tangem.crypto.sign
@@ -27,6 +29,7 @@ import com.tangem.operations.personalization.entities.Issuer
 import com.tangem.operations.personalization.entities.Manufacturer
 import com.tangem.operations.personalization.entities.createCardId
 import com.tangem.operations.personalization.entities.createSettingsMask
+import com.tangem.operations.read.ReadCommand
 
 /**
  * Command available on SDK cards only
@@ -73,8 +76,15 @@ class PersonalizeCommand(
     private fun runPersonalize(session: CardSession, callback: CompletionCallback<Card>) {
         val encryptionMode = session.environment.encryptionMode
         val encryptionKey = session.environment.encryptionKey
-        session.environment.encryptionMode = EncryptionMode.None
-        session.environment.encryptionKey = devPersonalizationKey
+
+        val fwVersion = session.environment.card?.firmwareVersion?.doubleValue ?: 7.09.toDouble() //TODO - no fw version and card available in this command (due to card is not personalized)
+        if (fwVersion < FirmwareVersion.v7.doubleValue) {
+            session.environment.encryptionMode = EncryptionMode.None
+            session.environment.encryptionKey = devPersonalizationKey
+        } else {
+            session.environment.encryptionMode = EncryptionMode.None
+            session.environment.encryptionKey = null
+        }
         super.run(session) { result ->
             session.environment.encryptionMode = encryptionMode
             session.environment.encryptionKey = encryptionKey
@@ -83,11 +93,23 @@ class PersonalizeCommand(
     }
 
     override fun serialize(environment: SessionEnvironment): CommandApdu {
-        return CommandApdu(Instruction.Personalize, serializePersonalizationData(config))
+        val fwVersion = environment.card?.firmwareVersion?.doubleValue ?: 7.09.toDouble()
+        if (fwVersion < FirmwareVersion.v7.doubleValue) {
+            return CommandApdu(Instruction.Personalize, serializePersonalizationData(config))
+        } else {
+            val nonce = byteArrayOf(0x7E)+ ByteArray(11) { it.toByte() }
+            return CommandApdu(Instruction.Personalize, serializePersonalizationData(config)).encryptCcm(devPersonalizationKey, nonce, includeNonce = true)
+        }
     }
 
     override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): Card {
-        val decoder = CardDeserializer.getDecoder(apdu)
+        val fwVersion = environment.card?.firmwareVersion?.doubleValue ?: 7.09.toDouble()
+        val decryptedApdu = if (fwVersion >= FirmwareVersion.v7.doubleValue) {
+            apdu.decryptCcm(devPersonalizationKey)
+        } else {
+            apdu
+        }
+        val decoder = CardDeserializer.getDecoder(decryptedApdu)
         val cardDataDecoder = CardDeserializer.getCardDataDecoder(decoder.tlvList)
 
         val isAccessCodeSet = config.pin != UserCodeType.AccessCode.defaultValue

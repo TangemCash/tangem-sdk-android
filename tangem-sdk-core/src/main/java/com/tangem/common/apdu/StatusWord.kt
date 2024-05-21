@@ -29,6 +29,7 @@ enum class StatusWord(val code: Int) {
     WalletNotFound(code = 0x6A88),
     InvalidAccessCode(code = 0x6AF1),
     InvalidPasscode(code = 0x6AF2),
+    AccessDenied(code=0x6AF3),
     WalletAlreadyExists(code = 0x6A89),
 
     Unknown(code = 0x0000),
@@ -57,6 +58,7 @@ fun StatusWord.toTangemSdkError(): TangemSdkError? {
         StatusWord.InvalidAccessCode -> TangemSdkError.AccessCodeRequired()
         StatusWord.InvalidPasscode -> TangemSdkError.PasscodeRequired()
         StatusWord.WalletAlreadyExists -> TangemSdkError.WalletAlreadyCreated()
+        StatusWord.AccessDenied -> TangemSdkError.AccessCodeRequired()
         else -> null
     }
 }

@@ -19,6 +19,7 @@ interface EncryptionHelper {
                 EncryptionMode.None -> null
                 EncryptionMode.Fast -> FastEncryptionHelper()
                 EncryptionMode.Strong -> StrongEncryptionHelper()
+                else -> TODO()
             }
         }
     }

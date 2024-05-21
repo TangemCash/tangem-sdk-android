@@ -126,6 +126,8 @@ class FirmwareVersion : Comparable<FirmwareVersion> {
          */
         val Ed25519Slip0010Available = FirmwareVersion(6, 33)
 
+        val v7 = FirmwareVersion(7, 0)
+
         /**
          * Temporary range for visa cards
          */

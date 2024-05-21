@@ -1,10 +1,13 @@
 package com.tangem.common.apdu
 
+import com.tangem.Log
+import com.tangem.common.card.AesMode
 import com.tangem.common.card.EncryptionMode
 import com.tangem.common.extensions.calculateCrc16
 import com.tangem.common.extensions.toByteArray
 import com.tangem.common.extensions.toHexString
 import com.tangem.crypto.encrypt
+import com.tangem.crypto.encryptCcm
 import java.io.ByteArrayOutputStream
 
 /**
@@ -69,6 +72,20 @@ class CommandApdu(
         val encryptedData = dataToEncrypt.encrypt(encryptionKey)
 
         return CommandApdu(ins, encryptedData, encryptionMode.byteValue, p2, le, cla)
+    }
+
+    fun encryptCcm(encryptionKey: ByteArray?, encryptionNonce: ByteArray, includeNonce: Boolean=false): CommandApdu {
+        if (encryptionKey == null || p1 != EncryptionMode.None.byteValue) {
+            return this
+        }
+
+        val dataToEncrypt = tlvs
+        val p1=if( !includeNonce ) AesMode.Ccm.p1 else 0x00
+        val associatedData=byteArrayOf(cla.toByte(), ins.toByte(), p1.toByte(), p2.toByte())
+        val encryptedData = (if(includeNonce) encryptionNonce else ByteArray(0))+dataToEncrypt.encryptCcm(encryptionKey, encryptionNonce, associatedData)
+
+        Log.info { "Associated data: ${associatedData.toHexString()}" }
+        return CommandApdu(ins, encryptedData, p1, p2, le, cla)
     }
 
     @Suppress("MagicNumber")

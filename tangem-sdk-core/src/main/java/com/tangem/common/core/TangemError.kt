@@ -151,7 +151,7 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class AccessCodeCannotBeChanged : TangemSdkError(code = 40801)
     class PasscodeCannotBeChanged : TangemSdkError(code = 40802)
     class AccessCodeCannotBeDefault : TangemSdkError(code = 40803)
-
+    class InvalidAccessTokens : TangemSdkError(code = 40850)
     // Sign Errors
     class NoRemainingSignatures : TangemSdkError(code = 40901)
 

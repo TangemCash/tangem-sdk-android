@@ -98,6 +98,7 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.SignHashesNotAvailable,
         is TangemSdkError.CardVerificationFailed,
         is TangemSdkError.NonHardenedDerivationNotSupported,
+        is TangemSdkError.InvalidAccessTokens
         -> TangemSdkErrorDescription()
 
         is TangemSdkError.BackupFailedEmptyWallets,

@@ -13,6 +13,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Message
 import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
+import com.tangem.common.CardTokensRepository
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.CardWallet
@@ -93,6 +94,12 @@ abstract class BaseFragment : Fragment() {
         )
     }
 
+    private val cardTokensRepository: CardTokensRepository by lazy {
+        CardTokensRepository(
+            keystoreManager = sdk.keystoreManager,
+            secureStorage = sdk.secureStorage,
+        )
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shPrefs = (requireContext().applicationContext as DemoApplication).shPrefs

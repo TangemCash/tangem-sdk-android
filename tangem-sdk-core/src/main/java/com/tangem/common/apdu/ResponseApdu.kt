@@ -1,10 +1,13 @@
 package com.tangem.common.apdu
 
+import com.tangem.Log
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateCrc16
 import com.tangem.common.extensions.toHexString
 import com.tangem.common.tlv.Tlv
+import com.tangem.common.tlv.TlvTag
 import com.tangem.crypto.decrypt
+import com.tangem.crypto.decryptAesCcm
 import java.io.ByteArrayInputStream
 
 /**
@@ -60,6 +63,41 @@ class ResponseApdu(private val data: ByteArray) {
         if (!baCRC.contentEquals(crc)) throw TangemSdkError.InvalidResponse()
 
         return ResponseApdu(answerData + data[data.size - 2] + data[data.size - 1])
+    }
+
+    @Suppress("MagicNumber")
+    fun decryptCcm(encryptionKey: ByteArray?, nonce: ByteArray, cardId: ByteArray): ResponseApdu {
+        if (encryptionKey == null) return this
+        return if (data.size == 2) {
+            ResponseApdu(data)
+        } else if (data.size >= 10) {
+            val associatedData = data.copyOfRange(data.size - 2, data.size)
+            val answerData = data.copyOfRange(0, data.size - 2).decryptAesCcm(encryptionKey, nonce, associatedData = associatedData)
+            //TODO - remove workaround with add CardId to answer
+            return ResponseApdu(answerData + byteArrayOf(TlvTag.CardId.code.toByte(), cardId.size.toByte()) + cardId + associatedData)
+        } else {
+            throw Exception("Can't decrypt - data size to small")
+        }
+    }
+
+    @Suppress("MagicNumber")
+    fun decryptCcm(encryptionKey: ByteArray?): ResponseApdu {
+        if (encryptionKey == null) return this
+        return if (data.size == 2) {
+            ResponseApdu(data)
+        } else if (data.size >= 14) {
+            val nonce = data.copyOfRange(0, 12)
+            Log.info { "Nonce: ${nonce.toHexString()}" }
+            val answerData = data.copyOfRange(12, data.size - 2).decryptAesCcm(
+                encryptionKey, nonce,
+                data.copyOfRange(data.size - 2, data.size)
+            )
+            Log.info { "Decrypted answer: ${answerData.toHexString()}" }
+
+            ResponseApdu(answerData + data.copyOfRange(data.size - 2, data.size))
+        } else {
+            throw Exception("Can't decrypt - data size to small")
+        }
     }
 
     override fun toString(): String {

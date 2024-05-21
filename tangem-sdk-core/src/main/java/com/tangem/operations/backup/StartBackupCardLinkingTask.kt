@@ -37,15 +37,15 @@ class StartBackupCardLinkingTask(
                 return
             }
 
-            if (!isBatchIdCompatible(card.batchId)) {
-                callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleBatch()))
-                return
-            }
-
-            if (primaryCard.firmwareVersion != null && primaryCard.firmwareVersion != card.firmwareVersion) {
-                callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleFirmware()))
-                return
-            }
+//            if (!isBatchIdCompatible(card.batchId)) {
+//                callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleBatch()))
+//                return
+//            }
+//
+//            if (primaryCard.firmwareVersion != null && primaryCard.firmwareVersion != card.firmwareVersion) {
+//                callback(CompletionResult.Failure(TangemSdkError.BackupFailedIncompatibleFirmware()))
+//                return
+//            }
         }
 
         if (primaryCard.isKeysImportAllowed != null &&

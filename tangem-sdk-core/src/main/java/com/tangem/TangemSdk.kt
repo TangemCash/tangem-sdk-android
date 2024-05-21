@@ -1,5 +1,6 @@
 package com.tangem
 
+import com.tangem.common.CardTokensRepository
 import com.tangem.common.CompletionResult
 import com.tangem.common.SuccessResponse
 import com.tangem.common.UserCode
@@ -1170,6 +1171,24 @@ class TangemSdk(
         }
     }
 
+    private fun createCardTokensRepository(
+        authenticationManager: AuthenticationManager,
+        keystoreManager: KeystoreManager,
+        secureStorage: SecureStorage,
+        config: Config,
+    ): CardTokensRepository? {
+        return if (authenticationManager.canAuthenticate &&
+            config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics
+        ) {
+            CardTokensRepository(
+                keystoreManager = keystoreManager,
+                secureStorage = secureStorage,
+            )
+        } else {
+            null
+        }
+    }
+
     private fun makeSession(
         cardId: String? = null,
         initialMessage: Message? = null,
@@ -1187,6 +1206,12 @@ class TangemSdk(
             viewDelegate = viewDelegate,
             environment = environment,
             userCodeRepository = createUserCodeRepository(
+                authenticationManager = authenticationManager,
+                keystoreManager = keystoreManager,
+                secureStorage = secureStorage,
+                config = config,
+            ),
+            cardTokensRepository = createCardTokensRepository(
                 authenticationManager = authenticationManager,
                 keystoreManager = keystoreManager,
                 secureStorage = secureStorage,

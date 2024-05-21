@@ -171,6 +171,10 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                                     callback(CompletionResult.Failure(TangemSdkError.NeedEncryption()))
                                     return@send
                                 }
+                                else->{
+                                    callback(CompletionResult.Failure(TangemSdkError.NeedEncryption()))
+                                    return@send
+                                }
                             }
                             transceiveApdu(apdu, session, callback)
                         }
