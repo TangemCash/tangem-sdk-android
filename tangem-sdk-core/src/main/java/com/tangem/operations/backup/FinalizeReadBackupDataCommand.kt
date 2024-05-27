@@ -27,7 +27,7 @@ class FinalizeReadBackupDataCommand(private val accessCode: ByteArray) : Command
             return TangemSdkError.BackupFailedCardNotLinked()
         }
         if (card.wallets.isEmpty()) {
-            return TangemSdkError.BackupFailedNotEmptyWallets(card.cardId)
+            return TangemSdkError.BackupFailedEmptyWallets()
         }
         return null
     }
