@@ -55,7 +55,7 @@ class PersonalizeCommand(
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         Log.command(this)
         // We have to run preflight read ourselves to catch the notPersonalized error
-        val read = PreflightReadTask(PreflightReadMode.ReadCardOnly, null)
+        val read = PreflightReadTask(PreflightReadMode.ReadCardOnly)
         read.run(session) { result ->
             when (result) {
                 is CompletionResult.Success -> callback(CompletionResult.Failure(TangemSdkError.AlreadyPersonalized()))

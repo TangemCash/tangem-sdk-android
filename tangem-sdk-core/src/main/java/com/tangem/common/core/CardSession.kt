@@ -28,6 +28,7 @@ import com.tangem.crypto.pbkdf2Hash
 import com.tangem.operations.OpenSessionCommand
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
+import com.tangem.operations.preflightread.CardIdPreflightReadFilter
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.resetcode.ResetCodesController
 import com.tangem.operations.resetcode.ResetPinService
@@ -305,12 +306,18 @@ class CardSession(
 
     private fun preflightCheck(onSessionStarted: SessionStartedCallback) {
         Log.session { "start preflight check" }
-        val preflightTask = PreflightReadTask(preflightReadMode, cardId)
+
+        val preflightTask = PreflightReadTask(
+            readMode = preflightReadMode,
+            filter = cardId?.let(::CardIdPreflightReadFilter),
+        )
+
         preflightTask.run(this) { result ->
             when (result) {
                 is CompletionResult.Success -> {
                     onSessionStarted(this, null)
                 }
+
                 is CompletionResult.Failure -> {
                     val wrongType = when (result.error) {
                         is TangemSdkError.WrongCardType -> WrongValueType.CardType
