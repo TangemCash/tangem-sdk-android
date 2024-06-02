@@ -172,6 +172,7 @@ class DefaultSessionViewDelegate(
                 createReadingDialog(activity, iconScanRes)
             } else {
                 readingDialog?.dismissInternal()
+                createReadingDialog(activity, iconScanRes)
             }
             readingDialog?.showHowTo(enableHowTo)
             readingDialog?.setInitialMessage(message)
