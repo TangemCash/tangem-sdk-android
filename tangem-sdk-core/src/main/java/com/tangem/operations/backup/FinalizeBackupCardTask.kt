@@ -26,25 +26,38 @@ class FinalizeBackupCardTask(
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
         }
-        if (card.backupStatus == Card.BackupStatus.NoBackup) {
-            val command = LinkPrimaryCardCommand(
-                primaryCard = primaryCard,
-                backupCards = backupCards,
-                attestSignature = attestSignature,
-                accessCode = accessCode,
-                passcode = passcode,
-            )
 
-            command.run(session) { linkResult ->
-                when (linkResult) {
-                    is CompletionResult.Success -> {
-                        writeBackupData(session, callback)
+        when (card.backupStatus) {
+            is Card.BackupStatus.NoBackup -> {
+                val command = LinkPrimaryCardCommand(
+                    primaryCard = primaryCard,
+                    backupCards = backupCards,
+                    attestSignature = attestSignature,
+                    accessCode = accessCode,
+                    passcode = passcode,
+                )
+
+                command.run(session) { linkResult ->
+                    when (linkResult) {
+                        is CompletionResult.Success -> {
+                            writeBackupData(session, callback)
+                        }
+
+                        is CompletionResult.Failure -> callback(CompletionResult.Failure(linkResult.error))
                     }
-                    is CompletionResult.Failure -> callback(CompletionResult.Failure(linkResult.error))
                 }
             }
-        } else {
-            writeBackupData(session, callback)
+
+            is Card.BackupStatus.Active -> {
+                // Inconsistence case. The card status is ok, but sdk status is incompleted.
+                // We should check all wallets later on the app side.
+                readWallets(session, callback)
+            }
+
+            else -> {
+                // only an interrupted case is possible
+                writeBackupData(session, callback)
+            }
         }
     }
 
@@ -60,6 +73,7 @@ class FinalizeBackupCardTask(
                         callback(CompletionResult.Failure(TangemSdkError.UnknownError()))
                     }
                 }
+
                 is CompletionResult.Failure ->
                     callback(CompletionResult.Failure(writeResult.error))
             }
@@ -71,6 +85,7 @@ class FinalizeBackupCardTask(
             when (result) {
                 is CompletionResult.Success ->
                     callback(CompletionResult.Success(session.environment.card!!))
+
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }

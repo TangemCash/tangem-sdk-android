@@ -246,7 +246,7 @@ class BackupService(
             repo.data.accessCode == null || repo.data.primaryCard == null || repo.data.backupCards.isEmpty() ->
                 State.Preparing
 
-            repo.data.attestSignature == null || repo.data.backupData.isEmpty() ->
+            repo.data.attestSignature == null || repo.data.backupData.size < repo.data.backupCards.size ->
                 State.FinalizingPrimaryCard
 
             repo.data.finalizedBackupCardsCount < repo.data.backupCards.size ->

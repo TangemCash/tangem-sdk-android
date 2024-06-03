@@ -4,8 +4,7 @@
     "id": 1,
     "method": "preflight_read",
     "params": {
-      "readMode": "fullCardRead",
-      "cardId": "BB03000000000004"
+      "readMode": "fullCardRead"
     }
   }
 }

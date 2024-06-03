@@ -50,9 +50,6 @@ class WriteBackupDataCommand(
         if (card.backupStatus == Card.BackupStatus.NoBackup) {
             return TangemSdkError.BackupFailedCardNotLinked()
         }
-        if (card.wallets.isNotEmpty()) {
-            return TangemSdkError.BackupFailedNotEmptyWallets(cardId = card.cardId)
-        }
         return null
     }
 
@@ -80,6 +77,7 @@ class WriteBackupDataCommand(
                         writeData(session, callback)
                     }
                 }
+
                 is CompletionResult.Failure -> callback(result)
             }
         }
