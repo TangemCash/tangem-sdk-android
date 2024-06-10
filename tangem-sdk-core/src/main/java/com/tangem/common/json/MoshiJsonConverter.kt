@@ -21,6 +21,7 @@ import com.tangem.common.extensions.toHexString
 import com.tangem.crypto.hdWallet.BIP44
 import com.tangem.crypto.hdWallet.DerivationNode
 import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.operations.PreflightReadFilterAdapter
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.attestation.Attestation
 import com.tangem.operations.attestation.AttestationTask
@@ -124,6 +125,7 @@ class MoshiJsonConverter(adapters: List<Any> = listOf(), typedAdapters: Map<Clas
                 TangemSdkAdapter.BackupStatusAdapter(),
                 TangemSdkAdapter.DerivationPathAdapter(),
                 TangemSdkAdapter.DerivationNodeAdapter(),
+                PreflightReadFilterAdapter(),
             )
         }
 

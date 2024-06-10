@@ -10,6 +10,7 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
+import com.tangem.operations.preflightread.PreflightReadFilter
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.read.ReadWalletsListCommand
 
@@ -41,35 +42,33 @@ sealed class PreflightReadMode {
 
 class PreflightReadTask(
     private val readMode: PreflightReadMode,
-    private val cardId: String? = null,
+    private val filter: PreflightReadFilter? = null,
 ) : CardSessionRunnable<Card> {
 
     override fun run(session: CardSession, callback: CompletionCallback<Card>) {
         Log.command(this) { " [mode - $readMode]" }
+
         ReadCommand().run(session) readCommand@{ result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    if (session.environment.config.handleErrors && cardId != null &&
-                        !cardId.equals(result.data.card.cardId, true)
-                    ) {
-                        callback(CompletionResult.Failure(TangemSdkError.WrongCardNumber(cardId)))
-                        return@readCommand
-                    }
+                    val card = result.data.card
+
                     try {
                         session.environment.config.filter.verifyCard(result.data.card)
+
+                        if (session.environment.config.handleErrors) {
+                            filter?.onCardRead(card = card, environment = session.environment)
+                        }
                     } catch (error: TangemSdkError) {
                         callback(CompletionResult.Failure(error))
                         return@readCommand
                     }
 
+                    updateEnvironmentIfNeeded(card = card, session = session)
                     session.updateUserCodeIfNeeded()
-                    updateEnvironmentIfNeeded(
-                        result.data.card,
-                        session,
-                    )
-
-                    finalizeRead(session, result.data.card, callback)
+                    finalizeRead(session = session, card = card, callback = callback)
                 }
+
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
@@ -77,7 +76,14 @@ class PreflightReadTask(
 
     private fun finalizeRead(session: CardSession, card: Card, callback: CompletionCallback<Card>) {
         if (card.firmwareVersion < FirmwareVersion.MultiWalletAvailable) {
-            callback(CompletionResult.Success(card))
+            val result = try {
+                filterOnReadWalletsList(card, session)
+                CompletionResult.Success(card)
+            } catch (error: TangemSdkError) {
+                CompletionResult.Failure(error)
+            }
+
+            callback(result)
             return
         }
 
@@ -89,15 +95,32 @@ class PreflightReadTask(
 
     private fun readWalletsList(session: CardSession, callback: CompletionCallback<Card>) {
         ReadWalletsListCommand().run(session) { result ->
-            val card = session.environment.card.guard {
-                callback(CompletionResult.Failure(TangemSdkError.CardError()))
-                return@run
-            }
             when (result) {
-                is CompletionResult.Success -> callback(CompletionResult.Success(card))
+                is CompletionResult.Success -> {
+                    val card = session.environment.card.guard {
+                        callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+                        return@run
+                    }
+
+                    val callbackResult = try {
+                        filterOnReadWalletsList(card, session)
+                        CompletionResult.Success(card)
+                    } catch (error: TangemSdkError) {
+                        CompletionResult.Failure(error)
+                    }
+
+                    callback(callbackResult)
+                }
+
                 is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
             }
         }
+    }
+
+    private fun filterOnReadWalletsList(card: Card, session: CardSession) {
+        if (!session.environment.config.handleErrors) return
+
+        filter?.onFullCardRead(card = card, environment = session.environment)
     }
 
     private fun updateEnvironmentIfNeeded(card: Card, session: CardSession) {
