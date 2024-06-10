@@ -1,9 +1,11 @@
 package com.tangem.operations.derivation
 
+import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.TangemSdkError
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.CommandResponse
@@ -42,14 +44,24 @@ class DeriveWalletPublicKeysTask(
         val path = derivationPaths[index]
         val task = DeriveWalletPublicKeyTask(walletPublicKey, path)
         task.run(session) { result ->
+            val updatedKeys = keys.toMutableMap()
             when (result) {
                 is CompletionResult.Success -> {
-                    val updatedKeys = keys.toMutableMap()
                     updatedKeys[path] = result.data
-                    runDerivation(index + 1, updatedKeys, session, callback)
                 }
-                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+                is CompletionResult.Failure -> {
+                    when (result.error) {
+                        is TangemSdkError.NonHardenedDerivationNotSupported,
+                        is TangemSdkError.WalletNotFound,
+                        is TangemSdkError.UnsupportedCurve,
+                        -> {
+                            Log.error { "Error: ${result.error}" }
+                        }
+                        else -> callback(CompletionResult.Failure(result.error))
+                    }
+                }
             }
+            runDerivation(index + 1, updatedKeys, session, callback)
         }
     }
 }
