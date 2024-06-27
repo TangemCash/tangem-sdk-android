@@ -8,7 +8,6 @@ import androidx.transition.TransitionManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.tangem.Log
 import com.tangem.sdk.SessionViewDelegateState
-import com.tangem.sdk.postUI
 import com.tangem.sdk.ui.widget.StateWidget
 import kotlinx.android.synthetic.main.bottom_sheet_layout.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -53,16 +52,14 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
     }
 
     override fun dismiss() {
-        postUI {
-            if (!isDismissedProgrammatically.get()) {
-                // call it only if dismiss() called by system and not from dismissInternal()
-                stateWidgets.forEach { it.onBottomSheetDismiss() }
-                isDismissedProgrammatically.set(false)
-            }
-            if (ownerActivity == null || ownerActivity?.isFinishing == true) return@postUI
-
-            super.dismiss()
+        if (!isDismissedProgrammatically.get()) {
+            // call it only if dismiss() called by system and not from dismissInternal()
+            stateWidgets.forEach { it.onBottomSheetDismiss() }
+            isDismissedProgrammatically.set(false)
         }
+        if (ownerActivity == null || ownerActivity?.isFinishing == true) return
+
+        super.dismiss()
     }
 
     /**
