@@ -323,6 +323,8 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
 
     class MnemonicException(val mnemonicResult: MnemonicErrorResult) : TangemSdkError(code = 50023)
 
+    class AuthenticationNotInitialized : TangemSdkError(code = 50026)
+
     /**
      * Get error according to the pin type
      * @param userCodeType: Specific user code type

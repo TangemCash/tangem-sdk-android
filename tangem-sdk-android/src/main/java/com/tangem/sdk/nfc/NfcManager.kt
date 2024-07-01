@@ -10,6 +10,8 @@ import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import android.os.Build
 import android.os.Bundle
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.tangem.Log
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.nfc.ReadingActiveListener
@@ -19,7 +21,7 @@ import com.tangem.common.nfc.ReadingActiveListener
  * Launches [NfcAdapter], manages it with [Activity] lifecycle,
  * enables and disables Nfc Reading Mode, receives NFC [Tag].
  */
-class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
+class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLifecycleObserver {
 
     override var readingIsActive: Boolean = false
         set(value) {
@@ -69,21 +71,21 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener {
         nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
     }
 
-    fun onStart() {
+    override fun onStart(owner: LifecycleOwner) {
         val filter = IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)
         activity?.registerReceiver(mBroadcastReceiver, filter)
         enableReaderModeIfEnabled()
         reader.listener = this
     }
 
-    fun onStop() {
+    override fun onStop(owner: LifecycleOwner) {
         activity?.unregisterReceiver(mBroadcastReceiver)
         reader.stopSession(true)
         disableReaderMode()
         reader.listener = null
     }
 
-    fun onDestroy() {
+    override fun onDestroy(owner: LifecycleOwner) {
         activity = null
         nfcAdapter = null
     }
