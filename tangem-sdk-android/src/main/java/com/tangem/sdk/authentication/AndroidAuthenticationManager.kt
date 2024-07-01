@@ -15,7 +15,6 @@ import com.tangem.sdk.R
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -48,7 +47,11 @@ internal class AndroidAuthenticationManager(
     override val canAuthenticate: Boolean
         get() {
             if (biometricsStatus.value == BiometricsStatus.NOT_INITIALIZED) {
-                error("Biometrics status must be initialized before checking if biometrics can authenticate")
+                Log.biometric {
+                    "Biometrics status must be initialized before checking if biometrics can authenticate"
+                }
+
+                throw TangemSdkError.AuthenticationNotInitialized()
             }
 
             return biometricsStatus.value == BiometricsStatus.READY
@@ -57,7 +60,11 @@ internal class AndroidAuthenticationManager(
     override val needEnrollBiometrics: Boolean
         get() {
             if (biometricsStatus.value == BiometricsStatus.NOT_INITIALIZED) {
-                error("Biometrics status must be initialized before checking if biometrics need to be enrolled")
+                Log.biometric {
+                    "Biometrics status must be initialized before checking if biometrics need to be enrolled"
+                }
+
+                throw TangemSdkError.AuthenticationNotInitialized()
             }
 
             return biometricsStatus.value == BiometricsStatus.NEED_ENROLL
@@ -107,11 +114,9 @@ internal class AndroidAuthenticationManager(
                 throw TangemSdkError.AuthenticationUnavailable()
             }
             BiometricsStatus.NOT_INITIALIZED -> {
-                Log.biometric { "Awaiting for the biometrics status to be initialized" }
+                Log.biometric { "Unable to authenticate the user as the biometrics feature is not initialized" }
 
-                awaitBiometricsInititialization()
-
-                authenticate(params)
+                throw TangemSdkError.AuthenticationNotInitialized()
             }
         }
     }
@@ -162,10 +167,6 @@ internal class AndroidAuthenticationManager(
                 }
             },
         )
-
-    private suspend fun awaitBiometricsInititialization() {
-        biometricsStatus.first { it != BiometricsStatus.NOT_INITIALIZED }
-    }
 
     @Suppress("LongMethod")
     private suspend fun getBiometricsAvailabilityStatus(): BiometricsStatus {

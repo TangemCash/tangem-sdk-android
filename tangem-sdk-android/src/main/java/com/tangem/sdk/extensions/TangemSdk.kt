@@ -18,7 +18,6 @@ import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.sdk.DefaultSessionViewDelegate
-import com.tangem.sdk.NfcLifecycleObserver
 import com.tangem.sdk.authentication.AndroidAuthenticationManager
 import com.tangem.sdk.authentication.AndroidKeystoreManager
 import com.tangem.sdk.nfc.NfcManager
@@ -48,6 +47,7 @@ fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: C
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
     val authenticationManager = initAuthenticationManager(activity)
+    val keystoreManager = initKeystoreManager(authenticationManager, secureStorage)
 
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
@@ -57,7 +57,7 @@ fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: C
         viewDelegate = viewDelegate,
         secureStorage = secureStorage,
         authenticationManager = authenticationManager,
-        keystoreManager = initKeystoreManager(authenticationManager, secureStorage),
+        keystoreManager = keystoreManager,
         wordlist = Wordlist.getWordlist(activity),
         config = config,
     )
@@ -87,7 +87,7 @@ fun TangemSdk.Companion.customDelegate(
 fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager {
     val nfcManager = NfcManager()
     nfcManager.setCurrentActivity(activity)
-    activity.lifecycle.addObserver(NfcLifecycleObserver(nfcManager))
+    activity.lifecycle.addObserver(nfcManager)
     return nfcManager
 }
 
@@ -131,4 +131,14 @@ fun TangemSdk.Companion.initKeystoreManager(
     } else {
         DummyKeystoreManager()
     }
+}
+
+fun AuthenticationManager.unsubscribe(activity: FragmentActivity) {
+    if (this is AndroidAuthenticationManager) {
+        activity.lifecycle.removeObserver(this)
+    }
+}
+
+fun NfcManager.unsubscribe(activity: FragmentActivity) {
+    activity.lifecycle.removeObserver(this)
 }
