@@ -11,7 +11,7 @@ The Tangem card is a self-custodial hardware wallet that works via NFC. The main
 
 Tangem SDK is needed to facilitate support for Tangem cards in third-party applications.
 
-Supported platforms: [iOS](https://github.com/tangem/tangem-sdk-ios) | **Android** | **JVM** |
+Supported platforms: [iOS](https://github.com/tangem/tangem-sdk-ios) | **Android** | **JVM**
  
 # License
 
