@@ -106,8 +106,9 @@ class DefaultSessionViewDelegate(
     ) {
         Log.view { "showing pin request with type: $type" }
         postUI(msTime = 200) {
-            if (readingDialog == null) createReadingDialog(activity)
-            readingDialog?.show(
+            val dialog = readingDialog ?: createReadingDialog(activity)
+
+            dialog.show(
                 SessionViewDelegateState.PinRequested(
                     type = type,
                     isFirstAttempt = isFirstAttempt,
@@ -121,8 +122,9 @@ class DefaultSessionViewDelegate(
 
     override fun requestUserCodeChange(type: UserCodeType, cardId: String?, callback: CompletionCallback<String>) {
         Log.view { "showing pin change request with type: $type" }
-        if (readingDialog == null) createReadingDialog(activity)
-        readingDialog?.show(SessionViewDelegateState.PinChangeRequested(type, cardId, callback))
+        val dialog = readingDialog ?: createReadingDialog(activity)
+
+        dialog.show(SessionViewDelegateState.PinChangeRequested(type, cardId, callback))
     }
 
     override fun dismiss() {
@@ -168,40 +170,41 @@ class DefaultSessionViewDelegate(
         iconScanRes: Int? = null,
     ) {
         postUI {
-            if (readingDialog == null) {
-                createReadingDialog(activity, iconScanRes)
-            } else {
-                readingDialog?.dismissInternal()
-                createReadingDialog(activity, iconScanRes)
+            readingDialog?.let(NfcSessionDialog::dismissInternal)
+
+            with(createReadingDialog(activity, iconScanRes)) {
+                showHowTo(enableHowTo)
+                setInitialMessage(message)
+                setScanImage(sdkConfig.scanTagImage)
+                show(state)
             }
-            readingDialog?.showHowTo(enableHowTo)
-            readingDialog?.setInitialMessage(message)
-            readingDialog?.setScanImage(sdkConfig.scanTagImage)
-            readingDialog?.show(state)
         }
     }
 
-    private fun createReadingDialog(activity: Activity, iconScanRes: Int? = null) {
-        val nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE)
-        readingDialog = NfcSessionDialog(
+    private fun createReadingDialog(activity: Activity, iconScanRes: Int? = null): NfcSessionDialog {
+        return NfcSessionDialog(
             context = activity.sdkThemeContext(),
             nfcManager = nfcManager,
-            nfcLocationProvider = nfcLocationProvider,
+            nfcLocationProvider = NfcAntennaLocationProvider(Build.DEVICE),
             iconScanRes = iconScanRes,
-        ).apply {
-            setOwnerActivity(activity)
-            dismissWithAnimation = true
-            stoppedBySession = false
-            create()
-            setOnCancelListener {
-                if (!stoppedBySession) nfcManager.reader.stopSession(true)
-                readingDialog = null
+        )
+            .apply {
+                setOwnerActivity(activity)
+                dismissWithAnimation = true
+                stoppedBySession = false
+                create()
+                setOnCancelListener {
+                    if (!stoppedBySession) nfcManager.reader.stopSession(true)
+                    readingDialog = null
+                }
             }
-        }
+            .also {
+                readingDialog = it
+            }
     }
 
     private fun formatCardId(cardId: String?): String? {
-        val cardId = cardId ?: return null
+        cardId ?: return null
 
         val formatter = CardIdFormatter(sdkConfig.cardIdDisplayFormat)
         return formatter.getFormattedCardId(cardId)
