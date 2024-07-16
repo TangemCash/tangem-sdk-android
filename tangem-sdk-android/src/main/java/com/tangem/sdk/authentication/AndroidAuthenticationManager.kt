@@ -81,12 +81,6 @@ internal class AndroidAuthenticationManager(
         }
     }
 
-    override fun onPause(owner: LifecycleOwner) {
-        Log.biometric { "Owner has been paused, biometrics was uninitialized" }
-
-        biometricsStatus.value = BiometricsStatus.NOT_INITIALIZED
-    }
-
     override suspend fun authenticate(
         params: AuthenticationManager.AuthenticationParams,
     ): AuthenticationManager.AuthenticationResult {
