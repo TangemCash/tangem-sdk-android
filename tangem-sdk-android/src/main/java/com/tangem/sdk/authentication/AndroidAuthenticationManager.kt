@@ -44,9 +44,12 @@ internal class AndroidAuthenticationManager(
 
     private val biometricsStatus = MutableStateFlow(BiometricsStatus.NOT_INITIALIZED)
 
+    override val isInitialized: Boolean
+        get() = biometricsStatus.value != BiometricsStatus.NOT_INITIALIZED
+
     override val canAuthenticate: Boolean
         get() {
-            if (biometricsStatus.value == BiometricsStatus.NOT_INITIALIZED) {
+            if (!isInitialized) {
                 Log.biometric {
                     "Biometrics status must be initialized before checking if biometrics can authenticate"
                 }
@@ -59,7 +62,7 @@ internal class AndroidAuthenticationManager(
 
     override val needEnrollBiometrics: Boolean
         get() {
-            if (biometricsStatus.value == BiometricsStatus.NOT_INITIALIZED) {
+            if (!isInitialized) {
                 Log.biometric {
                     "Biometrics status must be initialized before checking if biometrics need to be enrolled"
                 }
