@@ -10,14 +10,27 @@ import kotlin.time.Duration
 interface AuthenticationManager {
 
     /**
+     * Checks if the authentication manager is initialized.
+     * */
+    val isInitialized: Boolean
+
+    /**
      * Checks if authentication is possible. Returns `true` if there is biometric
      * data enrolled and the hardware is available.
+     *
+     * @throws TangemSdkError.AuthenticationNotInitialized if the authentication manager is not initialized or paused.
+     *
+     * @see isInitialized
      */
     val canAuthenticate: Boolean
 
     /**
      * Checks if biometrics can be enrolled. Returns `true` if the hardware is available
      * but there is no biometric data enrolled.
+     *
+     * @throws TangemSdkError.AuthenticationNotInitialized if the authentication manager is not initialized or paused.
+     *
+     * @see isInitialized
      */
     val needEnrollBiometrics: Boolean
 
@@ -33,6 +46,9 @@ interface AuthenticationManager {
      * @throws TangemSdkError.AuthenticationUnavailable if authentication is unavailable.
      * @throws TangemSdkError.AuthenticationCanceled if the authentication was cancelled.
      * @throws TangemSdkError.AuthenticationFailed if authentication fails for any other reason.
+     * @throws TangemSdkError.AuthenticationNotInitialized if the authentication manager is not initialized or paused.
+     *
+     * @see isInitialized
      */
     suspend fun authenticate(params: AuthenticationParams): AuthenticationResult
 
