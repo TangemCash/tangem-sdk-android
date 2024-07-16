@@ -21,7 +21,7 @@ import com.tangem.operations.CommandResponse
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -77,7 +77,6 @@ class BackupService(
         throwable.printStackTrace(PrintWriter(sw))
         val exceptionAsString: String = sw.toString()
         Log.error { exceptionAsString }
-        throw throwable
     }
 
     private val handleErrors = sdk.config.handleErrors
@@ -434,7 +433,7 @@ class BackupService(
 
     private fun onBackupCompleted() {
         repo.reset()
-        backupScope.cancel()
+        backupScope.coroutineContext.cancelChildren()
     }
 
     sealed class State {
