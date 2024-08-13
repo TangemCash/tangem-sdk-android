@@ -166,11 +166,11 @@ class CardSession(
      */
     fun start(iconScanRes: Int? = null, onSessionStarted: SessionStartedCallback) {
         Log.session { "start card session with delegate" }
-        state = CardSessionState.Active
-        viewDelegate.onSessionStarted(cardId, initialMessage, environment.config.howToIsEnabled, iconScanRes)
-
         reader.scope = scope
         reader.startSession()
+
+        state = CardSessionState.Active
+        viewDelegate.onSessionStarted(cardId, initialMessage, environment.config.howToIsEnabled, iconScanRes)
 
         scope.launch {
             reader.tag.asFlow()
@@ -467,7 +467,10 @@ class CardSession(
 
                 return CompletionResult.Success(true)
             }
-            is CompletionResult.Failure -> return CompletionResult.Failure(response.error)
+            is CompletionResult.Failure -> {
+                Log.session { "establish encryption Failure ${response.error}" }
+                return CompletionResult.Failure(response.error)
+            }
         }
     }
 
@@ -509,10 +512,12 @@ class CardSession(
         ) { result ->
             when (result) {
                 is CompletionResult.Success -> {
+                    Log.session { "requestUserCode: Success" }
                     updateEnvironment(type, result.data)
                     callback(CompletionResult.Success(Unit))
                 }
                 is CompletionResult.Failure -> {
+                    Log.session { "requestUserCode: Failure ${result.error}" }
                     if (result.error is TangemSdkError.UserForgotTheCode) {
                         viewDelegate.dismiss()
                         restoreUserCode(type, cardId) { restoreCodeResult ->

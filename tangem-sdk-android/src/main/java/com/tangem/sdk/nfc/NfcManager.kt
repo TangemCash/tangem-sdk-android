@@ -25,8 +25,11 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
 
     override var readingIsActive: Boolean = false
         set(value) {
+            Log.nfc { "set readingIsActive $value" }
             if (value) {
                 disableReaderMode()
+                // delay before enableReaderMode because some devices catch ANR or smth without it
+                Thread.sleep(200)
                 enableReaderMode()
             }
             field = value
@@ -53,7 +56,7 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        Log.debug { "NFC tag is discovered" }
+        Log.info { "NFC tag is discovered readingIsActive $readingIsActive" }
         onTagDiscoveredListeners.forEach { it.invoke() }
         if (readingIsActive) reader.onTagDiscovered(tag) else ignoreTag(tag)
     }
@@ -99,11 +102,17 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
     }
 
     private fun enableReaderMode() {
-        nfcAdapter?.enableReaderMode(activity, this, READER_FLAGS, Bundle())
+        Log.nfc { "enableReaderMode $nfcAdapter" }
+        if (activity?.isDestroyed == false) {
+            nfcAdapter?.enableReaderMode(activity, this, READER_FLAGS, Bundle())
+        }
     }
 
     private fun disableReaderMode() {
-        nfcAdapter?.disableReaderMode(activity)
+        Log.nfc { "disableReaderMode $nfcAdapter" }
+        if (activity?.isDestroyed == false) {
+            nfcAdapter?.disableReaderMode(activity)
+        }
     }
 
     private fun ignoreTag(tag: Tag?) {
@@ -111,7 +120,7 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             nfcAdapter?.ignore(tag, IGNORE_DEBOUNCE_MS, null, null)
         }
-        IsoDep.get(tag)?.close()
+        IsoDep.get(tag)?.closeInternal()
     }
 
     private companion object {

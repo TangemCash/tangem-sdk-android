@@ -51,11 +51,15 @@ class DefaultSessionViewDelegate(
     }
 
     private fun checkNfcEnabled() {
-        postUI(msTime = 500) {
+        Log.view { "checkNfcEnabled" }
+        // workaround to delay checking isNfcEnabled to let nfcManager become enabled state after enableReaderMode
+        postUI(msTime = 700) {
+            Log.view { "checkNfcEnabled isNfcEnabled=${nfcManager.isNfcEnabled}" }
             if (!nfcManager.isNfcEnabled) {
                 nfcEnableDialog?.cancel()
                 nfcEnableDialog = NfcEnableDialog()
                 if (!activity.isFinishing && !activity.isDestroyed) {
+                    Log.view { "checkNfcEnabled show dialog" }
                     activity.let { nfcEnableDialog?.show(it) }
                 }
             }
@@ -106,6 +110,8 @@ class DefaultSessionViewDelegate(
     ) {
         Log.view { "showing pin request with type: $type" }
         postUI(msTime = 200) {
+            Log.view { "activity lifecycle: ${activity.lifecycle.currentState}" }
+            Log.view { "readingDialog: $readingDialog" }
             val dialog = readingDialog ?: createReadingDialog(activity)
 
             dialog.show(
@@ -182,6 +188,7 @@ class DefaultSessionViewDelegate(
     }
 
     private fun createReadingDialog(activity: Activity, iconScanRes: Int? = null): NfcSessionDialog {
+        Log.view { "createReadingDialog" }
         return NfcSessionDialog(
             context = activity.sdkThemeContext(),
             nfcManager = nfcManager,
