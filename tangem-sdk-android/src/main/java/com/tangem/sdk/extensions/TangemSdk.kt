@@ -86,6 +86,7 @@ fun TangemSdk.Companion.customDelegate(
 
 fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager {
     val nfcManager = NfcManager()
+    Log.info { "initNfcManager" }
     nfcManager.setCurrentActivity(activity)
     activity.lifecycle.addObserver(nfcManager)
     return nfcManager

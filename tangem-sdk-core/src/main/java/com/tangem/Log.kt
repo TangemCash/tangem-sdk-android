@@ -86,16 +86,16 @@ object Log {
     enum class Level(val prefix: String) {
         Info("Info: "),
         Debug("Debug: "),
-        Warning(""),
-        Error(""),
+        Warning("Warning: "),
+        Error("Error: "),
         Network("Network: "),
         View("ViewDelegate: "),
         Session("CardSession: "),
-        Command(""),
-        ApduCommand(""),
-        Apdu(""),
+        Command("Command: "),
+        ApduCommand("ApduCommand: "),
+        Apdu("Apdu: "),
         Nfc("NFCReader: "),
-        Tlv(""),
+        Tlv("Tlv: "),
         Biometric("Biometric: "),
     }
 

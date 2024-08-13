@@ -1031,13 +1031,11 @@ class TangemSdk(
 
         configure()
         cardSession = makeSession(cardId, initialMessage, accessCode)
-        Thread().run {
-            cardSession?.startWithRunnable(
-                iconScanRes = iconScanRes,
-                runnable = runnable,
-                callback = callback,
-            )
-        }
+        cardSession?.startWithRunnable(
+            iconScanRes = iconScanRes,
+            runnable = runnable,
+            callback = callback,
+        )
     }
 
     /**
@@ -1067,7 +1065,7 @@ class TangemSdk(
 
         configure()
         cardSession = makeSession(cardId, initialMessage, accessCode)
-        Thread().run { cardSession?.start(onSessionStarted = callback) }
+        cardSession?.start(onSessionStarted = callback)
     }
 
     /**
