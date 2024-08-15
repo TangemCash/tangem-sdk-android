@@ -8,7 +8,6 @@ import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
-import android.os.Build
 import android.os.Bundle
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -74,21 +73,25 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
         nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
     }
 
-    override fun onStart(owner: LifecycleOwner) {
+    override fun onCreate(owner: LifecycleOwner) {
+        super.onCreate(owner)
         val filter = IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)
         activity?.registerReceiver(mBroadcastReceiver, filter)
         enableReaderModeIfEnabled()
+    }
+
+    override fun onStart(owner: LifecycleOwner) {
         reader.listener = this
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        activity?.unregisterReceiver(mBroadcastReceiver)
         reader.stopSession(true)
         disableReaderMode()
         reader.listener = null
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
+        activity?.unregisterReceiver(mBroadcastReceiver)
         activity = null
         nfcAdapter = null
     }
@@ -117,9 +120,7 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
 
     private fun ignoreTag(tag: Tag?) {
         Log.nfc { "NFC tag is ignored" }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            nfcAdapter?.ignore(tag, IGNORE_DEBOUNCE_MS, null, null)
-        }
+        nfcAdapter?.ignore(tag, IGNORE_DEBOUNCE_MS, null, null)
         IsoDep.get(tag)?.closeInternal()
     }
 

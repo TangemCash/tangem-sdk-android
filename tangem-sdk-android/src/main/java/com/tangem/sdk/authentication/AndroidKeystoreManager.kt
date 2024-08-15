@@ -304,13 +304,7 @@ internal class AndroidKeystoreManager(
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
             .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA1)
             .setUserAuthenticationRequired(true)
-            .let { builder ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    builder.setInvalidatedByBiometricEnrollment(true)
-                } else {
-                    builder
-                }
-            }
+            .setInvalidatedByBiometricEnrollment(true)
             .let { builder ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     builder
@@ -336,13 +330,7 @@ internal class AndroidKeystoreManager(
             .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
             .setUserAuthenticationRequired(true)
-            .let { builder ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    builder.setInvalidatedByBiometricEnrollment(true)
-                } else {
-                    builder
-                }
-            }
+            .setInvalidatedByBiometricEnrollment(true)
             .let { builder ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     builder

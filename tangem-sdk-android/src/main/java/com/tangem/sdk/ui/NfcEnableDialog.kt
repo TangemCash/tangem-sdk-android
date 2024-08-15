@@ -23,12 +23,16 @@ class NfcEnableDialog {
             .setMessage(R.string.dialog_nfc_enable_text)
             .setPositiveButton(R.string.common_ok) { _, _ ->
                 try {
-                    if ((activity as? LifecycleOwner)?.lifecycle?.currentState == Lifecycle.State.STARTED) {
+                    val currentState =
+                        (activity as? LifecycleOwner)?.lifecycle?.currentState
+                    val isAbleToStartSettings = currentState?.isAtLeast(Lifecycle.State.STARTED)
+                    if (isAbleToStartSettings == true) {
                         activity.startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
                     }
                 } catch (ex: ActivityNotFoundException) {
                     print(ex.toString())
                 }
+                dialog?.cancel()
             }
             .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog.cancel() }
         dialog = builder.create()
