@@ -1,23 +1,31 @@
 package com.tangem.operations.backup
 
+import com.squareup.moshi.JsonClass
 import com.tangem.common.CompletionResult
+import com.tangem.common.card.Card
 import com.tangem.common.core.CardSession
 import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 
+@JsonClass(generateAdapter = true)
+data class StartBackupCardLinkingTaskResponse(
+    val backupCard: BackupCard,
+    val card: Card,
+)
+
 class StartBackupCardLinkingTask(
     private val primaryCard: PrimaryCard,
     private val addedBackupCards: List<String>,
     private val skipCompatibilityChecks: Boolean = false,
-) : CardSessionRunnable<BackupCard> {
+) : CardSessionRunnable<StartBackupCardLinkingTaskResponse> {
 
     override val allowsRequestAccessCodeFromRepository: Boolean
         get() = false
 
     @Suppress("CyclomaticComplexMethod")
-    override fun run(session: CardSession, callback: CompletionCallback<BackupCard>) {
+    override fun run(session: CardSession, callback: CompletionCallback<StartBackupCardLinkingTaskResponse>) {
         val card = session.environment.card.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
@@ -79,7 +87,13 @@ class StartBackupCardLinkingTask(
             .run(session) { result ->
                 when (result) {
                     is CompletionResult.Success -> {
-                        callback(CompletionResult.Success(result.data))
+                        session.environment.card?.let { updatedCard ->
+                            val response = StartBackupCardLinkingTaskResponse(
+                                backupCard = result.data,
+                                card = updatedCard,
+                            )
+                            callback(CompletionResult.Success(response))
+                        } ?: callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
                     }
 
                     is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))

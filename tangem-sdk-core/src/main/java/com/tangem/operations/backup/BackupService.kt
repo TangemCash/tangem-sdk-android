@@ -91,7 +91,7 @@ class BackupService(
         updateState()
     }
 
-    fun addBackupCard(callback: CompletionCallback<Unit>) {
+    fun addBackupCard(callback: CompletionCallback<Card>) {
         val primaryCard = repo.data.primaryCard.guard {
             callback(CompletionResult.Failure(TangemSdkError.MissingPrimaryCard()))
             return
@@ -259,8 +259,12 @@ class BackupService(
         return currentState
     }
 
-    private fun addBackupCard(backupCard: BackupCard, callback: CompletionCallback<Unit>) {
+    private fun addBackupCard(
+        backupCardResponse: StartBackupCardLinkingTaskResponse,
+        callback: CompletionCallback<Card>,
+    ) {
         backupScope.launch {
+            val backupCard = backupCardResponse.backupCard
             fetchCertificate(
                 cardId = backupCard.cardId,
                 cardPublicKey = backupCard.cardPublicKey,
@@ -273,12 +277,12 @@ class BackupService(
                     .plus(updatedBackupCard)
                 repo.data = repo.data.copy(backupCards = updatedList)
                 updateState()
-                callback(CompletionResult.Success(Unit))
+                callback(CompletionResult.Success(backupCardResponse.card))
             }
         }
     }
 
-    private fun readBackupCard(primaryCard: PrimaryCard, callback: CompletionCallback<Unit>) {
+    private fun readBackupCard(primaryCard: PrimaryCard, callback: CompletionCallback<Card>) {
         sdk.startSessionWithRunnable(
             runnable = StartBackupCardLinkingTask(
                 primaryCard = primaryCard,
