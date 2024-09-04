@@ -13,6 +13,7 @@ import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.nfc.NfcAvailabilityProvider
 import com.tangem.common.services.Result
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
@@ -58,6 +59,7 @@ import kotlinx.coroutines.*
 class TangemSdk(
     private val reader: CardReader,
     private val viewDelegate: SessionViewDelegate,
+    private val nfcAvailabilityProvider: NfcAvailabilityProvider,
     val secureStorage: SecureStorage,
     val wordlist: Wordlist,
     var config: Config = Config(),
@@ -1024,6 +1026,10 @@ class TangemSdk(
         iconScanRes: Int? = null,
         callback: CompletionCallback<T>,
     ) {
+        if (!nfcAvailabilityProvider.isNfcFeatureAvailable()) {
+            callback(CompletionResult.Failure(TangemSdkError.NfcFeatureIsUnavailable()))
+            return
+        }
         if (checkSession()) {
             callback(CompletionResult.Failure(TangemSdkError.Busy()))
             return
@@ -1058,6 +1064,10 @@ class TangemSdk(
         accessCode: String? = null,
         callback: (session: CardSession, error: TangemError?) -> Unit,
     ) {
+        if (!nfcAvailabilityProvider.isNfcFeatureAvailable()) {
+            callback(cardSession!!, TangemSdkError.NfcFeatureIsUnavailable())
+            return
+        }
         if (checkSession()) {
             callback(cardSession!!, TangemSdkError.Busy())
             return
@@ -1084,6 +1094,9 @@ class TangemSdk(
         accessCode: String? = null,
         callback: (String) -> Unit,
     ) {
+        if (!nfcAvailabilityProvider.isNfcFeatureAvailable()) {
+            throw TangemSdkError.NfcFeatureIsUnavailable()
+        }
         val converter = MoshiJsonConverter.INSTANCE
         val linkersList: List<JSONRPCLinker> = try {
             JSONRPCLinker.parse(jsonRequest, converter)

@@ -20,6 +20,7 @@ import com.tangem.crypto.bip39.Wordlist
 import com.tangem.sdk.DefaultSessionViewDelegate
 import com.tangem.sdk.authentication.AndroidAuthenticationManager
 import com.tangem.sdk.authentication.AndroidKeystoreManager
+import com.tangem.sdk.nfc.AndroidNfcAvailabilityProvider
 import com.tangem.sdk.nfc.NfcManager
 import com.tangem.sdk.storage.create
 import java.text.DateFormat
@@ -34,9 +35,11 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
+    val nfcAvailabilityProvider = AndroidNfcAvailabilityProvider(activity)
     return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
+        nfcAvailabilityProvider = nfcAvailabilityProvider,
         secureStorage = secureStorage,
         wordlist = Wordlist.getWordlist(activity),
         config = config,
@@ -52,9 +55,11 @@ fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: C
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
+    val nfcAvailabilityProvider = AndroidNfcAvailabilityProvider(activity)
     return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
+        nfcAvailabilityProvider = nfcAvailabilityProvider,
         secureStorage = secureStorage,
         authenticationManager = authenticationManager,
         keystoreManager = keystoreManager,
@@ -75,9 +80,11 @@ fun TangemSdk.Companion.customDelegate(
         this.sdkConfig = config
     }
 
+    val nfcAvailabilityProvider = AndroidNfcAvailabilityProvider(activity)
     return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = safeViewDelegate,
+        nfcAvailabilityProvider = nfcAvailabilityProvider,
         secureStorage = secureStorage,
         wordlist = Wordlist.getWordlist(activity),
         config = config,
