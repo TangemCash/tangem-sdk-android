@@ -99,6 +99,7 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.CardVerificationFailed,
         is TangemSdkError.NonHardenedDerivationNotSupported,
         is TangemSdkError.AuthenticationNotInitialized,
+        is TangemSdkError.NfcFeatureIsUnavailable,
         -> TangemSdkErrorDescription()
 
         is TangemSdkError.BackupFailedEmptyWallets,

@@ -326,6 +326,10 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
     class AuthenticationNotInitialized : TangemSdkError(code = 50026)
 
     /**
+     * Returns if NFC feature for device is not supported
+     */
+    class NfcFeatureIsUnavailable : TangemSdkError(code = 50027)
+    /**
      * Get error according to the pin type
      * @param userCodeType: Specific user code type
      * @param environment: optional environment. If set, a more specific error will be returned based on previous
