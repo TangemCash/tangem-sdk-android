@@ -17,4 +17,10 @@ class CardIdPreflightReadFilter(private val expectedCardId: String) : PreflightR
     }
 
     override fun onFullCardRead(card: Card, environment: SessionEnvironment) = Unit
+
+    companion object {
+        fun initOrNull(cardId: String?): PreflightReadFilter? {
+            return cardId?.let { CardIdPreflightReadFilter(it) }
+        }
+    }
 }
