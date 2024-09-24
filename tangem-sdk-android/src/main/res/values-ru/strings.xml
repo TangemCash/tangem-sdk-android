@@ -23,7 +23,7 @@
     <string name="dialog_nfc_enable_title">Включить NFC?</string>
     <string name="error_already_created">Кошелек уже создан</string>
     <string name="error_backup_card_already_added">Эта карта уже добавлена в список</string>
-    <string name="error_backup_failed_already_created">Резервное копирование не возможно, на выбранной карте уже создан кошелек. Пожалуйста, убедитесь, что на этой карте нет средств, отсканировав её в приложении, и затем сбросьте её до заводских настроек.</string>
+    <string name="error_backup_failed_already_created">Резервное копирование невозможно, на выбранной карте уже создан кошелек. Пожалуйста, убедитесь, что на этой карте нет средств, отсканировав её в приложении, и затем сбросьте её до заводских настроек.</string>
     <string name="error_backup_not_empty_wallets">На этой карте уже создан кошелёк. Если вы хотите продолжить, сбросьте карту к заводским настройкам.</string>
     <string name="error_backup_wrong_card">Эту карту нельзя использовать для резервного копирования. Код ошибки: %s.</string>
     <string name="error_card_verification_failed">Ошибка проверки карты</string>

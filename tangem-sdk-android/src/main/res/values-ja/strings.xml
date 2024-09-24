@@ -63,7 +63,7 @@
     <string name="pin2">パスコード</string>
     <string name="pin_change_new_code_format">新しい%s</string>
     <string name="pin_confirm_error_format">コードが一致しません</string>
-    <string name="pin_enter">%sを入力してください</string>
+    <string name="pin_enter">%sを入力</string>
     <string name="pin_reset_code_format">%sをリセット</string>
     <string name="pin_set_code_confirm_format">%sを確認</string>
     <string name="pin_set_code_format">%sを設定</string>
