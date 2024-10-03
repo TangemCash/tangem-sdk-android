@@ -40,6 +40,8 @@ class TouchCardWidget(
     private val ivHandCardHorizontal = mainView.findViewById<ImageView>(R.id.ivHandCardHorizontal)
     private val ivHandCardVertical = mainView.findViewById<ImageView>(R.id.ivHandCardVertical)
     private val ivPhone = mainView.findViewById<ImageView>(R.id.ivPhone)
+    private var isReversedImage: Boolean = false
+    private var iconScanResource: Int? = null
 
     private val touchCardAnimation = TouchCardAnimation(
         ivPhone,
@@ -131,6 +133,9 @@ class TouchCardWidget(
             onTapOutStarted = {
                 rippleBackgroundNfc.fadeOut(fadeOutDuration = 800) { rippleBackgroundNfc.stopRippleAnimation() }
             },
+            onTapOutFinished = {
+                reverseIconScan()
+            },
         )
         touchCardAnimation.animatorCallback = object : Animator.AnimatorListener {
             override fun onAnimationStart(animation: Animator) {}
@@ -155,12 +160,27 @@ class TouchCardWidget(
     }
 
     fun setIconScanRes(iconScanRes: Int?) {
+        iconScanResource = iconScanRes
+        isReversedImage = false
         if (iconScanRes != null) {
             ivHandCardHorizontal.setImageResource(iconScanRes)
             ivHandCardVertical.setImageResource(iconScanRes)
         } else {
             ivHandCardHorizontal.setImageResource(R.drawable.hand_full_card_horizontal)
             ivHandCardVertical.setImageResource(R.drawable.hand_full_card_vertical)
+        }
+    }
+
+    private fun reverseIconScan() {
+        if (iconScanResource == null) {
+            if (isReversedImage) {
+                ivHandCardHorizontal.setImageResource(R.drawable.hand_full_card_horizontal)
+                ivHandCardVertical.setImageResource(R.drawable.hand_full_card_vertical)
+            } else {
+                ivHandCardHorizontal.setImageResource(R.drawable.img_hand_scan_ring)
+                ivHandCardVertical.setImageResource(R.drawable.img_hand_scan_ring)
+            }
+            isReversedImage = !isReversedImage
         }
     }
 

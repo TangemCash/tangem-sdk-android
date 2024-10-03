@@ -165,7 +165,7 @@ class BackupService(
                 handleFinalizePrimaryCard(iconScanRes = iconScanRes) { result -> handleCompletion(result, callback) }
 
             is State.FinalizingBackupCard ->
-                handleWriteBackupCard(currentState.index) { result ->
+                handleWriteBackupCard(currentState.index, iconScanRes) { result ->
                     handleCompletion(result, callback)
                 }
 
@@ -365,7 +365,7 @@ class BackupService(
     }
 
     @Suppress("LongMethod")
-    private fun handleWriteBackupCard(index: Int, callback: CompletionCallback<Card>) {
+    private fun handleWriteBackupCard(index: Int, iconScanRes: Int?, callback: CompletionCallback<Card>) {
         try {
             if (handleErrors && repo.data.accessCode == null && repo.data.passcode == null) {
                 throw TangemSdkError.AccessCodeOrPasscodeRequired()
@@ -417,6 +417,7 @@ class BackupService(
                 runnable = task,
                 cardId = backupCard.cardId,
                 initialMessage = message,
+                iconScanRes = iconScanRes,
             ) { result ->
                 when (result) {
                     is CompletionResult.Success -> {
