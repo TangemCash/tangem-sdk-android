@@ -7,15 +7,20 @@
     <string name="attestation_warning_attest_wallets">Suspicious use of the wallet on the card has been detected.</string>
     <string name="backup_add_backup_card_message">完全按照上圖所示連接手機和要用作備份的卡</string>
     <string name="backup_finalize_backup_card_message_format">Tap the card with number %s to your phone exactly as shown above.</string>
+    <string name="backup_finalize_backup_ring_message">Tap the ring to your phone exactly as shown above.</string>
     <string name="backup_finalize_primary_card_message_format">完全按照上面顯示的方式連接您的手機和編號為 %s 的主卡</string>
+    <string name="backup_finalize_primary_ring_message">Connect your phone and the primary ring as it shown above.</string>
     <string name="backup_prepare_primary_card_message">完全按照上圖所示連接手機和主卡</string>
     <string name="backup_prepare_primary_card_message_format">完全按照上面顯示的方式連接您的手機和編號為 %s 的主卡</string>
     <string name="biometric_prompt_title">金庫解鎖</string>
     <string name="common_cancel">取消</string>
+    <string name="common_card">card</string>
+    <string name="common_card_or_ring">card or ring</string>
     <string name="common_continue">繼續</string>
     <string name="common_error">錯誤</string>
     <string name="common_ok">OK</string>
     <string name="common_retry">重試</string>
+    <string name="common_ring">ring</string>
     <string name="common_success">成功</string>
     <string name="common_understand">我明白</string>
     <string name="common_warning">警告</string>
@@ -84,7 +89,9 @@
     <string name="view_delegate_header_card">卡片</string>
     <string name="view_delegate_scan">已準備好掃描</string>
     <string name="view_delegate_scan_description">如上圖觸碰卡片並按住直到操作結束</string>
+    <string name="view_delegate_scan_description_format">Tap the %s as shown above and hold until the end of the operation</string>
     <string name="view_delegate_security_delay">長按</string>
     <string name="view_delegate_security_delay_description">為確保安全，請持有卡直至操作完成</string>
+    <string name="view_delegate_security_delay_description_format">To ensure security please hold the %s until the operation is complete</string>
     <string name="wallet_not_found">Looks like you got the wrong card. The operation cannot be performed with this card.</string>
 </resources>

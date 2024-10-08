@@ -73,7 +73,29 @@ class Config(
      * Options for displaying different tags on the scanning screen
      */
     var scanTagImage: ScanTagImage = ScanTagImage.GenericCard,
-)
+
+    var productType: ProductType = ProductType.ANY,
+) {
+
+    fun setupForProduct(type: ProductType) {
+        when (type) {
+            ProductType.CARD -> {
+                productType = ProductType.CARD
+                cardIdDisplayFormat = CardIdDisplayFormat.Full
+            }
+
+            ProductType.RING -> {
+                productType = ProductType.RING
+                cardIdDisplayFormat = CardIdDisplayFormat.None
+            }
+
+            ProductType.ANY -> {
+                productType = ProductType.ANY
+                cardIdDisplayFormat = CardIdDisplayFormat.Full
+            }
+        }
+    }
+}
 
 sealed class ScanTagImage {
 
@@ -123,4 +145,19 @@ sealed class UserCodeRequestPolicy {
      * User code will be requested only if set on the card. Need scan the card twice.
      * */
     object Default : UserCodeRequestPolicy()
+}
+
+enum class ProductType {
+    ANY,
+    CARD,
+    RING,
+    ;
+
+    fun getLocalizedDescription(): String {
+        return when (this) {
+            ANY -> "common_card_or_ring"
+            CARD -> "common_card"
+            RING -> "common_ring"
+        }
+    }
 }
