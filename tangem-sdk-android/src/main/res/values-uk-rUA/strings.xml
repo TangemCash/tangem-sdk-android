@@ -7,15 +7,20 @@
     <string name="attestation_warning_attest_wallets">Виявлено підозріле використання гаманця на картці.</string>
     <string name="backup_add_backup_card_message">З\'єднайте телефон і картку, яку ви хочете використати як резервну, точно так, як показано вище.</string>
     <string name="backup_finalize_backup_card_message_format">Піднесіть картку з номером %s до телефону точно так, як показано вище.</string>
+    <string name="backup_finalize_backup_ring_message">Tap the ring to your phone exactly as shown above.</string>
     <string name="backup_finalize_primary_card_message_format">З\'єднайте телефон і основну картку з номером %s точно так, як показано вище.</string>
+    <string name="backup_finalize_primary_ring_message">Connect your phone and the primary ring as it shown above.</string>
     <string name="backup_prepare_primary_card_message">З\'єднайте телефон і основну картку точно так, як показано вище.</string>
     <string name="backup_prepare_primary_card_message_format">З\'єднайте телефон і основну картку з номером %s точно так, як показано вище.</string>
     <string name="biometric_prompt_title">Розблокування сховища</string>
     <string name="common_cancel">Скасувати</string>
+    <string name="common_card">card</string>
+    <string name="common_card_or_ring">card or ring</string>
     <string name="common_continue">Продовжити</string>
     <string name="common_error">Помилка</string>
     <string name="common_ok">OK</string>
     <string name="common_retry">Повторити</string>
+    <string name="common_ring">ring</string>
     <string name="common_success">Успішно</string>
     <string name="common_understand">Я розумію</string>
     <string name="common_warning">Попередження</string>
@@ -84,7 +89,9 @@
     <string name="view_delegate_header_card">Картка</string>
     <string name="view_delegate_scan">Готово до сканування</string>
     <string name="view_delegate_scan_description">Піднесіть картку, як показано вище, і утримуйте до кінця операції</string>
+    <string name="view_delegate_scan_description_format">Tap the %s as shown above and hold until the end of the operation</string>
     <string name="view_delegate_security_delay">Утримуйте картку</string>
     <string name="view_delegate_security_delay_description">Будь ласка, утримуйте картку до завершення операції</string>
+    <string name="view_delegate_security_delay_description_format">To ensure security please hold the %s until the operation is complete</string>
     <string name="wallet_not_found">Здається, ви помилилися карткою. Операція не може бути виконана з цією карткою.</string>
 </resources>

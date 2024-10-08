@@ -1,7 +1,9 @@
 package com.tangem.operations
 
+import com.tangem.LocatorMessage
 import com.tangem.Log
 import com.tangem.common.CompletionResult
+import com.tangem.common.StringsLocator
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
@@ -10,7 +12,12 @@ import com.tangem.common.apdu.StatusWord
 import com.tangem.common.apdu.toTangemSdkError
 import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
-import com.tangem.common.core.*
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CardSessionRunnable
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.toInt
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvTag
@@ -191,6 +198,17 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                 }
                 is CompletionResult.Failure ->
                     if (result.error is TangemSdkError.TagLost) {
+                        session.setMessage(
+                            LocatorMessage(
+                                headerSource = null,
+                                bodySource = LocatorMessage.Source(
+                                    id = StringsLocator.ID.VIEW_DELEGATE_SECURITY_DELAY_DESCRIPTION_FORMAT,
+                                    formatArgs = arrayOf(
+                                        session.environment.config.productType.getLocalizedDescription(),
+                                    ),
+                                ),
+                            ),
+                        )
                         session.viewDelegate.onTagLost()
                     } else {
                         callback(CompletionResult.Failure(result.error))
