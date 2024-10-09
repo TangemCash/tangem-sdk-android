@@ -12,6 +12,7 @@ import com.google.android.material.slider.Slider
 import com.tangem.SessionViewDelegate
 import com.tangem.WrongValueType
 import com.tangem.common.UserCodeType
+import com.tangem.common.core.ProductType
 import com.tangem.common.core.TangemSdkError
 import com.tangem.demo.inflate
 import com.tangem.demo.ui.extension.withMainContext
@@ -87,19 +88,19 @@ class TagConnectTagLostError : BaseDelegateAction() {
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onTagConnected() }
         delay(timeMillis = 2000)
-        withMainContext { delegate.onTagLost() }
+        withMainContext { delegate.onTagLost(ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onTagConnected() }
         delay(timeMillis = 2000)
-        withMainContext { delegate.onTagLost() }
+        withMainContext { delegate.onTagLost(ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onError(TangemSdkError.UnknownError()) }
         delay(timeMillis = 2000)
-        withMainContext { delegate.onTagLost() }
+        withMainContext { delegate.onTagLost(ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.dismiss() }
     }
@@ -129,7 +130,7 @@ class SecurityDelay : BaseDelegateAction() {
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onTagConnected() }
 
@@ -139,7 +140,13 @@ class SecurityDelay : BaseDelegateAction() {
         repeat(securityDelayCounts) {
             delay(timeMillis = 1000)
             currentMs = currentMs.minus(other = 100)
-            withMainContext { delegate.onSecurityDelay(currentMs, totalDurationMs) }
+            withMainContext {
+                delegate.onSecurityDelay(
+                    ms = currentMs,
+                    totalDurationSeconds = totalDurationMs,
+                    productType = ProductType.ANY,
+                )
+            }
         }
 
         withMainContext { delegate.onSessionStopped(null) }
@@ -170,7 +177,7 @@ class SecurityDelayPinFails : BaseDelegateAction() {
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onTagConnected() }
         delay(timeMillis = 1000)
@@ -180,11 +187,17 @@ class SecurityDelayPinFails : BaseDelegateAction() {
         repeat(repeatCounts) {
             delay(timeMillis = 1000)
             currentMs = currentMs.minus(other = 100)
-            withMainContext { delegate.onSecurityDelay(ms = currentMs, totalDurationSeconds = 0) }
+            withMainContext {
+                delegate.onSecurityDelay(
+                    ms = currentMs,
+                    totalDurationSeconds = 0,
+                    productType = ProductType.ANY,
+                )
+            }
         }
 
         delay(timeMillis = 2000)
-        withMainContext { delegate.onTagLost() }
+        withMainContext { delegate.onTagLost(ProductType.ANY) }
         delay(timeMillis = 1000)
         withMainContext { delegate.dismiss() }
     }
@@ -201,7 +214,7 @@ class WrongCard : BaseDelegateAction() {
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onTagConnected() }
         delay(timeMillis = 2000)
@@ -224,7 +237,7 @@ class OnError : BaseDelegateAction() {
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onTagConnected() }
         delay(timeMillis = 2000)
@@ -247,19 +260,19 @@ class RequestAccessCode : BaseDelegateAction() {
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
         delay(timeMillis = 2000)
         withMainContext { delegate.dismiss() }
         delay(timeMillis = 500)
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, false, false, null) {} }
         delay(timeMillis = 2000)
         withMainContext { delegate.dismiss() }
         delay(timeMillis = 500)
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, false, null) {} }
         delay(timeMillis = 2000)
@@ -276,7 +289,7 @@ class SingleRequestAccessCode(
     override fun usedCommandsInfo(): String = "RequestUserCode(access,true), Dismiss"
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCode(UserCodeType.AccessCode, true, showForgotButton, null) {} }
     }
@@ -295,19 +308,19 @@ class RequestPasscode : BaseDelegateAction() {
     }
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
         delay(timeMillis = 2000)
         withMainContext { delegate.dismiss() }
         delay(timeMillis = 500)
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCode(UserCodeType.Passcode, false, false, null) {} }
         delay(timeMillis = 2000)
         withMainContext { delegate.dismiss() }
         delay(timeMillis = 500)
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCode(UserCodeType.Passcode, true, false, null) {} }
         delay(timeMillis = 2000)
@@ -349,7 +362,7 @@ class RequestPinSetup : BaseDelegateAction() {
     override fun usedCommandsInfo(): String = "SessionStarted, RequestPinSetup"
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 500)
         withMainContext { delegate.requestUserCodeChange(UserCodeType.Passcode, null) {} }
     }
@@ -364,7 +377,7 @@ class ErrorsWithDifferentFormats : BaseDelegateAction() {
     """.trimIndent()
 
     override fun getCommandsPool(): suspend () -> Unit = suspend {
-        withMainContext { delegate.onSessionStarted(null, null, true) }
+        withMainContext { delegate.onSessionStarted(null, null, true, null, ProductType.ANY) }
         delay(timeMillis = 2000)
         withMainContext { delegate.onError(TangemSdkError.BackupFailedIncompatibleBatch()) }
         delay(timeMillis = 5000)

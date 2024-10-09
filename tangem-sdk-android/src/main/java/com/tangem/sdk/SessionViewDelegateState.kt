@@ -4,17 +4,24 @@ import com.tangem.Message
 import com.tangem.WrongValueType
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.ProductType
 import com.tangem.common.core.TangemError
 import com.tangem.operations.resetcode.ResetPinService
 
 sealed class SessionViewDelegateState {
     data class Error(val error: TangemError) : SessionViewDelegateState()
     data class Success(val message: Message?) : SessionViewDelegateState()
-    data class SecurityDelay(val ms: Int, val totalDurationSeconds: Int) :
+    data class SecurityDelay(val ms: Int, val totalDurationSeconds: Int, val productType: ProductType) :
         SessionViewDelegateState()
 
-    data class Delay(val total: Int, val current: Int, val step: Int) : SessionViewDelegateState()
-    data class Ready(val cardId: String?) : SessionViewDelegateState()
+    data class Delay(
+        val total: Int,
+        val current: Int,
+        val step: Int,
+        val productType: ProductType,
+    ) : SessionViewDelegateState()
+
+    data class Ready(val cardId: String?, val productType: ProductType) : SessionViewDelegateState()
     data class PinRequested(
         val type: UserCodeType,
         val isFirstAttempt: Boolean,
@@ -37,7 +44,7 @@ sealed class SessionViewDelegateState {
     ) : SessionViewDelegateState()
 
     data class WrongCard(val wrongValueType: WrongValueType) : SessionViewDelegateState()
-    object TagLost : SessionViewDelegateState()
+    data class TagLost(val productType: ProductType) : SessionViewDelegateState()
     object TagConnected : SessionViewDelegateState()
     object HowToTap : SessionViewDelegateState()
     object None : SessionViewDelegateState()
