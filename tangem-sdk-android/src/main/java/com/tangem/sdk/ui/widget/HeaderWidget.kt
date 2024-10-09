@@ -84,8 +84,6 @@ class HeaderWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
         if (scannedCardId == null) {
             tvCard.text = ""
         } else {
-            tvCard.show()
-            tvCard.text = getString(R.string.view_delegate_header_card)
             tvCardId.show()
             tvCardId.text = scannedCardId
         }

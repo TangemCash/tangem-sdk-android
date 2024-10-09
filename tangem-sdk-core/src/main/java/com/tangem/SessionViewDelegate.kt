@@ -5,6 +5,7 @@ import com.tangem.common.StringsLocator
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
+import com.tangem.common.core.ProductType
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.operations.resetcode.ResetCodesViewDelegate
@@ -26,25 +27,26 @@ interface SessionViewDelegate {
         message: ViewDelegateMessage? = null,
         enableHowTo: Boolean,
         iconScanRes: Int? = null,
+        productType: ProductType,
     )
 
     /**
      * It is called when security delay is triggered by the card.
      * A user is expected to hold the card until the security delay is over.
      */
-    fun onSecurityDelay(ms: Int, totalDurationSeconds: Int)
+    fun onSecurityDelay(ms: Int, totalDurationSeconds: Int, productType: ProductType)
 
     /**
      * It is called when long tasks are performed.
      * A user is expected to hold the card until the task is complete.
      */
-    fun onDelay(total: Int, current: Int, step: Int)
+    fun onDelay(total: Int, current: Int, step: Int, productType: ProductType)
 
     /**
      * It is called when user takes the card away from the Android device during the scanning
      * (for example when security delay is in progress) and the TagLostException is received.
      */
-    fun onTagLost()
+    fun onTagLost(productType: ProductType)
 
     fun onTagConnected()
 

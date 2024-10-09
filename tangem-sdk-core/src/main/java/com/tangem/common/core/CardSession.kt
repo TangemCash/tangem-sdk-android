@@ -1,6 +1,5 @@
 package com.tangem.common.core
 
-import com.tangem.LocatorMessage
 import com.tangem.Log
 import com.tangem.Message
 import com.tangem.SessionViewDelegate
@@ -8,7 +7,6 @@ import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.CardIdFormatter
 import com.tangem.common.CompletionResult
-import com.tangem.common.StringsLocator
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.Apdu
@@ -101,14 +99,6 @@ class CardSession(
 
     private var onTagConnectedAfterResume: VoidCallback? = null
 
-    private val defaultScanMessage = LocatorMessage(
-        headerSource = null,
-        bodySource = LocatorMessage.Source(
-            id = StringsLocator.ID.VIEW_DELEGATE_SCAN_DESCRIPTION_FORMAT,
-            formatArgs = arrayOf(environment.config.productType.getLocalizedDescription()),
-        ),
-    )
-
     fun setInitialMessage(message: ViewDelegateMessage?) {
         initialMessage = message
     }
@@ -182,9 +172,10 @@ class CardSession(
         state = CardSessionState.Active
         viewDelegate.onSessionStarted(
             cardId = cardId,
-            message = initialMessage ?: defaultScanMessage,
+            message = initialMessage,
             enableHowTo = environment.config.howToIsEnabled,
             iconScanRes = iconScanRes,
+            productType = environment.config.productType,
         )
 
         scope.launch {
@@ -212,8 +203,7 @@ class CardSession(
                 .drop(1)
                 .collect {
                     if (it == null) {
-                        setMessage(defaultScanMessage)
-                        viewDelegate.onTagLost()
+                        viewDelegate.onTagLost(productType = environment.config.productType)
                     } else {
                         viewDelegate.onTagConnected()
                         onTagConnectedAfterResume?.invoke()
@@ -530,7 +520,6 @@ class CardSession(
                 is CompletionResult.Success -> {
                     Log.session { "requestUserCode: Success" }
                     updateEnvironment(type, result.data)
-                    setMessage(defaultScanMessage)
                     callback(CompletionResult.Success(Unit))
                 }
                 is CompletionResult.Failure -> {

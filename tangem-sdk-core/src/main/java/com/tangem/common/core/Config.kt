@@ -152,12 +152,4 @@ enum class ProductType {
     CARD,
     RING,
     ;
-
-    fun getLocalizedDescription(): String {
-        return when (this) {
-            ANY -> "common_card_or_ring"
-            CARD -> "common_card"
-            RING -> "common_ring"
-        }
-    }
 }

@@ -17,6 +17,7 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
+import com.tangem.common.core.ProductType
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.VoidCallback
@@ -180,10 +181,12 @@ class SdkTaskSpinnerFragment : BaseFragment() {
             message: ViewDelegateMessage?,
             enableHowTo: Boolean,
             iconScanRes: Int?,
+            productType: ProductType,
         ) {}
-        override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {}
-        override fun onDelay(total: Int, current: Int, step: Int) {}
-        override fun onTagLost() {}
+
+        override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int, productType: ProductType) {}
+        override fun onDelay(total: Int, current: Int, step: Int, productType: ProductType) {}
+        override fun onTagLost(productType: ProductType) {}
         override fun onTagConnected() {}
         override fun onWrongCard(wrongValueType: WrongValueType) {}
         override fun onSessionStopped(message: Message?) {}

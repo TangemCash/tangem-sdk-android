@@ -1,9 +1,7 @@
 package com.tangem.operations
 
-import com.tangem.LocatorMessage
 import com.tangem.Log
 import com.tangem.common.CompletionResult
-import com.tangem.common.StringsLocator
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.apdu.CommandApdu
@@ -156,8 +154,9 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                             val remainingTime = deserializeSecurityDelay(responseApdu)
                             if (remainingTime != null) {
                                 session.viewDelegate.onSecurityDelay(
-                                    remainingTime,
-                                    session.environment.card?.settings?.securityDelay ?: 0,
+                                    ms = remainingTime,
+                                    totalDurationSeconds = session.environment.card?.settings?.securityDelay ?: 0,
+                                    productType = session.environment.config.productType,
                                 )
                             }
                             transceiveApdu(apdu, session, callback)
@@ -198,18 +197,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                 }
                 is CompletionResult.Failure ->
                     if (result.error is TangemSdkError.TagLost) {
-                        session.setMessage(
-                            LocatorMessage(
-                                headerSource = null,
-                                bodySource = LocatorMessage.Source(
-                                    id = StringsLocator.ID.VIEW_DELEGATE_SECURITY_DELAY_DESCRIPTION_FORMAT,
-                                    formatArgs = arrayOf(
-                                        session.environment.config.productType.getLocalizedDescription(),
-                                    ),
-                                ),
-                            ),
-                        )
-                        session.viewDelegate.onTagLost()
+                        session.viewDelegate.onTagLost(session.environment.config.productType)
                     } else {
                         callback(CompletionResult.Failure(result.error))
                     }
@@ -223,7 +211,11 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
 
         var totalDuration = session.environment.card!!.settings.securityDelay
         totalDuration = if (totalDuration == 0) 0 else totalDuration + totalDuration.div(other = 3)
-        session.viewDelegate.onSecurityDelay(SessionEnvironment.missingSecurityDelayCode, totalDuration)
+        session.viewDelegate.onSecurityDelay(
+            ms = SessionEnvironment.missingSecurityDelayCode,
+            totalDurationSeconds = totalDuration,
+            productType = session.environment.config.productType,
+        )
     }
 
     /**

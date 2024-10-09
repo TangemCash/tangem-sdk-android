@@ -123,7 +123,12 @@ class ReadIssuerExtraDataCommand(
 
     private fun readData(session: CardSession, callback: CompletionCallback<ReadIssuerExtraDataResponse>) {
         if (issuerDataSize != 0) {
-            session.viewDelegate.onDelay(issuerDataSize, offset, WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE)
+            session.viewDelegate.onDelay(
+                total = issuerDataSize,
+                current = offset,
+                step = WriteIssuerExtraDataCommand.SINGLE_WRITE_SIZE,
+                productType = session.environment.config.productType,
+            )
         }
         super.run(session) { result ->
             when (result) {
