@@ -244,15 +244,17 @@ class BackupService(
     }
 
     private fun updateState(): State {
+        val preparingStateCondition =
+            repo.data.accessCode == null || repo.data.primaryCard == null || repo.data.backupCards.isEmpty()
+        val finalizingStateCondition =
+            repo.data.attestSignature == null ||
+                repo.data.backupData.size < repo.data.backupCards.size ||
+                repo.data.primaryCardFinalized == false
+        val finalizingStateConditionWithCount = repo.data.finalizedBackupCardsCount < repo.data.backupCards.size
         currentState = when {
-            repo.data.accessCode == null || repo.data.primaryCard == null || repo.data.backupCards.isEmpty() ->
-                State.Preparing
-
-            repo.data.attestSignature == null || repo.data.backupData.size < repo.data.backupCards.size ->
-                State.FinalizingPrimaryCard
-
-            repo.data.finalizedBackupCardsCount < repo.data.backupCards.size ->
-                State.FinalizingBackupCard(repo.data.finalizedBackupCardsCount + 1)
+            preparingStateCondition -> State.Preparing
+            finalizingStateCondition -> State.FinalizingPrimaryCard
+            finalizingStateConditionWithCount -> State.FinalizingBackupCard(repo.data.finalizedBackupCardsCount + 1)
 
             else -> {
                 onBackupCompleted()
@@ -338,10 +340,21 @@ class BackupService(
                 readBackupStartIndex = repo.data.backupData.size,
                 attestSignature = repo.data.attestSignature,
                 onLink = {
-                    repo.data = repo.data.copy(attestSignature = it)
+                    repo.data = repo.data.copy(
+                        attestSignature = it,
+                        primaryCardFinalized = false,
+                    )
                 },
                 onRead = { cardId, data ->
-                    repo.data = repo.data.copy(backupData = repo.data.backupData.plus(Pair(cardId, data)))
+                    repo.data = repo.data.copy(
+                        backupData = repo.data.backupData.plus(Pair(cardId, data)),
+                        primaryCardFinalized = false,
+                    )
+                },
+                onFinalize = {
+                    repo.data = repo.data.copy(
+                        primaryCardFinalized = true,
+                    )
                 },
             )
 
@@ -563,6 +576,7 @@ data class BackupServiceData(
     val certificates: Map<String, ByteArray> = emptyMap(),
     val backupData: Map<String, List<EncryptedBackupData>> = emptyMap(),
     val finalizedBackupCardsCount: Int = 0,
+    val primaryCardFinalized: Boolean? = null,
 ) {
     val shouldSave: Boolean
         get() = attestSignature != null || backupData.isNotEmpty()
