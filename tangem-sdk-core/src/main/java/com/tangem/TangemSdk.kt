@@ -39,6 +39,8 @@ import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
 import com.tangem.operations.personalization.entities.*
 import com.tangem.operations.pins.SetUserCodeCommand
+import com.tangem.operations.preflightread.CardIdPreflightReadFilter
+import com.tangem.operations.preflightread.PreflightReadFilter
 import com.tangem.operations.sign.*
 import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.operations.wallet.*
@@ -329,8 +331,8 @@ class TangemSdk(
         callback: CompletionCallback<CreateWalletResponse>,
     ) {
         try {
-            val mnemonic = DefaultMnemonic(mnemonic, wordlist)
-            val factory = AnyMasterKeyFactory(mnemonic, passphrase)
+            val defaultMnemonic = DefaultMnemonic(mnemonic, wordlist)
+            val factory = AnyMasterKeyFactory(defaultMnemonic, passphrase)
             val privateKey = factory.makeMasterKey(curve)
 
             startSessionWithRunnable(
@@ -1016,6 +1018,7 @@ class TangemSdk(
      * If null, default message will be used.
      * @param accessCode: Access code that will be used for a card session initialization. If null, Tangem SDK will
      * handle it automatically.
+     * @param preflightReadFilter preset [PreflightReadFilter] will be used instead of internals
      * @param callback: Standard [TangemSdk] callback.
      */
     fun <T> startSessionWithRunnable(
@@ -1024,6 +1027,7 @@ class TangemSdk(
         initialMessage: Message? = null,
         accessCode: String? = null,
         iconScanRes: Int? = null,
+        preflightReadFilter: PreflightReadFilter? = null,
         callback: CompletionCallback<T>,
     ) {
         if (!nfcAvailabilityProvider.isNfcFeatureAvailable()) {
@@ -1036,7 +1040,12 @@ class TangemSdk(
         }
 
         configure()
-        cardSession = makeSession(cardId, initialMessage, accessCode)
+        cardSession = makeSession(
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = accessCode,
+            preflightReadFilter = preflightReadFilter,
+        )
         cardSession?.startWithRunnable(
             iconScanRes = iconScanRes,
             runnable = runnable,
@@ -1074,7 +1083,12 @@ class TangemSdk(
         }
 
         configure()
-        cardSession = makeSession(cardId, initialMessage, accessCode)
+        cardSession = makeSession(
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = accessCode,
+            preflightReadFilter = CardIdPreflightReadFilter.initOrNull(cardId),
+        )
         cardSession?.start(onSessionStarted = callback)
     }
 
@@ -1185,6 +1199,7 @@ class TangemSdk(
         cardId: String? = null,
         initialMessage: Message? = null,
         accessCode: String? = null,
+        preflightReadFilter: PreflightReadFilter? = null,
         config: Config = this.config,
     ): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
@@ -1207,6 +1222,7 @@ class TangemSdk(
             jsonRpcConverter = jsonRpcConverter,
             secureStorage = secureStorage,
             initialMessage = initialMessage,
+            preflightReadFilter = preflightReadFilter,
         )
     }
 

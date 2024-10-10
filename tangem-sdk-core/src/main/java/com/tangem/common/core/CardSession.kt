@@ -31,6 +31,7 @@ import com.tangem.operations.OpenSessionCommand
 import com.tangem.operations.PreflightReadMode
 import com.tangem.operations.PreflightReadTask
 import com.tangem.operations.preflightread.CardIdPreflightReadFilter
+import com.tangem.operations.preflightread.PreflightReadFilter
 import com.tangem.operations.read.ReadCommand
 import com.tangem.operations.resetcode.ResetCodesController
 import com.tangem.operations.resetcode.ResetPinService
@@ -68,12 +69,13 @@ import java.io.StringWriter
  * @property initialMessage A custom description that will be shown at the beginning of the NFC session.
  * If null, a default header and text body will be used.
  */
-@Suppress("LargeClass")
+@Suppress("LargeClass", "LongParameterList")
 class CardSession(
     cardId: String? = null,
     val viewDelegate: SessionViewDelegate,
     val environment: SessionEnvironment,
     val userCodeRepository: UserCodeRepository?,
+    val preflightReadFilter: PreflightReadFilter?,
     private val reader: CardReader,
     private val jsonRpcConverter: JSONRPCConverter,
     private val secureStorage: SecureStorage,
@@ -325,7 +327,7 @@ class CardSession(
 
         val preflightTask = PreflightReadTask(
             readMode = preflightReadMode,
-            filter = cardId?.let(::CardIdPreflightReadFilter),
+            filter = preflightReadFilter ?: cardId?.let(::CardIdPreflightReadFilter),
         )
 
         preflightTask.run(this) { result ->
@@ -612,6 +614,7 @@ class CardSession(
             userCodeRepository = userCodeRepository,
             reader = reader,
             jsonRpcConverter = jsonRpcConverter,
+            preflightReadFilter = null,
         )
         val config = environment.config.apply {
             userCodeRequestPolicy = UserCodeRequestPolicy.Default
@@ -648,11 +651,12 @@ enum class TagType {
 }
 
 class SessionBuilder(
-    val viewDelegate: SessionViewDelegate,
-    val secureStorage: SecureStorage,
-    val userCodeRepository: UserCodeRepository?,
-    val reader: CardReader,
-    val jsonRpcConverter: JSONRPCConverter,
+    private val viewDelegate: SessionViewDelegate,
+    private val secureStorage: SecureStorage,
+    private val userCodeRepository: UserCodeRepository?,
+    private val reader: CardReader,
+    private val jsonRpcConverter: JSONRPCConverter,
+    private val preflightReadFilter: PreflightReadFilter?,
 ) {
     fun build(config: Config, cardId: String? = null, initialMessage: Message? = null): CardSession {
         return CardSession(
@@ -664,6 +668,7 @@ class SessionBuilder(
             jsonRpcConverter = jsonRpcConverter,
             secureStorage = secureStorage,
             initialMessage = initialMessage,
+            preflightReadFilter = preflightReadFilter,
         )
     }
 }
