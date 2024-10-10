@@ -313,12 +313,9 @@ class BackupService(
             if (handleErrors && repo.data.accessCode == null && repo.data.passcode == null) {
                 throw TangemSdkError.AccessCodeOrPasscodeRequired()
             }
-            val accessCode =
-                repo.data.accessCode ?: UserCodeType.AccessCode.defaultValue.calculateSha256()
-            val passcode =
-                repo.data.passcode ?: UserCodeType.Passcode.defaultValue.calculateSha256()
-            val primaryCard =
-                repo.data.primaryCard.guard { throw TangemSdkError.MissingPrimaryCard() }
+            val accessCode = repo.data.accessCode ?: UserCodeType.AccessCode.defaultValue.calculateSha256()
+            val passcode = repo.data.passcode ?: UserCodeType.Passcode.defaultValue.calculateSha256()
+            val primaryCard = repo.data.primaryCard.guard { throw TangemSdkError.MissingPrimaryCard() }
 
 //            val linkableBackupCards = repo.data.backupCards.map { card ->
 //                val certificate = repo.data.certificates[card.cardId]
@@ -328,9 +325,7 @@ class BackupService(
 
             if (handleErrors) {
                 if (repo.data.backupCards.isEmpty()) throw TangemSdkError.EmptyBackupCards()
-                if (repo.data.backupCards.size > MAX_BACKUP_CARDS_COUNT) {
-                    throw TangemSdkError.TooMuchBackupCards()
-                }
+                if (repo.data.backupCards.size > MAX_BACKUP_CARDS_COUNT) throw TangemSdkError.TooMuchBackupCards()
             }
 
             val task = FinalizePrimaryCardTask(
@@ -340,10 +335,7 @@ class BackupService(
                 readBackupStartIndex = repo.data.backupData.size,
                 attestSignature = repo.data.attestSignature,
                 onLink = {
-                    repo.data = repo.data.copy(
-                        attestSignature = it,
-                        primaryCardFinalized = false,
-                    )
+                    repo.data = repo.data.copy(attestSignature = it, primaryCardFinalized = false)
                 },
                 onRead = { cardId, data ->
                     repo.data = repo.data.copy(
@@ -352,9 +344,7 @@ class BackupService(
                     )
                 },
                 onFinalize = {
-                    repo.data = repo.data.copy(
-                        primaryCardFinalized = true,
-                    )
+                    repo.data = repo.data.copy(primaryCardFinalized = true)
                 },
             )
 
