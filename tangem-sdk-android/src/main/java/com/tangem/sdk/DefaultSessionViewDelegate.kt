@@ -12,6 +12,7 @@ import com.tangem.common.CardIdFormatter
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.Config
+import com.tangem.common.core.ProductType
 import com.tangem.common.core.TangemError
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.operations.resetcode.ResetCodesViewDelegate
@@ -44,9 +45,15 @@ class DefaultSessionViewDelegate(
         message: ViewDelegateMessage?,
         enableHowTo: Boolean,
         iconScanRes: Int?,
+        productType: ProductType,
     ) {
         Log.view { "session started" }
-        createAndShowState(SessionViewDelegateState.Ready(formatCardId(cardId)), enableHowTo, message, iconScanRes)
+        createAndShowState(
+            state = SessionViewDelegateState.Ready(formatCardId(cardId), productType),
+            enableHowTo = enableHowTo,
+            message = message,
+            iconScanRes = iconScanRes,
+        )
         checkNfcEnabled()
     }
 
@@ -72,19 +79,19 @@ class DefaultSessionViewDelegate(
         readingDialog?.show(SessionViewDelegateState.Success(message))
     }
 
-    override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int) {
+    override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int, productType: ProductType) {
         Log.view { "showing security delay: $ms, $totalDurationSeconds" }
-        readingDialog?.show(SessionViewDelegateState.SecurityDelay(ms, totalDurationSeconds))
+        readingDialog?.show(SessionViewDelegateState.SecurityDelay(ms, totalDurationSeconds, productType))
     }
 
-    override fun onDelay(total: Int, current: Int, step: Int) {
+    override fun onDelay(total: Int, current: Int, step: Int, productType: ProductType) {
         Log.view { "showing delay" }
-        readingDialog?.show(SessionViewDelegateState.Delay(total, current, step))
+        readingDialog?.show(SessionViewDelegateState.Delay(total, current, step, productType))
     }
 
-    override fun onTagLost() {
+    override fun onTagLost(productType: ProductType) {
         Log.view { "tag lost" }
-        readingDialog?.show(SessionViewDelegateState.TagLost)
+        readingDialog?.show(SessionViewDelegateState.TagLost(productType))
     }
 
     override fun onTagConnected() {

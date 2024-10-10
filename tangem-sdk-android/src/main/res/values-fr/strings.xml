@@ -7,15 +7,20 @@
     <string name="attestation_warning_attest_wallets">Une utilisation suspecte du portefeuille sur la carte a été détectée.</string>
     <string name="backup_add_backup_card_message">Connectez votre téléphone et la carte que vous souhaitez utiliser comme sauvegarde exactement comme indiqué ci-dessus.</string>
     <string name="backup_finalize_backup_card_message_format">Appuyez la carte portant le numéro %s sur votre téléphone exactement comme indiqué ci-dessus.</string>
+    <string name="backup_finalize_backup_ring_message">Tap the ring to your phone exactly as shown above.</string>
     <string name="backup_finalize_primary_card_message_format">Connectez votre téléphone et la carte principale avec le numéro %s exactement comme indiqué ci-dessus.</string>
+    <string name="backup_finalize_primary_ring_message">Connect your phone and the primary ring as it shown above.</string>
     <string name="backup_prepare_primary_card_message">Connectez votre téléphone et la carte principale exactement comme indiqué ci-dessus.</string>
     <string name="backup_prepare_primary_card_message_format">Connectez votre téléphone et la carte principale avec le numéro %s exactement comme indiqué ci-dessus.</string>
     <string name="biometric_prompt_title">Déverrouillage du coffre-fort</string>
     <string name="common_cancel">Annuler</string>
+    <string name="common_card">card</string>
+    <string name="common_card_or_ring">card or ring</string>
     <string name="common_continue">Continuer</string>
     <string name="common_error">Erreur</string>
     <string name="common_ok">OK</string>
     <string name="common_retry">Réessayez</string>
+    <string name="common_ring">ring</string>
     <string name="common_success">Avec succès</string>
     <string name="common_understand">Je comprends</string>
     <string name="common_warning">Attention</string>
@@ -84,7 +89,9 @@
     <string name="view_delegate_header_card">Carte</string>
     <string name="view_delegate_scan">Prêt pour scanner </string>
     <string name="view_delegate_scan_description">Appuyez sur la carte comme indiqué ci-dessus et maintenez jusqu\'à la fin de l\'opération</string>
+    <string name="view_delegate_scan_description_format">Tap the %s as shown above and hold until the end of the operation</string>
     <string name="view_delegate_security_delay">Tenez la carte fermement </string>
     <string name="view_delegate_security_delay_description">Pour garantir la sécurité, veuillez conserver la carte jusqu\'à ce que l\'opération soit terminée.</string>
+    <string name="view_delegate_security_delay_description_format">To ensure security please hold the %s until the operation is complete</string>
     <string name="wallet_not_found">On dirait que vous vous êtes trompé de carte. L\'opération ne peut pas être effectuée avec cette carte.</string>
 </resources>

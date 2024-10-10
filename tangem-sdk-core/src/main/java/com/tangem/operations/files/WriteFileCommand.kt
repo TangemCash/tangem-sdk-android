@@ -224,7 +224,7 @@ class WriteFileCommand private constructor(
 
     private fun writeFileData(session: CardSession, callback: CompletionCallback<WriteFileResponse>) {
         if (mode == FileDataMode.WriteFile) {
-            session.viewDelegate.onDelay(data.size, offset, SINGLE_WRITE_SIZE)
+            session.viewDelegate.onDelay(data.size, offset, SINGLE_WRITE_SIZE, session.environment.config.productType)
         }
         transceive(session) { result ->
             when (result) {

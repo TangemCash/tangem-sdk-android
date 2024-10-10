@@ -7,6 +7,10 @@ import com.tangem.LocatorMessage
 import com.tangem.ViewDelegateMessage
 import com.tangem.WrongValueType
 import com.tangem.common.StringsLocator
+import com.tangem.common.core.ProductType
+import com.tangem.common.core.ProductType.ANY
+import com.tangem.common.core.ProductType.CARD
+import com.tangem.common.core.ProductType.RING
 import com.tangem.common.core.TangemError
 import com.tangem.common.core.TangemSdkError
 import com.tangem.sdk.AndroidStringLocator
@@ -27,6 +31,7 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
     private var initialMessage: ViewDelegateMessage? = null
     private var externalMessage: ViewDelegateMessage? = null
 
+    @Suppress("LongMethod")
     override fun setState(params: SessionViewDelegateState) {
         val message = getMessage(params)
         when (params) {
@@ -34,7 +39,10 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setTaskBlock(
                     message = message,
                     titleId = R.string.view_delegate_scan,
-                    messageId = R.string.view_delegate_scan_description,
+                    messageText = getFormattedString(
+                        R.string.view_delegate_scan_description_format,
+                        params.productType.getLocalizedDescription(),
+                    ),
                 )
             }
 
@@ -55,7 +63,10 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setTaskBlock(
                     message = message,
                     titleId = R.string.view_delegate_security_delay,
-                    messageId = R.string.view_delegate_security_delay_description,
+                    messageText = getFormattedString(
+                        id = R.string.view_delegate_security_delay_description_format,
+                        params.productType.getLocalizedDescription(),
+                    ),
                 )
             }
 
@@ -63,7 +74,10 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setTaskBlock(
                     message = message,
                     titleId = R.string.view_delegate_delay,
-                    messageId = R.string.view_delegate_security_delay_description,
+                    messageText = getFormattedString(
+                        id = R.string.view_delegate_security_delay_description_format,
+                        params.productType.getLocalizedDescription(),
+                    ),
                 )
             }
 
@@ -71,7 +85,10 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
                 setTaskBlock(
                     message = message,
                     titleId = R.string.view_delegate_scan,
-                    messageId = R.string.view_delegate_scan_description,
+                    messageText = getFormattedString(
+                        R.string.view_delegate_scan_description_format,
+                        params.productType.getLocalizedDescription(),
+                    ),
                 )
             }
 
@@ -150,6 +167,14 @@ class MessageWidget(mainView: View) : BaseSessionDelegateStateWidget(mainView) {
             tv.text = text
         } else if (id != null) {
             tv.text = getString(id)
+        }
+    }
+
+    private fun ProductType.getLocalizedDescription(): String {
+        return when (this) {
+            ANY -> getString(R.string.common_card_or_ring)
+            CARD -> getString(R.string.common_card)
+            RING -> getString(R.string.common_ring)
         }
     }
 }

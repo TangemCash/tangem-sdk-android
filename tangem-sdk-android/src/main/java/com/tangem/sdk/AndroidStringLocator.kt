@@ -35,7 +35,9 @@ class AndroidStringLocator(val context: Context) : StringsLocator {
             StringsLocator.ID.BACKUP_ADD_BACKUP_CARD_MESSAGE -> "backup_add_backup_card_message"
             StringsLocator.ID.BACKUP_FINALIZE_PRIMARY_CARD_MESSAGE_FORMAT ->
                 "backup_finalize_primary_card_message_format"
+            StringsLocator.ID.BACKUP_FINALIZE_PRIMARY_RING_MESSAGE -> "backup_finalize_primary_ring_message"
             StringsLocator.ID.BACKUP_FINALIZE_BACKUP_CARD_MESSAGE_FORMAT -> "backup_finalize_backup_card_message_format"
+            StringsLocator.ID.BACKUP_FINALIZE_BACKUP_RING_MESSAGE -> "backup_finalize_backup_ring_message"
             StringsLocator.ID.RESET_CODES_SCAN_FIRST_CARD -> "reset_codes_scan_first_card"
             StringsLocator.ID.RESET_CODES_SCAN_CONFIRMATION_CARD -> "reset_codes_scan_confirmation_card"
             StringsLocator.ID.RESET_CODES_SCAN_TO_RESET -> "reset_codes_scan_to_reset"
@@ -50,6 +52,10 @@ class AndroidStringLocator(val context: Context) : StringsLocator {
             StringsLocator.ID.PIN_2 -> "pin2"
             StringsLocator.ID.PIN_RESET_CODE_FORMAT -> "pin_reset_code_format"
             StringsLocator.ID.SIGN_MULTIPLE_CHUNKS_PART -> "sign_multiple_chunks_part"
+            StringsLocator.ID.VIEW_DELEGATE_SCAN_DESCRIPTION_FORMAT -> "view_delegate_scan_description_format"
+            StringsLocator.ID.VIEW_DELEGATE_SECURITY_DELAY_DESCRIPTION_FORMAT -> {
+                "view_delegate_security_delay_description_format"
+            }
         }
 
         return R.string::class.java.getDeclaredField(resourceId)

@@ -92,7 +92,12 @@ class WriteIssuerExtraDataCommand(
 
     private fun writeData(session: CardSession, callback: CompletionCallback<SuccessResponse>) {
         if (mode == IssuerExtraDataMode.WritePart) {
-            session.viewDelegate.onDelay(issuerData.size, offset, SINGLE_WRITE_SIZE)
+            session.viewDelegate.onDelay(
+                total = issuerData.size,
+                current = offset,
+                step = SINGLE_WRITE_SIZE,
+                productType = session.environment.config.productType,
+            )
         }
         transceive(session) { result ->
             when (result) {

@@ -12,6 +12,7 @@ import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.card.FirmwareVersion
 import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.ProductType
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateSha256
 import com.tangem.common.extensions.guard
@@ -66,6 +67,8 @@ class BackupService(
     val primaryCardId: String? get() = repo.data.primaryCard?.cardId
     val primaryPublicKey: ByteArray? get() = repo.data.primaryCard?.cardPublicKey
     val backupCardIds: List<String> get() = repo.data.backupCards.map { it.cardId }
+    val primaryCardBatchId: String? get() = repo.data.primaryCard?.batchId
+    val backupCardsBatchIds: List<String> get() = repo.data.backupCards.mapNotNull(BackupCard::batchId)
 
     /**
      * Perform additional compatibility checks while adding backup cards. Change this setting only if you understand what you do.
@@ -165,7 +168,7 @@ class BackupService(
                 handleFinalizePrimaryCard(iconScanRes = iconScanRes) { result -> handleCompletion(result, callback) }
 
             is State.FinalizingBackupCard ->
-                handleWriteBackupCard(currentState.index) { result ->
+                handleWriteBackupCard(currentState.index, iconScanRes) { result ->
                     handleCompletion(result, callback)
                 }
 
@@ -310,12 +313,9 @@ class BackupService(
             if (handleErrors && repo.data.accessCode == null && repo.data.passcode == null) {
                 throw TangemSdkError.AccessCodeOrPasscodeRequired()
             }
-            val accessCode =
-                repo.data.accessCode ?: UserCodeType.AccessCode.defaultValue.calculateSha256()
-            val passcode =
-                repo.data.passcode ?: UserCodeType.Passcode.defaultValue.calculateSha256()
-            val primaryCard =
-                repo.data.primaryCard.guard { throw TangemSdkError.MissingPrimaryCard() }
+            val accessCode = repo.data.accessCode ?: UserCodeType.AccessCode.defaultValue.calculateSha256()
+            val passcode = repo.data.passcode ?: UserCodeType.Passcode.defaultValue.calculateSha256()
+            val primaryCard = repo.data.primaryCard.guard { throw TangemSdkError.MissingPrimaryCard() }
 
 //            val linkableBackupCards = repo.data.backupCards.map { card ->
 //                val certificate = repo.data.certificates[card.cardId]
@@ -325,9 +325,7 @@ class BackupService(
 
             if (handleErrors) {
                 if (repo.data.backupCards.isEmpty()) throw TangemSdkError.EmptyBackupCards()
-                if (repo.data.backupCards.size > MAX_BACKUP_CARDS_COUNT) {
-                    throw TangemSdkError.TooMuchBackupCards()
-                }
+                if (repo.data.backupCards.size > MAX_BACKUP_CARDS_COUNT) throw TangemSdkError.TooMuchBackupCards()
             }
 
             val task = FinalizePrimaryCardTask(
@@ -337,10 +335,7 @@ class BackupService(
                 readBackupStartIndex = repo.data.backupData.size,
                 attestSignature = repo.data.attestSignature,
                 onLink = {
-                    repo.data = repo.data.copy(
-                        attestSignature = it,
-                        primaryCardFinalized = false,
-                    )
+                    repo.data = repo.data.copy(attestSignature = it, primaryCardFinalized = false)
                 },
                 onRead = { cardId, data ->
                     repo.data = repo.data.copy(
@@ -349,19 +344,28 @@ class BackupService(
                     )
                 },
                 onFinalize = {
-                    repo.data = repo.data.copy(
-                        primaryCardFinalized = true,
-                    )
+                    repo.data = repo.data.copy(primaryCardFinalized = true)
                 },
             )
-            val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
-                .getFormattedCardId(primaryCard.cardId)
 
-            val message = formattedCardId?.let {
+            val message = if (sdk.config.productType == ProductType.RING) {
                 Message(
                     header = null,
-                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_PRIMARY_CARD_MESSAGE_FORMAT, it),
+                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_PRIMARY_RING_MESSAGE),
                 )
+            } else {
+                val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
+                    .getFormattedCardId(primaryCard.cardId)
+
+                formattedCardId?.let {
+                    Message(
+                        header = null,
+                        body = stringsLocator.getString(
+                            StringsLocator.ID.BACKUP_FINALIZE_PRIMARY_CARD_MESSAGE_FORMAT,
+                            it,
+                        ),
+                    )
+                }
             }
 
             sdk.startSessionWithRunnable(
@@ -378,7 +382,7 @@ class BackupService(
     }
 
     @Suppress("LongMethod")
-    private fun handleWriteBackupCard(index: Int, callback: CompletionCallback<Card>) {
+    private fun handleWriteBackupCard(index: Int, iconScanRes: Int?, callback: CompletionCallback<Card>) {
         try {
             if (handleErrors && repo.data.accessCode == null && repo.data.passcode == null) {
                 throw TangemSdkError.AccessCodeOrPasscodeRequired()
@@ -416,20 +420,31 @@ class BackupService(
                 passcode = passcode,
             )
 
-            val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
-                .getFormattedCardId(backupCard.cardId)
-
-            val message = formattedCardId?.let {
+            val message = if (sdk.config.productType == ProductType.RING) {
                 Message(
                     header = null,
-                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_BACKUP_CARD_MESSAGE_FORMAT, it),
+                    body = stringsLocator.getString(StringsLocator.ID.BACKUP_FINALIZE_BACKUP_RING_MESSAGE),
                 )
+            } else {
+                val formattedCardId = CardIdFormatter(style = sdk.config.cardIdDisplayFormat)
+                    .getFormattedCardId(backupCard.cardId)
+
+                formattedCardId?.let {
+                    Message(
+                        header = null,
+                        body = stringsLocator.getString(
+                            StringsLocator.ID.BACKUP_FINALIZE_BACKUP_CARD_MESSAGE_FORMAT,
+                            it,
+                        ),
+                    )
+                }
             }
 
             sdk.startSessionWithRunnable(
                 runnable = task,
                 cardId = backupCard.cardId,
                 initialMessage = message,
+                iconScanRes = iconScanRes,
             ) { result ->
                 when (result) {
                     is CompletionResult.Success -> {
@@ -528,6 +543,7 @@ data class BackupCard(
     val attestSignature: ByteArray,
     val firmwareVersion: FirmwareVersion? = null,
     val certificate: ByteArray?,
+    val batchId: String? = null,
 ) : CommandResponse {
     constructor(rawBackupCard: RawBackupCard, certificate: ByteArray) : this(
         cardId = rawBackupCard.cardId,

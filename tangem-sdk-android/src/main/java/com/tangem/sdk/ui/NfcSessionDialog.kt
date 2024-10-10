@@ -10,6 +10,7 @@ import com.tangem.Log
 import com.tangem.ViewDelegateMessage
 import com.tangem.common.CompletionResult
 import com.tangem.common.Timer
+import com.tangem.common.core.ProductType
 import com.tangem.common.core.ScanTagImage
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
@@ -292,10 +293,18 @@ class NfcSessionDialog(
     private fun activateTrickySecurityDelay(totalDuration: Long) {
         val timer = Timer(period = totalDuration, step = 100L, delayMs = 1000L, dispatcher = Dispatchers.IO)
         timer.onComplete = {
-            postUI { onSecurityDelay(SessionViewDelegateState.SecurityDelay(0, 0)) }
+            postUI { onSecurityDelay(SessionViewDelegateState.SecurityDelay(0, 0, ProductType.ANY)) }
         }
         timer.onTick = {
-            postUI { onSecurityDelay(SessionViewDelegateState.SecurityDelay((totalDuration - it).toInt(), 0)) }
+            postUI {
+                onSecurityDelay(
+                    SessionViewDelegateState.SecurityDelay(
+                        ms = (totalDuration - it).toInt(),
+                        totalDurationSeconds = 0,
+                        productType = ProductType.ANY,
+                    ),
+                )
+            }
         }
         timer.start()
         emulateSecurityDelayTimer = timer
@@ -310,7 +319,7 @@ class NfcSessionDialog(
                 emulateSecurityDelayTimer?.period?.let { activateTrickySecurityDelay(it) }
             }
 
-            SessionViewDelegateState.TagLost -> {
+            is SessionViewDelegateState.TagLost -> {
                 emulateSecurityDelayTimer?.cancel()
             }
 
@@ -326,7 +335,7 @@ class NfcSessionDialog(
     }
 
     private fun getEmptyOnReadyEvent(): SessionViewDelegateState {
-        return SessionViewDelegateState.Ready(headerWidget.cardId)
+        return SessionViewDelegateState.Ready(headerWidget.cardId, ProductType.ANY)
     }
 
     private companion object {

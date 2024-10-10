@@ -172,7 +172,13 @@ class CardSession(
         reader.startSession()
 
         state = CardSessionState.Active
-        viewDelegate.onSessionStarted(cardId, initialMessage, environment.config.howToIsEnabled, iconScanRes)
+        viewDelegate.onSessionStarted(
+            cardId = cardId,
+            message = initialMessage,
+            enableHowTo = environment.config.howToIsEnabled,
+            iconScanRes = iconScanRes,
+            productType = environment.config.productType,
+        )
 
         scope.launch {
             reader.tag.asFlow()
@@ -199,7 +205,7 @@ class CardSession(
                 .drop(1)
                 .collect {
                     if (it == null) {
-                        viewDelegate.onTagLost()
+                        viewDelegate.onTagLost(productType = environment.config.productType)
                     } else {
                         viewDelegate.onTagConnected()
                         onTagConnectedAfterResume?.invoke()

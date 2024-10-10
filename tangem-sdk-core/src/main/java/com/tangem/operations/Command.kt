@@ -10,7 +10,12 @@ import com.tangem.common.apdu.StatusWord
 import com.tangem.common.apdu.toTangemSdkError
 import com.tangem.common.card.Card
 import com.tangem.common.card.EncryptionMode
-import com.tangem.common.core.*
+import com.tangem.common.core.CardSession
+import com.tangem.common.core.CardSessionRunnable
+import com.tangem.common.core.CompletionCallback
+import com.tangem.common.core.SessionEnvironment
+import com.tangem.common.core.TangemError
+import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.toInt
 import com.tangem.common.tlv.Tlv
 import com.tangem.common.tlv.TlvTag
@@ -149,8 +154,9 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                             val remainingTime = deserializeSecurityDelay(responseApdu)
                             if (remainingTime != null) {
                                 session.viewDelegate.onSecurityDelay(
-                                    remainingTime,
-                                    session.environment.card?.settings?.securityDelay ?: 0,
+                                    ms = remainingTime,
+                                    totalDurationSeconds = session.environment.card?.settings?.securityDelay ?: 0,
+                                    productType = session.environment.config.productType,
                                 )
                             }
                             transceiveApdu(apdu, session, callback)
@@ -191,7 +197,7 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
                 }
                 is CompletionResult.Failure ->
                     if (result.error is TangemSdkError.TagLost) {
-                        session.viewDelegate.onTagLost()
+                        session.viewDelegate.onTagLost(session.environment.config.productType)
                     } else {
                         callback(CompletionResult.Failure(result.error))
                     }
@@ -205,7 +211,11 @@ abstract class Command<T : CommandResponse> : ApduSerializable<T>, CardSessionRu
 
         var totalDuration = session.environment.card!!.settings.securityDelay
         totalDuration = if (totalDuration == 0) 0 else totalDuration + totalDuration.div(other = 3)
-        session.viewDelegate.onSecurityDelay(SessionEnvironment.missingSecurityDelayCode, totalDuration)
+        session.viewDelegate.onSecurityDelay(
+            ms = SessionEnvironment.missingSecurityDelayCode,
+            totalDurationSeconds = totalDuration,
+            productType = session.environment.config.productType,
+        )
     }
 
     /**
