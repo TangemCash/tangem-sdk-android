@@ -1,5 +1,6 @@
 package com.tangem.operations.backup
 
+import com.tangem.Log
 import com.tangem.common.CompletionResult
 import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
@@ -19,6 +20,7 @@ class FinalizePrimaryCardTask(
     private val attestSignature: ByteArray?, // We already have attestSignature
     private val onLink: (ByteArray) -> Unit,
     private val onRead: (String, List<EncryptedBackupData>) -> Unit,
+    private val onFinalize: () -> Unit,
     private val readBackupStartIndex: Int,
 ) : CardSessionRunnable<Card> {
 
@@ -94,13 +96,28 @@ class FinalizePrimaryCardTask(
             return
         }
         if (card.firmwareVersion < FirmwareVersion.KeysImportAvailable) {
+            onFinalize()
             callback(CompletionResult.Success(card))
             return
         }
         FinalizeReadBackupDataCommand(accessCode).run(session) { result ->
             when (result) {
-                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
-                is CompletionResult.Success -> callback(CompletionResult.Success(card))
+                is CompletionResult.Failure -> {
+                    // Backup data already finalized,
+                    // but we didn't catch the original response due to NFC errors or tag lost.
+                    // Just cover invalid state error
+                    if (result.error is TangemSdkError.InvalidState) {
+                        Log.debug { "Got ${result.error}. Ignoring.." }
+                        onFinalize()
+                        callback(CompletionResult.Success(card))
+                    } else {
+                        callback(CompletionResult.Failure(result.error))
+                    }
+                }
+                is CompletionResult.Success -> {
+                    onFinalize()
+                    callback(CompletionResult.Success(card))
+                }
             }
         }
     }

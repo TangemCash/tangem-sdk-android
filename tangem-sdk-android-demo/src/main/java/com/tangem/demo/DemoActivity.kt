@@ -23,9 +23,10 @@ import com.tangem.demo.ui.viewDelegate.ViewDelegateFragment
 import com.tangem.sdk.DefaultSessionViewDelegate
 import com.tangem.sdk.extensions.createLogger
 import com.tangem.sdk.extensions.getWordlist
-import com.tangem.sdk.extensions.initBiometricManager
+import com.tangem.sdk.extensions.initAuthenticationManager
 import com.tangem.sdk.extensions.initKeystoreManager
 import com.tangem.sdk.extensions.initNfcManager
+import com.tangem.sdk.nfc.AndroidNfcAvailabilityProvider
 import com.tangem.sdk.storage.create
 import com.tangem.tangem_demo.R
 import kotlinx.android.synthetic.main.activity_demo.*
@@ -87,15 +88,17 @@ class DemoActivity : AppCompatActivity() {
         }
         val secureStorage = SecureStorage.create(this)
         val nfcManager = TangemSdk.initNfcManager(this)
-        val authenticationManager = TangemSdk.initBiometricManager(this)
+        val authenticationManager = TangemSdk.initAuthenticationManager(this)
 
         val viewDelegate = DefaultSessionViewDelegate(nfcManager, this)
         viewDelegate.sdkConfig = config
         this.viewDelegate = viewDelegate
 
+        val nfcAvailabilityProvider = AndroidNfcAvailabilityProvider(this)
         return TangemSdk(
             reader = nfcManager.reader,
             viewDelegate = viewDelegate,
+            nfcAvailabilityProvider = nfcAvailabilityProvider,
             secureStorage = secureStorage,
             wordlist = Wordlist.getWordlist(this),
             config = config,

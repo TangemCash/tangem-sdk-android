@@ -52,14 +52,17 @@ class StartBackupCardLinkingCommand(
         val tlvData = apdu.getTlvData()
             ?: throw TangemSdkError.DeserializeApduFailed()
 
+        val card = environment.card ?: throw TangemSdkError.UnknownError()
+
         val decoder = TlvDecoder(tlvData)
         return BackupCard(
             cardId = decoder.decode(TlvTag.CardId),
-            cardPublicKey = environment.card?.cardPublicKey ?: throw TangemSdkError.UnknownError(),
+            cardPublicKey = card.cardPublicKey,
             linkingKey = decoder.decode(TlvTag.BackupCardLinkingKey),
-            firmwareVersion = environment.card?.firmwareVersion ?: throw TangemSdkError.UnknownError(),
+            firmwareVersion = card.firmwareVersion,
             attestSignature = decoder.decode(TlvTag.CardSignature),
             certificate = null,
+            batchId = card.batchId,
         )
     }
 }

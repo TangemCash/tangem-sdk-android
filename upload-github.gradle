@@ -7,7 +7,7 @@ afterEvaluate {
             maven(MavenPublication) {
                 groupId = "$artifactConfig.group"
                 artifactId = "$project.artifactId"
-                version = "$artifactConfig.version"
+                version = "$artifactConfig.version".replace("/", "-")
 
                 if (artifactId == "android") {
                     from components.release

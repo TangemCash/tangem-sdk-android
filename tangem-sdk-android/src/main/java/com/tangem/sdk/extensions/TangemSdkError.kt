@@ -48,7 +48,6 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.EmptyBackupCards,
         is TangemSdkError.MissingPrimaryAttestSignature,
         is TangemSdkError.MissingPrimaryCard,
-        is TangemSdkError.NoActiveBackup,
         is TangemSdkError.NoBackupCardForIndex,
         is TangemSdkError.NoBackupDataForCard,
         is TangemSdkError.ResetBackupFailedHasBackedUpWallets,
@@ -59,7 +58,8 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.AuthenticationUnavailable,
         is TangemSdkError.AuthenticationLockout,
         is TangemSdkError.AuthenticationPermanentLockout,
-        is TangemSdkError.UserCanceledAuthentication,
+        is TangemSdkError.AuthenticationCanceled,
+        is TangemSdkError.AuthenticationAlreadyInProgress,
         is TangemSdkError.KeyGenerationException,
         is TangemSdkError.MnemonicException,
         is TangemSdkError.KeysImportDisabled,
@@ -98,6 +98,8 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.SignHashesNotAvailable,
         is TangemSdkError.CardVerificationFailed,
         is TangemSdkError.NonHardenedDerivationNotSupported,
+        is TangemSdkError.AuthenticationNotInitialized,
+        is TangemSdkError.NfcFeatureIsUnavailable,
         -> TangemSdkErrorDescription()
 
         is TangemSdkError.BackupFailedEmptyWallets,
@@ -110,11 +112,19 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.BackupFailedIncompatibleBatch,
         is TangemSdkError.BackupFailedIncompatibleFirmware,
         is TangemSdkError.BackupFailedKeysImportSettings,
-        is TangemSdkError.BackupFailedAlreadyCreated,
+
         -> TangemSdkErrorDescription(
             resId = R.string.error_backup_wrong_card,
             args = listOf(TangemSdkErrorDescription.Type.StringType(code.toString())),
         )
+
+        is TangemSdkError.BackupFailedAlreadyCreated -> {
+            TangemSdkErrorDescription(resId = R.string.error_backup_failed_already_created)
+        }
+
+        is TangemSdkError.NoActiveBackup -> {
+            TangemSdkErrorDescription(resId = R.string.error_no_active_backup)
+        }
 
         is TangemSdkError.ExtendedLengthNotSupported ->
             TangemSdkErrorDescription(resId = R.string.error_extended_apdu_not_supported)

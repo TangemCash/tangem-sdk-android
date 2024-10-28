@@ -1,2 +1,147 @@
-* a369eb42 - (HEAD -> release/3.9.1, tag: develop-327, origin/develop, develop) Merge pull request #350 from tangem/jitpack-config
-* 4b22eb68 - config jitpack java version
+* b3fe524c - (HEAD -> release/3.9.2, tag: develop-393, origin/develop, develop) Merge branch 'master' into develop
+* 9746d758 - [Tech] replace '/' with '-' in upload maven script
+*   2ea3795f - (tag: release-app_5.17-392, tag: develop-391, origin/release-app_5.17) Merge pull request #412 from tangem/merge_5.16_dev
+|\  
+| * f6fdc785 - Fix detekt
+| *   03e9d3bd - Merge remote-tracking branch 'refs/remotes/origin/develop' into merge_5.16_dev
+| |\  
+| |/  
+|/|   
+* | 9d6a9930 - (tag: develop-387) AND-8236 handle finalized card
+* |   337d0621 - (tag: develop-385) Merge pull request #406 from tangem/merge_5.15_dev
+|\ \  
+| * \   7c0300c1 - Merge branch 'develop' into merge_5.15_dev
+| |\ \  
+| |/ /  
+|/| |   
+* | | 7d9e071f - (tag: develop-383) AND-8427 added preflight filter param
+| | * 7e16d97e - (tag: release-app_5.16-390, origin/release-app_5.16) AND-8722 Fix security delay placeholder
+| | * 68b6431b - (tag: release-app_5.16-389) AND-8703 Update SDK lokalise
+| | * df9770c5 - (tag: release-app_5.16-388) AND-8534 reverse image when animate tap
+| |/  
+| * 6137f75b - (tag: release-app_5.16-386, tag: release-app_5.15-384, origin/release-app_5.15) AND-8502 updated strings
+|/  
+* 05cbbff6 - (tag: release-app_5.15-382, tag: develop-381) AND-8016 added NFC unavailability error
+* d48b1db3 - (tag: develop-380) AND-8164 return Card dto on addBackupCard
+* 5ea65bfe - (tag: release-app_5.14-379, tag: develop-378, origin/release-app_5.14) AND-7953 bump minSdk to 24 API
+* cb7e36eb - (tag: develop-377) AND-7885 possible nfc delay fixes
+* 87e4c584 - (tag: release-app_5.13-376, tag: develop-375, origin/release-app_5.13) AND-7647 updated localization
+* 7d70626d - (tag: develop-374) AND-7638 fixed scope cancelling
+* 10931ad8 - AND-7627 [Biometrics] Removed biometrics status clearing on app pause
+* 48d41112 - AND-7627 [Biometrics] Added isInitialized flag to AuthenticationManger
+*   2cd2fc11 - (tag: develop-370) Merge pull request #392 from tangem/merge_5.12_dev
+|\  
+| *   1f3c7824 - Merge branch 'develop' into merge_5.12_dev
+| |\  
+| |/  
+|/|   
+* | 3f681591 - (tag: develop-368) Update README.md
+* | d74d2628 - Update README.md
+* | 354a5c92 - (tag: develop-366) AND-6305 slip some error on derivation
+| * 3d09844c - (tag: release-app_5.12-369) AND-7485 Improved authentication manager initialization
+| * 1fa7d518 - (tag: release-app_5.12-367) AND-7444 [Floating] Infinite bottom sheet after scanning card
+|/  
+* fa5028a8 - (tag: release-app_5.12-364, tag: develop-362) AND-7105 backup cards count check fix
+* a2ad19e5 - (tag: develop-360) AND-7236 Fix problem with recreating dialog
+* 7189725c - (tag: develop-359) AND-7179 Design PreflightReadFilter
+*   556e44b5 - (tag: develop-358) Merge pull request #378 from tangem/feature/AND-7118_fix_session_lifecycle
+|\  
+| * b4f9ab28 - AND-7118 Fixed detekt.
+| * 447dee1b - AND-7118 Fixed session lifecycle.
+|/  
+* 847c4d3e - (tag: develop-357) AND-7076 sync FinalizeBackupCardTask with ios
+* 40ee9337 - (tag: develop-356) AND-6953 [Biometrics] Made migration of master key configs safer
+* ed796d22 - (tag: develop-355) AND-7095 Fixed nfc enable dialog crash on start.
+*   9e33d300 - (tag: develop-354) Merge pull request #374 from tangem/bugfix/AND-4923-bls-key-gen-fix
+|\  
+| * 05566f57 - AND-4923 Fixed error generating keys on Bls curve with certain seed phrase
+|/  
+* eb4dabe4 - (tag: develop-351, tag: develop-350) AND-6864 fixed double call scan result
+*   cb3d61c9 - (tag: develop-349) Merge pull request #372 from tangem/feature/AND-6475_update_errors_text
+|\  
+| *   66e5ac99 - Merge branch 'develop' into feature/AND-6475_update_errors_text
+| |\  
+| |/  
+|/|   
+* |   cb3e489a - (tag: develop-348) Merge pull request #364 from tangem/tech/update-codeowners
+|\ \  
+| * \   5e2f1572 - Merge branch 'develop' into tech/update-codeowners
+| |\ \  
+| |/ /  
+|/| |   
+* | | 8655ab90 - (tag: develop-347) AND-6861 remove nexus
+* | | 9230dadc - (tag: develop-346) AND-6640 fix error in command in scope of task
+* | |   6b919643 - (tag: develop-345) Merge pull request #369 from tangem/merge_5.9_dev
+|\ \ \  
+| * \ \   69549ece - Merge branch 'develop' into merge_5.9_dev
+| |\ \ \  
+| |/ / /  
+|/| | |   
+| * | |   8fa34e9d - (tag: release-app_5.9-343, tag: release-app_5.10-352, origin/release-app_5.9) Merge pull request #366 from tangem/bugfix/AND-5647-crash_on_NFC_dialog_show
+| |\ \ \  
+| | * | | cd282c3d - AND-5647 fixed crash on NFC dialog show
+| * | | |   c7b92c48 - (tag: release-app_5.9-342) Merge pull request #367 from tangem/merge_5.8_to_5.9
+| |\ \ \ \  
+| | |/ / /  
+| |/| | |   
+| | * | |   1757709f - (tag: release-app_5.8-341, origin/release-app_5.8) Merge pull request #365 from tangem/bugfix/AND-6643_fix_biometric_crash
+| | |\ \ \  
+| | | * | | 4dc97b09 - AND-6643 [Biometrics] Fixed a crash that occurred when checking biometrics availability
+| | |/ / /  
+| | | * / dd006b80 - Codeowners updated
+| | |/ /  
+| |/| |   
+| | | * b1da6cf6 - AND-6475 Updated error texts.
+| |_|/  
+|/| |   
+* | |   e62d5626 - (tag: develop-344) Merge pull request #368 from tangem/feature/AND-6615_add_card_mocks
+|\ \ \  
+| |/ /  
+|/| |   
+| * | e416171c - AND-6615 Exposed settings constructor for creating mocks in the app.
+|/ /  
+* |   f1f26068 - (tag: release-app_5.9-340, tag: develop-339) Merge pull request #363 from tangem/merge_5.8_dev_2
+|\ \  
+| * \   598c9bd3 - Merge branch 'develop' into merge_5.8_dev_2
+| |\ \  
+| |/ /  
+|/| /   
+| |/    
+* |   7cc1dd38 - (tag: develop-337) Merge pull request #361 from tangem/merge_5.8_dev
+|\ \  
+| * \   42cb60e4 - Merge branch 'develop' into merge_5.8_dev
+| |\ \  
+| |/ /  
+|/| |   
+* | |   87569905 - (tag: develop-334) Merge pull request #358 from tangem/feature/AND-6123_run_neitral_build_on_release_branches
+|\ \ \  
+| * | | 268c6c5e - AND-6123 Run neutral-build.yml workflow on release branches
+|/ / /  
+| | * 217eb966 - (tag: release-app_5.8-338) [CI] run tests on pull request
+| | * 9d5726f0 - AND-6517 [Biometrics] Added locking when storing data to "AuthenticatedStorage"
+| |/  
+| *   6d081306 - (tag: release-app_5.8-336) Merge pull request #360 from tangem/bugfix/AND-6436_biometrics_invalidation_check
+| |\  
+| | * 30555429 - AND-6436 [Biometrics] Improved data receiving in 'AuthenticatedStorage'
+| | * 20484ac1 - AND-6436 [Biometrics] Added the key invalidation check to a user authentication
+| | * 6aef5742 - AND-6436 [Biometrics] Added cipher for a user authentication params
+| |/  
+| * 9520d122 - (tag: release-app_5.8-335) Merge pull request #359 from tangem/bugfix/AND-6313_biometry_fix
+|/| 
+| * 55ba0705 - AND-6313 [Biometrics] Fixed review issues
+| * 648a5e71 - AND-6313 [Biometrics] Improved AndroidKeystoreManager logging
+| * ae462689 - AND-6313 [Biometrics] Added migrations to work with different master key configurations
+| * 889f3491 - AND-6313 [Biometrics] Added the ability to work with different master key configurations
+| * a7bc4137 - AND-6313 [Biometrics] Added authentication timeout
+|/  
+*   63212da5 - (tag: release-app_5.8-333, tag: develop-332) Merge pull request #357 from tangem/merge_5.7.1_dev
+|\  
+| *   b824864f - Merge branch 'develop' into merge_5.7.1_dev
+| |\  
+| |/  
+|/|   
+* | 6711c6f6 - (tag: develop-331) AND-6265 Add biometric logging level
+ /  
+* b7b48e03 - (tag: release-app_5.7-330, origin/release-app_5.7) AND-6182 [Biometrics] Improved UserCodeRepository
+* f3bb082e - AND-6182 [Biometrics] Added the ability to retrieve multiple keys from a key store in a single request
+* 8ebad3c0 - AND-6182 [Biometrics] Improved AuthenticationManager

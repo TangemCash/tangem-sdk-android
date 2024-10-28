@@ -69,9 +69,15 @@ class NfcReader : CardReader {
 
     private fun connect(isoDep: IsoDep) {
         Log.nfc { "connect" }
-        isoDep.connect()
-        isoDep.close()
-        isoDep.connect()
+        if (isoDep.isConnected) {
+            Log.nfc { "already connected close and reconnect" }
+            isoDep.closeInternal()
+            Thread.sleep(CONNECTION_DELAY)
+            isoDep.connectInternal()
+        } else {
+            isoDep.connectInternal()
+            Log.nfc { "connected" }
+        }
         isoDep.timeout = ISO_DEP_TIMEOUT_MS
     }
 
@@ -102,6 +108,7 @@ class NfcReader : CardReader {
                         callback.invoke(CompletionResult.Success(rApdu))
                     }
                 }
+
                 is CompletionResult.Failure -> callback.invoke(CompletionResult.Failure(result.error))
             }
         }
@@ -116,15 +123,15 @@ class NfcReader : CardReader {
 
     override fun transceiveRaw(apduData: ByteArray, callback: CompletionCallback<ByteArray?>) {
         val rawResponse: ByteArray? = try {
-            Log.nfc { apduData.toHexString() }
+            Log.nfc { "transceiveRaw: " + apduData.toHexString() }
             transcieveAndLog(apduData)
         } catch (exception: TagLostException) {
-            Log.nfc { "ERROR transceiving data: ${exception.localizedMessage}" }
+            Log.nfc { "ERROR transceiving data TagLostException: $exception" }
             callback.invoke(CompletionResult.Failure(TangemSdkError.TagLost()))
             nfcTag = null
             return
         } catch (exception: Exception) {
-            Log.nfc { "ERROR transceiving data: ${exception.localizedMessage}" }
+            Log.nfc { "ERROR transceiving data Exception: $exception" }
             tryHandleNfcError(exception, callback)
             nfcTag = null
             return
@@ -135,6 +142,9 @@ class NfcReader : CardReader {
     private fun transcieveAndLog(apduData: ByteArray): ByteArray? {
         Log.nfc { "transcieve..." }
         val startTime = System.currentTimeMillis()
+        val isExtendedLengthApduSupported = nfcTag?.isoDep?.isExtendedLengthApduSupported
+        Log.nfc { "isExtendedLengthApduSupported $isExtendedLengthApduSupported" }
+        Log.nfc { "transcieveAndLog: isoDep isConnected = " + nfcTag?.isoDep?.isConnected }
         val rawResponse = nfcTag?.isoDep?.transceive(apduData)
         val finishTime = System.currentTimeMillis()
         Log.nfc { "transcieve success: [${finishTime - startTime}] ms" }
@@ -161,6 +171,7 @@ class NfcReader : CardReader {
                 Log.nfc { "read Slix tag error: ${response.exception.message}" }
                 callback.invoke(CompletionResult.Failure(TangemSdkError.ErrorProcessingCommand()))
             }
+
             is SlixReadResult.Success -> {
                 Log.nfc { "read Slix tag succeed" }
                 callback.invoke(CompletionResult.Success(ResponseApdu(response.data)))
@@ -170,5 +181,6 @@ class NfcReader : CardReader {
 
     private companion object {
         const val ISO_DEP_TIMEOUT_MS = 240_000
+        const val CONNECTION_DELAY = 100L
     }
 }

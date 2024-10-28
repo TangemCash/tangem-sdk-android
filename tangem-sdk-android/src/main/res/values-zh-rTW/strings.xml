@@ -1,21 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="attestation_failed_card">此卡可能是生產樣本或偽造品。您繼續操作的話請自擔風險</string>
+    <string name="attestation_failed_card">This card may be production sample or counterfeit. You can continue at your own risk.</string>
     <string name="attestation_failed_dev_card">這是一張開發卡。其真實性無從考證。不接受此卡作為付款方式。</string>
-    <string name="attestation_online_failed_body">目前無法完成卡的在線認證。您可以自行承擔風險並稍後重試、立即重試或取消操作</string>
+    <string name="attestation_online_failed_body">At the moment, online attestation of the card cannot be performed. You can continue at your own risk or try again later.</string>
     <string name="attestation_online_failed_title">在線認證失敗</string>
-    <string name="attestation_warning_attest_wallets">運行太多的 Attest Wallet 或 Sign 看起來很可疑。</string>
+    <string name="attestation_warning_attest_wallets">Suspicious use of the wallet on the card has been detected.</string>
     <string name="backup_add_backup_card_message">完全按照上圖所示連接手機和要用作備份的卡</string>
-    <string name="backup_finalize_backup_card_message_format">完全按照上面顯示的方式連接您的手機和編號為 %s 的備用卡</string>
+    <string name="backup_finalize_backup_card_message_format">Tap the card with number %s to your phone exactly as shown above.</string>
+    <string name="backup_finalize_backup_ring_message">Tap the ring to your phone exactly as shown above.</string>
     <string name="backup_finalize_primary_card_message_format">完全按照上面顯示的方式連接您的手機和編號為 %s 的主卡</string>
+    <string name="backup_finalize_primary_ring_message">Connect your phone and the primary ring as it shown above.</string>
     <string name="backup_prepare_primary_card_message">完全按照上圖所示連接手機和主卡</string>
     <string name="backup_prepare_primary_card_message_format">完全按照上面顯示的方式連接您的手機和編號為 %s 的主卡</string>
     <string name="biometric_prompt_title">金庫解鎖</string>
     <string name="common_cancel">取消</string>
+    <string name="common_card">card</string>
+    <string name="common_card_or_ring">card or ring</string>
     <string name="common_continue">繼續</string>
     <string name="common_error">錯誤</string>
     <string name="common_ok">OK</string>
     <string name="common_retry">重試</string>
+    <string name="common_ring">ring</string>
     <string name="common_success">成功</string>
     <string name="common_understand">我明白</string>
     <string name="common_warning">警告</string>
@@ -23,11 +28,13 @@
     <string name="dialog_nfc_enable_title">啟用 NFC？</string>
     <string name="error_already_created">已創建錢包</string>
     <string name="error_backup_card_already_added">此卡已添加到列表中</string>
+    <string name="error_backup_failed_already_created">This card cannot be used as a backup because it already contains a wallet. Ensure that no funds are stored on the card by scanning it in the app. Then, reset it to factory settings.</string>
     <string name="error_backup_not_empty_wallets">這張卡已經有錢包了。如果要繼續，您必須先將其重置為出廠設置</string>
     <string name="error_backup_wrong_card">此卡不能作為備用卡使用。錯誤代碼：%s。</string>
     <string name="error_card_verification_failed">卡驗證失敗</string>
     <string name="error_extended_apdu_not_supported">您的手機似乎不完全支持 NFC 協議。請嘗試使用其他手機進行此操作。</string>
     <string name="error_file_not_found">文件未找到</string>
+    <string name="error_no_active_backup">The selected card cannot be used to reset the card access code, because there is no backup on it. Please contact support team.</string>
     <string name="error_no_remaining_signatures">您無法使用此錢包簽署數據，因為該卡已達到其簽名限制</string>
     <string name="error_not_activated">此卡尚未激活</string>
     <string name="error_old_firmware">該命令需要具有不同固件版本的卡</string>
@@ -35,13 +42,13 @@
     <string name="error_pin_cannot_be_default_format">%s 不能更改為此值。 請輸入另一個</string>
     <string name="error_pin_required_format">%s 是必須的</string>
     <string name="error_pin_too_short_format">%1$s 必須至少有 %2$d 個字符長</string>
-    <string name="error_purge_prohibited">此卡的配置不允許您清除錢包</string>
+    <string name="error_purge_prohibited">The wallet cannot be erased</string>
     <string name="error_reset_wrong_card">此卡不能用於代碼恢復。錯誤代碼：%s。</string>
     <string name="error_user_cancelled">用戶取消了操作</string>
     <string name="error_user_code_recovery_disabled">無法使用此卡重置訪問密碼</string>
     <string name="error_wrong_card_number_with_card_id">您掃了另一張卡片。 請點擊卡片 %s</string>
     <string name="error_wrong_card_number_without_card_id">你掃了另一張牌</string>
-    <string name="error_wrong_card_type">此卡不適用於此應用</string>
+    <string name="error_wrong_card_type">This application is not designed to work with this card or needs to be updated</string>
     <string name="error_wrong_pin_format">錯誤 %s</string>
     <string name="generic_error_code">操作過程中發生錯誤。代碼: %s</string>
     <string name="how_to_button">如何</string>
@@ -56,7 +63,7 @@
     <string name="how_to_unknown_nothing_happened">什麼也沒發生？ 嘗試從手機中取出卡，然後再放回去</string>
     <string name="how_to_unknown_tap_card">將卡片輕觸手機背面</string>
     <string name="issuer_signature_loading_failed">無法從服務器加載卡的認證。稍後再試</string>
-    <string name="nfc_session_timeout">會話超時。請再試一遍</string>
+    <string name="nfc_session_timeout">Incomplete process. To finalize the operation, kindly tap the card again</string>
     <string name="pin1">訪問密碼</string>
     <string name="pin2">密碼</string>
     <string name="pin_change_new_code_format">新 %s</string>
@@ -70,7 +77,7 @@
     <string name="reset_codes_linked_card">連接卡片</string>
     <string name="reset_codes_message_body_backup">掃描連接的卡片</string>
     <string name="reset_codes_message_body_restore">首先，為恢復過程準備卡片</string>
-    <string name="reset_codes_message_body_restore_final">再次掃描恢復卡片</string>
+    <string name="reset_codes_message_body_restore_final">Tap again the card on which you want to restore the access code</string>
     <string name="reset_codes_message_title_backup">掃描備用卡片</string>
     <string name="reset_codes_message_title_restore">點按要恢復的卡片</string>
     <string name="reset_codes_scan_confirmation_card">掃描另一張鏈接的卡片</string>
@@ -82,7 +89,9 @@
     <string name="view_delegate_header_card">卡片</string>
     <string name="view_delegate_scan">已準備好掃描</string>
     <string name="view_delegate_scan_description">如上圖觸碰卡片並按住直到操作結束</string>
+    <string name="view_delegate_scan_description_format">Tap the %s as shown above and hold until the end of the operation</string>
     <string name="view_delegate_security_delay">長按</string>
     <string name="view_delegate_security_delay_description">為確保安全，請持有卡直至操作完成</string>
-    <string name="wallet_not_found">此卡不包含當前錢包</string>
+    <string name="view_delegate_security_delay_description_format">To ensure security please hold the %s until the operation is complete</string>
+    <string name="wallet_not_found">Looks like you got the wrong card. The operation cannot be performed with this card.</string>
 </resources>

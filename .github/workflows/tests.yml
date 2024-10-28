@@ -6,6 +6,7 @@ on:
     - 'release/**'
     - 'master'
     - 'develop'
+    - 'release-app_**'
   workflow_dispatch:
 
 env:

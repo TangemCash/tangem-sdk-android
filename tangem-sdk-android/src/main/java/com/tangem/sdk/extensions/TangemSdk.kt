@@ -12,15 +12,15 @@ import com.tangem.TangemSdk
 import com.tangem.TangemSdkLogger
 import com.tangem.common.authentication.AuthenticationManager
 import com.tangem.common.authentication.DummyAuthenticationManager
-import com.tangem.common.authentication.DummyKeystoreManager
-import com.tangem.common.authentication.KeystoreManager
+import com.tangem.common.authentication.keystore.DummyKeystoreManager
+import com.tangem.common.authentication.keystore.KeystoreManager
 import com.tangem.common.core.Config
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.crypto.bip39.Wordlist
 import com.tangem.sdk.DefaultSessionViewDelegate
-import com.tangem.sdk.NfcLifecycleObserver
 import com.tangem.sdk.authentication.AndroidAuthenticationManager
 import com.tangem.sdk.authentication.AndroidKeystoreManager
+import com.tangem.sdk.nfc.AndroidNfcAvailabilityProvider
 import com.tangem.sdk.nfc.NfcManager
 import com.tangem.sdk.storage.create
 import java.text.DateFormat
@@ -35,9 +35,11 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
+    val nfcAvailabilityProvider = AndroidNfcAvailabilityProvider(activity)
     return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
+        nfcAvailabilityProvider = nfcAvailabilityProvider,
         secureStorage = secureStorage,
         wordlist = Wordlist.getWordlist(activity),
         config = config,
@@ -47,17 +49,20 @@ fun TangemSdk.Companion.init(activity: ComponentActivity, config: Config = Confi
 fun TangemSdk.Companion.initWithBiometrics(activity: FragmentActivity, config: Config = Config()): TangemSdk {
     val secureStorage = SecureStorage.create(activity)
     val nfcManager = TangemSdk.initNfcManager(activity)
-    val authenticationManager = initBiometricManager(activity)
+    val authenticationManager = initAuthenticationManager(activity)
+    val keystoreManager = initKeystoreManager(authenticationManager, secureStorage)
 
     val viewDelegate = DefaultSessionViewDelegate(nfcManager, activity)
     viewDelegate.sdkConfig = config
 
+    val nfcAvailabilityProvider = AndroidNfcAvailabilityProvider(activity)
     return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = viewDelegate,
+        nfcAvailabilityProvider = nfcAvailabilityProvider,
         secureStorage = secureStorage,
         authenticationManager = authenticationManager,
-        keystoreManager = initKeystoreManager(authenticationManager, secureStorage),
+        keystoreManager = keystoreManager,
         wordlist = Wordlist.getWordlist(activity),
         config = config,
     )
@@ -75,9 +80,11 @@ fun TangemSdk.Companion.customDelegate(
         this.sdkConfig = config
     }
 
+    val nfcAvailabilityProvider = AndroidNfcAvailabilityProvider(activity)
     return TangemSdk(
         reader = nfcManager.reader,
         viewDelegate = safeViewDelegate,
+        nfcAvailabilityProvider = nfcAvailabilityProvider,
         secureStorage = secureStorage,
         wordlist = Wordlist.getWordlist(activity),
         config = config,
@@ -86,8 +93,9 @@ fun TangemSdk.Companion.customDelegate(
 
 fun TangemSdk.Companion.initNfcManager(activity: ComponentActivity): NfcManager {
     val nfcManager = NfcManager()
+    Log.info { "initNfcManager" }
     nfcManager.setCurrentActivity(activity)
-    activity.lifecycle.addObserver(NfcLifecycleObserver(nfcManager))
+    activity.lifecycle.addObserver(nfcManager)
     return nfcManager
 }
 
@@ -113,7 +121,7 @@ fun TangemSdk.Companion.createLogger(formatter: LogFormat? = null): TangemSdkLog
     }
 }
 
-fun TangemSdk.Companion.initBiometricManager(activity: FragmentActivity): AuthenticationManager {
+fun TangemSdk.Companion.initAuthenticationManager(activity: FragmentActivity): AuthenticationManager {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         AndroidAuthenticationManager(activity)
             .also { activity.lifecycle.addObserver(it) }
@@ -131,4 +139,14 @@ fun TangemSdk.Companion.initKeystoreManager(
     } else {
         DummyKeystoreManager()
     }
+}
+
+fun AuthenticationManager.unsubscribe(activity: FragmentActivity) {
+    if (this is AndroidAuthenticationManager) {
+        activity.lifecycle.removeObserver(this)
+    }
+}
+
+fun NfcManager.unsubscribe(activity: FragmentActivity) {
+    activity.lifecycle.removeObserver(this)
 }

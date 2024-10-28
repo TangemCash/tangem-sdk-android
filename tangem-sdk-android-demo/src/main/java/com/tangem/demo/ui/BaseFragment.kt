@@ -52,6 +52,7 @@ import com.tangem.operations.files.FileToWrite
 import com.tangem.operations.files.FileVisibility
 import com.tangem.operations.issuerAndUserData.WriteIssuerExtraDataCommand
 import com.tangem.operations.personalization.entities.CardConfig
+import com.tangem.operations.preflightread.CardIdPreflightReadFilter
 import com.tangem.tangem_demo.R
 import kotlinx.android.synthetic.main.bottom_sheet_response_layout.*
 import kotlinx.coroutines.runBlocking
@@ -464,7 +465,11 @@ abstract class BaseFragment : Fragment() {
             rescan -> {
                 showToast("Need rescan the card after Create/Purge wallet")
                 post(delay) {
-                    val command = PreflightReadTask(PreflightReadMode.FullCardRead, card?.cardId)
+                    val command = PreflightReadTask(
+                        readMode = PreflightReadMode.FullCardRead,
+                        filter = card?.cardId?.let(::CardIdPreflightReadFilter),
+                    )
+
                     sdk.startSessionWithRunnable(command) {
                         postUi { setCard(it, false, callback = callback) }
                     }

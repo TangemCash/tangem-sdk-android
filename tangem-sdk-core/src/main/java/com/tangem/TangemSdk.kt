@@ -6,13 +6,14 @@ import com.tangem.common.UserCode
 import com.tangem.common.UserCodeType
 import com.tangem.common.authentication.AuthenticationManager
 import com.tangem.common.authentication.DummyAuthenticationManager
-import com.tangem.common.authentication.DummyKeystoreManager
-import com.tangem.common.authentication.KeystoreManager
+import com.tangem.common.authentication.keystore.DummyKeystoreManager
+import com.tangem.common.authentication.keystore.KeystoreManager
 import com.tangem.common.card.Card
 import com.tangem.common.card.EllipticCurve
 import com.tangem.common.core.*
 import com.tangem.common.json.*
 import com.tangem.common.nfc.CardReader
+import com.tangem.common.nfc.NfcAvailabilityProvider
 import com.tangem.common.services.Result
 import com.tangem.common.services.secure.SecureStorage
 import com.tangem.common.services.toTangemSdkError
@@ -38,6 +39,8 @@ import com.tangem.operations.personalization.DepersonalizeResponse
 import com.tangem.operations.personalization.PersonalizeCommand
 import com.tangem.operations.personalization.entities.*
 import com.tangem.operations.pins.SetUserCodeCommand
+import com.tangem.operations.preflightread.CardIdPreflightReadFilter
+import com.tangem.operations.preflightread.PreflightReadFilter
 import com.tangem.operations.sign.*
 import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
 import com.tangem.operations.wallet.*
@@ -58,6 +61,7 @@ import kotlinx.coroutines.*
 class TangemSdk(
     private val reader: CardReader,
     private val viewDelegate: SessionViewDelegate,
+    private val nfcAvailabilityProvider: NfcAvailabilityProvider,
     val secureStorage: SecureStorage,
     val wordlist: Wordlist,
     var config: Config = Config(),
@@ -327,8 +331,8 @@ class TangemSdk(
         callback: CompletionCallback<CreateWalletResponse>,
     ) {
         try {
-            val mnemonic = DefaultMnemonic(mnemonic, wordlist)
-            val factory = AnyMasterKeyFactory(mnemonic, passphrase)
+            val defaultMnemonic = DefaultMnemonic(mnemonic, wordlist)
+            val factory = AnyMasterKeyFactory(defaultMnemonic, passphrase)
             val privateKey = factory.makeMasterKey(curve)
 
             startSessionWithRunnable(
@@ -1014,6 +1018,7 @@ class TangemSdk(
      * If null, default message will be used.
      * @param accessCode: Access code that will be used for a card session initialization. If null, Tangem SDK will
      * handle it automatically.
+     * @param preflightReadFilter preset [PreflightReadFilter] will be used instead of internals
      * @param callback: Standard [TangemSdk] callback.
      */
     fun <T> startSessionWithRunnable(
@@ -1022,22 +1027,30 @@ class TangemSdk(
         initialMessage: Message? = null,
         accessCode: String? = null,
         iconScanRes: Int? = null,
+        preflightReadFilter: PreflightReadFilter? = null,
         callback: CompletionCallback<T>,
     ) {
+        if (!nfcAvailabilityProvider.isNfcFeatureAvailable()) {
+            callback(CompletionResult.Failure(TangemSdkError.NfcFeatureIsUnavailable()))
+            return
+        }
         if (checkSession()) {
             callback(CompletionResult.Failure(TangemSdkError.Busy()))
             return
         }
 
         configure()
-        cardSession = makeSession(cardId, initialMessage, accessCode)
-        Thread().run {
-            cardSession?.startWithRunnable(
-                iconScanRes = iconScanRes,
-                runnable = runnable,
-                callback = callback,
-            )
-        }
+        cardSession = makeSession(
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = accessCode,
+            preflightReadFilter = preflightReadFilter,
+        )
+        cardSession?.startWithRunnable(
+            iconScanRes = iconScanRes,
+            runnable = runnable,
+            callback = callback,
+        )
     }
 
     /**
@@ -1060,14 +1073,23 @@ class TangemSdk(
         accessCode: String? = null,
         callback: (session: CardSession, error: TangemError?) -> Unit,
     ) {
+        if (!nfcAvailabilityProvider.isNfcFeatureAvailable()) {
+            callback(cardSession!!, TangemSdkError.NfcFeatureIsUnavailable())
+            return
+        }
         if (checkSession()) {
             callback(cardSession!!, TangemSdkError.Busy())
             return
         }
 
         configure()
-        cardSession = makeSession(cardId, initialMessage, accessCode)
-        Thread().run { cardSession?.start(onSessionStarted = callback) }
+        cardSession = makeSession(
+            cardId = cardId,
+            initialMessage = initialMessage,
+            accessCode = accessCode,
+            preflightReadFilter = CardIdPreflightReadFilter.initOrNull(cardId),
+        )
+        cardSession?.start(onSessionStarted = callback)
     }
 
     /**
@@ -1086,6 +1108,9 @@ class TangemSdk(
         accessCode: String? = null,
         callback: (String) -> Unit,
     ) {
+        if (!nfcAvailabilityProvider.isNfcFeatureAvailable()) {
+            throw TangemSdkError.NfcFeatureIsUnavailable()
+        }
         val converter = MoshiJsonConverter.INSTANCE
         val linkersList: List<JSONRPCLinker> = try {
             JSONRPCLinker.parse(jsonRequest, converter)
@@ -1157,8 +1182,8 @@ class TangemSdk(
         keystoreManager: KeystoreManager,
         secureStorage: SecureStorage,
         config: Config,
-    ): UserCodeRepository? {
-        return if (authenticationManager.canAuthenticate &&
+    ): UserCodeRepository? = runCatching {
+        if (authenticationManager.canAuthenticate &&
             config.userCodeRequestPolicy is UserCodeRequestPolicy.AlwaysWithBiometrics
         ) {
             UserCodeRepository(
@@ -1168,12 +1193,13 @@ class TangemSdk(
         } else {
             null
         }
-    }
+    }.getOrNull()
 
     private fun makeSession(
         cardId: String? = null,
         initialMessage: Message? = null,
         accessCode: String? = null,
+        preflightReadFilter: PreflightReadFilter? = null,
         config: Config = this.config,
     ): CardSession {
         val environment = SessionEnvironment(config, secureStorage)
@@ -1196,6 +1222,7 @@ class TangemSdk(
             jsonRpcConverter = jsonRpcConverter,
             secureStorage = secureStorage,
             initialMessage = initialMessage,
+            preflightReadFilter = preflightReadFilter,
         )
     }
 
