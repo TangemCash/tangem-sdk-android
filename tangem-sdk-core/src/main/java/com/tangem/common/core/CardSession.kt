@@ -38,6 +38,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import java.io.PrintWriter
@@ -89,12 +91,8 @@ class CardSession(
 
     private var resetCodesController: ResetCodesController? = null
 
-    val scope = CoroutineScope(Dispatchers.IO) + CoroutineExceptionHandler { _, throwable ->
-        val sw = StringWriter()
-        throwable.printStackTrace(PrintWriter(sw))
-        val exceptionAsString: String = sw.toString()
-        Log.error { exceptionAsString }
-        throw throwable
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO) + CoroutineExceptionHandler { _, throwable ->
+        handleScopeCoroutineException(throwable)
     }
 
     private var preflightReadMode: PreflightReadMode = PreflightReadMode.FullCardRead
@@ -217,10 +215,12 @@ class CardSession(
         scope.launch {
             reader.tag.asFlow()
                 .onCompletion {
-                    if (it is CancellationException && it.message == TangemSdkError.UserCancelled().customMessage) {
-                        stopWithError(TangemSdkError.UserCancelled(), SessionErrorMoment.CancellingByUser)
+                    val exception = it as? CancellationException ?: return@onCompletion
+                    val cause = exception.cause ?: return@onCompletion
+                    if (cause is TangemSdkError.UserCancelled) {
+                        stopWithError(cause, SessionErrorMoment.CancellingByUser)
                         viewDelegate.dismiss()
-                        onSessionStarted(this@CardSession, TangemSdkError.UserCancelled())
+                        onSessionStarted(this@CardSession, cause)
                     }
                 }
                 .collect {
@@ -381,11 +381,17 @@ class CardSession(
         if (state == CardSessionState.Inactive) return
 
         Log.session { "stop session" }
+        onStopSessionFinalize()
+        reader.stopSession()
+        if (scope.isActive) {
+            scope.cancel()
+        }
+    }
+
+    private fun onStopSessionFinalize() {
         state = CardSessionState.Inactive
         preflightReadMode = PreflightReadMode.FullCardRead
         saveUserCodeIfNeeded()
-        reader.stopSession()
-        scope.cancel()
     }
 
     fun send(apdu: CommandApdu, callback: CompletionCallback<ResponseApdu>) {
@@ -557,6 +563,22 @@ class CardSession(
             }
             userCode?.type == UserCodeType.Passcode && card.isPasscodeSet == true -> {
                 environment.passcode = userCode
+            }
+        }
+    }
+
+    private fun handleScopeCoroutineException(throwable: Throwable) {
+        when (throwable) {
+            is TangemSdkError.UserCancelled -> {
+                onStopSessionFinalize()
+            }
+
+            else -> {
+                val sw = StringWriter()
+                throwable.printStackTrace(PrintWriter(sw))
+                val exceptionAsString: String = sw.toString()
+                Log.error { exceptionAsString }
+                throw throwable
             }
         }
     }
