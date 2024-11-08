@@ -161,11 +161,6 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      */
     class EmptyHashes : TangemSdkError(code = 40902)
 
-    /**
-     * This error is returned when a [com.tangem.operations.SignCommand]
-     * receives hashes of different lengths for signature.
-     */
-    class HashSizeMustBeEqual : TangemSdkError(code = 40903)
     class WalletIsNotCreated : TangemSdkError(code = 40904)
     class SignHashesNotAvailable : TangemSdkError(code = 40905)
 
