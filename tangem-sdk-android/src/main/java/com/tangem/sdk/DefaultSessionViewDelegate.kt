@@ -185,18 +185,33 @@ class DefaultSessionViewDelegate(
         Log.view { "createAndShowState" }
         // Under the hood dialog dismiss could work async and new dialog could be created
         // before old one is dismissed, that leads to 2 dialogs on screen.
-        // Trying to use delay after dismiss previous dialog to avoid this
+        // Create new one in onDismiss callback
         postUI {
-            readingDialog?.dismissInternal()
-        }
-        postUI(DIALOG_CREATION_DELAY) {
-            with(createReadingDialog(activity, iconScanRes)) {
-                Log.view { "createReadingDialog readingDialog $this" }
-                showHowTo(enableHowTo)
-                setInitialMessage(message)
-                setScanImage(sdkConfig.scanTagImage)
-                show(state)
+            if (readingDialog != null) {
+                readingDialog?.setOnDismissListener {
+                    Log.view { "old readingDialog onDismiss callback" }
+                    createAndConfigureDialog(state, enableHowTo, message, iconScanRes)
+                }
+                readingDialog?.dismissInternal()
+            } else {
+                Log.view { "createAndConfigDialog" }
+                createAndConfigureDialog(state, enableHowTo, message, iconScanRes)
             }
+        }
+    }
+
+    private fun createAndConfigureDialog(
+        state: SessionViewDelegateState,
+        enableHowTo: Boolean,
+        message: ViewDelegateMessage? = null,
+        iconScanRes: Int? = null,
+    ) {
+        with(createReadingDialog(activity, iconScanRes)) {
+            Log.view { "createReadingDialog readingDialog $this" }
+            showHowTo(enableHowTo)
+            setInitialMessage(message)
+            setScanImage(sdkConfig.scanTagImage)
+            show(state)
         }
     }
 
@@ -231,7 +246,6 @@ class DefaultSessionViewDelegate(
     }
 
     companion object {
-        private const val DIALOG_CREATION_DELAY = 200L
         private const val DIALOG_NFC_DELAY = 800L
     }
 }
