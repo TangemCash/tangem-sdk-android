@@ -47,7 +47,7 @@ class DefaultSessionViewDelegate(
         iconScanRes: Int?,
         productType: ProductType,
     ) {
-        Log.view { "session started" }
+        Log.view { "onSessionStarted" }
         createAndShowState(
             state = SessionViewDelegateState.Ready(formatCardId(cardId), productType),
             enableHowTo = enableHowTo,
@@ -60,7 +60,7 @@ class DefaultSessionViewDelegate(
     private fun checkNfcEnabled() {
         Log.view { "checkNfcEnabled" }
         // workaround to delay checking isNfcEnabled to let nfcManager become enabled state after enableReaderMode
-        postUI(msTime = 700) {
+        postUI(msTime = DIALOG_NFC_DELAY) {
             Log.view { "checkNfcEnabled isNfcEnabled=${nfcManager.isNfcEnabled}" }
             if (!nfcManager.isNfcEnabled) {
                 nfcEnableDialog?.cancel()
@@ -182,10 +182,16 @@ class DefaultSessionViewDelegate(
         message: ViewDelegateMessage? = null,
         iconScanRes: Int? = null,
     ) {
+        Log.view { "createAndShowState" }
+        // Under the hood dialog dismiss could work async and new dialog could be created
+        // before old one is dismissed, that leads to 2 dialogs on screen.
+        // Trying to use delay after dismiss previous dialog to avoid this
         postUI {
-            readingDialog?.let(NfcSessionDialog::dismissInternal)
-
+            readingDialog?.dismissInternal()
+        }
+        postUI(DIALOG_CREATION_DELAY) {
             with(createReadingDialog(activity, iconScanRes)) {
+                Log.view { "createReadingDialog readingDialog $this" }
                 showHowTo(enableHowTo)
                 setInitialMessage(message)
                 setScanImage(sdkConfig.scanTagImage)
@@ -222,5 +228,10 @@ class DefaultSessionViewDelegate(
 
         val formatter = CardIdFormatter(sdkConfig.cardIdDisplayFormat)
         return formatter.getFormattedCardId(cardId)
+    }
+
+    companion object {
+        private const val DIALOG_CREATION_DELAY = 200L
+        private const val DIALOG_NFC_DELAY = 800L
     }
 }
