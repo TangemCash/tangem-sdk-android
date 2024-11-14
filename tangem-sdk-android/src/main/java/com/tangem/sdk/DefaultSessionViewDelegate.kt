@@ -47,7 +47,7 @@ class DefaultSessionViewDelegate(
         iconScanRes: Int?,
         productType: ProductType,
     ) {
-        Log.view { "session started" }
+        Log.view { "onSessionStarted" }
         createAndShowState(
             state = SessionViewDelegateState.Ready(formatCardId(cardId), productType),
             enableHowTo = enableHowTo,
@@ -60,7 +60,7 @@ class DefaultSessionViewDelegate(
     private fun checkNfcEnabled() {
         Log.view { "checkNfcEnabled" }
         // workaround to delay checking isNfcEnabled to let nfcManager become enabled state after enableReaderMode
-        postUI(msTime = 700) {
+        postUI(msTime = DIALOG_NFC_DELAY) {
             Log.view { "checkNfcEnabled isNfcEnabled=${nfcManager.isNfcEnabled}" }
             if (!nfcManager.isNfcEnabled) {
                 nfcEnableDialog?.cancel()
@@ -182,15 +182,36 @@ class DefaultSessionViewDelegate(
         message: ViewDelegateMessage? = null,
         iconScanRes: Int? = null,
     ) {
+        Log.view { "createAndShowState" }
+        // Under the hood dialog dismiss could work async and new dialog could be created
+        // before old one is dismissed, that leads to 2 dialogs on screen.
+        // Create new one in onDismiss callback
         postUI {
-            readingDialog?.let(NfcSessionDialog::dismissInternal)
-
-            with(createReadingDialog(activity, iconScanRes)) {
-                showHowTo(enableHowTo)
-                setInitialMessage(message)
-                setScanImage(sdkConfig.scanTagImage)
-                show(state)
+            if (readingDialog != null) {
+                readingDialog?.setOnDismissListener {
+                    Log.view { "old readingDialog onDismiss callback" }
+                    createAndConfigureDialog(state, enableHowTo, message, iconScanRes)
+                }
+                readingDialog?.dismissInternal()
+            } else {
+                Log.view { "createAndConfigDialog" }
+                createAndConfigureDialog(state, enableHowTo, message, iconScanRes)
             }
+        }
+    }
+
+    private fun createAndConfigureDialog(
+        state: SessionViewDelegateState,
+        enableHowTo: Boolean,
+        message: ViewDelegateMessage? = null,
+        iconScanRes: Int? = null,
+    ) {
+        with(createReadingDialog(activity, iconScanRes)) {
+            Log.view { "createReadingDialog readingDialog $this" }
+            showHowTo(enableHowTo)
+            setInitialMessage(message)
+            setScanImage(sdkConfig.scanTagImage)
+            show(state)
         }
     }
 
@@ -222,5 +243,9 @@ class DefaultSessionViewDelegate(
 
         val formatter = CardIdFormatter(sdkConfig.cardIdDisplayFormat)
         return formatter.getFormattedCardId(cardId)
+    }
+
+    companion object {
+        private const val DIALOG_NFC_DELAY = 800L
     }
 }

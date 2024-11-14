@@ -52,6 +52,7 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
     }
 
     override fun dismiss() {
+        Log.view { "dismiss" }
         if (!isDismissedProgrammatically.get()) {
             // call it only if dismiss() called by system and not from dismissInternal()
             stateWidgets.forEach { it.onBottomSheetDismiss() }
@@ -67,6 +68,7 @@ open class BaseSdkDialog(context: Context) : BottomSheetDialog(context) {
      * StateWidget.onBottomSheetDismiss() callback
      */
     fun dismissInternal() {
+        Log.view { "dismissInternal" }
         isDismissedProgrammatically.set(true)
         dismiss()
     }
