@@ -76,36 +76,39 @@ class DefaultSessionViewDelegate(
     override fun onSessionStopped(message: Message?) {
         Log.view { "session stopped" }
         stoppedBySession = true
-        readingDialog?.show(SessionViewDelegateState.Success(message))
+        readingDialog?.show(SessionViewDelegateState.Success(message), ::onDialogShown)
     }
 
     override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int, productType: ProductType) {
         Log.view { "showing security delay: $ms, $totalDurationSeconds" }
-        readingDialog?.show(SessionViewDelegateState.SecurityDelay(ms, totalDurationSeconds, productType))
+        readingDialog?.show(
+            SessionViewDelegateState.SecurityDelay(ms, totalDurationSeconds, productType),
+            ::onDialogShown,
+        )
     }
 
     override fun onDelay(total: Int, current: Int, step: Int, productType: ProductType) {
         Log.view { "showing delay" }
-        readingDialog?.show(SessionViewDelegateState.Delay(total, current, step, productType))
+        readingDialog?.show(SessionViewDelegateState.Delay(total, current, step, productType), ::onDialogShown)
     }
 
     override fun onTagLost(productType: ProductType) {
         Log.view { "tag lost" }
-        readingDialog?.show(SessionViewDelegateState.TagLost(productType))
+        readingDialog?.show(SessionViewDelegateState.TagLost(productType), ::onDialogShown)
     }
 
     override fun onTagConnected() {
         Log.view { "tag connected" }
-        readingDialog?.show(SessionViewDelegateState.TagConnected)
+        readingDialog?.show(SessionViewDelegateState.TagConnected, ::onDialogShown)
     }
 
     override fun onWrongCard(wrongValueType: WrongValueType) {
         Log.view { "wrong card detected" }
-        readingDialog?.show(SessionViewDelegateState.WrongCard(wrongValueType))
+        readingDialog?.show(SessionViewDelegateState.WrongCard(wrongValueType), ::onDialogShown)
     }
 
     override fun onError(error: TangemError) {
-        readingDialog?.show(SessionViewDelegateState.Error(error))
+        readingDialog?.show(SessionViewDelegateState.Error(error), ::onDialogShown)
     }
 
     override fun requestUserCode(
@@ -129,6 +132,7 @@ class DefaultSessionViewDelegate(
                     cardId = cardId,
                     callback = callback,
                 ),
+                ::onDialogShown,
             )
         }
     }
@@ -137,7 +141,7 @@ class DefaultSessionViewDelegate(
         Log.view { "showing pin change request with type: $type" }
         val dialog = readingDialog ?: createReadingDialog(activity)
 
-        dialog.show(SessionViewDelegateState.PinChangeRequested(type, cardId, callback))
+        dialog.show(SessionViewDelegateState.PinChangeRequested(type, cardId, callback), ::onDialogShown)
     }
 
     override fun dismiss() {
@@ -176,6 +180,10 @@ class DefaultSessionViewDelegate(
         AttestationFailedDialog.completedWithWarnings(activity, positive)
     }
 
+    private fun onDialogShown() {
+        readingDialog = null
+    }
+
     private fun createAndShowState(
         state: SessionViewDelegateState,
         enableHowTo: Boolean,
@@ -187,7 +195,7 @@ class DefaultSessionViewDelegate(
         // before old one is dismissed, that leads to 2 dialogs on screen.
         // Create new one in onDismiss callback
         postUI {
-            if (readingDialog != null) {
+            if (readingDialog != null && readingDialog?.isShowing == true) {
                 readingDialog?.setOnDismissListener {
                     Log.view { "old readingDialog onDismiss callback" }
                     createAndConfigureDialog(state, enableHowTo, message, iconScanRes)
@@ -211,7 +219,7 @@ class DefaultSessionViewDelegate(
             showHowTo(enableHowTo)
             setInitialMessage(message)
             setScanImage(sdkConfig.scanTagImage)
-            show(state)
+            show(state, ::onDialogShown)
         }
     }
 
