@@ -55,7 +55,7 @@ interface SessionViewDelegate {
     /**
      * It is called when NFC session was completed and a user can take the card away from the Android device.
      */
-    fun onSessionStopped(message: Message? = null)
+    fun onSessionStopped(message: Message? = null, onDialogHidden: () -> Unit)
 
     /**
      * It is called when some error occur during NFC session.

@@ -359,8 +359,9 @@ class CardSession(
      * @param message If null, the default message will be shown.
      */
     private fun stop(message: Message? = null) {
-        viewDelegate.onSessionStopped(message)
-        stopSessionIfActive()
+        viewDelegate.onSessionStopped(message) {
+            stopSessionIfActive()
+        }
     }
 
     /**

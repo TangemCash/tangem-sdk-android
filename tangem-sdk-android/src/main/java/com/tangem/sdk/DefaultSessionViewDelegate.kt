@@ -73,10 +73,13 @@ class DefaultSessionViewDelegate(
         }
     }
 
-    override fun onSessionStopped(message: Message?) {
+    override fun onSessionStopped(message: Message?, onDialogHidden: () -> Unit) {
         Log.view { "session stopped" }
         stoppedBySession = true
-        readingDialog?.show(SessionViewDelegateState.Success(message), ::onDialogShown)
+        readingDialog?.show(SessionViewDelegateState.Success(message)) {
+            onDialogShown()
+            onDialogHidden()
+        }
     }
 
     override fun onSecurityDelay(ms: Int, totalDurationSeconds: Int, productType: ProductType) {
@@ -191,19 +194,12 @@ class DefaultSessionViewDelegate(
         iconScanRes: Int? = null,
     ) {
         Log.view { "createAndShowState" }
-        // Under the hood dialog dismiss could work async and new dialog could be created
-        // before old one is dismissed, that leads to 2 dialogs on screen.
-        // Create new one in onDismiss callback
         postUI {
-            if (readingDialog != null && readingDialog?.isShowing == true) {
-                readingDialog?.setOnDismissListener {
-                    Log.view { "old readingDialog onDismiss callback" }
-                    createAndConfigureDialog(state, enableHowTo, message, iconScanRes)
-                }
-                readingDialog?.dismissInternal()
-            } else {
+            if (readingDialog == null) {
                 Log.view { "createAndConfigDialog" }
                 createAndConfigureDialog(state, enableHowTo, message, iconScanRes)
+            } else {
+                readingDialog?.show(state, ::onDialogShown)
             }
         }
     }
