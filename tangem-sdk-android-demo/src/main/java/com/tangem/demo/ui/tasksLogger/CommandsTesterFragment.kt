@@ -189,7 +189,7 @@ class SdkTaskSpinnerFragment : BaseFragment() {
         override fun onTagLost(productType: ProductType) {}
         override fun onTagConnected() {}
         override fun onWrongCard(wrongValueType: WrongValueType) {}
-        override fun onSessionStopped(message: Message?) {}
+        override fun onSessionStopped(message: Message?, onDialogHidden: () -> Unit) {}
         override fun onError(error: TangemError) {}
         override fun requestUserCode(
             type: UserCodeType,

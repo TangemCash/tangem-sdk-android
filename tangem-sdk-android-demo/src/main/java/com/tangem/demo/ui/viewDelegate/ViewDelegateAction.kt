@@ -149,7 +149,7 @@ class SecurityDelay : BaseDelegateAction() {
             }
         }
 
-        withMainContext { delegate.onSessionStopped(null) }
+        withMainContext { delegate.onSessionStopped(null) {} }
     }
 }
 
