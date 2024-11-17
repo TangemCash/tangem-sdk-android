@@ -94,7 +94,6 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.UnsupportedWalletConfig,
         is TangemSdkError.WalletIsNotCreated,
         is TangemSdkError.WalletIsPurged,
-        is TangemSdkError.HashSizeMustBeEqual,
         is TangemSdkError.SignHashesNotAvailable,
         is TangemSdkError.CardVerificationFailed,
         is TangemSdkError.NonHardenedDerivationNotSupported,
