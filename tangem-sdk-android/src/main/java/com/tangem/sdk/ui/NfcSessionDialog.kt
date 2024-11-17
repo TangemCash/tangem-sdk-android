@@ -87,7 +87,7 @@ class NfcSessionDialog(
         stateWidgets.add(messageWidget)
         stateWidgets.add(howToTapWidget)
 
-        headerWidget.onHowTo = { show(SessionViewDelegateState.HowToTap) }
+        headerWidget.onHowTo = { show(SessionViewDelegateState.HowToTap) {} }
 
         behavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
@@ -112,7 +112,7 @@ class NfcSessionDialog(
     }
 
     @Suppress("LongMethod", "ComplexMethod")
-    fun show(state: SessionViewDelegateState) {
+    fun show(state: SessionViewDelegateState, onDialogShowed: () -> Unit) {
         postUI {
             if (ownerActivity?.isFinishing == true) return@postUI
             if (!this.isShowing) {
@@ -121,7 +121,7 @@ class NfcSessionDialog(
 
             when (state) {
                 is SessionViewDelegateState.Ready -> onReady(state)
-                is SessionViewDelegateState.Success -> onSuccess(state)
+                is SessionViewDelegateState.Success -> onSuccess(state, onDialogShowed)
                 is SessionViewDelegateState.Error -> onError(state)
                 is SessionViewDelegateState.SecurityDelay -> onSecurityDelay(state)
                 is SessionViewDelegateState.Delay -> onDelay(state)
@@ -144,10 +144,13 @@ class NfcSessionDialog(
         setStateAndShow(state, headerWidget, touchCardWidget, messageWidget)
     }
 
-    private fun onSuccess(state: SessionViewDelegateState.Success) {
+    private fun onSuccess(state: SessionViewDelegateState.Success, onDialogShowed: () -> Unit) {
         setStateAndShow(state, headerWidget, progressStateWidget, messageWidget)
         performHapticFeedback()
-        postUI(msTime = 1000) { dismissInternal() }
+        postUI(msTime = 100) {
+            dismissInternal()
+            onDialogShowed()
+        }
     }
 
     private fun onError(state: SessionViewDelegateState.Error) {
@@ -274,7 +277,7 @@ class NfcSessionDialog(
 
             howToTapWidget.previousState?.let {
                 howToTapWidget.setState(it)
-                show(it)
+                show(it) {}
             }
             howToTapWidget.previousState = null
         }
