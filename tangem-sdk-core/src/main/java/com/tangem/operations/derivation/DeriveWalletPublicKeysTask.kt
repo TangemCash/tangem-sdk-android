@@ -55,9 +55,18 @@ class DeriveWalletPublicKeysTask(
                         is TangemSdkError.WalletNotFound,
                         is TangemSdkError.UnsupportedCurve,
                         -> {
+                            // continue derivation
                             Log.error { "Error: ${result.error}" }
                         }
-                        else -> callback(CompletionResult.Failure(result.error))
+                        else -> {
+                            if (keys.keys.isEmpty()) {
+                                callback(CompletionResult.Failure(result.error))
+                            } else {
+                                Log.error { "Error: ${result.error}" }
+                                // return partial response
+                                callback(CompletionResult.Success(ExtendedPublicKeysMap(keys)))
+                            }
+                        }
                     }
                 }
             }
