@@ -93,6 +93,8 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
     }
 
     override fun onStartSession() {
+        disableReaderMode()
+        Thread.sleep(DELAY_BEFORE_ENABLE)
         enableReaderModeIfNfcEnabled()
     }
 
@@ -142,5 +144,6 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
             NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS
 
         const val IGNORE_DEBOUNCE_MS = 1_500
+        private const val DELAY_BEFORE_ENABLE = 200L
     }
 }
