@@ -1089,6 +1089,7 @@ class TangemSdk(
             accessCode = accessCode,
             preflightReadFilter = CardIdPreflightReadFilter.initOrNull(cardId),
         )
+
         cardSession?.start(onSessionStarted = callback)
     }
 
