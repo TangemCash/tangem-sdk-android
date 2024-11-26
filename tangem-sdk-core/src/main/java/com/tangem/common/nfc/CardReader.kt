@@ -54,10 +54,23 @@ interface CardReader {
     fun resumeSession()
 
     fun readSlixTag(callback: CompletionCallback<ResponseApdu>)
+
+    /**
+     * Some devices (Samsung) could disable reader mode when open camera inside app,
+     * after this we should call [forceEnableReaderMode] manually
+     */
+    fun forceEnableReaderMode()
+
+    /**
+     * Use for some cases when you need to [forceDisableReaderMode] manually,
+     * don't forget call [forceEnableReaderMode] after this
+     */
+    fun forceDisableReaderMode()
 }
 
 interface ReadingActiveListener {
     var readingIsActive: Boolean
 
-    fun onStartSession()
+    fun onForceEnableReadingMode()
+    fun onForceDisableReadingMode()
 }
