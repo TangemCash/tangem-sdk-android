@@ -58,4 +58,6 @@ interface CardReader {
 
 interface ReadingActiveListener {
     var readingIsActive: Boolean
+
+    fun onStartSession()
 }

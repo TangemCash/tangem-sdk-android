@@ -48,6 +48,7 @@ class NfcReader : CardReader {
         scope?.launchWithLock(readerMutex) {
             Log.nfc { "start NFC session, thread ${Thread.currentThread().id}" }
             nfcTag = null
+            listener?.onStartSession()
             listener?.readingIsActive = true
         }
     }
@@ -62,6 +63,7 @@ class NfcReader : CardReader {
     override fun resumeSession() {
         scope?.launchWithLock(readerMutex) {
             Log.nfc { "resume NFC session, thread ${Thread.currentThread().id}" }
+            listener?.onStartSession()
             listener?.readingIsActive = true
         }
     }
@@ -73,24 +75,32 @@ class NfcReader : CardReader {
                 return@launchWithLock
             }
             IsoDep.get(tag)?.let { isoDep ->
-                connect(isoDep)
-                nfcTag = NfcTag(TagType.Nfc, isoDep)
+                connect(
+                    isoDep,
+                    onSuccess = {
+                        nfcTag = NfcTag(TagType.Nfc, isoDep)
+                    },
+                    onError = {
+                        nfcTag = null
+                    },
+                )
             }
         }
     }
 
-    private suspend fun connect(isoDep: IsoDep) {
+    private suspend fun connect(isoDep: IsoDep, onSuccess: (IsoDep) -> Unit, onError: () -> Unit) {
         Log.nfc { "connect" }
         if (isoDep.isConnected) {
             Log.nfc { "already connected close and reconnect" }
-            isoDep.closeInternal()
+            isoDep.closeInternal(onError)
             delay(CONNECTION_DELAY)
-            isoDep.connectInternal()
+            isoDep.connectInternal(onError)
         } else {
-            isoDep.connectInternal()
+            isoDep.connectInternal(onError)
             Log.nfc { "connected" }
         }
         isoDep.timeout = ISO_DEP_TIMEOUT_MS
+        onSuccess(isoDep)
     }
 
     override fun stopSession(cancelled: Boolean) {

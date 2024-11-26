@@ -14,7 +14,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.tangem.Log
 import com.tangem.common.extensions.VoidCallback
 import com.tangem.common.nfc.ReadingActiveListener
-import kotlinx.coroutines.plus
 
 /**
  * Helps use NFC, leveraging Android NFC functionality.
@@ -75,14 +74,26 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        enableReaderModeIfNfcEnabled()
         reader.listener = this
     }
 
-    override fun onStop(owner: LifecycleOwner) {
+    override fun onResume(owner: LifecycleOwner) {
+        super.onResume(owner)
+        enableReaderModeIfNfcEnabled()
+    }
+
+    override fun onPause(owner: LifecycleOwner) {
+        super.onPause(owner)
         disableReaderMode()
+    }
+
+    override fun onStop(owner: LifecycleOwner) {
         reader.stopSession(true)
         reader.listener = null
+    }
+
+    override fun onStartSession() {
+        enableReaderModeIfNfcEnabled()
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
@@ -116,7 +127,11 @@ class NfcManager : NfcAdapter.ReaderCallback, ReadingActiveListener, DefaultLife
     private fun ignoreTag(tag: Tag?) {
         Log.nfc { "NFC tag is ignored" }
         nfcAdapter?.ignore(tag, IGNORE_DEBOUNCE_MS, null, null)
-        IsoDep.get(tag)?.closeInternal()
+        IsoDep.get(tag)?.closeInternal(
+            onError = {
+                Log.nfc { "ignoreTag close failure" }
+            },
+        )
     }
 
     private companion object {
