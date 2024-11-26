@@ -48,7 +48,6 @@ class NfcReader : CardReader {
         scope?.launchWithLock(readerMutex) {
             Log.nfc { "start NFC session, thread ${Thread.currentThread().id}" }
             nfcTag = null
-            listener?.onStartSession()
             listener?.readingIsActive = true
         }
     }
@@ -63,7 +62,6 @@ class NfcReader : CardReader {
     override fun resumeSession() {
         scope?.launchWithLock(readerMutex) {
             Log.nfc { "resume NFC session, thread ${Thread.currentThread().id}" }
-            listener?.onStartSession()
             listener?.readingIsActive = true
         }
     }
@@ -76,14 +74,11 @@ class NfcReader : CardReader {
             }
             IsoDep.get(tag)?.let { isoDep ->
                 connect(
-                    isoDep,
+                    isoDep = isoDep,
                     onSuccess = {
                         nfcTag = NfcTag(TagType.Nfc, isoDep)
                     },
-                    onError = {
-                        nfcTag = null
-                    },
-                )
+                ) { }
             }
         }
     }
@@ -207,6 +202,16 @@ class NfcReader : CardReader {
                 callback.invoke(CompletionResult.Success(ResponseApdu(response.data)))
             }
         }
+    }
+
+    override fun forceEnableReaderMode() {
+        Log.nfc { "forceEnableReaderMode" }
+        listener?.onForceEnableReadingMode()
+    }
+
+    override fun forceDisableReaderMode() {
+        Log.nfc { "forceDisableReaderMode" }
+        listener?.onForceDisableReadingMode()
     }
 
     private fun CoroutineScope.launchWithLock(mutex: Mutex, action: suspend () -> Unit) {

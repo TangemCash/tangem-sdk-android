@@ -78,6 +78,24 @@ class TangemSdk(
         CryptoUtils.initCrypto()
     }
 
+    /**
+     * This method enables [NfcAdapter] reader mode if it was disabled
+     * Use carefully, by default sdk enables reader mode automatically
+     * but some devices could disable it in some cases out of lifecycle
+     * For example: launch qr code scanner on Samsung
+     */
+    fun forceEnableReaderMode() {
+        reader.forceEnableReaderMode()
+    }
+
+    /**
+     * This method disables [NfcAdapter] reader mode if it was enabled
+     * Don't forget call [forceEnableReaderMode] after this
+     */
+    fun forceDisableReaderMode() {
+        reader.forceDisableReaderMode()
+    }
+
     // region Card operations
     /**
      * This method launches a [ScanTask] on a new thread.
