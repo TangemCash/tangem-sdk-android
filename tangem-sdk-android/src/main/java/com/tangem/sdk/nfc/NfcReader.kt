@@ -206,6 +206,7 @@ class NfcReader : CardReader {
 
     override fun forceEnableReaderMode() {
         Log.nfc { "forceEnableReaderMode" }
+        Thread.sleep(FORCE_ENABLE_READER_MODE_DELAY)
         listener?.onForceEnableReadingMode()
     }
 
@@ -225,5 +226,6 @@ class NfcReader : CardReader {
     private companion object {
         const val ISO_DEP_TIMEOUT_MS = 240_000
         const val CONNECTION_DELAY = 100L
+        const val FORCE_ENABLE_READER_MODE_DELAY = 500L
     }
 }
