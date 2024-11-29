@@ -73,24 +73,29 @@ class NfcReader : CardReader {
                 return@launchWithLock
             }
             IsoDep.get(tag)?.let { isoDep ->
-                connect(isoDep)
-                nfcTag = NfcTag(TagType.Nfc, isoDep)
+                connect(
+                    isoDep = isoDep,
+                    onSuccess = {
+                        nfcTag = NfcTag(TagType.Nfc, isoDep)
+                    },
+                ) { }
             }
         }
     }
 
-    private suspend fun connect(isoDep: IsoDep) {
+    private suspend fun connect(isoDep: IsoDep, onSuccess: (IsoDep) -> Unit, onError: () -> Unit) {
         Log.nfc { "connect" }
         if (isoDep.isConnected) {
             Log.nfc { "already connected close and reconnect" }
-            isoDep.closeInternal()
+            isoDep.closeInternal(onError)
             delay(CONNECTION_DELAY)
-            isoDep.connectInternal()
+            isoDep.connectInternal(onError)
         } else {
-            isoDep.connectInternal()
+            isoDep.connectInternal(onError)
             Log.nfc { "connected" }
         }
         isoDep.timeout = ISO_DEP_TIMEOUT_MS
+        onSuccess(isoDep)
     }
 
     override fun stopSession(cancelled: Boolean) {
@@ -199,6 +204,17 @@ class NfcReader : CardReader {
         }
     }
 
+    override fun forceEnableReaderMode() {
+        Log.nfc { "forceEnableReaderMode" }
+        Thread.sleep(FORCE_ENABLE_READER_MODE_DELAY)
+        listener?.onForceEnableReadingMode()
+    }
+
+    override fun forceDisableReaderMode() {
+        Log.nfc { "forceDisableReaderMode" }
+        listener?.onForceDisableReadingMode()
+    }
+
     private fun CoroutineScope.launchWithLock(mutex: Mutex, action: suspend () -> Unit) {
         this.launch {
             mutex.withLock(null) {
@@ -210,5 +226,6 @@ class NfcReader : CardReader {
     private companion object {
         const val ISO_DEP_TIMEOUT_MS = 240_000
         const val CONNECTION_DELAY = 100L
+        const val FORCE_ENABLE_READER_MODE_DELAY = 500L
     }
 }

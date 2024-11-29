@@ -176,7 +176,7 @@ class AttestationTask(
     private fun runOnlineAttestation(scope: CoroutineScope, card: Card) {
         scope.launch(Dispatchers.IO) {
             val isDevelopmentCard = card.firmwareVersion.type == FirmwareVersion.FirmwareType.Sdk
-            val isAttestationFailed = card.attestation.cardKeyAttestation == Attestation.Status.Failed
+            val isAttestationFailed = currentAttestationStatus.cardKeyAttestation == Attestation.Status.Failed
             if (isDevelopmentCard || isAttestationFailed) {
                 onlineAttestationChannel.send(CompletionResult.Failure(TangemSdkError.CardVerificationFailed()))
                 return@launch
