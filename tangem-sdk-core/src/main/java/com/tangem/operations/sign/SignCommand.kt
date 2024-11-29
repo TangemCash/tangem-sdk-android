@@ -19,16 +19,14 @@ import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
 import com.tangem.common.extensions.toByteArray
-import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.common.tlv.TlvBuilder
 import com.tangem.common.tlv.TlvDecoder
 import com.tangem.common.tlv.TlvTag
 import com.tangem.crypto.CryptoUtils
+import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.sign
 import com.tangem.operations.Command
 import com.tangem.operations.CommandResponse
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * @property cardId CID, Unique Tangem card ID number
@@ -36,11 +34,29 @@ import kotlin.math.min
  * @property totalSignedHashes Total number of signed  hashes returned by the wallet since its creation. COS: 1.16+
  */
 @JsonClass(generateAdapter = true)
-class SignResponse(
-    val cardId: String,
+open class SignResponse(
+    open val cardId: String,
     val signatures: List<ByteArray>,
-    val totalSignedHashes: Int?,
-) : CommandResponse
+    open val totalSignedHashes: Int?,
+) : CommandResponse {
+
+    /**
+     * Model to store chunked sign response.
+     * @property cardId CID, Unique Tangem card ID number
+     * @property signedChunk Signed hashes of given chunk
+     * @property totalSignedHashes Total number of signed  hashes returned by the wallet since its creation. COS: 1.16+
+     */
+    @JsonClass(generateAdapter = true)
+    data class PartialSignResponse(
+        override val cardId: String,
+        val signedChunk: SignedChunk,
+        override val totalSignedHashes: Int?,
+    ) : SignResponse(
+        cardId = cardId,
+        signatures = emptyList(),
+        totalSignedHashes = totalSignedHashes,
+    )
+}
 
 /**
  * Signs transaction hashes using a wallet private key, stored on the card.
@@ -56,19 +72,8 @@ internal class SignCommand(
 
     private var terminalKeys: KeyPair? = null
 
-    private val hashSizes = if (hashes.isNotEmpty()) hashes.first().size else 0
-    private val chunkSize: Int = if (hashSizes > 0) {
-        val estimatedChunkSize = PACKAGE_SIZE / hashSizes
-        max(1, min(estimatedChunkSize, MAX_CHUNK_SIZE))
-    } else {
-        MAX_CHUNK_SIZE
-    }
-    private val hashesChunked = hashes.asList().chunked(chunkSize)
+    private val chunkHashesHelper: ChunkedHashesContainer = ChunkedHashesContainer(hashes)
     private var environment: SessionEnvironment? = null
-
-    private val signatures = mutableListOf<ByteArray>()
-    private val currentChunkNumber: Int
-        get() = signatures.size / chunkSize
 
     override fun requiresPasscode(): Boolean = true
 
@@ -104,12 +109,8 @@ internal class SignCommand(
             callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
             return
         }
-        if (hashes.isEmpty()) {
+        if (chunkHashesHelper.isEmpty) {
             callback(CompletionResult.Failure(TangemSdkError.EmptyHashes()))
-            return
-        }
-        if (hashes.any { it.size != hashSizes }) {
-            callback(CompletionResult.Failure(TangemSdkError.HashSizeMustBeEqual()))
             return
         }
         terminalKeys = retrieveTerminalKeys(card, session.environment)
@@ -119,13 +120,16 @@ internal class SignCommand(
 
     private fun sign(session: CardSession, callback: CompletionCallback<SignResponse>) {
         environment = session.environment
-        if (hashesChunked.size > 1) setSignedChunksMessage(session)
+        if (chunkHashesHelper.chunksCount > 1) setSignedChunksMessage(session)
 
         transceive(session) { result ->
             when (result) {
                 is CompletionResult.Success -> {
-                    signatures.addAll(result.data.signatures)
-                    if (signatures.size == hashes.size) {
+                    val response = result.data as SignResponse.PartialSignResponse
+                    chunkHashesHelper.addSignedChunk(response.signedChunk)
+
+                    if (chunkHashesHelper.currentChunkIndex >= chunkHashesHelper.chunksCount) {
+                        val signatures = processSignatures(session.environment)
                         session.environment.card?.wallet(walletPublicKey)?.let {
                             val wallet = it.copy(
                                 totalSignedHashes = result.data.totalSignedHashes,
@@ -135,15 +139,16 @@ internal class SignCommand(
                         }
 
                         val finalResponse = SignResponse(
-                            result.data.cardId,
-                            processSignatures(session.environment, signatures.toList()),
-                            result.data.totalSignedHashes,
+                            cardId = result.data.cardId,
+                            signatures = signatures,
+                            totalSignedHashes = result.data.totalSignedHashes,
                         )
                         callback(CompletionResult.Success(finalResponse))
                     } else {
                         sign(session, callback)
                     }
                 }
+
                 is CompletionResult.Failure -> callback(result)
             }
         }
@@ -153,7 +158,7 @@ internal class SignCommand(
         val message = LocatorMessage(
             headerSource = LocatorMessage.Source(
                 id = StringsLocator.ID.SIGN_MULTIPLE_CHUNKS_PART,
-                formatArgs = arrayOf(currentChunkNumber + 1, hashesChunked.size),
+                formatArgs = arrayOf(chunkHashesHelper.currentChunkIndex + 1, chunkHashesHelper.chunksCount),
             ),
             bodySource = null,
         )
@@ -171,21 +176,23 @@ internal class SignCommand(
     override fun serialize(environment: SessionEnvironment): CommandApdu {
         val walletIndex = environment.card?.wallet(walletPublicKey)?.index ?: throw TangemSdkError.WalletNotFound()
 
-        val dataToSign = hashesChunked[currentChunkNumber].reduce { arr1, arr2 -> arr1 + arr2 }
-        val hashSize = if (hashSizes > 255) hashSizes.toByteArray(2) else hashSizes.toByteArray(1)
+        val chunk = chunkHashesHelper.getCurrentChunk()
+        val hashSize = chunk.hashSize
+        val hashSizeData = if (hashSize > 255) hashSize.toByteArray(2) else hashSize.toByteArray(1)
+        val flattedHashes = chunk.hashes.map { it.data }.reduce { arr1, arr2 -> arr1 + arr2 }
 
         val tlvBuilder = TlvBuilder()
         tlvBuilder.append(TlvTag.Pin, environment.accessCode.value)
         tlvBuilder.append(TlvTag.Pin2, environment.passcode.value)
         tlvBuilder.append(TlvTag.CardId, environment.card?.cardId)
-        tlvBuilder.append(TlvTag.TransactionOutHashSize, hashSize)
-        tlvBuilder.append(TlvTag.TransactionOutHash, dataToSign)
+        tlvBuilder.append(TlvTag.TransactionOutHashSize, hashSizeData)
+        tlvBuilder.append(TlvTag.TransactionOutHash, flattedHashes)
         tlvBuilder.append(TlvTag.Cvc, environment.cvc)
         // Wallet index works only on COS v. 4.0 and higher. For previous version index will be ignored
         tlvBuilder.append(TlvTag.WalletIndex, walletIndex)
 
         terminalKeys?.let {
-            val signedData = dataToSign.sign(it.privateKey)
+            val signedData = flattedHashes.sign(it.privateKey)
             tlvBuilder.append(TlvTag.TerminalTransactionSignature, signedData)
             tlvBuilder.append(TlvTag.TerminalPublicKey, it.publicKey)
         }
@@ -194,21 +201,35 @@ internal class SignCommand(
         return CommandApdu(Instruction.Sign, tlvBuilder.serialize())
     }
 
-    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SignResponse {
+    override fun deserialize(environment: SessionEnvironment, apdu: ResponseApdu): SignResponse.PartialSignResponse {
         val tlvData = deserializeApdu(environment, apdu)
 
         val decoder = TlvDecoder(tlvData)
-        val signature: ByteArray = decoder.decode(TlvTag.WalletSignature)
-        val splittedSignatures = splitSignedSignature(signature, getChunk().count())
 
-        return SignResponse(
-            decoder.decode(TlvTag.CardId),
-            splittedSignatures,
-            decoder.decodeOptional(TlvTag.WalletSignedHashes),
+        val chunk = chunkHashesHelper.getCurrentChunk()
+        val signatureBLOB: ByteArray = decoder.decode(TlvTag.WalletSignature)
+        val signatures = splitSignatureBLOB(signatureBLOB, chunk.hashes.size)
+
+        val signedHashes = chunk.hashes.zip(signatures).map { (hash, signature) ->
+            SignedHash(
+                index = hash.index,
+                data = hash.data,
+                signature = signature,
+            )
+        }
+
+        val signedChunk = SignedChunk(signedHashes)
+
+        return SignResponse.PartialSignResponse(
+            cardId = decoder.decode(TlvTag.CardId),
+            signedChunk = signedChunk,
+            totalSignedHashes = decoder.decode(TlvTag.WalletSignedHashes),
         )
     }
 
-    private fun processSignatures(environment: SessionEnvironment, signatures: List<ByteArray>): List<ByteArray> {
+    private fun processSignatures(environment: SessionEnvironment): List<ByteArray> {
+        val signatures = chunkHashesHelper.getSignatures()
+
         if (!environment.config.canonizeSecp256k1Signatures) return signatures
         val wallet = environment.card?.wallet(walletPublicKey) ?: return signatures
         if (wallet.curve != EllipticCurve.Secp256k1) return signatures
@@ -216,13 +237,7 @@ internal class SignCommand(
         return signatures.map { CryptoUtils.normalize(it) }
     }
 
-    private fun getChunk(): IntRange {
-        val from = currentChunkNumber * chunkSize
-        val to = min(from + chunkSize, hashes.size)
-        return from until to
-    }
-
-    private fun splitSignedSignature(signature: ByteArray, numberOfSignatures: Int): List<ByteArray> {
+    private fun splitSignatureBLOB(signature: ByteArray, numberOfSignatures: Int): List<ByteArray> {
         val signatures = mutableListOf<ByteArray>()
         val signatureSize = signature.size / numberOfSignatures
         for (index in 0 until numberOfSignatures) {
@@ -241,13 +256,5 @@ internal class SignCommand(
         }
 
         return environment.terminalKeys
-    }
-
-    private companion object {
-        // The max answer is 1152 bytes (unencrypted) and 1120 (encrypted).
-        // The worst case is 8 hashes * 64 bytes for ed + 512 bytes of signatures + cardId, SignedHashes + TLV + SW is ok.
-        const val PACKAGE_SIZE = 512
-        // Card limitation
-        const val MAX_CHUNK_SIZE = 10
     }
 }

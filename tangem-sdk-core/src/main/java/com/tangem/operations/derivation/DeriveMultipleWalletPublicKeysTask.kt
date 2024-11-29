@@ -41,7 +41,14 @@ class DeriveMultipleWalletPublicKeysTask(
                     response[key] = result.data
                     derive(keys = keys, index = index + 1, session = session, callback = callback)
                 }
-                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+                is CompletionResult.Failure -> {
+                    if (response.isEmpty()) {
+                        callback(CompletionResult.Failure(result.error))
+                    } else {
+                        // return  partial response
+                        callback(CompletionResult.Success(DerivationTaskResponse(response.toMap())))
+                    }
+                }
             }
         }
     }
