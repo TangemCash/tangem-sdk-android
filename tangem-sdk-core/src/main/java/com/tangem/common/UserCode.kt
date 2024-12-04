@@ -1,12 +1,15 @@
 package com.tangem.common
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.tangem.common.core.SessionEnvironment
 import com.tangem.common.extensions.calculateSha256
 
 @JsonClass(generateAdapter = true)
 class UserCode constructor(
+    @Json(name = "type")
     val type: UserCodeType,
+    @Json(name = "value")
     val value: ByteArray?,
 ) {
     constructor(type: UserCodeType) : this(type, type.defaultValue)
@@ -19,8 +22,12 @@ class UserCode constructor(
     }
 }
 
+@JsonClass(generateAdapter = false)
 enum class UserCodeType(val defaultValue: String) {
+    @Json(name = "AccessCode")
     AccessCode(UserCode.DefaultAccessCode),
+
+    @Json(name = "Passcode")
     Passcode(UserCode.DefaultPasscode),
     ;
 
