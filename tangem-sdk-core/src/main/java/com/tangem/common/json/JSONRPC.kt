@@ -1,5 +1,6 @@
 package com.tangem.common.json
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.tangem.common.core.TangemError
 
@@ -55,18 +56,31 @@ class JSONRPCRequest constructor(
 
 @JsonClass(generateAdapter = true)
 data class JSONRPCResponse(
+    @Json(name = "result")
     val result: Any?,
+    @Json(name = "error")
     val error: JSONRPCError?,
+    @Json(name = "id")
     val id: Int? = null,
+    @Json(name = "jsonrpc")
     val jsonrpc: String = "2.0",
 ) : JSONStringConvertible
 
-data class ErrorData(val code: Int, val message: String)
+@JsonClass(generateAdapter = true)
+data class ErrorData(
+    @Json(name = "code")
+    val code: Int,
+    @Json(name = "message")
+    val message: String,
+)
 
 @JsonClass(generateAdapter = true)
 class JSONRPCError constructor(
+    @Json(name = "code")
     val code: Int,
+    @Json(name = "message")
     val message: String,
+    @Json(name = "data")
     val data: ErrorData? = null,
 ) : JSONStringConvertible {
 
