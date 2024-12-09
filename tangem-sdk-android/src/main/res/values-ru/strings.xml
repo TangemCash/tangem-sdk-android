@@ -85,6 +85,7 @@
     <string name="reset_codes_scan_to_reset">Отсканируйте карту или кольцо для сброса кода</string>
     <string name="reset_codes_success_message">Код успешно сброшен</string>
     <string name="sign_multiple_chunks_part">Подпись части %1$d из %2$d</string>
+    <string name="tangem_never_pregenerate_code_alert">Tangem никогда не продает кошельки вместе с кодом доступа</string>
     <string name="view_delegate_delay">Операция в процессе</string>
     <string name="view_delegate_header_card">Карта</string>
     <string name="view_delegate_scan">Готово к сканированию</string>

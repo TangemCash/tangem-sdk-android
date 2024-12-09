@@ -37,6 +37,15 @@
 
     </FrameLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tangem_never_pregenerate_code_alert"
+        android:layout_marginTop="12dp"
+        android:layout_marginHorizontal="16dp"
+        android:textColor="@color/dark_gray"
+        />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
