@@ -18,6 +18,8 @@ import com.tangem.sdk.SessionViewDelegateState
 import com.tangem.sdk.extensions.hideSoftKeyboard
 import com.tangem.sdk.extensions.showSoftKeyboard
 import com.tangem.sdk.postUI
+import com.tangem.sdk.ui.common.disableAutofill
+import com.tangem.sdk.ui.common.disableContextMenu
 
 /**
  * Created by Anton Zhilenkov on 05/08/2020.
@@ -32,7 +34,6 @@ class PinCodeModificationWidget(
     private val tvScreenTitle: TextView = mainView.findViewById(R.id.tvScreenTitle)
 
     private val tilPinCode: TextInputLayout = mainView.findViewById(R.id.tilPinCode)
-    private val tilNewPinCode: TextInputLayout = mainView.findViewById(R.id.tilNewPinCode)
     private val tilPinCodeConfirm: TextInputLayout = mainView.findViewById(R.id.tilPinCodeConfirm)
 
     private val etPinCode: TextInputEditText = mainView.findViewById(R.id.etPinCode)
@@ -51,6 +52,12 @@ class PinCodeModificationWidget(
     init {
         setStateByMode()
         setupInnerLogic()
+
+        etPinCode.disableContextMenu()
+        etPinCodeConfirm.disableContextMenu()
+
+        etPinCode.disableAutofill()
+        etPinCodeConfirm.disableAutofill()
     }
 
     override fun setState(params: SessionViewDelegateState) {
@@ -73,7 +80,6 @@ class PinCodeModificationWidget(
             Mode.SET -> {
                 tvScreenTitle.text = getFormattedString(R.string.pin_set_code_format, nameOfPin)
                 tilPinCode.hint = nameOfPin
-                tilNewPinCode.visibility = View.GONE
                 tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
                 btnSave.text = getString(R.string.common_continue)
             }
@@ -81,7 +87,6 @@ class PinCodeModificationWidget(
                 tvScreenTitle.text = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
                 tilPinCode.hint = nameOfPin
                 etPinCode.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                tilNewPinCode.visibility = View.GONE
                 tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
                 etPinCodeConfirm.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                 btnSave.text = getString(R.string.common_continue)
