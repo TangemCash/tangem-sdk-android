@@ -17,6 +17,8 @@ import com.tangem.sdk.extensions.localizedDescription
 import com.tangem.sdk.extensions.show
 import com.tangem.sdk.extensions.showSoftKeyboard
 import com.tangem.sdk.postUI
+import com.tangem.sdk.ui.common.disableAutofill
+import com.tangem.sdk.ui.common.disableContextMenu
 
 /**
  * Created by Anton Zhilenkov on 09/08/2020.
@@ -29,23 +31,24 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
     private val etPinCode = mainView.findViewById<TextInputEditText>(R.id.etPinCode)
     private val btnContinue = mainView.findViewById<Button>(R.id.btnContinue)
     private val btnForgotCode = mainView.findViewById<Button>(R.id.btnForgotCode)
-    private val expandingView = mainView.findViewById<View>(R.id.expandingView)
 
     init {
         etPinCode.isSingleLine = true
         etPinCode.imeOptions = EditorInfo.IME_ACTION_DONE
-        etPinCode.setOnEditorActionListener { v, actionId, event ->
+        etPinCode.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 btnContinue.performClick()
-                return@setOnEditorActionListener true
+                true
+            } else {
+                false
             }
-            return@setOnEditorActionListener false
         }
         val hiddenPassword = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         etPinCode.inputType = hiddenPassword
-    }
 
-    fun canExpand(): Boolean = expandingView != null
+        etPinCode.disableContextMenu()
+        etPinCode.disableAutofill()
+    }
 
     override fun setState(params: SessionViewDelegateState) {
         when (params) {
