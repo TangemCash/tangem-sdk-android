@@ -324,6 +324,9 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      * Returns if NFC feature for device is not supported
      */
     class NfcFeatureIsUnavailable : TangemSdkError(code = 50027)
+
+    class CardOfflineVerificationFailed : TangemSdkError(code = 50028)
+
     /**
      * Get error according to the pin type
      * @param userCodeType: Specific user code type

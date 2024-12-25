@@ -10,6 +10,7 @@
         </value>
       </option>
       <option name="LINE_BREAK_AFTER_MULTILINE_WHEN_ENTRY" value="false" />
+      <option name="INDENT_BEFORE_ARROW_ON_NEW_LINE" value="false" />
       <option name="NAME_COUNT_TO_USE_STAR_IMPORT" value="5" />
       <option name="NAME_COUNT_TO_USE_STAR_IMPORT_FOR_MEMBERS" value="3" />
       <option name="ALLOW_TRAILING_COMMA" value="true" />
