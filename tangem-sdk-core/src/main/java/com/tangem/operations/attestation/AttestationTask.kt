@@ -74,7 +74,19 @@ class AttestationTask(
                         currentAttestationStatus = currentAttestationStatus.copy(
                             cardKeyAttestation = Attestation.Status.Failed,
                         )
-                        continueAttestation(session, callback)
+
+                        val isDevelopmentCard =
+                            session.environment.card!!.firmwareVersion.type == FirmwareVersion.FirmwareType.Sdk
+
+                        if (isDevelopmentCard) {
+                            session.viewDelegate.attestationDidFail(
+                                isDevCard = true,
+                                positive = { complete(session, callback) },
+                                negative = { callback(CompletionResult.Failure(TangemSdkError.UserCancelled())) },
+                            )
+                        } else {
+                            callback(CompletionResult.Failure(TangemSdkError.CardOfflineVerificationFailed()))
+                        }
                     } else {
                         callback(CompletionResult.Failure(result.error))
                     }
@@ -93,78 +105,6 @@ class AttestationTask(
             Mode.Full -> {
                 runOnlineAttestation(session.scope, session.environment.card!!)
                 runWalletsAttestation(session, callback)
-            }
-        }
-    }
-
-    private fun runWalletsAttestation(session: CardSession, callback: CompletionCallback<Attestation>) {
-        attestWallets(session) { result ->
-            when (result) {
-                is CompletionResult.Success -> {
-                    // Wallets attestation completed. Update status and continue attestation
-                    val hasWarnings = result.data
-                    val status = if (hasWarnings) Attestation.Status.Warning else Attestation.Status.Verified
-                    currentAttestationStatus = currentAttestationStatus.copy(walletKeysAttestation = status)
-                    runExtraAttestation(session, callback)
-                }
-                is CompletionResult.Failure -> {
-                    // Wallets attestation failed. Update status and continue attestation
-                    if (result.error is TangemSdkError.CardVerificationFailed) {
-                        currentAttestationStatus = currentAttestationStatus.copy(
-                            walletKeysAttestation = Attestation.Status.Failed,
-                        )
-                        runExtraAttestation(session, callback)
-                    } else {
-                        callback(CompletionResult.Failure(result.error))
-                    }
-                }
-            }
-        }
-    }
-
-    private fun runExtraAttestation(session: CardSession, callback: CompletionCallback<Attestation>) {
-        // TODO: ATTEST_CARD_FIRMWARE, ATTEST_CARD_UNIQUENESS
-        waitForOnlineAndComplete(session, callback)
-    }
-
-    private fun attestWallets(session: CardSession, callback: CompletionCallback<Boolean>) {
-        session.scope.launch {
-            val card = session.environment.card!!
-            val walletsKeys = card.wallets.map { it.publicKey }
-            val attestationCommands = walletsKeys.map { AttestWalletKeyCommand(it) }
-
-            // check for hacking attempts with signs
-            var hasWarnings = card.wallets.mapNotNull { it.totalSignedHashes }.any { it > MAX_COUNTER }
-            var shouldReturn = false
-            var flowIsCompleted = false
-
-            if (attestationCommands.isEmpty()) {
-                callback(CompletionResult.Success(hasWarnings))
-                return@launch
-            }
-
-            flow {
-                attestationCommands.forEach { emit(it) }
-            }.onCompletion {
-                flowIsCompleted = true
-            }.collect {
-                if (shouldReturn) return@collect
-
-                it.run(session) { result ->
-                    when (result) {
-                        is CompletionResult.Success -> {
-                            // check for hacking attempts with attestWallet
-                            if (result.data.counter != null && result.data.counter > MAX_COUNTER) {
-                                hasWarnings = true
-                            }
-                            if (flowIsCompleted) callback(CompletionResult.Success(hasWarnings))
-                        }
-                        is CompletionResult.Failure -> {
-                            shouldReturn = true
-                            callback(CompletionResult.Failure(result.error))
-                        }
-                    }
-                }
             }
         }
     }
@@ -222,6 +162,53 @@ class AttestationTask(
         }
     }
 
+    private fun processAttestationReport(session: CardSession, callback: CompletionCallback<Attestation>) {
+        when (currentAttestationStatus.status) {
+            Attestation.Status.Failed,
+            Attestation.Status.Skipped,
+            -> {
+                val isDevelopmentCard = session.environment.card!!.firmwareVersion.type ==
+                    FirmwareVersion.FirmwareType.Sdk
+
+                // Possible production sample or development card
+                if (isDevelopmentCard || session.environment.config.allowUntrustedCards) {
+                    session.viewDelegate.attestationDidFail(
+                        isDevCard = isDevelopmentCard,
+                        positive = { complete(session, callback) },
+                        negative = { callback(CompletionResult.Failure(TangemSdkError.UserCancelled())) },
+                    )
+                } else {
+                    callback(CompletionResult.Failure(TangemSdkError.CardVerificationFailed()))
+                }
+            }
+            Attestation.Status.Verified -> complete(session, callback)
+            Attestation.Status.VerifiedOffline -> {
+                if (session.environment.config.attestationMode == Mode.Offline) {
+                    complete(session, callback)
+                    return
+                }
+
+                session.viewDelegate.attestationCompletedOffline(
+                    positive = { complete(session, callback) },
+                    negative = { callback(CompletionResult.Failure(TangemSdkError.UserCancelled())) },
+                    retry = {
+                        retryOnline(session) { result ->
+                            when (result) {
+                                is CompletionResult.Success -> processAttestationReport(session, callback)
+                                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+                            }
+                        }
+                    },
+                )
+            }
+            Attestation.Status.Warning -> {
+                session.viewDelegate.attestationCompletedWithWarnings {
+                    complete(session, callback)
+                }
+            }
+        }
+    }
+
     private fun retryOnline(session: CardSession, callback: CompletionCallback<Attestation>) {
         onlineAttestationSubscription = null
         onlineAttestationChannel.cancel()
@@ -236,60 +223,76 @@ class AttestationTask(
         waitForOnlineAndComplete(session, callback)
     }
 
-    private fun processAttestationReport(session: CardSession, callback: CompletionCallback<Attestation>) {
-        when (currentAttestationStatus.status) {
-            Attestation.Status.Failed, Attestation.Status.Skipped -> {
-                val isDevelopmentCard = session.environment.card!!.firmwareVersion.type ==
-                    FirmwareVersion.FirmwareType.Sdk
-
-                // Possible production sample or development card
-                if (isDevelopmentCard || session.environment.config.allowUntrustedCards) {
-                    session.viewDelegate.attestationDidFail(
-                        isDevelopmentCard,
-                        {
-                            complete(session, callback)
-                        },
-                    ) {
-                        callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
+    private fun runWalletsAttestation(session: CardSession, callback: CompletionCallback<Attestation>) {
+        attestWallets(session) { result ->
+            when (result) {
+                is CompletionResult.Success -> {
+                    // Wallets attestation completed. Update status and continue attestation
+                    val hasWarnings = result.data
+                    val status = if (hasWarnings) Attestation.Status.Warning else Attestation.Status.Verified
+                    currentAttestationStatus = currentAttestationStatus.copy(walletKeysAttestation = status)
+                    runExtraAttestation(session, callback)
+                }
+                is CompletionResult.Failure -> {
+                    // Wallets attestation failed. Update status and continue attestation
+                    if (result.error is TangemSdkError.CardVerificationFailed) {
+                        currentAttestationStatus = currentAttestationStatus.copy(
+                            walletKeysAttestation = Attestation.Status.Failed,
+                        )
+                        runExtraAttestation(session, callback)
+                    } else {
+                        callback(CompletionResult.Failure(result.error))
                     }
-                } else {
-                    callback(CompletionResult.Failure(TangemSdkError.CardVerificationFailed()))
-                }
-            }
-            Attestation.Status.Verified -> {
-                complete(session, callback)
-            }
-            Attestation.Status.VerifiedOffline -> {
-                if (session.environment.config.attestationMode == Mode.Offline) {
-                    complete(session, callback)
-                    return
-                }
-
-                session.viewDelegate.attestationCompletedOffline(
-                    {
-                        complete(session, callback)
-                    },
-                    {
-                        callback(CompletionResult.Failure(TangemSdkError.UserCancelled()))
-                    },
-                    {
-                        retryOnline(session) { result ->
-                            when (result) {
-                                is CompletionResult.Success -> {
-                                    processAttestationReport(session, callback)
-                                }
-                                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
-                            }
-                        }
-                    },
-                )
-            }
-            Attestation.Status.Warning -> {
-                session.viewDelegate.attestationCompletedWithWarnings {
-                    complete(session, callback)
                 }
             }
         }
+    }
+
+    private fun attestWallets(session: CardSession, callback: CompletionCallback<Boolean>) {
+        session.scope.launch {
+            val card = session.environment.card!!
+            val walletsKeys = card.wallets.map { it.publicKey }
+            val attestationCommands = walletsKeys.map { AttestWalletKeyCommand(it) }
+
+            // check for hacking attempts with signs
+            var hasWarnings = card.wallets.mapNotNull { it.totalSignedHashes }.any { it > MAX_COUNTER }
+            var shouldReturn = false
+            var flowIsCompleted = false
+
+            if (attestationCommands.isEmpty()) {
+                callback(CompletionResult.Success(hasWarnings))
+                return@launch
+            }
+
+            flow {
+                attestationCommands.forEach { emit(it) }
+            }.onCompletion {
+                flowIsCompleted = true
+            }.collect {
+                if (shouldReturn) return@collect
+
+                it.run(session) { result ->
+                    when (result) {
+                        is CompletionResult.Success -> {
+                            // check for hacking attempts with attestWallet
+                            if (result.data.counter != null && result.data.counter > MAX_COUNTER) {
+                                hasWarnings = true
+                            }
+                            if (flowIsCompleted) callback(CompletionResult.Success(hasWarnings))
+                        }
+                        is CompletionResult.Failure -> {
+                            shouldReturn = true
+                            callback(CompletionResult.Failure(result.error))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun runExtraAttestation(session: CardSession, callback: CompletionCallback<Attestation>) {
+        // TODO: ATTEST_CARD_FIRMWARE, ATTEST_CARD_UNIQUENESS
+        waitForOnlineAndComplete(session, callback)
     }
 
     private fun complete(session: CardSession, callback: CompletionCallback<Attestation>) {
