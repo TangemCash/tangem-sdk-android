@@ -11,7 +11,6 @@ import com.tangem.common.apdu.ResponseApdu
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TagType
 import com.tangem.common.core.TangemSdkError
-import com.tangem.common.extensions.toHexString
 import com.tangem.common.nfc.CardReader
 import com.tangem.common.nfc.ReadingActiveListener
 import kotlinx.coroutines.CoroutineScope
@@ -148,7 +147,6 @@ class NfcReader : CardReader {
 
     override fun transceiveRaw(apduData: ByteArray, callback: CompletionCallback<ByteArray?>) {
         val rawResponse: ByteArray? = try {
-            Log.nfc { "transceiveRaw: " + apduData.toHexString() }
             transcieveAndLog(apduData)
         } catch (exception: TagLostException) {
             Log.nfc { "ERROR transceiving data TagLostException: $exception" }
@@ -166,13 +164,10 @@ class NfcReader : CardReader {
 
     private fun transcieveAndLog(apduData: ByteArray): ByteArray? {
         Log.nfc { "transcieve..." }
-        val startTime = System.currentTimeMillis()
         val isExtendedLengthApduSupported = nfcTag?.isoDep?.isExtendedLengthApduSupported
         Log.nfc { "isExtendedLengthApduSupported $isExtendedLengthApduSupported" }
         Log.nfc { "transcieveAndLog: isoDep isConnected = " + nfcTag?.isoDep?.isConnected }
         val rawResponse = nfcTag?.isoDep?.transceive(apduData)
-        val finishTime = System.currentTimeMillis()
-        Log.nfc { "transcieve success: [${finishTime - startTime}] ms" }
         return rawResponse
     }
 

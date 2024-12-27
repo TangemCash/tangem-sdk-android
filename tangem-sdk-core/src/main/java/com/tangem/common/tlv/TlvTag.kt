@@ -27,7 +27,7 @@ enum class TlvValueType {
 /**
  * Contains all TLV tags, with their code and descriptive name.
  */
-enum class TlvTag(val code: Int) {
+enum class TlvTag(val code: Int, val shouldMask: Boolean = false) {
     Unknown(code = 0x00),
     CardId(code = 0x01),
     Status(code = 0x02),
@@ -45,10 +45,10 @@ enum class TlvTag(val code: Int) {
     CreateWalletAtPersonalize(code = 0x0E),
     Health(code = 0x0F),
 
-    Pin(code = 0x10),
-    Pin2(code = 0x11),
-    NewPin(code = 0x12),
-    NewPin2(code = 0x13),
+    Pin(code = 0x10, shouldMask = true),
+    Pin2(code = 0x11, shouldMask = true),
+    NewPin(code = 0x12, shouldMask = true),
+    NewPin2(code = 0x13, shouldMask = true),
     PublicKeyChallenge(code = 0x14),
     PublicKeySalt(code = 0x15),
     Challenge(code = 0x16),
@@ -59,7 +59,7 @@ enum class TlvTag(val code: Int) {
     SessionKeyA(code = 0x1A),
     SessionKeyB(code = 0x1B),
     Pause(code = 0x1C),
-    NewPin3(code = 0x1E),
+    NewPin3(code = 0x1E, shouldMask = true),
     CrExKey(code = 0x1F),
 
     Uid(code = 0x0B),
@@ -94,7 +94,7 @@ enum class TlvTag(val code: Int) {
     PinIsDefault(code = 0x5A),
     Pin2IsDefault(code = 0x59),
 
-    WalletPublicKey(code = 0x60),
+    WalletPublicKey(code = 0x60, shouldMask = true),
     WalletSignature(code = 0x61),
     WalletRemainingSignatures(code = 0x62),
     WalletSignedHashes(code = 0x63),
@@ -106,7 +106,7 @@ enum class TlvTag(val code: Int) {
 
     WalletHDPath(code = 0x6A),
     WalletHDChain(code = 0x6B),
-    WalletPrivateKey(code = 0x6F),
+    WalletPrivateKey(code = 0x6F, shouldMask = true),
 
     Firmware(code = 0x80),
     BatchId(code = 0x81),

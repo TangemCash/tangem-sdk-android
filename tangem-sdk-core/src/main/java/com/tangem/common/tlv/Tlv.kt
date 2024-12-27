@@ -33,7 +33,12 @@ class Tlv {
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
         val tagFullName = "TAG_$tagName"
         val size = String.format("%02d", value.size)
-        return "$tagFullName [0x$tagRaw:$size]: ${value.toHexString()}"
+        val tagContent = if (!tag.shouldMask) {
+            "[0x$tagRaw:$size]: ${value.toHexString()}"
+        } else {
+            "*****"
+        }
+        return "$tagFullName $tagContent"
     }
 
     companion object {
