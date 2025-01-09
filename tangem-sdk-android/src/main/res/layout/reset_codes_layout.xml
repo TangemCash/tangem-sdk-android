@@ -5,16 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:focusable="true"
-    android:focusableInTouchMode="true"
-
-    >
+    android:focusableInTouchMode="true">
 
     <View
         android:id="@+id/expandingView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-
     </View>
 
     <LinearLayout
@@ -30,7 +27,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="Reset pin1" />
 
         <FrameLayout
             android:id="@+id/leapfrog_views_container"
@@ -99,7 +97,7 @@
                 android:textColor="@color/sdk_message_header"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                tools:text="Connect card and phone" />
+                tools:text="Tap the card or ring you want to restore" />
 
             <TextView
                 android:id="@+id/tvMessageSubtitle"
@@ -109,7 +107,8 @@
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:textColor="@color/sdk_message_body"
-                android:textSize="15sp" />
+                android:textSize="15sp"
+                tools:text="First, prepare the card or ring for restore process"/>
         </LinearLayout>
 
 

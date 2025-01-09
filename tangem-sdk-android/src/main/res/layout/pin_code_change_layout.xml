@@ -45,25 +45,6 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilNewPinCode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            app:boxBackgroundColor="@android:color/transparent"
-            tools:hint="@string/pin_change_new_code_format">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etNewPinCode"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:inputType="textPassword"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilPinCodeConfirm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
