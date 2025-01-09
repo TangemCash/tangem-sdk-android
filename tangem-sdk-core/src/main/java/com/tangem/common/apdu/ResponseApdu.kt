@@ -2,7 +2,6 @@ package com.tangem.common.apdu
 
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.calculateCrc16
-import com.tangem.common.extensions.toHexString
 import com.tangem.common.tlv.Tlv
 import com.tangem.crypto.decrypt
 import java.io.ByteArrayInputStream
@@ -63,6 +62,6 @@ class ResponseApdu(private val data: ByteArray) {
     }
 
     override fun toString(): String {
-        return "<<<< [${data.size + 2} bytes]: ${data.toHexString()} $sw1 $sw2 (SW: $statusWord)"
+        return "<<<< [${data.size + 2} bytes]: $sw1 $sw2 (SW: $statusWord)"
     }
 }
