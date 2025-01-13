@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="attestation_failed_card">This card may be production sample or counterfeit. You can continue at your own risk.</string>
+    <string name="attestation_failed_card_title">Card verification failed</string>
     <string name="attestation_failed_dev_card">This is a development card. Its authenticity cannot be verified. Do not accept this card as a means of payment.</string>
     <string name="attestation_online_failed_body">At the moment, online attestation of the card cannot be performed. You can continue at your own risk or try again later.</string>
     <string name="attestation_online_failed_title">Online attestation failed</string>
@@ -9,7 +10,7 @@
     <string name="backup_finalize_backup_card_message_format">Tap the card with number %s to your phone exactly as shown above.</string>
     <string name="backup_finalize_backup_ring_message">Tap the ring to your phone exactly as shown above.</string>
     <string name="backup_finalize_primary_card_message_format">Connect your phone and the primary card with number %s exactly as it shown above.</string>
-    <string name="backup_finalize_primary_ring_message">Connect your phone and the primary ring as it shown above.</string>
+    <string name="backup_finalize_primary_ring_message">Connect your phone and the primary ring as shown above.</string>
     <string name="backup_prepare_primary_card_message">Connect your phone and the primary card exactly as it shown above.</string>
     <string name="backup_prepare_primary_card_message_format">Connect your phone and the primary card with number %s exactly as it shown above.</string>
     <string name="biometric_prompt_title">Vault unlocking</string>
@@ -31,7 +32,7 @@
     <string name="error_backup_failed_already_created">This card cannot be used as a backup because it already contains a wallet. Ensure that no funds are stored on the card by scanning it in the app. Then, reset it to factory settings.</string>
     <string name="error_backup_not_empty_wallets">This card already has a wallet. If you want to proceed you have to reset it to factory settings first.</string>
     <string name="error_backup_wrong_card">This card can\'t be used as a backup card. Error code: %s.</string>
-    <string name="error_card_verification_failed">Card verification failed</string>
+    <string name="error_card_verification_failed">This card is a production sample or a counterfeit</string>
     <string name="error_extended_apdu_not_supported">It looks like your phone doesn\'t fully support NFC protocol. Please try to use another phone for this operation.</string>
     <string name="error_file_not_found">File not found</string>
     <string name="error_no_active_backup">The selected card cannot be used to reset the card access code, because there is no backup on it. Please contact support team.</string>

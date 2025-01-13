@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="attestation_failed_card">Diese Karte könnte ein Produktionsmuster oder eine Fälschung sein. Du kannst auf eigenem Risiko fortfahren.</string>
+    <string name="attestation_failed_card_title">Kartenprüfung fehlgeschlagen</string>
     <string name="attestation_failed_dev_card">Dies ist eine Entwicklungskarte. Ihre Authentizität kann nicht überprüft werden. Akzeptiere diese Karte nicht als Zahlungsmittel.</string>
     <string name="attestation_online_failed_body">Der Online-Nachweis/ Prüfung der Karte kann derzeit nicht durchgeführt werden. Du kannst auf eigenem Risiko fortfahren oder es später erneut versuchen.</string>
     <string name="attestation_online_failed_title">Online-Nachweis/Prüfung fehlgeschlagen</string>
@@ -14,13 +15,13 @@
     <string name="backup_prepare_primary_card_message_format">Verbinde dein Telefon und die primäre Karte mit der Nummer %s genau wie oben gezeigt.</string>
     <string name="biometric_prompt_title">Tresor entsperren</string>
     <string name="common_cancel">Abbrechen</string>
-    <string name="common_card">card</string>
-    <string name="common_card_or_ring">card or ring</string>
+    <string name="common_card">Karte</string>
+    <string name="common_card_or_ring">Karte oder Ring</string>
     <string name="common_continue">Fortsetzen</string>
     <string name="common_error">Fehler</string>
     <string name="common_ok">OK</string>
     <string name="common_retry">Wiederholen</string>
-    <string name="common_ring">ring</string>
+    <string name="common_ring">Ring</string>
     <string name="common_success">Erfolg</string>
     <string name="common_understand">Ich verstehe</string>
     <string name="common_warning">Warnung</string>
@@ -31,7 +32,7 @@
     <string name="error_backup_failed_already_created">Diese Karte kann nicht als Backup verwendet werden, da sie bereits eine Wallet enthält. Stelle sicher, dass kein Guthaben auf der Karte gespeichert ist, indem du sie in der App scannst. Setze  sie dann auf die Werkseinstellungen zurück.</string>
     <string name="error_backup_not_empty_wallets">Diese Karte verfügt bereits über ein Wallet. Wenn du fortfahren möchtest, musst du sie zunächst auf die Werkseinstellungen zurücksetzen.</string>
     <string name="error_backup_wrong_card">Diese Karte kann nicht als Backup-Karte verwendet werden. Fehlercode: %s.</string>
-    <string name="error_card_verification_failed">Kartenprüfung fehlgeschlagen</string>
+    <string name="error_card_verification_failed">Bei dieser Karte handelt es sich um ein Produktionsmuster oder eine Fälschung</string>
     <string name="error_extended_apdu_not_supported">Es sieht so aus, als würde dein Telefon das NFC-Protokoll nicht vollständig unterstützen. Bitte versuche, ein anderes Telefon für diesen Vorgang zu verwenden.</string>
     <string name="error_file_not_found">Datei nicht gefunden</string>
     <string name="error_no_active_backup">Die ausgewählte Karte kann nicht zum Zurücksetzen des Kartenzugangscodes verwendet werden, da sie nicht gesichert ist. Bitte wende dich an das Support-Team.</string>
@@ -63,7 +64,7 @@
     <string name="how_to_unknown_nothing_happened">Nichts passiert? Versuche die Karte vom Handy wegzunehmen und wieder darauf zu legen.</string>
     <string name="how_to_unknown_tap_card">Halte die Karte oder den Ring hinter dem Handy und scanne diese</string>
     <string name="issuer_signature_loading_failed">Das Zertifikat der Karte konnte nicht geladen werden. Bitte versuche es später erneut.</string>
-    <string name="nfc_session_timeout">Unvollständiger Prozess. Um den Vorgang abzuschließen,halte die Karte bitte erneut an.</string>
+    <string name="nfc_session_timeout">Unvollständiger Prozess. Um den Vorgang abzuschließen,halte die Karte oder Ring bitte erneut an.</string>
     <string name="pin1">Zugangscode</string>
     <string name="pin2">Passcode</string>
     <string name="pin_change_new_code_format">Neu %s</string>
@@ -85,13 +86,14 @@
     <string name="reset_codes_scan_to_reset">Scanne die Karte oder den Ring, um Benutzercodes zurückzusetzen</string>
     <string name="reset_codes_success_message">Code wurde erfolgreich zurückgesetzt</string>
     <string name="sign_multiple_chunks_part">Unterzeichnung von Teil %1$d von %2$d</string>
+    <string name="tangem_never_pregenerate_code_alert">Tangem verkauft niemals Geldbörsen zusammen mit dem vorgenerierten Zugangscode</string>
     <string name="view_delegate_delay">Der Vorgang läuft</string>
     <string name="view_delegate_header_card">Karte</string>
     <string name="view_delegate_scan">Bereit zum Scannen</string>
     <string name="view_delegate_scan_description">Halte die Karte oder den Ring bis zum Ende des Vorgangs gedrückt, wie oben gezeigt</string>
-    <string name="view_delegate_scan_description_format">Tap the %s as shown above and hold until the end of the operation</string>
+    <string name="view_delegate_scan_description_format">Halte die %s wie oben gezeigt auf und halten diese gedrückt, bis der Vorgang abgeschlossen ist.</string>
     <string name="view_delegate_security_delay">Langes Drücken</string>
     <string name="view_delegate_security_delay_description">Um die Sicherheit zu gewährleisten, halte die Karte oder den Ring bitte bis zum Abschluss des Vorgangs angedrückt.</string>
-    <string name="view_delegate_security_delay_description_format">To ensure security please hold the %s until the operation is complete</string>
+    <string name="view_delegate_security_delay_description_format">Um die Sicherheit zu gewährleisten, halte die %s bis zum Ende des Vorgangs gedrückt.</string>
     <string name="wallet_not_found">Sieht so aus, als hättest du die falsche Karte. Der Vorgang kann mit dieser Karte nicht durchgeführt werden.</string>
 </resources>

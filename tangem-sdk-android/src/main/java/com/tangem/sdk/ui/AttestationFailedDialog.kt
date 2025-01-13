@@ -14,7 +14,7 @@ import com.tangem.sdk.postUI
 object AttestationFailedDialog {
 
     fun didFail(context: Context, isDevCard: Boolean, positive: VoidCallback, negative: VoidCallback) {
-        val title = context.getString(R.string.error_card_verification_failed)
+        val title = context.getString(R.string.attestation_failed_card_title)
         val messageResId = when {
             isDevCard -> R.string.attestation_failed_dev_card
             else -> R.string.attestation_failed_card

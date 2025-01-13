@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="attestation_failed_card">Эта карта – тестовый образец или подделка. Вы можете продолжать на свой страх и риск.</string>
+    <string name="attestation_failed_card_title">Ошибка проверки карты</string>
     <string name="attestation_failed_dev_card">Это карта предназначена для тестовых целей. Её подлинность не может быть проверена. Не принимайте эту карту как средство оплаты.</string>
     <string name="attestation_online_failed_body">В настоящее время онлайн аттестация карты не может быть выполнена. Вы можете продолжить на свой страх и риск или повторить попытку.</string>
     <string name="attestation_online_failed_title">Онлайн-аттестация не удалась</string>
@@ -31,7 +32,7 @@
     <string name="error_backup_failed_already_created">Резервное копирование невозможно, на выбранной карте уже создан кошелек. Пожалуйста, убедитесь, что на этой карте нет средств, отсканировав её в приложении, и затем сбросьте её до заводских настроек.</string>
     <string name="error_backup_not_empty_wallets">На этой карте уже создан кошелёк. Если вы хотите продолжить, сбросьте карту к заводским настройкам.</string>
     <string name="error_backup_wrong_card">Эту карту нельзя использовать для резервного копирования. Код ошибки: %s.</string>
-    <string name="error_card_verification_failed">Ошибка проверки карты</string>
+    <string name="error_card_verification_failed">Эта карта является производственным образцом или подделкой</string>
     <string name="error_extended_apdu_not_supported">Похоже, что ваш телефон не полностью поддерживает NFC. Пожалуйста, попробуйте использовать другой телефон для этой операции.</string>
     <string name="error_file_not_found">Файл не найден</string>
     <string name="error_no_active_backup">Выбранная карта не может использоваться для сброса кода доступа карты, т.к. на ней нет резервного копирования. Обратитесь, пожалуйста, в поддержку.</string>
