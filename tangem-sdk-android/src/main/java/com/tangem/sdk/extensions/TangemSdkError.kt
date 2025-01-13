@@ -95,12 +95,14 @@ fun TangemSdkError.localizedDescriptionRes(): TangemSdkErrorDescription {
         is TangemSdkError.WalletIsNotCreated,
         is TangemSdkError.WalletIsPurged,
         is TangemSdkError.SignHashesNotAvailable,
-        is TangemSdkError.CardVerificationFailed,
         is TangemSdkError.NonHardenedDerivationNotSupported,
         is TangemSdkError.AuthenticationNotInitialized,
         is TangemSdkError.NfcFeatureIsUnavailable,
-        is TangemSdkError.CardOfflineVerificationFailed,
         -> TangemSdkErrorDescription()
+
+        is TangemSdkError.CardVerificationFailed -> {
+            TangemSdkErrorDescription(resId = R.string.error_card_verification_failed)
+        }
 
         is TangemSdkError.BackupFailedEmptyWallets,
         is TangemSdkError.BackupFailedHDWalletSettings,

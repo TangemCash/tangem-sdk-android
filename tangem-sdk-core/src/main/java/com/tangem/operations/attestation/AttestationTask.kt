@@ -75,18 +75,7 @@ class AttestationTask(
                             cardKeyAttestation = Attestation.Status.Failed,
                         )
 
-                        val isDevelopmentCard =
-                            session.environment.card!!.firmwareVersion.type == FirmwareVersion.FirmwareType.Sdk
-
-                        if (isDevelopmentCard) {
-                            session.viewDelegate.attestationDidFail(
-                                isDevCard = true,
-                                positive = { complete(session, callback) },
-                                negative = { callback(CompletionResult.Failure(TangemSdkError.UserCancelled())) },
-                            )
-                        } else {
-                            callback(CompletionResult.Failure(TangemSdkError.CardOfflineVerificationFailed()))
-                        }
+                        callback(CompletionResult.Failure(result.error))
                     } else {
                         callback(CompletionResult.Failure(result.error))
                     }
@@ -239,7 +228,7 @@ class AttestationTask(
                         currentAttestationStatus = currentAttestationStatus.copy(
                             walletKeysAttestation = Attestation.Status.Failed,
                         )
-                        runExtraAttestation(session, callback)
+                        callback(CompletionResult.Failure(result.error))
                     } else {
                         callback(CompletionResult.Failure(result.error))
                     }

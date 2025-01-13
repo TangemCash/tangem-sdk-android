@@ -325,8 +325,6 @@ sealed class TangemSdkError(code: Int) : TangemError(code) {
      */
     class NfcFeatureIsUnavailable : TangemSdkError(code = 50027)
 
-    class CardOfflineVerificationFailed : TangemSdkError(code = 50028)
-
     /**
      * Get error according to the pin type
      * @param userCodeType: Specific user code type
