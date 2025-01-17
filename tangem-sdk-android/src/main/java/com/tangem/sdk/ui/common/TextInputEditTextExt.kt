@@ -4,7 +4,7 @@ import android.os.Build
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
+import android.view.inputmethod.EditorInfo
 import com.google.android.material.textfield.TextInputEditText
 import com.tangem.sdk.R
 
@@ -26,10 +26,16 @@ internal fun TextInputEditText.disableContextMenu() {
     }
 }
 
-internal fun TextInputEditText.disableAutofill() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        setAutofillHints(null)
-        importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+internal fun TextInputEditText.setupImeActionDone(action: () -> Unit) {
+    imeOptions = EditorInfo.IME_ACTION_DONE
+
+    setOnEditorActionListener { _, actionId, _ ->
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
+            action()
+            true
+        } else {
+            false
+        }
     }
 }
 

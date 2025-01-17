@@ -16,35 +16,19 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp">
 
-        <com.google.android.material.textfield.TextInputLayout
+        <include
             android:id="@+id/tilPinCode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/pin1"
-            app:boxBackgroundColor="@android:color/transparent"
-            app:errorIconDrawable="@null"
-            app:passwordToggleEnabled="true">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPinCode"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+            layout="@layout/access_code_input_layout" />
 
     </FrameLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/tangem_never_pregenerate_code_alert"
-        android:layout_marginTop="12dp"
         android:layout_marginHorizontal="16dp"
-        android:textColor="@color/dark_gray"
-        />
+        android:layout_marginTop="12dp"
+        android:text="@string/tangem_never_pregenerate_code_alert"
+        android:textColor="@color/dark_gray" />
 
     <View
         android:layout_width="match_parent"

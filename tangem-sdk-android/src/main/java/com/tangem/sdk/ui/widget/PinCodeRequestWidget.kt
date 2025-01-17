@@ -1,8 +1,6 @@
 package com.tangem.sdk.ui.widget
 
-import android.text.InputType
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -17,8 +15,8 @@ import com.tangem.sdk.extensions.localizedDescription
 import com.tangem.sdk.extensions.show
 import com.tangem.sdk.extensions.showSoftKeyboard
 import com.tangem.sdk.postUI
-import com.tangem.sdk.ui.common.disableAutofill
 import com.tangem.sdk.ui.common.disableContextMenu
+import com.tangem.sdk.ui.common.setupImeActionDone
 
 /**
  * Created by Anton Zhilenkov on 09/08/2020.
@@ -28,26 +26,15 @@ class PinCodeRequestWidget(mainView: View) : BaseSessionDelegateStateWidget(main
     var onContinue: CompletionCallback<String>? = null
 
     private val tilPinCode = mainView.findViewById<TextInputLayout>(R.id.tilPinCode)
-    private val etPinCode = mainView.findViewById<TextInputEditText>(R.id.etPinCode)
+    private val etPinCode = tilPinCode.findViewById<TextInputEditText>(R.id.etPinCode)
     private val btnContinue = mainView.findViewById<Button>(R.id.btnContinue)
     private val btnForgotCode = mainView.findViewById<Button>(R.id.btnForgotCode)
 
     init {
-        etPinCode.isSingleLine = true
-        etPinCode.imeOptions = EditorInfo.IME_ACTION_DONE
-        etPinCode.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                btnContinue.performClick()
-                true
-            } else {
-                false
-            }
-        }
-        val hiddenPassword = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        etPinCode.inputType = hiddenPassword
+        tilPinCode.hint = getString(R.string.pin1)
 
+        etPinCode.setupImeActionDone(btnContinue::performClick)
         etPinCode.disableContextMenu()
-        etPinCode.disableAutofill()
     }
 
     override fun setState(params: SessionViewDelegateState) {

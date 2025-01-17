@@ -1,7 +1,6 @@
 package com.tangem.sdk.ui.widget
 
 import android.text.Editable
-import android.text.InputType
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.View
@@ -18,8 +17,8 @@ import com.tangem.sdk.SessionViewDelegateState
 import com.tangem.sdk.extensions.hideSoftKeyboard
 import com.tangem.sdk.extensions.showSoftKeyboard
 import com.tangem.sdk.postUI
-import com.tangem.sdk.ui.common.disableAutofill
 import com.tangem.sdk.ui.common.disableContextMenu
+import com.tangem.sdk.ui.common.setupImeActionDone
 
 /**
  * Created by Anton Zhilenkov on 05/08/2020.
@@ -31,17 +30,16 @@ class PinCodeModificationWidget(
 
     var onSave: ((String) -> Unit)? = null
 
-    private val tvScreenTitle: TextView = mainView.findViewById(R.id.tvScreenTitle)
+    private val tvScreenTitle = mainView.findViewById<TextView>(R.id.tvScreenTitle)
 
-    private val tilPinCode: TextInputLayout = mainView.findViewById(R.id.tilPinCode)
-    private val tilPinCodeConfirm: TextInputLayout = mainView.findViewById(R.id.tilPinCodeConfirm)
+    private val tilPinCode = mainView.findViewById<TextInputLayout>(R.id.tilPinCode)
+    private val tilPinCodeConfirm = mainView.findViewById<TextInputLayout>(R.id.tilPinCodeConfirm)
 
-    private val etPinCode: TextInputEditText = mainView.findViewById(R.id.etPinCode)
-    private val etPinCodeConfirm: TextInputEditText = mainView.findViewById(R.id.etPinCodeConfirm)
+    private val etPinCode = tilPinCode.findViewById<TextInputEditText>(R.id.etPinCode)
+    private val etPinCodeConfirm = tilPinCodeConfirm.findViewById<TextInputEditText>(R.id.etPinCode)
 
-    private val btnSave: Button = mainView.findViewById(R.id.btnSaveCode)
+    private val btnSave = mainView.findViewById<Button>(R.id.btnSaveCode)
 
-    private var isPasswordEnabled = true
     private var userCodeType: UserCodeType = UserCodeType.AccessCode
     private val pinName: String
         get() = when (userCodeType) {
@@ -53,11 +51,10 @@ class PinCodeModificationWidget(
         setStateByMode()
         setupInnerLogic()
 
+        etPinCodeConfirm.setupImeActionDone(btnSave::performClick)
+
         etPinCode.disableContextMenu()
         etPinCodeConfirm.disableContextMenu()
-
-        etPinCode.disableAutofill()
-        etPinCodeConfirm.disableAutofill()
     }
 
     override fun setState(params: SessionViewDelegateState) {
@@ -76,34 +73,23 @@ class PinCodeModificationWidget(
 
     private fun setStateByMode() {
         val nameOfPin = pinName
-        when (mode) {
-            Mode.SET -> {
-                tvScreenTitle.text = getFormattedString(R.string.pin_set_code_format, nameOfPin)
-                tilPinCode.hint = nameOfPin
-                tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
-                btnSave.text = getString(R.string.common_continue)
-            }
-            Mode.RESET -> {
-                tvScreenTitle.text = getFormattedString(R.string.pin_change_new_code_format, nameOfPin)
-                tilPinCode.hint = nameOfPin
-                etPinCode.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
-                etPinCodeConfirm.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                btnSave.text = getString(R.string.common_continue)
-            }
-        }
+
+        tilPinCode.hint = nameOfPin
+        tilPinCodeConfirm.hint = getFormattedString(R.string.pin_set_code_confirm_format, nameOfPin)
+        btnSave.text = getString(R.string.common_continue)
+
+        tvScreenTitle.text = getFormattedString(
+            id = when (mode) {
+                Mode.SET -> R.string.pin_set_code_format
+                Mode.RESET -> R.string.pin_change_new_code_format
+            },
+            name = nameOfPin,
+        )
     }
 
     private fun setupInnerLogic() {
-        etPinCode.debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
-            setErrorStateVisibility(getInputFieldsState())
-        }
-        etPinCodeConfirm.debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
-            setErrorStateVisibility(getInputFieldsState())
-        }
-
-        tilPinCode.setEndIconOnClickListener { onPasswordToggleClicked() }
-        tilPinCodeConfirm.setEndIconOnClickListener { onPasswordToggleClicked() }
+        etPinCode.setErrorStateVisibilityWithDebounce()
+        etPinCodeConfirm.setErrorStateVisibilityWithDebounce()
 
         btnSave.isEnabled = false
         btnSave.setOnClickListener {
@@ -114,6 +100,12 @@ class PinCodeModificationWidget(
                     onSaveClicked(requireNotNull(etPinCodeConfirm.text?.toString()))
                 }
             }
+        }
+    }
+
+    private fun TextInputEditText.setErrorStateVisibilityWithDebounce() {
+        debounce(INPUT_FIELD_DEBOUNCE_DELAY) {
+            setErrorStateVisibility(getInputFieldsState())
         }
     }
 
@@ -169,34 +161,18 @@ class PinCodeModificationWidget(
         return if (code1 == code2) CheckCodesState.MATCH else CheckCodesState.NOT_MATCH
     }
 
-    private fun onPasswordToggleClicked() {
-        isPasswordEnabled = !isPasswordEnabled
-        etPinCode.togglePasswordInputType()
-        etPinCodeConfirm.togglePasswordInputType()
+    enum class Mode {
+        SET, RESET
     }
 
-    private fun TextInputEditText.togglePasswordInputType() {
-        val hiddenPassword = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        inputType = if (isPasswordEnabled) {
-            hiddenPassword
-        } else {
-            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-        }
-        setSelection(text?.length ?: 0)
-    }
-
-    enum class CheckCodesState {
+    private enum class CheckCodesState {
         NOT_MATCH,
         UNDEFINED,
         TOO_SHORT,
         MATCH,
     }
 
-    enum class Mode {
-        SET, RESET
-    }
-
-    companion object {
+    private companion object {
         private const val INPUT_FIELD_DEBOUNCE_DELAY = 400L
         private const val PIN_CODE_MIN_LENGTH = 4
     }

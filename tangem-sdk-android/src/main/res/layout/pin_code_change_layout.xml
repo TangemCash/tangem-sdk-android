@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/llChangePin"
     android:layout_width="match_parent"
@@ -23,45 +22,28 @@
             android:textStyle="bold"
             tools:text="@string/pin_set_code_format" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPinCode"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:gravity="bottom"
-            app:boxBackgroundColor="@android:color/transparent"
-            app:errorIconDrawable="@null"
-            app:passwordToggleEnabled="true">
+            android:layout_marginTop="16dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPinCode"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:inputType="textPassword"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp" />
+            <include
+                android:id="@+id/tilPinCode"
+                layout="@layout/access_code_input_layout" />
 
-        </com.google.android.material.textfield.TextInputLayout>
+        </FrameLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPinCodeConfirm"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            app:boxBackgroundColor="@android:color/transparent"
-            tools:hint="@string/pin_set_code_confirm_format">
+            android:layout_marginTop="10dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPinCodeConfirm"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:inputType="textPassword"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp" />
+            <include
+                android:id="@+id/tilPinCodeConfirm"
+                layout="@layout/access_code_input_layout" />
 
-        </com.google.android.material.textfield.TextInputLayout>
+        </FrameLayout>
 
     </LinearLayout>
 
