@@ -8,6 +8,7 @@ import com.tangem.common.core.CardSessionRunnable
 import com.tangem.common.core.CompletionCallback
 import com.tangem.common.core.TangemSdkError
 import com.tangem.common.extensions.guard
+import com.tangem.operations.attestation.AttestationTask
 
 @JsonClass(generateAdapter = true)
 data class StartBackupCardLinkingTaskResponse(
@@ -87,18 +88,33 @@ class StartBackupCardLinkingTask(
             .run(session) { result ->
                 when (result) {
                     is CompletionResult.Success -> {
-                        session.environment.card?.let { updatedCard ->
-                            val response = StartBackupCardLinkingTaskResponse(
-                                backupCard = result.data,
-                                card = updatedCard,
-                            )
-                            callback(CompletionResult.Success(response))
-                        } ?: callback(CompletionResult.Failure(TangemSdkError.MissingPreflightRead()))
+                        runAttestation(
+                            session = session,
+                            response = StartBackupCardLinkingTaskResponse(backupCard = result.data, card = card),
+                            callback = callback,
+                        )
                     }
 
                     is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
                 }
             }
+    }
+
+    private fun runAttestation(
+        session: CardSession,
+        response: StartBackupCardLinkingTaskResponse,
+        callback: CompletionCallback<StartBackupCardLinkingTaskResponse>,
+    ) {
+        val mode = session.environment.config.attestationMode
+        val secureStorage = session.environment.secureStorage
+        val attestationTask = AttestationTask(mode, secureStorage)
+
+        attestationTask.run(session) { result ->
+            when (result) {
+                is CompletionResult.Success -> callback(CompletionResult.Success(response))
+                is CompletionResult.Failure -> callback(CompletionResult.Failure(result.error))
+            }
+        }
     }
 
     private fun isBatchIdCompatible(batchId: String): Boolean {
