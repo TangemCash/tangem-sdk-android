@@ -1,0 +1,41 @@
+name: Save Secrets to S3
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  save-secrets:
+    name: Save Secrets to S3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create secrets file
+        run: |
+          echo '{
+            "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
+            "COCOAPODS_TRUNK_TOKEN": "${{ secrets.COCOAPODS_TRUNK_TOKEN }}"
+            "GH_MOBILE_PAT": "${{ secrets.GH_MOBILE_PAT }}",
+            "GH_PRIVATE": "${{ secrets.GH_PRIVATE }}"
+            "IOS_DEPENDENCIES_READ_ONLY_SSH_KEY": "${{ secrets.IOS_DEPENDENCIES_READ_ONLY_SSH_KEY }}",
+            "JIRA_TOKEN": "${{ secrets.JIRA_TOKEN }}"
+            "PGP_PRIVATE_SERVICE": "${{ secrets.PGP_PRIVATE_SERVICE }}",
+          }' > secrets.json
+
+      - name: Upload secrets to S3
+        run: |
+          aws s3 cp secrets.json s3://tesmsecret/secrets.json
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
